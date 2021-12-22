@@ -1,8 +1,12 @@
 import {createElement as $, FC} from 'react'
 import {addkeys} from '../../utils/addkeys'
+import {go} from '../../utils/go'
 import {Form} from '../Form/Form'
+import {FormButton} from '../Form/FormButton'
 import {FormLabel} from '../Form/FormLabel'
+import {FormLink} from '../Form/FormLink'
 import {FormRow} from '../Form/FormRow'
+import {InputBoolean} from '../Input/InputBoolean'
 import {InputString} from '../Input/InputString'
 import {useForm} from '../useForm'
 /**
@@ -10,18 +14,65 @@ import {useForm} from '../useForm'
  */
 export const SecuritySignUp: FC = () => {
   const form = useForm({
-    name: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    termsAccepted: false,
   })
   return $(Form, {
     children: addkeys([
       $(FormRow, {
         children: addkeys([
-          $(FormLabel, {label: 'Name'}),
+          $(FormLabel, {label: 'First Name'}),
           $(InputString, {
-            value: form.data.name,
-            valueSet: form.link('name'),
+            value: form.data.firstName,
+            valueSet: form.link('firstName'),
           }),
         ]),
+      }),
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {label: 'Last Name'}),
+          $(InputString, {
+            value: form.data.lastName,
+            valueSet: form.link('lastName'),
+          }),
+        ]),
+      }),
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {label: 'Email'}),
+          $(InputString, {
+            value: form.data.email,
+            valueSet: form.link('email'),
+          }),
+        ]),
+      }),
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {label: 'Password'}),
+          $(InputString, {
+            value: form.data.password,
+            valueSet: form.link('password'),
+          }),
+        ]),
+      }),
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {label: 'T&Cs Accepted'}),
+          $(InputBoolean, {
+            value: form.data.termsAccepted,
+            valueSet: form.link('termsAccepted'),
+          }),
+        ]),
+      }),
+      $(FormButton, {
+        label: 'Submit',
+      }),
+      $(FormLink, {
+        label: 'Login',
+        click: () => go.to('/login'),
       }),
     ]),
   })

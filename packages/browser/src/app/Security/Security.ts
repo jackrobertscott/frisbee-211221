@@ -15,19 +15,19 @@ export const Security: FC = () => {
       path: '/login',
       label: 'Login',
       message: 'Please sign in to your account.',
-      render: () => $(SecurityLogin, {}),
+      render: () => $(SecurityLogin),
     },
     {
       path: '/sign-up',
       label: 'Sign Up',
-      message: 'Please create an account to get started.',
-      render: () => $(SecuritySignUp, {}),
+      message: 'Create an account to get started.',
+      render: () => $(SecuritySignUp),
     },
     {
       path: '/forgot-password',
       label: 'Forgot Password',
-      message: 'Reset your password and recover your account.',
-      render: () => $(SecurityReset, {}),
+      message: 'Reset your password.',
+      render: () => $(SecurityReset),
     },
   ])
   return $('div', {
