@@ -10,21 +10,22 @@ export const FormButton: FC<{
   icon?: string
   label: string
   click?: () => void
-}> = ({icon, label, click}) => {
+  disabled?: boolean
+}> = ({icon, label, click, disabled}) => {
   return $('div', {
-    onClick: click,
+    onClick: () => !disabled && click?.(),
     className: css({
       display: 'flex',
       justifyContent: 'center',
       textAlign: 'center',
       userSelect: 'none',
       border: theme.border,
+      background: disabled ? theme.bgDisabledColor : theme.bgColor,
       padding: theme.padify(theme.inputPadding),
-      background: theme.bgColor,
-      '&:hover': {
+      '&:hover': !disabled && {
         background: theme.bgHoverColor,
       },
-      '&:active': {
+      '&:active': !disabled && {
         background: theme.bgPressColor,
       },
       '& > *:not(:last-child)': {

@@ -235,7 +235,7 @@ const _sendUserVerificationEmail = async (email: string, firstName: string) => {
       Hey ${firstName},<br/><br/>
       Your email verification code:<br/><br/>
       <strong>${codeSliced}</strong><br/><br/>
-      The code will expire in 10 minutes.
+      The code will expire in 10 minutes.<br/><br/>
       Have a nice day.
     `
       .split('\n')
@@ -258,7 +258,7 @@ const _sendResetPasswordEmail = async (email: string, firstName: string) => {
       Hey ${firstName},<br/><br/>
       Your password reset code is:<br/><br/>
       <strong>${codeSliced}</strong><br/><br/>
-      The code will expire in 10 minutes.
+      The code will expire in 10 minutes.<br/><br/>
       Have a nice day.
     `
       .split('\n')

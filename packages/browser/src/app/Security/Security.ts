@@ -4,30 +4,39 @@ import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {useRouter} from '../Router/useRouter'
 import {SecurityLogin} from './SecurityLogin'
-import {SecurityReset} from './SecurityReset'
+import {SecurityForgot} from './SecurityForgot'
 import {SecuritySignUp} from './SecuritySignUp'
+import {useLocalState} from '../useLocalState'
 /**
  *
  */
 export const Security: FC = () => {
+  const [savedEmail, savedEmailSet] = useLocalState('frisbee.savedEmail', '')
   const router = useRouter('/login', [
     {
       path: '/login',
       label: 'Login',
       message: 'Please sign in to your account.',
-      render: () => $(SecurityLogin),
+      render: () =>
+        $(SecurityLogin, {
+          savedEmail,
+          savedEmailSet,
+        }),
     },
     {
       path: '/sign-up',
       label: 'Sign Up',
       message: 'Create an account to get started.',
-      render: () => $(SecuritySignUp),
+      render: () =>
+        $(SecuritySignUp, {
+          savedEmailSet,
+        }),
     },
     {
       path: '/forgot-password',
       label: 'Forgot Password',
       message: 'Reset your password.',
-      render: () => $(SecurityReset),
+      render: () => $(SecurityForgot),
     },
   ])
   return $('div', {

@@ -26,6 +26,7 @@ const config: {
   prod: boolean
   debug: boolean
   port: number
+  appName: string
   urlClient: string
   mongodbUri: string
   mongodbName: string
@@ -44,6 +45,7 @@ const config: {
   prod: env.NODE_ENV === 'production',
   debug: true,
   port: 4100,
+  appName: 'Marlow Street',
   urlClient: env.URL_CLIENT,
   mongodbUri: env.MONGODB_URI,
   mongodbName: env.MONGODB_DB,

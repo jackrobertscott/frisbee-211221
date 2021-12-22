@@ -31,7 +31,7 @@ export default {
       Message: {
         Subject: {
           Charset: 'UTF-8',
-          Data: subject.trim().concat(' | Marlow Street'),
+          Data: `${subject.trim()} | ${config.appName}`,
         },
         Body: {},
       },
