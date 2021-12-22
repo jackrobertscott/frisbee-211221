@@ -1,0 +1,9 @@
+{
+  "watch": ["src"],
+  "exec": "yarn serve",
+  "ext": "ts,tsx,gql",
+  "ignore": [
+    "**/*.test.*",
+    "**/*.spec.*"
+  ]
+}
