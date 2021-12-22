@@ -2,18 +2,34 @@ import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
-import {Form} from '../Form/Form'
-import {FormLabel} from '../Form/FormLabel'
-import {FormRow} from '../Form/FormRow'
-import {InputString} from '../Input/InputString'
-import {useForm} from '../useForm'
+import {useRouter} from '../Router/useRouter'
+import {SecurityLogin} from './SecurityLogin'
+import {SecurityReset} from './SecurityReset'
+import {SecuritySignUp} from './SecuritySignUp'
 /**
  *
  */
 export const Security: FC = () => {
-  const form = useForm({
-    name: '',
-  })
+  const router = useRouter('/login', [
+    {
+      path: '/login',
+      label: 'Login',
+      message: 'Please sign in to your account.',
+      render: () => $(SecurityLogin, {}),
+    },
+    {
+      path: '/sign-up',
+      label: 'Sign Up',
+      message: 'Please create an account to get started.',
+      render: () => $(SecuritySignUp, {}),
+    },
+    {
+      path: '/forgot-password',
+      label: 'Forgot Password',
+      message: 'Reset your password and recover your account.',
+      render: () => $(SecurityReset, {}),
+    },
+  ])
   return $('div', {
     className: css({
       padding: 13,
@@ -29,19 +45,27 @@ export const Security: FC = () => {
         width: 377,
         border: theme.border,
       }),
-      children: $(Form, {
-        children: addkeys([
-          $(FormRow, {
-            children: addkeys([
-              $(FormLabel, {label: 'Name'}),
-              $(InputString, {
-                value: form.data.name,
-                valueSet: form.link('name'),
-              }),
-            ]),
+      children: addkeys([
+        $('div', {
+          className: css({
+            borderBottom: theme.border,
+            padding: theme.padify(theme.formPadding),
           }),
-        ]),
-      }),
+          children: addkeys([
+            $('div', {
+              children: router.current?.label,
+            }),
+            $('div', {
+              children: router.current?.message,
+              className: css({
+                paddingTop: 5,
+                opacity: 0.5,
+              }),
+            }),
+          ]),
+        }),
+        router.render(),
+      ]),
     }),
   })
 }

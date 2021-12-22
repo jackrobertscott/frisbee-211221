@@ -19,7 +19,7 @@ export const InputSelect: FC<{
   options: TSelectOption[]
   placeholder?: string
   disabled?: boolean
-}> = ({value, valueSet, options, placeholder, disabled}) => {
+}> = ({value, valueSet, options, placeholder = '...', disabled}) => {
   const [open, openSet] = useState(false)
   const current = options.find((i) => i.key === value)
   return $(Popup, {

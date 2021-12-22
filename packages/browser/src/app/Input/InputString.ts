@@ -17,7 +17,7 @@ export const InputString: FC<{
 }> = ({
   value: _value,
   valueSet,
-  placeholder,
+  placeholder = '...',
   type = 'text',
   blur,
   enter,

@@ -19,7 +19,7 @@ export const InputNumber: FC<{
 }> = ({
   value,
   valueSet,
-  placeholder,
+  placeholder = '...',
   blur,
   enter,
   min,

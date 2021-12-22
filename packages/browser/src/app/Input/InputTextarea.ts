@@ -13,7 +13,15 @@ export const InputTextarea: FC<{
   enter?: () => void
   disabled?: boolean
   rows?: number
-}> = ({value: _value, valueSet, placeholder, blur, enter, disabled, rows}) => {
+}> = ({
+  value: _value,
+  valueSet,
+  placeholder = '...',
+  blur,
+  enter,
+  disabled,
+  rows,
+}) => {
   const value = _value === undefined ? '' : _value
   return $('textarea', {
     value,

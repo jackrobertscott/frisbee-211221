@@ -7,13 +7,16 @@ import {createElement as $, StrictMode} from 'react'
 import {App} from './app/App'
 import {AuthProvider} from './app/Auth/AuthProvider'
 import {ToasterProvider} from './app/Toaster/ToasterProvider'
+import {RouterProvider} from './app/Router/RouterProvider'
 /**
  *
  */
 const root = $(StrictMode, {
   children: $(ToasterProvider, {
     children: $(AuthProvider, {
-      children: $(App),
+      children: $(RouterProvider, {
+        children: $(App),
+      }),
     }),
   }),
 })

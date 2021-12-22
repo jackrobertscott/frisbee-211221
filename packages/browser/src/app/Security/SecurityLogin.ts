@@ -1,13 +1,29 @@
-import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
+import {addkeys} from '../../utils/addkeys'
+import {Form} from '../Form/Form'
+import {FormLabel} from '../Form/FormLabel'
+import {FormRow} from '../Form/FormRow'
+import {InputString} from '../Input/InputString'
+import {useForm} from '../useForm'
 /**
  *
  */
 export const SecurityLogin: FC = () => {
-  return $('div', {
-    children: 'SecurityLogin',
-    className: css({
-      padding: 13,
-    }),
+  const form = useForm({
+    name: '',
+    accept: true,
+  })
+  return $(Form, {
+    children: addkeys([
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {label: 'Name'}),
+          $(InputString, {
+            value: form.data.name,
+            valueSet: form.link('name'),
+          }),
+        ]),
+      }),
+    ]),
   })
 }
