@@ -91,10 +91,10 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
                   padding: theme.padify(8),
                   borderLeft: theme.border,
                   '&:hover': {
-                    background: theme.whiteHover,
+                    background: theme.bgHoverColor,
                   },
                   '&:active': {
-                    background: theme.whiteActive,
+                    background: theme.bgPressColor,
                   },
                 }),
                 children: $(Icon, {

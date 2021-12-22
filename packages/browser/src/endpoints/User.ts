@@ -4,16 +4,6 @@ import {createEndpoint} from '../utils/endpoints'
 /**
  *
  */
-export const $Test = createEndpoint({
-  path: '/Test',
-  payload: io.object({
-    name: io.string(),
-  }),
-  result: io.object({hello: io.string()}),
-})
-/**
- *
- */
 export const $UserUpdate = createEndpoint({
   path: '/UserUpdate',
   payload: io.object({
