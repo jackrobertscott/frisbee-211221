@@ -12,6 +12,18 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
+    path: '/Test',
+    payload: io.object({
+      name: io.string(),
+    }),
+    handler: (body) => async (req) => {
+      return {hello: `Hello ${body.name}`}
+    },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
     path: '/UserUpdate',
     payload: io.object({
       firstName: io.optional(io.string()),

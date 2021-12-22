@@ -17,11 +17,8 @@ const handler: RequestHandler = async (req, res) => {
 const $ = cors({
   origin: config.urlClient,
 })(capture.handle(prerequest(handler)))
-if (!process.env.VERCEL) {
-  micro($).listen(config.port, () => {
-    console.log(`1️⃣  Server: http://localhost:${config.port}`)
-    console.log(`2️⃣  Environment: ${config.env}`)
-    console.log(`3️⃣  Debug: ${config.debug ? 'on' : 'off'}`)
-  })
-}
-export default $
+micro($).listen(config.port, () => {
+  console.log(`1️⃣  Server: http://localhost:${config.port}`)
+  console.log(`2️⃣  Environment: ${config.env}`)
+  console.log(`3️⃣  Debug: ${config.debug ? 'on' : 'off'}`)
+})

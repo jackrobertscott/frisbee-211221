@@ -20,7 +20,12 @@ export default {
   handle(handler: RequestHandler): RequestHandler {
     return async (req, res) => {
       try {
-        return await handler(req, res)
+        const data = await handler(req, res)
+        if (typeof data !== 'object' && !Array.isArray(data)) {
+          const message = `Request handler may only return an object or an array but got ${typeof data}.`
+          throw new Error(message)
+        }
+        return data
       } catch (error) {
         if (typeof error === 'string') error = new Error(error)
         const pretty = this.pretty(error, req)
