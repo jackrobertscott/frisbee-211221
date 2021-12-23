@@ -1,4 +1,5 @@
 import {createContext} from 'react'
+import {TSeason} from '../../schemas/Season'
 import {TSession} from '../../schemas/Session'
 import {TTeam} from '../../schemas/Team'
 import {TUser} from '../../schemas/User'
@@ -11,6 +12,7 @@ export interface TAuth {
   userId: string
   session: TSession
   user: TUser
+  season?: TSeason
   team?: TTeam
 }
 /**
@@ -19,6 +21,7 @@ export interface TAuth {
 export interface TAuthPayload {
   session: TSession
   user: TUser
+  season?: TSeason
   team?: TTeam
 }
 /**
