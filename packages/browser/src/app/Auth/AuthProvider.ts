@@ -7,13 +7,11 @@ import {useLocalState} from '../useLocalState'
  */
 export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
   const [current, currentSet] = useLocalState<TAuth | undefined>('auth')
-  const mapAuthState = ({user, session, team}: TAuthPayload): TAuth => ({
-    token: session.token,
-    created: session.createdOn,
-    userId: user.id,
-    session,
-    user,
-    team,
+  const mapAuthState = (payload: TAuthPayload): TAuth => ({
+    ...payload,
+    token: payload.session.token,
+    created: payload.session.createdOn,
+    userId: payload.user.id,
   })
   useEffect(() => {
     if (current)

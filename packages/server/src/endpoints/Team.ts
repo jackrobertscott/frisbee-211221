@@ -35,6 +35,7 @@ export default new Map<string, RequestHandler>([
     path: '/TeamCreate',
     payload: io.object({
       name: io.string(),
+      color: io.string(),
     }),
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)
@@ -59,6 +60,7 @@ export default new Map<string, RequestHandler>([
     payload: io.object({
       teamId: io.string(),
       name: io.string(),
+      color: io.string(),
     }),
     handler:
       ({teamId, ...body}) =>

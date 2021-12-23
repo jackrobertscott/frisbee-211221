@@ -1,5 +1,6 @@
 import {createElement as $, FC} from 'react'
 import {useAuth} from './Auth/useAuth'
+import {Center} from './Center'
 import {Form} from './Form/Form'
 import {FormButton} from './Form/FormButton'
 import {useRouter} from './Router/useRouter'
@@ -20,5 +21,7 @@ export const Dashboard: FC = () => {
         }),
     },
   ])
-  return router.render()
+  return $(Center, {
+    children: router.render(),
+  })
 }

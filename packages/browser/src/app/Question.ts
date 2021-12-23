@@ -55,6 +55,7 @@ export const Question: FC<{
           padding: 13,
           display: 'flex',
           borderTop: theme.border,
+          background: theme.bgMinorColor,
           '& > *:not(:last-child)': {
             marginRight: 13,
           },

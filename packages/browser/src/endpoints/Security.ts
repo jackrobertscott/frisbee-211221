@@ -1,8 +1,17 @@
 import {io} from 'torva'
+import {ioMember} from '../schemas/Member'
 import {ioSession} from '../schemas/Session'
 import {ioTeam} from '../schemas/Team'
 import {ioUser} from '../schemas/User'
 import {createEndpoint} from '../utils/endpoints'
+/**
+ *
+ */
+const _ioAuthPayload = io.object({
+  session: ioSession,
+  user: ioUser,
+  team: io.optional(ioTeam),
+})
 /**
  *
  */
@@ -13,11 +22,7 @@ export const $SecurityLoginPassword = createEndpoint({
     password: io.string(),
     userAgent: io.optional(io.string()),
   }),
-  result: io.object({
-    session: ioSession,
-    user: ioUser,
-    team: io.optional(ioTeam),
-  }),
+  result: _ioAuthPayload,
 })
 /**
  *
@@ -28,11 +33,7 @@ export const $SecurityLoginGoogle = createEndpoint({
     code: io.string().trim(),
     userAgent: io.optional(io.string()),
   }),
-  result: io.object({
-    session: ioSession,
-    user: ioUser,
-    team: io.optional(ioTeam),
-  }),
+  result: _ioAuthPayload,
 })
 /**
  *
@@ -47,11 +48,7 @@ export const $SecuritySignUpRegular = createEndpoint({
     termsAccepted: io.boolean(),
     userAgent: io.optional(io.string()),
   }),
-  result: io.object({
-    session: ioSession,
-    user: ioUser,
-    team: io.optional(ioTeam),
-  }),
+  result: _ioAuthPayload,
 })
 /**
  *
@@ -71,11 +68,7 @@ export const $SecurityForgotVerify = createEndpoint({
     newPassword: io.string(),
     userAgent: io.optional(io.string()),
   }),
-  result: io.object({
-    session: ioSession,
-    user: ioUser,
-    team: io.optional(ioTeam),
-  }),
+  result: _ioAuthPayload,
 })
 /**
  *
@@ -87,22 +80,14 @@ export const $SecurityVerifyEmail = createEndpoint({
     code: io.string(),
     userAgent: io.optional(io.string()),
   }),
-  result: io.object({
-    session: ioSession,
-    user: ioUser,
-    team: io.optional(ioTeam),
-  }),
+  result: _ioAuthPayload,
 })
 /**
  *
  */
 export const $SecurityCurrent = createEndpoint({
   path: '/SecurityCurrent',
-  result: io.object({
-    session: ioSession,
-    user: ioUser,
-    team: io.optional(ioTeam),
-  }),
+  result: _ioAuthPayload,
 })
 /**
  *

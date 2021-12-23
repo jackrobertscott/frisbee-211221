@@ -7,6 +7,7 @@ export const ioTeam = io.object({
   createdOn: io.date(),
   updatedOn: io.date(),
   name: io.string(),
+  color: io.string(),
 })
 /**
  *
