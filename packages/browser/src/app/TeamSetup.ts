@@ -4,11 +4,11 @@ import {$TeamList} from '../endpoints/Team'
 import {TTeam} from '../schemas/Team'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
-import {hsla} from '../utils/hsla'
 import {useAuth} from './Auth/useAuth'
 import {Center} from './Center'
 import {Form} from './Form/Form'
 import {FormButton} from './Form/FormButton'
+import {FormList} from './Form/FormList'
 import {InputString} from './Input/InputString'
 import {Question} from './Question'
 import {TeamCreate} from './TeamCreate'
@@ -69,46 +69,14 @@ export const TeamSetup: FC = () => {
                       valueSet: searchSet,
                       placeholder: 'Search',
                     }),
-                    $('div', {
-                      className: css({
-                        border: theme.border,
-                        '& > *:not(:last-child)': {
-                          borderBottom: theme.border,
-                        },
-                      }),
-                      children:
-                        teams.length === 0
-                          ? $('div', {
-                              children: loaded ? 'Empty' : 'Loading',
-                              className: css({
-                                opacity: 0.5,
-                                textAlign: 'center',
-                                padding: theme.padify(theme.inputPadding),
-                              }),
-                            })
-                          : teams.map((team) => {
-                              const color = hsla.digest(team.color)
-                              return $('div', {
-                                key: team.id,
-                                children: team.name,
-                                onClick: () => auth.patch({team}),
-                                className: css({
-                                  userSelect: 'none',
-                                  background: team.color,
-                                  padding: theme.padify(theme.inputPadding),
-                                  '&:hover': {
-                                    background: hsla.render(
-                                      hsla.darken(10, color)
-                                    ),
-                                  },
-                                  '&:active': {
-                                    background: hsla.render(
-                                      hsla.darken(15, color)
-                                    ),
-                                  },
-                                }),
-                              })
-                            }),
+                    $(FormList, {
+                      empty: loaded ? 'Empty' : 'Loading',
+                      list: teams.map((i) => ({
+                        id: i.id,
+                        label: i.name,
+                        color: i.color,
+                        click: () => auth.patch({team: i}),
+                      })),
                     }),
                   ]),
                 }),
