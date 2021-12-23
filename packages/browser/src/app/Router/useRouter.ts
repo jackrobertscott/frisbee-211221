@@ -38,7 +38,6 @@ export const useRouter = <T extends TRoute>(fallback: string, routes: T[]) => {
     if (location.pathname !== fallback) {
       go.to(fallback)
     }
-    console.log(location.pathname, fallback)
   }
   const mountedRef = useMountedRef()
   const {parents, location} = useContext(RouterContext)

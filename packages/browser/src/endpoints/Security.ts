@@ -1,5 +1,6 @@
 import {io} from 'torva'
 import {ioSession} from '../schemas/Session'
+import {ioTeam} from '../schemas/Team'
 import {ioUser} from '../schemas/User'
 import {createEndpoint} from '../utils/endpoints'
 /**
@@ -15,6 +16,7 @@ export const $SecurityLoginPassword = createEndpoint({
   result: io.object({
     session: ioSession,
     user: ioUser,
+    team: io.optional(ioTeam),
   }),
 })
 /**
@@ -29,6 +31,7 @@ export const $SecurityLoginGoogle = createEndpoint({
   result: io.object({
     session: ioSession,
     user: ioUser,
+    team: io.optional(ioTeam),
   }),
 })
 /**
@@ -47,6 +50,7 @@ export const $SecuritySignUpRegular = createEndpoint({
   result: io.object({
     session: ioSession,
     user: ioUser,
+    team: io.optional(ioTeam),
   }),
 })
 /**
@@ -70,6 +74,7 @@ export const $SecurityForgotVerify = createEndpoint({
   result: io.object({
     session: ioSession,
     user: ioUser,
+    team: io.optional(ioTeam),
   }),
 })
 /**
@@ -85,6 +90,7 @@ export const $SecurityVerifyEmail = createEndpoint({
   result: io.object({
     session: ioSession,
     user: ioUser,
+    team: io.optional(ioTeam),
   }),
 })
 /**
@@ -95,6 +101,7 @@ export const $SecurityCurrent = createEndpoint({
   result: io.object({
     session: ioSession,
     user: ioUser,
+    team: io.optional(ioTeam),
   }),
 })
 /**

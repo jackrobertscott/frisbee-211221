@@ -1,8 +1,8 @@
 import {createElement as $, FC} from 'react'
 import {useAuth} from './Auth/useAuth'
-import {Form} from './Form/Form'
-import {FormButton} from './Form/FormButton'
+import {Dashboard} from './Dashboard'
 import {Security} from './Security/Security'
+import {TeamSetup} from './TeamSetup'
 /**
  *
  */
@@ -11,10 +11,8 @@ export const App: FC = () => {
   if (!auth.current) {
     return $(Security)
   }
-  return $(Form, {
-    children: $(FormButton, {
-      label: 'Logout',
-      click: () => auth.logout(),
-    }),
-  })
+  if (!auth.current.team) {
+    return $(TeamSetup)
+  }
+  return $(Dashboard)
 }

@@ -8,14 +8,17 @@ import {App} from './app/App'
 import {AuthProvider} from './app/Auth/AuthProvider'
 import {ToasterProvider} from './app/Toaster/ToasterProvider'
 import {RouterProvider} from './app/Router/RouterProvider'
+import {DepthProvider} from './app/Depth/DepthProvider'
 /**
  *
  */
 const root = $(StrictMode, {
-  children: $(ToasterProvider, {
-    children: $(AuthProvider, {
-      children: $(RouterProvider, {
-        children: $(App),
+  children: $(DepthProvider, {
+    children: $(ToasterProvider, {
+      children: $(AuthProvider, {
+        children: $(RouterProvider, {
+          children: $(App),
+        }),
       }),
     }),
   }),
