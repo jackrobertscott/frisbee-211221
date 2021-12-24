@@ -5,6 +5,7 @@ import {TSeason} from '../schemas/Season'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {go} from '../utils/go'
+import {hsla} from '../utils/hsla'
 import {spreadify} from '../utils/spreadify'
 import {useAuth} from './Auth/useAuth'
 import {Center} from './Center'
@@ -162,6 +163,7 @@ const _DashboardSeasonBadge: FC = () => {
                 $(FormButton, {
                   label: 'Create New Season',
                   click: () => creatingSet(true),
+                  color: hsla.digest(theme.adminColor),
                 }),
             ]),
           }),

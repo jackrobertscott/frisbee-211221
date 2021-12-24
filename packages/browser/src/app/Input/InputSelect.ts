@@ -29,6 +29,7 @@ export const InputSelect: FC<{
         onClick: () => !disabled && openSet(true),
         children: current?.label ?? placeholder ?? '...',
         className: css({
+          background: theme.bgColor,
           color: current ? undefined : theme.placeholderColor,
           padding: theme.padify(theme.inputPadding),
         }),

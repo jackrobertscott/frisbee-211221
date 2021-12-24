@@ -3,6 +3,8 @@ import {hsla} from './utils/hsla'
  *
  */
 export const theme = {
+  appColor: hsla.string(0, 0, 80),
+  adminColor: hsla.string(270, 100, 90),
   bgColor: hsla.string(0, 0, 100),
   bgMinorColor: hsla.string(0, 0, 95),
   bgHoverColor: hsla.string(0, 0, 90),

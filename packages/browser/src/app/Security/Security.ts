@@ -7,6 +7,7 @@ import {SecurityLogin} from './SecurityLogin'
 import {SecurityForgot} from './SecurityForgot'
 import {SecuritySignUp} from './SecuritySignUp'
 import {useLocalState} from '../useLocalState'
+import {Center} from '../Center'
 /**
  *
  */
@@ -39,20 +40,12 @@ export const Security: FC = () => {
       render: () => $(SecurityForgot),
     },
   ])
-  return $('div', {
-    className: css({
-      padding: 13,
-      width: '100%',
-      height: '100%',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      // todo: make sure scroll works on short screens...
-    }),
+  return $(Center, {
     children: $('div', {
       className: css({
         width: 377,
         border: theme.border,
+        background: theme.bgColor,
       }),
       children: addkeys([
         $('div', {

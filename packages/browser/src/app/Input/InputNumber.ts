@@ -54,6 +54,7 @@ export const InputNumber: FC<{
       flexGrow: 1,
       width: '100%',
       border: theme.border,
+      background: theme.bgColor,
       padding: theme.padify(theme.inputPadding),
       '&::placeholder': {
         color: theme.placeholderColor,

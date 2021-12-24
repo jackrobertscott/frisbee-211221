@@ -14,6 +14,7 @@ export const FormLabel: FC<{
     className: css({
       border: theme.border,
       color: theme.labelColor,
+      background: theme.bgColor,
       padding: theme.padify(theme.inputPadding),
       userSelect: click ? 'none' : undefined,
       whiteSpace: 'nowrap',

@@ -18,6 +18,7 @@ export const InputBoolean: FC<{
       display: 'flex',
       userSelect: 'none',
       border: theme.border,
+      background: theme.bgColor,
       '&:hover': {
         background: theme.bgHoverColor,
       },

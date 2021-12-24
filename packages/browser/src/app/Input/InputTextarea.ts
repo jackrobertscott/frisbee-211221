@@ -36,6 +36,7 @@ export const InputTextarea: FC<{
       width: '100%',
       flexGrow: 1,
       border: theme.border,
+      background: theme.bgColor,
       padding: theme.padify(theme.inputPadding),
       '&::placeholder': {
         color: theme.placeholderColor,
