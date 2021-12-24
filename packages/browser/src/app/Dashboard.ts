@@ -9,6 +9,7 @@ import {spreadify} from '../utils/spreadify'
 import {useAuth} from './Auth/useAuth'
 import {Center} from './Center'
 import {DashboardLadder} from './DashboardLadder'
+import {DashboardNews} from './DashboardNews'
 import {DashboardSchedule} from './DashboardSchedule'
 import {Form} from './Form/Form'
 import {FormButton} from './Form/FormButton'
@@ -41,7 +42,7 @@ export const Dashboard: FC = () => {
     {
       path: '/news',
       title: 'Latest News',
-      render: () => $(Form, {children: 'Latest News'}),
+      render: () => $(DashboardNews),
     },
   ])
   return $(Fragment, {
@@ -51,6 +52,7 @@ export const Dashboard: FC = () => {
           className: css({
             width: 987,
             border: theme.border,
+            background: theme.bgColor,
           }),
           children: addkeys([
             $(TopBar, {
