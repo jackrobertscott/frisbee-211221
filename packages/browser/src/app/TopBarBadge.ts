@@ -8,16 +8,18 @@ import {hsla} from '../utils/hsla'
  *
  */
 export const TopBarBadge: FC<{
-  icon: string
+  icon?: string
   label?: string
+  color?: string
   click?: () => void
-}> = ({icon, label, click}) => {
+}> = ({icon, label, color, click}) => {
   return $('div', {
     onClick: click,
     className: css({
       display: 'flex',
       padding: theme.padify(8),
       borderLeft: theme.border,
+      background: color,
       '&:hover': {
         background: hsla.string(0, 0, 0, 0.1),
       },
@@ -26,9 +28,10 @@ export const TopBarBadge: FC<{
       },
     }),
     children: addkeys([
-      $(Icon, {
-        icon: icon,
-      }),
+      icon &&
+        $(Icon, {
+          icon,
+        }),
       label &&
         $('div', {
           children: label,

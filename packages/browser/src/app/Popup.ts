@@ -28,7 +28,7 @@ export const Popup: FC<{
   const popupRef = useRef<HTMLElement>()
   const [box, boxSet] = useState<DOMRect>()
   const [open, openSet] = useState(false)
-  const offset = {x: 0, y: 2}
+  const offset = {x: 0, y: 3}
   const alignValue = (data: Partial<Record<typeof align, any>>) => data[align]
   const posValue = (data: Partial<Record<typeof position, any>>) =>
     data[position]

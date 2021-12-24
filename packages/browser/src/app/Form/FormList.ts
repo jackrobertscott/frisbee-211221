@@ -42,10 +42,10 @@ export const FormList: FC<{
                 userSelect: 'none',
                 background: item.color,
                 padding: theme.padify(theme.inputPadding),
-                '&:hover': {
+                '&:hover': item.click && {
                   background: hsla.render(hsla.darken(10, color)),
                 },
-                '&:active': {
+                '&:active': item.click && {
                   background: hsla.render(hsla.darken(15, color)),
                 },
               }),

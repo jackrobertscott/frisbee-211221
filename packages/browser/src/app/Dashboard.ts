@@ -12,7 +12,6 @@ import {DashboardLadder} from './DashboardLadder'
 import {Form} from './Form/Form'
 import {FormButton} from './Form/FormButton'
 import {FormList} from './Form/FormList'
-import {FormSection} from './Form/FormSection'
 import {Modal} from './Modal'
 import {Popup} from './Popup'
 import {Question} from './Question'
@@ -49,13 +48,18 @@ export const Dashboard: FC = () => {
       $(Center, {
         children: $('div', {
           className: css({
-            width: 610,
+            width: 987,
             border: theme.border,
           }),
           children: addkeys([
             $(TopBar, {
               title: 'Dashboard',
               children: addkeys([
+                auth.current?.team &&
+                  $(TopBarBadge, {
+                    label: auth.current?.team.name,
+                    color: auth.current?.team.color,
+                  }),
                 $(_DashboardSeasonBadge),
                 $(TopBarBadge, {
                   icon: 'power-off',
