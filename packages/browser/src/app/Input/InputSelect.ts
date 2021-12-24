@@ -1,5 +1,5 @@
 import {css} from '@emotion/css'
-import {createElement as $, FC, useState} from 'react'
+import {createElement as $, FC} from 'react'
 import {theme} from '../../theme'
 import {Popup} from '../Popup'
 /**
@@ -19,53 +19,52 @@ export const InputSelect: FC<{
   placeholder?: string
   disabled?: boolean
 }> = ({value, valueSet, options, placeholder = '...', disabled}) => {
-  const [open, openSet] = useState(false)
   const current = options.find((i) => i.key === value)
   return $(Popup, {
-    open,
-    clickOutside: () => openSet(false),
     style: {
       flexGrow: 1,
     },
-    wrap: $('div', {
-      onClick: () => !disabled && openSet(true),
-      children: current?.label ?? placeholder ?? '...',
-      className: css({
-        color: current ? undefined : theme.placeholderColor,
-        padding: theme.padify(theme.inputPadding),
+    wrap: (openSet) =>
+      $('div', {
+        onClick: () => !disabled && openSet(true),
+        children: current?.label ?? placeholder ?? '...',
+        className: css({
+          color: current ? undefined : theme.placeholderColor,
+          padding: theme.padify(theme.inputPadding),
+        }),
       }),
-    }),
-    popup: $('div', {
-      className: css({
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative',
-        zIndex: 50,
+    popup: (openSet) =>
+      $('div', {
+        className: css({
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+          zIndex: 50,
+        }),
+        children: options.map((option) => {
+          return $('div', {
+            key: option.key,
+            children: option.label,
+            onClick: () => {
+              if (disabled) return
+              valueSet?.(option.key)
+              openSet(false)
+            },
+            className: css({
+              userSelect: 'none',
+              padding: theme.padify(theme.inputPadding),
+              '&:not(:last-child)': {
+                borderBottom: theme.border,
+              },
+              '&:hover': {
+                background: theme.bgHoverColor,
+              },
+              '&:active': {
+                background: theme.bgPressColor,
+              },
+            }),
+          })
+        }),
       }),
-      children: options.map((option) => {
-        return $('div', {
-          key: option.key,
-          children: option.label,
-          onClick: () => {
-            if (disabled) return
-            valueSet?.(option.key)
-            openSet(false)
-          },
-          className: css({
-            userSelect: 'none',
-            padding: theme.padify(theme.inputPadding),
-            '&:not(:last-child)': {
-              borderBottom: theme.border,
-            },
-            '&:hover': {
-              background: theme.bgHoverColor,
-            },
-            '&:active': {
-              background: theme.bgPressColor,
-            },
-          }),
-        })
-      }),
-    }),
   })
 }

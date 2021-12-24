@@ -7,6 +7,7 @@ import {FormButton} from './Form/FormButton'
 import {Modal} from './Modal'
 import {Poster} from './Poster'
 import {TopBar} from './TopBar'
+import {TopBarBadge} from './TopBarBadge'
 /**
  *
  */
@@ -24,7 +25,10 @@ export const Question: FC<{
     children: addkeys([
       $(TopBar, {
         title,
-        options: [{icon: 'times', click: close}],
+        children: $(TopBarBadge, {
+          icon: 'times',
+          click: close,
+        }),
       }),
       $(Poster, {
         title,

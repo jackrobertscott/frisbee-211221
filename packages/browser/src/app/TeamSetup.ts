@@ -13,6 +13,7 @@ import {InputString} from './Input/InputString'
 import {Question} from './Question'
 import {TeamCreate} from './TeamCreate'
 import {TopBar} from './TopBar'
+import {TopBarBadge} from './TopBarBadge'
 import {useEndpoint} from './useEndpoint'
 import {useSling} from './useThrottle'
 /**
@@ -27,8 +28,9 @@ export const TeamSetup: FC = () => {
   const [creating, creatingSet] = useState(false)
   const [search, searchSet] = useState('')
   const teamList = useSling(500, () => {
+    if (!auth.current?.season?.id) throw new Error('Season does not exist.')
     $teamList
-      .fetch({search})
+      .fetch({seasonId: auth.current?.season?.id, search})
       .then(teamsSet)
       .then(() => !loaded && loadedSet(true))
   })
@@ -46,12 +48,10 @@ export const TeamSetup: FC = () => {
           children: addkeys([
             $(TopBar, {
               title: 'Join A Team',
-              options: [
-                {
-                  icon: 'power-off',
-                  click: () => logoutSet(true),
-                },
-              ],
+              children: $(TopBarBadge, {
+                icon: 'power-off',
+                click: () => logoutSet(true),
+              }),
             }),
             $('div', {
               className: css({
@@ -75,7 +75,7 @@ export const TeamSetup: FC = () => {
                         id: i.id,
                         label: i.name,
                         color: i.color,
-                        click: () => auth.patch({team: i}),
+                        click: () => auth.teamSet(i),
                       })),
                     }),
                   ]),
@@ -114,7 +114,7 @@ export const TeamSetup: FC = () => {
           $(TeamCreate, {
             seasonId: auth.current?.season.id,
             close: () => creatingSet(false),
-            done: (team) => auth.patch({team}),
+            done: (team) => auth.teamSet(team),
           }),
       }),
     ]),

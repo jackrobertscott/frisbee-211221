@@ -17,7 +17,7 @@ export const FormSection: FC<{
       $('div', {
         children: label,
         className: css({
-          marginBottom: 3,
+          marginBottom: 5,
         }),
       }),
       children,

@@ -2,6 +2,7 @@ import {createElement as $, FC, ReactNode, useEffect, useState} from 'react'
 import {$SecurityLogout, $SecurityCurrent} from '../../endpoints/Security'
 import {AuthContext, TAuth, TAuthPayload} from './AuthContext'
 import {useLocalState} from '../useLocalState'
+import {$TeamGetOfSeason} from '../../endpoints/Team'
 /**
  *
  */
@@ -35,8 +36,20 @@ export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
         currentSet(undefined)
         $SecurityLogout.fetch(undefined, current?.token)
       },
-      patch: (data) =>
-        currentSet((i) => (i ? mapAuthState({...i, ...data}) : i)),
+      teamSet: (team) => {
+        if (!current)
+          throw new Error('Can not set team because user not logged in.')
+        if (current.season?.id !== team.seasonId)
+          throw new Error('Team does not match current season.')
+        currentSet({...current, team})
+      },
+      seasonSet: (season) => {
+        if (!current)
+          throw new Error('Can not set season because user not logged in.')
+        $TeamGetOfSeason
+          .fetch({seasonId: season.id}, current?.token)
+          .then((team) => currentSet({...current, season, team}))
+      },
     },
   })
 }

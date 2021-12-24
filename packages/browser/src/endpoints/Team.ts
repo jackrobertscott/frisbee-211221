@@ -8,10 +8,20 @@ import {createEndpoint} from '../utils/endpoints'
 export const $TeamList = createEndpoint({
   path: '/TeamList',
   payload: io.object({
+    seasonId: io.string(),
     search: io.optional(io.string()),
-    limit: io.optional(io.number()),
   }),
   result: io.array(ioTeam),
+})
+/**
+ *
+ */
+export const $TeamGetOfSeason = createEndpoint({
+  path: '/TeamGetOfSeason',
+  payload: io.object({
+    seasonId: io.string(),
+  }),
+  result: ioTeam,
 })
 /**
  *

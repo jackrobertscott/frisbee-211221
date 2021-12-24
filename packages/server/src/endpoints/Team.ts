@@ -18,15 +18,38 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     path: '/TeamList',
     payload: io.object({
+      seasonId: io.string(),
       search: io.optional(io.string().emptyok()),
-      limit: io.optional(io.number()),
     }),
     handler: (body) => async (req) => {
       await requireUser(req)
-      return $Team.getMany(
-        {name: regex.from(body.search ?? '')},
-        {limit: body.limit ?? 10}
-      )
+      await $Season.getOne({id: body.seasonId})
+      return $Team.getMany({
+        seasonId: body.seasonId,
+        name: regex.from(body.search ?? ''),
+      })
+    },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/TeamGetOfSeason',
+    payload: io.object({
+      seasonId: io.string(),
+    }),
+    handler: (body) => async (req) => {
+      const [user] = await requireUser(req)
+      await $Season.getOne({id: body.seasonId})
+      const members = await $Member.getMany({
+        userId: user.id,
+        pending: false,
+      })
+      const memberTeamIds = members.map((i) => i.teamId)
+      return $Team.maybeOne({
+        seasonId: body.seasonId,
+        id: {$in: memberTeamIds},
+      })
     },
   }),
   /**

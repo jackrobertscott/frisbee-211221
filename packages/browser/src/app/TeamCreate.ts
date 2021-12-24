@@ -15,6 +15,7 @@ import {Icon} from './Icon'
 import {InputString} from './Input/InputString'
 import {Modal} from './Modal'
 import {TopBar} from './TopBar'
+import {TopBarBadge} from './TopBarBadge'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
 /**
@@ -36,7 +37,10 @@ export const TeamCreate: FC<{
     children: addkeys([
       $(TopBar, {
         title: 'New Team',
-        options: [{icon: 'times', click: close}],
+        children: $(TopBarBadge, {
+          icon: 'times',
+          click: close,
+        }),
       }),
       $(Form, {
         children: addkeys([

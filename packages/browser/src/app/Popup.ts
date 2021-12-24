@@ -17,26 +17,17 @@ import {Portal} from './Portal'
  *
  */
 export const Popup: FC<{
-  open: boolean
-  wrap: ReactNode
-  popup: ReactNode
+  wrap: (openSet: (state: boolean) => void, open: boolean) => ReactNode
+  popup: (openSet: (state: boolean) => void, open: boolean) => ReactNode
   style?: CSSInterpolation
   align?: 'start' | 'center' | 'end'
   position?: 'above' | 'below'
-  clickOutside?: () => void
-}> = ({
-  open,
-  wrap,
-  popup,
-  style,
-  align = 'end',
-  position = 'below',
-  clickOutside,
-}) => {
+}> = ({wrap, popup, style, align = 'end', position = 'below'}) => {
   const depth = useDepth()
   const wrapRef = useRef<HTMLElement>()
   const popupRef = useRef<HTMLElement>()
   const [box, boxSet] = useState<DOMRect>()
+  const [open, openSet] = useState(false)
   const offset = {x: 0, y: 2}
   const alignValue = (data: Partial<Record<typeof align, any>>) => data[align]
   const posValue = (data: Partial<Record<typeof position, any>>) =>
@@ -44,18 +35,16 @@ export const Popup: FC<{
   useEffect(() => {
     if (open) {
       boxSet(wrapRef.current?.getBoundingClientRect())
-      if (clickOutside) {
-        const handler = (event: MouseEvent) => {
-          if (!depth.atTop()) return
-          const clickedOutside =
-            popupRef.current &&
-            event.target instanceof HTMLElement &&
-            !popupRef.current.contains(event.target)
-          if (clickedOutside) clickOutside()
-        }
-        document.addEventListener('click', handler)
-        return () => document.removeEventListener('click', handler)
+      const outsideClickHandler = (event: MouseEvent) => {
+        if (!depth.atTop()) return
+        const clickedOutside =
+          popupRef.current &&
+          event.target instanceof HTMLElement &&
+          !popupRef.current.contains(event.target)
+        if (clickedOutside) openSet(false)
       }
+      document.addEventListener('click', outsideClickHandler)
+      return () => document.removeEventListener('click', outsideClickHandler)
     } else if (box) {
       boxSet(undefined)
     }
@@ -66,7 +55,7 @@ export const Popup: FC<{
       position: 'relative',
     }),
     children: addkeys([
-      wrap,
+      wrap(openSet, open),
       open &&
         box &&
         $(DepthProvider, {
@@ -108,7 +97,7 @@ export const Popup: FC<{
                     }),
                   }),
                   $('div', {
-                    children: popup,
+                    children: popup(openSet, open),
                     className: css({
                       position: 'absolute',
                       pointerEvents: 'all',

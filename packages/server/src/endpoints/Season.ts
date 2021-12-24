@@ -5,6 +5,8 @@ import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
 import {regex} from '../utils/regex'
 import {requireUserAdmin} from './requireUserAdmin'
+import {$Member} from '../tables/Member'
+import {$Team} from '../tables/Team'
 /**
  *
  */
@@ -16,14 +18,27 @@ export default new Map<string, RequestHandler>([
     path: '/SeasonList',
     payload: io.object({
       search: io.optional(io.string().emptyok()),
-      limit: io.optional(io.number()),
     }),
     handler: (body) => async (req) => {
       await requireUser(req)
-      return $Season.getMany(
-        {name: regex.from(body.search ?? '')},
-        {limit: body.limit}
-      )
+      return $Season.getMany({name: regex.from(body.search ?? '')})
+    },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/SeasonListOfUser',
+    handler: () => async (req) => {
+      const [user] = await requireUser(req)
+      if (user.admin) return $Season.getMany({})
+      const members = await $Member.getMany({userId: user.id, pending: false})
+      const memberTeamIds = members.map((i) => i.teamId)
+      const teams = await $Team.getMany({id: {$in: memberTeamIds}})
+      const teamSeasonIds = teams.map((i) => i.seasonId)
+      return $Season.getMany({
+        $or: [{signUpOpen: true}, {id: {$in: teamSeasonIds}}],
+      })
     },
   }),
   /**

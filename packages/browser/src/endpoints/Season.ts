@@ -8,8 +8,14 @@ export const $SeasonList = createEndpoint({
   path: '/SeasonList',
   payload: io.object({
     search: io.optional(io.string()),
-    limit: io.optional(io.number()),
   }),
+  result: io.array(ioSeason),
+})
+/**
+ *
+ */
+export const $SeasonListOfUser = createEndpoint({
+  path: '/SeasonListOfUser',
   result: io.array(ioSeason),
 })
 /**
