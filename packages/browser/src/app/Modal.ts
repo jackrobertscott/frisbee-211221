@@ -43,7 +43,6 @@ export const Modal: FC<{
             className: css({
               width,
               height,
-              margin: 34,
               maxWidth: '100%',
               display: 'flex',
               flexDirection: 'column',

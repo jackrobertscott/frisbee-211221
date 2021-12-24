@@ -28,6 +28,7 @@ export const Center: FC<{
         flexDirection: 'column',
         alignItems: 'center',
         overflowY: 'auto',
+        padding: 21,
       }),
     }),
   })

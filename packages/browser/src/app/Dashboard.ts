@@ -51,6 +51,7 @@ export const Dashboard: FC = () => {
         children: $('div', {
           className: css({
             width: 987,
+            maxWidth: '100%',
             border: theme.border,
             background: theme.bgColor,
           }),
