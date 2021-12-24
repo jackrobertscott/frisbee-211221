@@ -8,7 +8,7 @@ import {hsla} from '../utils/hsla'
  */
 type TFCTable<T extends string = any> = FC<{
   header: Record<T, {label: string; grow: number}>
-  body: Array<Record<T, string> & {id: string}>
+  body: Array<Record<'id' | T, undefined | {value: string; color?: string}>>
 }>
 /**
  *
@@ -29,6 +29,7 @@ export const Table: TFCTable = ({header, body}) => {
       $('div', {
         className: css({
           display: 'flex',
+          background: theme.bgMinorColor,
           '& > *:not(:last-child)': {
             borderRight: theme.border,
           },
@@ -38,7 +39,7 @@ export const Table: TFCTable = ({header, body}) => {
             key,
             children: label,
             className: css({
-              minWidth: 89,
+              minWidth: 55 * grow,
               flexGrow: grow,
               flexShrink: 0,
               flexBasis: 0,
@@ -51,7 +52,7 @@ export const Table: TFCTable = ({header, body}) => {
       $(Fragment, {
         children: body.map((entry) => {
           return $('div', {
-            key: entry.id,
+            key: entry.id?.value,
             className: css({
               display: 'flex',
               '& > *:not(:last-child)': {
@@ -59,17 +60,19 @@ export const Table: TFCTable = ({header, body}) => {
               },
             }),
             children: Object.entries(header).map(([key, {grow}]) => {
+              const data = entry[key]
               return $('div', {
                 key,
-                children: entry[key] || '...',
+                children: data?.value || '...',
                 className: css({
-                  minWidth: 89,
+                  minWidth: 55 * grow,
                   flexGrow: grow,
                   flexShrink: 0,
                   flexBasis: 0,
                   overflow: 'auto',
+                  background: data?.color,
                   padding: theme.padify(theme.inputPadding),
-                  color: entry[key] ? undefined : hsla.string(0, 0, 0, 0.5),
+                  color: data ? undefined : hsla.string(0, 0, 0, 0.5),
                 }),
               })
             }),

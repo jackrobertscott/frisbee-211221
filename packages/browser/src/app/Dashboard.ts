@@ -9,6 +9,7 @@ import {spreadify} from '../utils/spreadify'
 import {useAuth} from './Auth/useAuth'
 import {Center} from './Center'
 import {DashboardLadder} from './DashboardLadder'
+import {DashboardSchedule} from './DashboardSchedule'
 import {Form} from './Form/Form'
 import {FormButton} from './Form/FormButton'
 import {FormList} from './Form/FormList'
@@ -35,7 +36,7 @@ export const Dashboard: FC = () => {
     {
       path: '/schedule',
       title: 'Game Schedule',
-      render: () => $(Form, {children: 'Game Schedule'}),
+      render: () => $(DashboardSchedule),
     },
     {
       path: '/news',
