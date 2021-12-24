@@ -7,6 +7,7 @@ import {requireUser} from './requireUser'
 import {requireTeam} from './requireTeam'
 import {$User} from '../tables/User'
 import {regex} from '../utils/regex'
+import {$Season} from '../tables/Season'
 /**
  *
  */
@@ -34,11 +35,15 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     path: '/TeamCreate',
     payload: io.object({
+      seasonId: io.string(),
       name: io.string(),
       color: io.string(),
     }),
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)
+      const season = await $Season.getOne({id: body.seasonId})
+      if (!season.signUpOpen)
+        throw new Error('Season is not currently open for new team sign ups.')
       const team = await $Team.createOne(body)
       const member = await $Member.createOne({
         userId: user.id,

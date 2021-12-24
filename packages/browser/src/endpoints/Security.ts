@@ -1,5 +1,5 @@
 import {io} from 'torva'
-import {ioMember} from '../schemas/Member'
+import {ioSeason} from '../schemas/Season'
 import {ioSession} from '../schemas/Session'
 import {ioTeam} from '../schemas/Team'
 import {ioUser} from '../schemas/User'
@@ -8,8 +8,9 @@ import {createEndpoint} from '../utils/endpoints'
  *
  */
 const _ioAuthPayload = io.object({
-  session: ioSession,
   user: ioUser,
+  session: ioSession,
+  season: io.optional(ioSeason),
   team: io.optional(ioTeam),
 })
 /**

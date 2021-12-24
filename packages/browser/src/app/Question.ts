@@ -5,6 +5,7 @@ import {addkeys} from '../utils/addkeys'
 import {THSLA} from '../utils/hsla'
 import {FormButton} from './Form/FormButton'
 import {Modal} from './Modal'
+import {Poster} from './Poster'
 import {TopBar} from './TopBar'
 /**
  *
@@ -25,30 +26,9 @@ export const Question: FC<{
         title,
         options: [{icon: 'times', click: close}],
       }),
-      $('div', {
-        className: css({
-          padding: 34,
-          textAlign: 'center',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }),
-        children: addkeys([
-          $('div', {
-            children: title,
-            className: css({
-              fontSize: 21,
-            }),
-          }),
-          $('div', {
-            children: description,
-            className: css({
-              opacity: 0.5,
-              marginTop: 5,
-              width: 233,
-            }),
-          }),
-        ]),
+      $(Poster, {
+        title,
+        description,
       }),
       $('div', {
         className: css({

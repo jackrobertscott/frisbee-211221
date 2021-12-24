@@ -110,7 +110,9 @@ export const TeamSetup: FC = () => {
       $(Fragment, {
         children:
           creating &&
+          auth.current?.season &&
           $(TeamCreate, {
+            seasonId: auth.current?.season.id,
             close: () => creatingSet(false),
             done: (team) => auth.patch({team}),
           }),

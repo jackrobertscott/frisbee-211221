@@ -4,6 +4,7 @@ import {$Season} from '../tables/Season'
 import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
 import {regex} from '../utils/regex'
+import {requireUserAdmin} from './requireUserAdmin'
 /**
  *
  */
@@ -32,12 +33,11 @@ export default new Map<string, RequestHandler>([
     path: '/SeasonCreate',
     payload: io.object({
       name: io.string(),
-      closed: io.boolean(),
+      signUpOpen: io.boolean(),
     }),
     handler: (body) => async (req) => {
-      const [user] = await requireUser(req)
-      const season = await $Season.createOne(body)
-      // todo...
+      await requireUserAdmin(req)
+      return $Season.createOne(body)
     },
   }),
   /**
@@ -48,28 +48,16 @@ export default new Map<string, RequestHandler>([
     payload: io.object({
       seasonId: io.string(),
       name: io.string(),
-      closed: io.boolean(),
+      signUpOpen: io.boolean(),
     }),
     handler:
       ({seasonId, ...body}) =>
       async (req) => {
-        const [user] = await requireUser(req)
+        await requireUserAdmin(req)
         return $Season.updateOne(
           {id: seasonId},
           {...body, updatedOn: new Date().toISOString()}
         )
-        // todo...
       },
-  }),
-  /**
-   *
-   */
-  createEndpoint({
-    path: '/SeasonSwitch',
-    payload: io.string(),
-    handler: (seasonId) => async (req) => {
-      const [user] = await requireUser(req)
-      // todo...
-    },
   }),
 ])

@@ -19,6 +19,7 @@ export const $TeamList = createEndpoint({
 export const $TeamCreate = createEndpoint({
   path: '/TeamCreate',
   payload: io.object({
+    seasonId: io.string(),
     name: io.string(),
     color: io.string(),
   }),

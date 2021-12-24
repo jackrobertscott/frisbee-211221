@@ -1,17 +1,34 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useState} from 'react'
+import {$SeasonCreate} from '../endpoints/Season'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {useAuth} from './Auth/useAuth'
 import {Center} from './Center'
+import {Form} from './Form/Form'
+import {FormButton} from './Form/FormButton'
+import {FormColumn} from './Form/FormColumn'
+import {FormHelp} from './Form/FormHelp'
+import {FormLabel} from './Form/FormLabel'
+import {FormRow} from './Form/FormRow'
+import {InputBoolean} from './Input/InputBoolean'
+import {InputString} from './Input/InputString'
+import {Poster} from './Poster'
 import {Question} from './Question'
 import {TopBar} from './TopBar'
+import {useEndpoint} from './useEndpoint'
+import {useForm} from './useForm'
 /**
  *
  */
 export const SeasonSetup: FC = () => {
   const auth = useAuth()
   const [logout, logoutSet] = useState(false)
+  const $seasonCreate = useEndpoint($SeasonCreate)
+  const form = useForm({
+    name: '',
+    signUpOpen: false,
+  })
   return $(Fragment, {
     children: addkeys([
       $(Center, {
@@ -22,7 +39,7 @@ export const SeasonSetup: FC = () => {
           }),
           children: addkeys([
             $(TopBar, {
-              title: 'Season',
+              title: 'New Season',
               options: [
                 {
                   icon: 'power-off',
@@ -30,31 +47,56 @@ export const SeasonSetup: FC = () => {
                 },
               ],
             }),
-            $('div', {
-              className: css({
-                padding: 34,
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-              }),
-              children: addkeys([
-                $('div', {
-                  children: 'Season Not Ready',
-                  className: css({
-                    fontSize: 21,
-                  }),
+            auth.current?.user.admin
+              ? $(Form, {
+                  children: addkeys([
+                    $('div', {
+                      children: `A season contains a fixed number of games. A single team will be determined the winner at the end of the season.`,
+                      className: css({
+                        color: theme.labelColor,
+                        margin: `-${theme.fontInset}px 0`,
+                      }),
+                    }),
+                    $(FormRow, {
+                      children: addkeys([
+                        $(FormLabel, {label: 'Name'}),
+                        $(InputString, {
+                          value: form.data.name,
+                          valueSet: form.link('name'),
+                          placeholder: 'e.g. Summer 2022',
+                        }),
+                      ]),
+                    }),
+                    $(FormColumn, {
+                      children: addkeys([
+                        $(FormRow, {
+                          children: addkeys([
+                            $(FormLabel, {label: 'Sign Up Open'}),
+                            $(InputBoolean, {
+                              value: form.data.signUpOpen,
+                              valueSet: form.link('signUpOpen'),
+                            }),
+                          ]),
+                        }),
+                        $(FormHelp, {
+                          value:
+                            'Teams may be registered in the season while this is active.',
+                        }),
+                      ]),
+                    }),
+                    $(FormButton, {
+                      label: 'Create',
+                      click: () =>
+                        $seasonCreate
+                          .fetch(form.data)
+                          .then((season) => auth.patch({season})),
+                    }),
+                  ]),
+                })
+              : $(Poster, {
+                  title: 'Season Not Ready',
+                  description: `Looks like you got here too early. Please come back when the new season registrations are open.`,
                 }),
-                $('div', {
-                  children: `Looks like you got here too early. Please come back when the new season registrations are open.`,
-                  className: css({
-                    opacity: 0.5,
-                    marginTop: 5,
-                    width: 233,
-                  }),
-                }),
-              ]),
-            }),
           ]),
         }),
       }),

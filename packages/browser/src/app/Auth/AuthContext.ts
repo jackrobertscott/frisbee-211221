@@ -28,6 +28,7 @@ export interface TAuthPayload {
  *
  */
 export interface TAuthContext {
+  loaded: boolean
   current?: TAuth
   login: (data: TAuthPayload) => void
   logout: () => void
@@ -41,6 +42,7 @@ const _noop = (): any => console.warn('Auth scope is not correctly setup.')
  *
  */
 export const AuthContext = createContext<TAuthContext>({
+  loaded: false,
   login: _noop,
   logout: _noop,
   patch: _noop,

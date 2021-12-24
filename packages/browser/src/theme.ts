@@ -14,11 +14,13 @@ export const theme = {
   borderWidth: 2,
   inputPadding: 8,
   formPadding: 13,
+  fontInset: 3,
   get border() {
     return `${this.borderWidth}px solid ${this.borderColor}`
   },
-  padify(pixels: number = 3) {
-    if (pixels < 3) throw new Error('Pixels must be greater than 3.')
-    return `${pixels - 3}px ${pixels}px`
+  padify(pixels: number) {
+    if (pixels < this.fontInset)
+      throw new Error('Pixels must be greater than 3.')
+    return `${pixels - this.fontInset}px ${pixels}px`
   },
 }

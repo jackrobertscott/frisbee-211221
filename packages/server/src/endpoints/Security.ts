@@ -16,6 +16,8 @@ import {TTeam} from '../schemas/Team'
 import {$Member} from '../tables/Member'
 import {$Team} from '../tables/Team'
 import {TSession} from '../schemas/Session'
+import {TSeason} from '../schemas/Season'
+import {$Season} from '../tables/Season'
 /**
  *
  */
@@ -298,9 +300,17 @@ export const _createAuthPayload = async (
         await $User.updateOne({id: user.id}, {lastMemberId: member.id})
     }
   }
+  let season: TSeason | undefined
+  if (team) {
+    season = await $Season.getOne({id: team.seasonId})
+  } else {
+    const openSeasons = await $Season.getMany({signUpOpen: true})
+    if (openSeasons.length === 1) season = openSeasons[0]
+  }
   return {
     user,
     session,
+    season,
     team,
   }
 }

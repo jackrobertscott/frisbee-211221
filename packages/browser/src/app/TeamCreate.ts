@@ -1,11 +1,11 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
 import {$TeamCreate} from '../endpoints/Team'
-import {TMember} from '../schemas/Member'
 import {TTeam} from '../schemas/Team'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {hsla} from '../utils/hsla'
+import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
 import {FormButton} from './Form/FormButton'
 import {FormColumn} from './Form/FormColumn'
@@ -21,9 +21,11 @@ import {useForm} from './useForm'
  *
  */
 export const TeamCreate: FC<{
+  seasonId: string
   close: () => void
   done: (team: TTeam) => void
-}> = ({close, done}) => {
+}> = ({seasonId, close, done}) => {
+  const auth = useAuth()
   const $create = useEndpoint($TeamCreate)
   const form = useForm({
     name: '',
@@ -101,7 +103,10 @@ export const TeamCreate: FC<{
           $(FormButton, {
             disabled: $create.loading,
             label: $create.loading ? 'Loading' : 'Submit',
-            click: () => $create.fetch(form.data).then(({team}) => done(team)),
+            click: () =>
+              $create
+                .fetch({...form.data, seasonId})
+                .then(({team}) => done(team)),
           }),
         ]),
       }),

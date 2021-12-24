@@ -7,7 +7,7 @@ export const ioSeason = io.object({
   createdOn: io.date(),
   updatedOn: io.date(),
   name: io.string(),
-  closed: io.boolean(),
+  signUpOpen: io.boolean(),
 })
 /**
  *
