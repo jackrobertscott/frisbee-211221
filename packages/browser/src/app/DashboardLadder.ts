@@ -1,9 +1,12 @@
 import {createElement as $, FC, useEffect, useState} from 'react'
 import {$TeamList} from '../endpoints/Team'
 import {TTeam} from '../schemas/Team'
+import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
+import {hsla} from '../utils/hsla'
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
+import {FormButton} from './Form/FormButton'
 import {Table} from './Table'
 import {useEndpoint} from './useEndpoint'
 /**
@@ -19,6 +22,11 @@ export const DashboardLadder: FC = () => {
   }, [])
   return $(Form, {
     children: addkeys([
+      auth.isAdmin() &&
+        $(FormButton, {
+          label: 'Manage Game Results',
+          color: hsla.digest(theme.bgAdminColor),
+        }),
       $(Table, {
         header: {
           name: {label: 'Name', grow: 2},

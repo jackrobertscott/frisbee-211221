@@ -2,13 +2,22 @@ import {css} from '@emotion/css'
 import {createElement as $, FC, useState} from 'react'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
+import {hsla} from '../utils/hsla'
+import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
+import {FormButton} from './Form/FormButton'
 /**
  *
  */
 export const DashboardNews: FC = () => {
+  const auth = useAuth()
   return $(Form, {
     children: addkeys([
+      auth.isAdmin() &&
+        $(FormButton, {
+          label: 'Add Post',
+          color: hsla.digest(theme.bgAdminColor),
+        }),
       $(_NewsPost, {
         title: 'Game 1 Wrap Up',
         content: _EXAMPLE_MESSAGE,
@@ -20,6 +29,10 @@ export const DashboardNews: FC = () => {
       $(_NewsPost, {
         title: 'Game 1 Wrap Up',
         content: _EXAMPLE_MESSAGE,
+      }),
+      $(FormButton, {
+        icon: 'angle-double-down',
+        label: 'Show More',
       }),
     ]),
   })
@@ -41,7 +54,7 @@ const _NewsPost: FC<{
         className: css({
           padding: theme.padify(theme.formPadding),
           '& > *:not(:last-child)': {
-            marginBottom: theme.formPadding,
+            marginBottom: 5,
           },
         }),
         children: addkeys([
@@ -56,7 +69,7 @@ const _NewsPost: FC<{
               ? content
               : content.slice(0, 233).concat(content.length > 233 ? '...' : ''),
             className: css({
-              color: theme.labelColor,
+              color: theme.minorColor,
               whiteSpace: 'pre-line',
             }),
           }),

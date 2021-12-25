@@ -40,7 +40,7 @@ export const FormButton: FC<{
           : theme.bgPressColor,
       },
       '& > *:not(:last-child)': {
-        marginRight: 5,
+        marginRight: 10,
       },
     }),
     children: addkeys([

@@ -1,9 +1,13 @@
+import {css} from '@emotion/css'
+import dayjs from 'dayjs'
 import {createElement as $, FC, useState} from 'react'
 import {TTeam} from '../schemas/Team'
+import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {hsla} from '../utils/hsla'
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
+import {FormButton} from './Form/FormButton'
 import {Table} from './Table'
 /**
  *
@@ -15,6 +19,56 @@ export const DashboardSchedule: FC = () => {
   })
   return $(Form, {
     children: addkeys([
+      auth.isAdmin() &&
+        $(FormButton, {
+          label: 'Add Round',
+          color: hsla.digest(theme.bgAdminColor),
+        }),
+      $(_ScheduleRound, {
+        title: 'Game 3',
+        teams,
+      }),
+      $(_ScheduleRound, {
+        title: 'Game 2',
+        teams,
+      }),
+      $(_ScheduleRound, {
+        title: 'Game 1',
+        teams,
+      }),
+    ]),
+  })
+}
+/**
+ *
+ */
+const _ScheduleRound: FC<{
+  title: string
+  teams: TTeam[]
+}> = ({title, teams}) => {
+  return $('div', {
+    children: addkeys([
+      $('div', {
+        className: css({
+          marginTop: -theme.fontInset,
+        }),
+        children: addkeys([
+          $('div', {
+            children: title,
+            className: css({
+              fontSize: 21,
+              marginBottom: 5 - theme.fontInset,
+            }),
+          }),
+          $('div', {
+            children: dayjs().format('DD/MM/YYYY'),
+            className: css({
+              marginBottom: 13 - theme.fontInset,
+              color: theme.minorColor,
+            }),
+          }),
+        ]),
+      }),
       $(Table, {
         header: {
           one: {label: 'Team 1', grow: 2},

@@ -11,10 +11,10 @@ export const Poster: FC<{
   return $('div', {
     className: css({
       padding: 34,
-      textAlign: 'center',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
+      textAlign: 'center',
     }),
     children: addkeys([
       $('div', {
@@ -28,7 +28,7 @@ export const Poster: FC<{
         className: css({
           opacity: 0.5,
           marginTop: 5,
-          width: 233,
+          maxWidth: 233 + 55,
         }),
       }),
     ]),

@@ -3,7 +3,7 @@ import {TSeason} from '../../schemas/Season'
 import {TSession} from '../../schemas/Session'
 import {TTeam} from '../../schemas/Team'
 import {TUser} from '../../schemas/User'
-import { contextNoop } from '../../utils/context'
+import {contextNoop} from '../../utils/context'
 /**
  *
  */
@@ -35,6 +35,7 @@ export interface TAuthContext {
   logout: () => void
   teamSet: (team: TTeam) => void
   seasonSet: (season: TSeason) => void
+  isAdmin: () => boolean
 }
 /**
  *
@@ -45,4 +46,5 @@ export const AuthContext = createContext<TAuthContext>({
   logout: contextNoop('logout'),
   teamSet: contextNoop('teamSet'),
   seasonSet: contextNoop('seasonSet'),
+  isAdmin: contextNoop('isAdmin'),
 })

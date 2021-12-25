@@ -18,6 +18,7 @@ import {FormList} from './Form/FormList'
 import {Modal} from './Modal'
 import {Popup} from './Popup'
 import {Question} from './Question'
+import {ReportCreate} from './ReportCreate'
 import {useRouter} from './Router/useRouter'
 import {SeasonCreate} from './SeasonCreate'
 import {TopBar} from './TopBar'
@@ -29,11 +30,12 @@ import {useEndpoint} from './useEndpoint'
 export const Dashboard: FC = () => {
   const auth = useAuth()
   const [logout, logoutSet] = useState(false)
-  const router = useRouter('/ladder', [
+  const [reporting, reportingSet] = useState(false)
+  const router = useRouter('/news', [
     {
-      path: '/ladder',
-      title: 'Ladder',
-      render: () => $(DashboardLadder),
+      path: '/news',
+      title: 'Latest News',
+      render: () => $(DashboardNews),
     },
     {
       path: '/schedule',
@@ -41,9 +43,9 @@ export const Dashboard: FC = () => {
       render: () => $(DashboardSchedule),
     },
     {
-      path: '/news',
-      title: 'Latest News',
-      render: () => $(DashboardNews),
+      path: '/ladder',
+      title: 'Ladder',
+      render: () => $(DashboardLadder),
     },
   ])
   return $(Fragment, {
@@ -58,7 +60,7 @@ export const Dashboard: FC = () => {
           }),
           children: addkeys([
             $(TopBar, {
-              title: 'Dashboard',
+              title: auth.current?.season?.name ?? 'Dashboard',
               children: addkeys([
                 auth.current?.team &&
                   $(TopBarBadge, {
@@ -75,33 +77,58 @@ export const Dashboard: FC = () => {
             $('div', {
               className: css({
                 display: 'flex',
+                justifyContent: 'space-between',
                 borderBottom: theme.border,
                 background: theme.bgMinorColor,
-                '& > *': {
-                  borderRight: theme.border,
-                },
               }),
-              children: router.routes.map((route) => {
-                return $('div', {
-                  key: route.path,
-                  children: route.title,
-                  onClick: () => go.to(route.path),
+              children: addkeys([
+                $('div', {
                   className: css({
-                    cursor: 'default',
+                    display: 'flex',
+                    '& > *': {
+                      borderRight: theme.border,
+                    },
+                  }),
+                  children: router.routes.map((route) => {
+                    const isCurrent = route.path === router.current?.path
+                    return $('div', {
+                      key: route.path,
+                      children: route.title,
+                      onClick: () => go.to(route.path),
+                      className: css({
+                        userSelect: 'none',
+                        padding: theme.padify(theme.inputPadding),
+                        color: isCurrent ? theme.color : theme.minorColor,
+                        background: isCurrent ? theme.bgColor : undefined,
+                        '&:hover': {
+                          color: theme.color,
+                          background: theme.bgHoverColor,
+                        },
+                        '&:active': {
+                          background: theme.bgPressColor,
+                        },
+                      }),
+                    })
+                  }),
+                }),
+                $('div', {
+                  children: 'Submit Score Report',
+                  onClick: () => reportingSet(true),
+                  className: css({
+                    userSelect: 'none',
+                    color: theme.minorColor,
+                    borderLeft: theme.border,
                     padding: theme.padify(theme.inputPadding),
-                    background:
-                      route.path === router.current?.path
-                        ? theme.bgColor
-                        : undefined,
                     '&:hover': {
+                      color: theme.color,
                       background: theme.bgHoverColor,
                     },
                     '&:active': {
                       background: theme.bgPressColor,
                     },
                   }),
-                })
-              }),
+                }),
+              ]),
             }),
             router.render(),
           ]),
@@ -120,6 +147,14 @@ export const Dashboard: FC = () => {
             ],
           }),
       }),
+      $(Fragment, {
+        children:
+          reporting &&
+          $(ReportCreate, {
+            close: () => reportingSet(false),
+            done: () => reportingSet(false),
+          }),
+      }),
     ]),
   })
 }
@@ -135,7 +170,7 @@ const _DashboardSeasonBadge: FC = () => {
   useEffect(() => {
     reload()
   }, [])
-  if (seasons?.length <= 1 && !auth.current?.user.admin) return null
+  if (seasons?.length <= 1 && !auth.isAdmin()) return null
   return $(Fragment, {
     children: addkeys([
       $(Popup, {
@@ -159,11 +194,11 @@ const _DashboardSeasonBadge: FC = () => {
                 })),
                 empty: seasons === undefined ? 'Loading' : 'Empty',
               }),
-              auth.current?.user.admin &&
+              auth.isAdmin() &&
                 $(FormButton, {
                   label: 'Create New Season',
                   click: () => creatingSet(true),
-                  color: hsla.digest(theme.adminColor),
+                  color: hsla.digest(theme.bgAdminColor),
                 }),
             ]),
           }),

@@ -26,12 +26,11 @@ export const SeasonCreate: FC<{
     signUpOpen: false,
   })
   return $(Form, {
-    background: theme.adminColor,
+    background: theme.bgAdminColor,
     children: addkeys([
       $('div', {
         children: `A season contains a fixed number of games. A single team will be determined the winner at the end of the season.`,
         className: css({
-          color: theme.labelColor,
           margin: `-${theme.fontInset}px 0`,
         }),
       }),

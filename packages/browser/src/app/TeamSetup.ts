@@ -44,6 +44,7 @@ export const TeamSetup: FC = () => {
           className: css({
             width: 377,
             border: theme.border,
+            background: theme.bgColor,
           }),
           children: addkeys([
             $(TopBar, {

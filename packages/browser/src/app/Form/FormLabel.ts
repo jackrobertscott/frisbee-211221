@@ -13,7 +13,7 @@ export const FormLabel: FC<{
     children: label,
     className: css({
       border: theme.border,
-      color: theme.labelColor,
+      color: theme.minorColor,
       background: theme.bgColor,
       padding: theme.padify(theme.inputPadding),
       userSelect: click ? 'none' : undefined,

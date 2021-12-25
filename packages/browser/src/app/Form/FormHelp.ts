@@ -13,7 +13,7 @@ export const FormHelp: FC<{
       flexGrow: 1,
       overflow: 'hidden',
       border: theme.border,
-      color: theme.labelColor,
+      color: theme.minorColor,
       background: theme.bgMinorColor,
       padding: theme.padify(theme.inputPadding),
     }),

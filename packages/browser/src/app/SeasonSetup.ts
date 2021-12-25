@@ -22,6 +22,7 @@ export const SeasonSetup: FC = () => {
           className: css({
             width: 377,
             border: theme.border,
+            background: theme.bgColor,
           }),
           children: addkeys([
             $(TopBar, {
@@ -31,7 +32,7 @@ export const SeasonSetup: FC = () => {
                 click: () => logoutSet(true),
               }),
             }),
-            auth.current?.user.admin
+            auth.isAdmin()
               ? $(SeasonCreate, {
                   seasonSet: auth.seasonSet,
                 })

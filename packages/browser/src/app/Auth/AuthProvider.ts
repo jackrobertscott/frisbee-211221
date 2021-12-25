@@ -50,6 +50,7 @@ export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
           .fetch({seasonId: season.id}, current?.token)
           .then((team) => currentSet({...current, season, team}))
       },
+      isAdmin: () => !!current?.user.admin,
     },
   })
 }
