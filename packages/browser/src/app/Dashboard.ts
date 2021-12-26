@@ -166,9 +166,9 @@ const _DashboardSeasonBadge: FC = () => {
   const [seasons, seasonsSet] = useState<TSeason[]>([])
   const [creating, creatingSet] = useState(false)
   const $seasonList = useEndpoint($SeasonListOfUser)
-  const reload = () => $seasonList.fetch().then(seasonsSet)
+  const seasonList = () => $seasonList.fetch().then(seasonsSet)
   useEffect(() => {
-    reload()
+    seasonList()
   }, [])
   if (seasons?.length <= 1 && !auth.isAdmin()) return null
   return $(Fragment, {
@@ -217,7 +217,7 @@ const _DashboardSeasonBadge: FC = () => {
               }),
               $(SeasonCreate, {
                 seasonSet: () => {
-                  reload()
+                  seasonList()
                   creatingSet(false)
                 },
               }),

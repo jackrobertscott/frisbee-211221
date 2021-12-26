@@ -34,9 +34,7 @@ export const TeamSetup: FC = () => {
       .then(teamsSet)
       .then(() => !loaded && loadedSet(true))
   })
-  useEffect(() => {
-    teamList()
-  }, [search])
+  useEffect(() => teamList(), [search])
   return $(Fragment, {
     children: addkeys([
       $(Center, {

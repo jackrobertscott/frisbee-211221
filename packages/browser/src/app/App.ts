@@ -1,4 +1,4 @@
-import backgroundSVG from '../assets/xmastree.svg'
+import backgroundSVG from '../assets/happy.svg'
 import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
 import {theme} from '../theme'
@@ -22,7 +22,7 @@ export const App: FC = () => {
       backgroundImage: `url(${backgroundSVG})`,
       backgroundPosition: 'center',
       backgroundRepeat: 'repeat',
-      backgroundSize: 150,
+      backgroundSize: 50,
     }),
   })
 }

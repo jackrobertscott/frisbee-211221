@@ -1,38 +1,72 @@
+import dayjs from 'dayjs'
 import {css} from '@emotion/css'
-import {createElement as $, FC, useState} from 'react'
+import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
+import {$PostList} from '../endpoints/Post'
+import {TPost} from '../schemas/Post'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {hsla} from '../utils/hsla'
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
 import {FormButton} from './Form/FormButton'
+import {InputString} from './Input/InputString'
+import {PostCreate} from './PostCreate'
+import {useEndpoint} from './useEndpoint'
+import {useSling} from './useThrottle'
+import {PostView} from './PostView'
+import {FormSpinner} from './Form/FormSpinner'
 /**
  *
  */
 export const DashboardNews: FC = () => {
   const auth = useAuth()
-  return $(Form, {
+  const [search, searchSet] = useState('')
+  const [creating, creatingSet] = useState(false)
+  const [posts, postsSet] = useState<TPost[]>()
+  const $postList = useEndpoint($PostList)
+  const postList = () => $postList.fetch({search}).then(postsSet)
+  const postListDelay = useSling(500, postList)
+  useEffect(() => postListDelay(), [search])
+  return $(Fragment, {
     children: addkeys([
-      auth.isAdmin() &&
-        $(FormButton, {
-          label: 'Add Post',
-          color: hsla.digest(theme.bgAdminColor),
-        }),
-      $(_NewsPost, {
-        title: 'Game 1 Wrap Up',
-        content: _EXAMPLE_MESSAGE,
+      $(Form, {
+        children: addkeys([
+          $(InputString, {
+            value: search,
+            valueSet: searchSet,
+            placeholder: 'Search',
+          }),
+          auth.isAdmin() &&
+            $(FormButton, {
+              label: 'Add Post',
+              color: hsla.digest(theme.bgAdminColor),
+              click: () => creatingSet(true),
+            }),
+          posts === undefined
+            ? $(FormSpinner)
+            : posts.map((post) => {
+                return $(_NewsPost, {
+                  key: post.id,
+                  post,
+                })
+              }),
+          posts !== undefined &&
+            $(FormButton, {
+              icon: 'angle-double-down',
+              label: 'Show More',
+            }),
+        ]),
       }),
-      $(_NewsPost, {
-        title: 'Game 1 Wrap Up',
-        content: _EXAMPLE_MESSAGE,
-      }),
-      $(_NewsPost, {
-        title: 'Game 1 Wrap Up',
-        content: _EXAMPLE_MESSAGE,
-      }),
-      $(FormButton, {
-        icon: 'angle-double-down',
-        label: 'Show More',
+      $(Fragment, {
+        children:
+          creating &&
+          $(PostCreate, {
+            close: () => creatingSet(false),
+            done: () => {
+              postList()
+              creatingSet(false)
+            },
+          }),
       }),
     ]),
   })
@@ -41,59 +75,62 @@ export const DashboardNews: FC = () => {
  *
  */
 const _NewsPost: FC<{
-  title: string
-  content: string
-}> = ({title, content}) => {
+  post: TPost
+}> = ({post}) => {
   const [open, openSet] = useState(false)
-  return $('div', {
-    className: css({
-      border: theme.border,
-    }),
+  return $(Fragment, {
     children: addkeys([
       $('div', {
+        onClick: () => openSet((i) => !i),
         className: css({
-          padding: theme.padify(theme.formPadding),
-          '& > *:not(:last-child)': {
-            marginBottom: 5,
+          cursor: 'default',
+          border: theme.border,
+          '&:hover': {
+            background: theme.bgHoverColor,
           },
         }),
         children: addkeys([
           $('div', {
-            children: title,
             className: css({
-              fontSize: 21,
+              padding: theme.padify(theme.formPadding),
+              '& > *:not(:last-child)': {
+                marginBottom: 5,
+              },
             }),
+            children: addkeys([
+              $('div', {
+                children: post.title,
+                className: css({
+                  fontSize: 21,
+                }),
+              }),
+              $('div', {
+                children: post.content
+                  .slice(0, 233)
+                  .concat(post.content.length > 233 ? '...' : ''),
+                className: css({
+                  color: theme.minorColor,
+                  whiteSpace: 'pre-line',
+                }),
+              }),
+            ]),
           }),
           $('div', {
-            children: open
-              ? content
-              : content.slice(0, 233).concat(content.length > 233 ? '...' : ''),
+            children: dayjs(post.createdOn).format(theme.dateFormat),
             className: css({
               color: theme.minorColor,
-              whiteSpace: 'pre-line',
+              borderTop: theme.border,
+              background: hsla.string(0, 0, 0, 0.05),
+              padding: theme.padify(theme.formPadding),
             }),
           }),
         ]),
       }),
-      $('div', {
-        children: '0 Comments',
-        onClick: () => openSet((i) => !i),
-        className: css({
-          borderTop: theme.border,
-          background: theme.bgMinorColor,
-          padding: theme.padify(theme.formPadding),
+      open &&
+        $(PostView, {
+          post,
+          close: () => openSet(false),
         }),
-      }),
     ]),
   })
 }
-/**
- *
- */
-const _EXAMPLE_MESSAGE = `
-Howdy frisbee folks. Here are some teams I've put together for tomorrow's muck-around. Don’t worry if your name or someone you know isn’t on this, it’s only pulled from my poll. We’re fully expecting to have more people turn up than we know what to do with, so we’ll try divide everyone up as evenly as possible. Hopefully these teams are balanced but we’ll find out tomorrow. Just please bring a light and dark shirt to play in.
-
-The format will be 3, 30-minute games across 5 slightly smaller fields so we can have as many games running at once as possible. There’ll also be some mini games running on the side like longest huck with some sweet prizes up for grabs.
-
-Additionally, we’re blatantly stealing my favourite part of Santa’s hat, the extra points rule. Each team will need to discuss amongst themselves before each game to decide what their extra points rule will be. For example, throwing a score with your non-dominant hand, or a hammer, or you’ve got to hold someone’s hand while throwing, or catch between your legs and so on. If you then score while performing one of the rules, it’s worth two points. If you score while doing both rules, it’ll be worth 4 points.
-`.trim()

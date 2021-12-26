@@ -14,6 +14,7 @@ export const theme = {
   bgDisabledColor: hsla.string(0, 0, 85),
   bgAppColor: hsla.string(0, 0, 80),
   bgAdminColor: hsla.string(270, 100, 90),
+  dateFormat: 'D MMM YYYY h:mma',
   borderWidth: 2,
   inputPadding: 8,
   formPadding: 13,
