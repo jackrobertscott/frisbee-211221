@@ -74,4 +74,25 @@ export default new Map<string, RequestHandler>([
         )
       },
   }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/CommentDelete',
+    payload: io.object({
+      commentId: io.string(),
+    }),
+    handler:
+      ({commentId, ...body}) =>
+      async (req) => {
+        const [user] = await requireUser(req)
+        const comment = await $Comment.getOne({id: commentId})
+        if (!user.admin && comment.userId !== user.id) {
+          const message =
+            'User did not create this comment and therefore can not delete it.'
+          throw new Error(message)
+        }
+        await $Comment.deleteOne({id: commentId})
+      },
+  }),
 ])

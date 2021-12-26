@@ -163,6 +163,7 @@ export const Dashboard: FC = () => {
  */
 const _DashboardSeasonBadge: FC = () => {
   const auth = useAuth()
+  const [open, openSet] = useState(false)
   const [seasons, seasonsSet] = useState<TSeason[]>([])
   const [creating, creatingSet] = useState(false)
   const $seasonList = useEndpoint($SeasonListOfUser)
@@ -174,34 +175,34 @@ const _DashboardSeasonBadge: FC = () => {
   return $(Fragment, {
     children: addkeys([
       $(Popup, {
-        wrap: (openSet) =>
-          $(TopBarBadge, {
-            icon: 'sync-alt',
-            click: () => openSet(true),
-          }),
-        popup: (openSet) =>
-          $(Form, {
-            width: 233,
-            children: addkeys([
-              $(FormList, {
-                list: spreadify(seasons).map((i) => ({
-                  ...i,
-                  label: i.name,
-                  click: () => {
-                    openSet(false)
-                    auth.seasonSet(i)
-                  },
-                })),
-                empty: seasons === undefined ? 'Loading' : 'Empty',
+        open,
+        clickOutside: () => openSet(false),
+        wrap: $(TopBarBadge, {
+          icon: 'sync-alt',
+          click: () => openSet(true),
+        }),
+        popup: $(Form, {
+          width: 233,
+          children: addkeys([
+            $(FormList, {
+              list: spreadify(seasons).map((i) => ({
+                ...i,
+                label: i.name,
+                click: () => {
+                  openSet(false)
+                  auth.seasonSet(i)
+                },
+              })),
+              empty: seasons === undefined ? 'Loading' : 'Empty',
+            }),
+            auth.isAdmin() &&
+              $(FormButton, {
+                label: 'Create New Season',
+                click: () => creatingSet(true),
+                color: hsla.digest(theme.bgAdminColor),
               }),
-              auth.isAdmin() &&
-                $(FormButton, {
-                  label: 'Create New Season',
-                  click: () => creatingSet(true),
-                  color: hsla.digest(theme.bgAdminColor),
-                }),
-            ]),
-          }),
+          ]),
+        }),
       }),
       $(Fragment, {
         children:

@@ -8,8 +8,9 @@ import {Icon} from '../Icon'
 export const FormBadge: FC<{
   icon: string
   prefix?: string
-  click?: () => void
-}> = ({icon, prefix, click}) => {
+  click?: (event: MouseEvent) => void
+  padding?: number
+}> = ({icon, prefix, click, padding}) => {
   return $('div', {
     onClick: click,
     className: css({
@@ -18,7 +19,7 @@ export const FormBadge: FC<{
       textAlign: 'center',
       userSelect: 'none',
       border: theme.border,
-      padding: theme.padify(theme.inputPadding),
+      padding: theme.padify(padding ?? theme.inputPadding),
       background: theme.bgColor,
       '&:hover': {
         background: theme.bgHoverColor,

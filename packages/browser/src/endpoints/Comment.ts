@@ -38,3 +38,12 @@ export const $CommentUpdate = createEndpoint({
   }),
   result: ioComment,
 })
+/**
+ *
+ */
+export const $CommentDelete = createEndpoint({
+  path: '/CommentDelete',
+  payload: io.object({
+    commentId: io.string(),
+  }),
+})

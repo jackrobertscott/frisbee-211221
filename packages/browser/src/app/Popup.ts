@@ -17,17 +17,26 @@ import {Portal} from './Portal'
  *
  */
 export const Popup: FC<{
-  wrap: (openSet: (state: boolean) => void, open: boolean) => ReactNode
-  popup: (openSet: (state: boolean) => void, open: boolean) => ReactNode
+  open: boolean
+  wrap: ReactNode
+  popup: ReactNode
   style?: CSSInterpolation
   align?: 'start' | 'center' | 'end'
   position?: 'above' | 'below'
-}> = ({wrap, popup, style, align = 'end', position = 'below'}) => {
+  clickOutside?: () => void
+}> = ({
+  open,
+  wrap,
+  popup,
+  style,
+  align = 'end',
+  position = 'below',
+  clickOutside,
+}) => {
   const depth = useDepth()
   const wrapRef = useRef<HTMLElement>()
   const popupRef = useRef<HTMLElement>()
   const [box, boxSet] = useState<DOMRect>()
-  const [open, openSet] = useState(false)
   const offset = {x: 0, y: 3}
   const alignValue = (data: Partial<Record<typeof align, any>>) => data[align]
   const posValue = (data: Partial<Record<typeof position, any>>) =>
@@ -35,16 +44,16 @@ export const Popup: FC<{
   useEffect(() => {
     if (open) {
       boxSet(wrapRef.current?.getBoundingClientRect())
-      const outsideClickHandler = (event: MouseEvent) => {
-        if (!depth.atTop()) return
+      const clickOutsideHandler = (event: MouseEvent) => {
+        if (!depth.atTop() || !clickOutside) return
         const clickedOutside =
           popupRef.current &&
           event.target instanceof HTMLElement &&
           !popupRef.current.contains(event.target)
-        if (clickedOutside) openSet(false)
+        if (clickedOutside) clickOutside()
       }
-      document.addEventListener('click', outsideClickHandler)
-      return () => document.removeEventListener('click', outsideClickHandler)
+      document.addEventListener('click', clickOutsideHandler)
+      return () => document.removeEventListener('click', clickOutsideHandler)
     } else if (box) {
       boxSet(undefined)
     }
@@ -55,7 +64,7 @@ export const Popup: FC<{
       position: 'relative',
     }),
     children: addkeys([
-      wrap(openSet, open),
+      wrap,
       open &&
         box &&
         $(DepthProvider, {
@@ -97,7 +106,6 @@ export const Popup: FC<{
                     }),
                   }),
                   $('div', {
-                    children: popup(openSet, open),
                     className: css({
                       position: 'absolute',
                       pointerEvents: 'all',
@@ -114,6 +122,13 @@ export const Popup: FC<{
                         `0 0 10px ${hsla.string(0, 0, 0, 0.1)}`,
                         `0 0 50px ${hsla.string(0, 0, 0, 0.1)}`,
                       ].join(', '),
+                    }),
+                    children: $('div', {
+                      children: popup,
+                      className: css({
+                        position: 'relative',
+                        zIndex: 100,
+                      }),
                     }),
                   }),
                   $('div', {
