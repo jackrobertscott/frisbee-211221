@@ -63,7 +63,7 @@ export default new Map<string, RequestHandler>([
       async (req) => {
         const [user] = await requireUser(req)
         const comment = await $Comment.getOne({id: commentId})
-        if (comment.userId !== user.id) {
+        if (!user.admin && comment.userId !== user.id) {
           const message =
             'User did not create this comment and therefore can not update it.'
           throw new Error(message)
@@ -83,7 +83,7 @@ export default new Map<string, RequestHandler>([
       commentId: io.string(),
     }),
     handler:
-      ({commentId, ...body}) =>
+      ({commentId}) =>
       async (req) => {
         const [user] = await requireUser(req)
         const comment = await $Comment.getOne({id: commentId})

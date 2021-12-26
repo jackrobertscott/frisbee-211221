@@ -35,3 +35,12 @@ export const $PostUpdate = createEndpoint({
   }),
   result: ioPost,
 })
+/**
+ *
+ */
+export const $PostDelete = createEndpoint({
+  path: '/PostDelete',
+  payload: io.object({
+    postId: io.string(),
+  }),
+})

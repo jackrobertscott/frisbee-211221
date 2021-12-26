@@ -65,4 +65,19 @@ export default new Map<string, RequestHandler>([
         )
       },
   }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/PostDelete',
+    payload: io.object({
+      postId: io.string(),
+    }),
+    handler:
+      ({postId}) =>
+      async (req) => {
+        await requireUserAdmin(req)
+        await $Post.deleteOne({id: postId})
+      },
+  }),
 ])

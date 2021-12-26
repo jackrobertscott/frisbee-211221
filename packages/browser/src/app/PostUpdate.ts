@@ -1,5 +1,5 @@
 import {createElement as $, FC} from 'react'
-import {$PostCreate} from '../endpoints/Post'
+import {$PostUpdate} from '../endpoints/Post'
 import {TPost} from '../schemas/Post'
 import {addkeys} from '../utils/addkeys'
 import {Form} from './Form/Form'
@@ -17,20 +17,21 @@ import {useForm} from './useForm'
 /**
  *
  */
-export const PostCreate: FC<{
+export const PostUpdate: FC<{
+  post: TPost
   close: () => void
   done: (post: TPost) => void
-}> = ({close, done}) => {
-  const $postCreate = useEndpoint($PostCreate)
+}> = ({post, close, done}) => {
+  const $postUpdate = useEndpoint($PostUpdate)
   const form = useForm({
-    title: '',
-    content: '',
+    title: post.title,
+    content: post.content,
   })
   return $(Modal, {
     width: 610,
     children: addkeys([
       $(TopBar, {
-        title: 'New Post',
+        title: 'Edit Post',
         children: $(TopBarBadge, {
           icon: 'times',
           click: close,
@@ -58,9 +59,10 @@ export const PostCreate: FC<{
             ]),
           }),
           $(FormButton, {
-            disabled: $postCreate.loading,
-            label: $postCreate.loading ? 'Loading' : 'Submit',
-            click: () => $postCreate.fetch(form.data).then(done),
+            disabled: $postUpdate.loading,
+            label: $postUpdate.loading ? 'Loading' : 'Submit',
+            click: () =>
+              $postUpdate.fetch({...form.data, postId: post.id}).then(done),
           }),
         ]),
       }),

@@ -27,114 +27,172 @@ import {FormMenu} from './Form/FormMenu'
 import {useAuth} from './Auth/useAuth'
 import {Question} from './Question'
 import {CommentEdit} from './CommentEdit'
+import {PostUpdate} from './PostUpdate'
+import {$PostDelete} from '../endpoints/Post'
 /**
  *
  */
 export const PostView: FC<{
   post: TPost
   close: () => void
-}> = ({post, close}) => {
+  reload: () => void
+}> = ({post, close, reload}) => {
+  const auth = useAuth()
   const [{comments, users}, stateSet] = useState<{
     comments?: TComment[]
     users?: TUser[]
   }>({})
+  const [editing, editingSet] = useState(false)
+  const [deleting, deletingSet] = useState(false)
   const $commentCreate = useEndpoint($CommentCreate)
   const $commentList = useEndpoint($CommentListOfPost)
+  const $postDelete = useEndpoint($PostDelete)
   const commentList = () => $commentList.fetch({postId: post.id}).then(stateSet)
-  const form = useForm({
+  const formComment = useForm({
     content: '',
   })
   useEffect(() => {
     commentList()
   }, [])
-  return $(Modal, {
-    close,
-    width: 610 + 377 + 26,
+  return $(Fragment, {
     children: addkeys([
-      $(TopBar, {
-        title: 'Post',
-        children: $(TopBarBadge, {
-          icon: 'times',
-          click: close,
-        }),
-      }),
-      $('div', {
-        className: css({
-          display: 'flex',
-        }),
+      $(Modal, {
+        close,
+        width: 610 + 377 + 26,
         children: addkeys([
-          $('div', {
-            className: css({
-              padding: 21,
-              flexGrow: 1,
-            }),
+          $(TopBar, {
+            title: 'Post',
             children: addkeys([
-              $('div', {
-                children: post.title,
-                className: css({
-                  fontSize: 21,
-                  marginBottom: 5,
+              auth.isAdmin() &&
+                $(TopBarBadge, {
+                  icon: 'wrench',
+                  label: 'Edit',
+                  color: theme.bgAdminColor,
+                  click: () => editingSet(true),
                 }),
-              }),
-              $('div', {
-                children: dayjs(post.createdOn).format(theme.dateFormat),
-                className: css({
-                  color: theme.minorColor,
-                  marginBottom: theme.formPadding,
+              auth.isAdmin() &&
+                $(TopBarBadge, {
+                  icon: 'trash-alt',
+                  label: 'Delete',
+                  color: theme.bgAdminColor,
+                  click: () => deletingSet(true),
                 }),
-              }),
-              $('div', {
-                children: post.content,
-                className: css({
-                  whiteSpace: 'pre-line',
-                }),
+              $(TopBarBadge, {
+                icon: 'times',
+                click: close,
               }),
             ]),
           }),
           $('div', {
             className: css({
-              width: 377,
-              flexShrink: 0,
-              borderLeft: theme.border,
-              background: theme.bgMinorColor,
+              display: 'flex',
             }),
-            children: $(Form, {
-              children: addkeys([
-                $(FormColumn, {
+            children: addkeys([
+              $('div', {
+                className: css({
+                  padding: 21,
+                  flexGrow: 1,
+                }),
+                children: addkeys([
+                  $('div', {
+                    children: post.title,
+                    className: css({
+                      fontSize: 21,
+                      marginBottom: 5,
+                    }),
+                  }),
+                  $('div', {
+                    children: dayjs(post.createdOn).format(theme.dateFormat),
+                    className: css({
+                      color: theme.minorColor,
+                      marginBottom: theme.formPadding,
+                    }),
+                  }),
+                  $('div', {
+                    children: post.content,
+                    className: css({
+                      whiteSpace: 'pre-line',
+                    }),
+                  }),
+                ]),
+              }),
+              $('div', {
+                className: css({
+                  width: 377,
+                  flexShrink: 0,
+                  borderLeft: theme.border,
+                  background: theme.bgMinorColor,
+                }),
+                children: $(Form, {
                   children: addkeys([
-                    $(InputTextarea, {
-                      value: form.data.content,
-                      valueSet: form.link('content'),
-                      placeholder: 'Write comment...',
-                      rows: 3,
+                    $(FormColumn, {
+                      children: addkeys([
+                        $(InputTextarea, {
+                          value: formComment.data.content,
+                          valueSet: formComment.link('content'),
+                          placeholder: 'Write comment...',
+                          rows: 3,
+                        }),
+                        $(FormButton, {
+                          label: 'Post',
+                          click: () =>
+                            $commentCreate
+                              .fetch({...formComment.data, postId: post.id})
+                              .then(() => commentList())
+                              .then(() => formComment.reset()),
+                        }),
+                      ]),
                     }),
-                    $(FormButton, {
-                      label: 'Post',
-                      click: () =>
-                        $commentCreate
-                          .fetch({...form.data, postId: post.id})
-                          .then(() => commentList())
-                          .then(() => form.reset()),
-                    }),
+                    comments === undefined
+                      ? $(FormSpinner)
+                      : $(Fragment, {
+                          children: comments.map((comment) => {
+                            const user = users?.find(
+                              (i) => i.id === comment.userId
+                            )
+                            return $(_PostViewComment, {
+                              key: comment.id,
+                              comment,
+                              user,
+                              reload: () => commentList(),
+                            })
+                          }),
+                        }),
                   ]),
                 }),
-                comments === undefined
-                  ? $(FormSpinner)
-                  : $(Fragment, {
-                      children: comments.map((comment) => {
-                        const user = users?.find((i) => i.id === comment.userId)
-                        return $(_PostViewComment, {
-                          key: comment.id,
-                          comment,
-                          user,
-                          reload: () => commentList(),
-                        })
-                      }),
-                    }),
-              ]),
-            }),
+              }),
+            ]),
           }),
         ]),
+      }),
+      $(Fragment, {
+        children:
+          editing &&
+          $(PostUpdate, {
+            post,
+            close: () => editingSet(false),
+            done: () => {
+              editingSet(false)
+              reload()
+            },
+          }),
+      }),
+      $(Fragment, {
+        children:
+          deleting &&
+          $(Question, {
+            close: () => deletingSet(false),
+            title: 'Delete',
+            description: 'Are you sure you wish to delete this comment?',
+            options: [
+              {label: 'Cancel', click: () => deletingSet(false)},
+              {
+                label: 'Delete',
+                click: () =>
+                  $postDelete.fetch({postId: post.id}).then(() => reload()),
+              },
+            ],
+          }),
       }),
     ]),
   })
@@ -176,7 +234,7 @@ const _PostViewComment: FC<{
               marginTop: theme.inputPadding - theme.fontInset * 2,
             }),
           }),
-          auth.current?.user.id === comment.userId &&
+          (auth.isAdmin() || auth.current?.user.id === comment.userId) &&
             $('div', {
               className: css({
                 top: 8,

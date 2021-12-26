@@ -12,19 +12,20 @@ export const TopBarBadge: FC<{
   label?: string
   color?: string
   click?: () => void
-}> = ({icon, label, color, click}) => {
+}> = ({icon, label, color = theme.bgColor, click}) => {
+  const hslaColor = hsla.digest(color)
   return $('div', {
     onClick: click,
     className: css({
       display: 'flex',
       padding: theme.padify(8),
       borderLeft: theme.border,
-      background: color,
+      background: hsla.render(hslaColor),
       '&:hover': {
-        background: hsla.string(0, 0, 0, 0.1),
+        background: hsla.render(hsla.darken(5, hslaColor)),
       },
       '&:active': {
-        background: hsla.string(0, 0, 0, 0.2),
+        background: hsla.render(hsla.darken(10, hslaColor)),
       },
     }),
     children: addkeys([

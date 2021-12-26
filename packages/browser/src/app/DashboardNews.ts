@@ -21,11 +21,13 @@ import {FormSpinner} from './Form/FormSpinner'
 export const DashboardNews: FC = () => {
   const auth = useAuth()
   const [search, searchSet] = useState('')
+  const [viewId, viewIdSet] = useState<string>()
   const [creating, creatingSet] = useState(false)
   const [posts, postsSet] = useState<TPost[]>()
   const $postList = useEndpoint($PostList)
   const postList = () => $postList.fetch({search}).then(postsSet)
   const postListDelay = useSling(500, postList)
+  const postView = viewId ? posts?.find((i) => i.id === viewId) : undefined
   useEffect(() => postListDelay(), [search])
   return $(Fragment, {
     children: addkeys([
@@ -48,6 +50,7 @@ export const DashboardNews: FC = () => {
                 return $(_NewsPost, {
                   key: post.id,
                   post,
+                  click: () => viewIdSet(post.id),
                 })
               }),
           posts !== undefined &&
@@ -68,6 +71,15 @@ export const DashboardNews: FC = () => {
             },
           }),
       }),
+      $(Fragment, {
+        children:
+          postView &&
+          $(PostView, {
+            post: postView,
+            close: () => viewIdSet(undefined),
+            reload: () => postList(),
+          }),
+      }),
     ]),
   })
 }
@@ -76,12 +88,12 @@ export const DashboardNews: FC = () => {
  */
 const _NewsPost: FC<{
   post: TPost
-}> = ({post}) => {
-  const [open, openSet] = useState(false)
+  click: () => void
+}> = ({post, click}) => {
   return $(Fragment, {
     children: addkeys([
       $('div', {
-        onClick: () => openSet((i) => !i),
+        onClick: click,
         className: css({
           cursor: 'default',
           border: theme.border,
@@ -126,11 +138,6 @@ const _NewsPost: FC<{
           }),
         ]),
       }),
-      open &&
-        $(PostView, {
-          post,
-          close: () => openSet(false),
-        }),
     ]),
   })
 }
