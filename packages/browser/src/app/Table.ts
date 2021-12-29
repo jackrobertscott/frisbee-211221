@@ -8,7 +8,9 @@ import {hsla} from '../utils/hsla'
  */
 type TFCTable<T extends string = any> = FC<{
   header: Record<T, {label: string; grow: number}>
-  body: Array<Record<'id' | T, undefined | {value?: string; color?: string}>>
+  body: Array<
+    Record<'id' | T, undefined | {value?: string | number; color?: string}>
+  >
 }>
 /**
  *

@@ -21,10 +21,10 @@ export const TopBarBadge: FC<{
       padding: theme.padify(8),
       borderLeft: theme.border,
       background: hsla.render(hslaColor),
-      '&:hover': {
+      '&:hover': click && {
         background: hsla.render(hsla.darken(5, hslaColor)),
       },
-      '&:active': {
+      '&:active': click && {
         background: hsla.render(hsla.darken(10, hslaColor)),
       },
     }),

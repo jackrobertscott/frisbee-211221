@@ -18,7 +18,7 @@ import {Form} from './Form/Form'
 import {FormButton} from './Form/FormButton'
 import {FormSpinner} from './Form/FormSpinner'
 import {Icon} from './Icon'
-import {RoundForm} from './RoundForm'
+import {RoundSetupForm} from './RoundSetupForm'
 import {Table} from './Table'
 import {useEndpoint} from './useEndpoint'
 import {useLocalState} from './useLocalState'
@@ -68,6 +68,7 @@ export const DashboardSchedule: FC = () => {
                         key: round.id,
                         round,
                         teams,
+                        isAdmin: auth.isAdmin(),
                         open: openrnds.includes(round.id),
                         editingSet,
                         toggle: () =>
@@ -92,7 +93,7 @@ export const DashboardSchedule: FC = () => {
       $(Fragment, {
         children:
           creating &&
-          $(RoundForm, {
+          $(RoundSetupForm, {
             loading: $roundCreate.loading,
             close: () => creatingSet(false),
             done: (data) =>
@@ -113,7 +114,7 @@ export const DashboardSchedule: FC = () => {
       $(Fragment, {
         children:
           editing &&
-          $(RoundForm, {
+          $(RoundSetupForm, {
             round: editing,
             loading: $roundUpdate.loading,
             close: () => editingSet(undefined),
@@ -141,9 +142,10 @@ const _ScheduleRound: FC<{
   round: TRound
   teams: TTeam[]
   open: boolean
+  isAdmin: boolean
   toggle: () => void
   editingSet: (round: TRound) => void
-}> = ({round, teams, open, toggle, editingSet}) => {
+}> = ({round, teams, open, isAdmin, toggle, editingSet}) => {
   const bghsla = hsla.digest(theme.bgMinorColor)
   return $('div', {
     children: addkeys([
@@ -216,11 +218,12 @@ const _ScheduleRound: FC<{
                 }
               }),
             }),
-            $(FormButton, {
-              label: 'Edit Round',
-              color: hsla.digest(theme.bgAdminColor),
-              click: () => editingSet(round),
-            }),
+            isAdmin &&
+              $(FormButton, {
+                label: 'Edit Round',
+                color: hsla.digest(theme.bgAdminColor),
+                click: () => editingSet(round),
+              }),
           ]),
         }),
     ]),

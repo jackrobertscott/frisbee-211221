@@ -8,6 +8,8 @@ export const ioRoundGame = io.object({
   team2Id: io.string(),
   place: io.string(),
   time: io.string(),
+  team1Score: io.optional(io.number()),
+  team2Score: io.optional(io.number()),
 })
 /**
  *

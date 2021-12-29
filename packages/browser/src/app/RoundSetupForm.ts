@@ -33,7 +33,7 @@ interface TRoundForm {
 /**
  *
  */
-export const RoundForm: FC<{
+export const RoundSetupForm: FC<{
   round?: TRound
   loading?: boolean
   close: () => void
@@ -169,7 +169,6 @@ export const RoundForm: FC<{
                             return $('div', {
                               children: child,
                               className: css({
-                                width: '25%',
                                 flexGrow: 1,
                                 flexShrink: 1,
                                 flexBasis: 0,
