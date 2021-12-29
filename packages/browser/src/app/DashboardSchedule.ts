@@ -1,6 +1,13 @@
 import {css} from '@emotion/css'
 import dayjs from 'dayjs'
-import {createElement as $, FC, Fragment, useState} from 'react'
+import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
+import {
+  $RoundCreate,
+  $RoundListOfSeason,
+  $RoundUpdate,
+} from '../endpoints/Round'
+import {$TeamListOfSeason} from '../endpoints/Team'
+import {TRound} from '../schemas/Round'
 import {TTeam} from '../schemas/Team'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -9,20 +16,33 @@ import {fadein} from '../utils/keyframes'
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
 import {FormButton} from './Form/FormButton'
+import {FormSpinner} from './Form/FormSpinner'
 import {Icon} from './Icon'
-import {RoundCreate} from './RoundCreate'
+import {RoundForm} from './RoundForm'
 import {Table} from './Table'
+import {useEndpoint} from './useEndpoint'
 import {useLocalState} from './useLocalState'
 /**
  *
  */
 export const DashboardSchedule: FC = () => {
   const auth = useAuth()
+  const $roundCreate = useEndpoint($RoundCreate)
+  const $roundUpdate = useEndpoint($RoundUpdate)
+  const $teamList = useEndpoint($TeamListOfSeason)
+  const $roundList = useEndpoint($RoundListOfSeason)
+  const [teams, teamsSet] = useState<TTeam[]>()
+  const [rounds, roundsSet] = useState<TRound[]>()
   const [creating, creatingSet] = useState(false)
+  const [editing, editingSet] = useState<TRound>()
   const [openrnds, openrndsSet] = useLocalState<string[]>('frisbee.rounds', [])
-  const [teams] = useState<TTeam[]>(() => {
-    return teamGenerator(auth.current?.season?.id!)
-  })
+  const reload = () => {
+    if (!auth.current?.season) return
+    const seasonId = auth.current.season.id
+    $teamList.fetch({seasonId}).then(teamsSet)
+    $roundList.fetch({seasonId}).then(roundsSet)
+  }
+  useEffect(() => reload(), [])
   return $(Fragment, {
     children: addkeys([
       $(Form, {
@@ -33,39 +53,82 @@ export const DashboardSchedule: FC = () => {
               color: hsla.digest(theme.bgAdminColor),
               click: () => creatingSet(true),
             }),
-          $('div', {
-            className: css({
-              border: theme.border,
-              '& > *:not(:last-child)': {
-                borderBottom: theme.border,
-              },
-            }),
-            children: ['Game 1', 'Game 2', 'Game 3'].reverse().map((round) => {
-              return $(_ScheduleRound, {
-                key: round,
-                title: round,
-                teams,
-                open: openrnds.includes(round),
-                toggle: () =>
-                  openrndsSet((i) => {
-                    return i.includes(round)
-                      ? i.filter((x) => x !== round)
-                      : i.concat(round)
-                  }),
-              })
-            }),
-          }),
+          rounds === undefined || teams === undefined
+            ? $(FormSpinner)
+            : $('div', {
+                className: css({
+                  border: theme.border,
+                  '& > *:not(:last-child)': {
+                    borderBottom: theme.border,
+                  },
+                }),
+                children: rounds.length
+                  ? rounds.map((round) => {
+                      return $(_ScheduleRound, {
+                        key: round.id,
+                        round,
+                        teams,
+                        open: openrnds.includes(round.id),
+                        editingSet,
+                        toggle: () =>
+                          openrndsSet((i) => {
+                            return i.includes(round.id)
+                              ? i.filter((x) => x !== round.id)
+                              : i.concat(round.id)
+                          }),
+                      })
+                    })
+                  : $('div', {
+                      children: 'No Rounds Yet',
+                      className: css({
+                        color: theme.minorColor,
+                        padding: theme.padify(theme.inputPadding),
+                        textAlign: 'center',
+                      }),
+                    }),
+              }),
         ]),
       }),
       $(Fragment, {
         children:
           creating &&
-          $(RoundCreate, {
+          $(RoundForm, {
+            loading: $roundCreate.loading,
             close: () => creatingSet(false),
-            done: () => {
-              // reload()
-              creatingSet(false)
-            },
+            done: (data) =>
+              auth.current?.season &&
+              $roundCreate
+                .fetch({
+                  ...data,
+                  date: data.date!,
+                  games: data.games as TRound['games'],
+                  seasonId: auth.current.season.id,
+                })
+                .then(() => {
+                  reload()
+                  creatingSet(false)
+                }),
+          }),
+      }),
+      $(Fragment, {
+        children:
+          editing &&
+          $(RoundForm, {
+            round: editing,
+            loading: $roundUpdate.loading,
+            close: () => editingSet(undefined),
+            done: (data) =>
+              $roundUpdate
+                .fetch({
+                  ...data,
+                  date: data.date!,
+                  games: data.games as TRound['games'],
+                  roundId: editing.id,
+                })
+                .then(() => {
+                  reload()
+                  editingSet(undefined)
+                }),
           }),
       }),
     ]),
@@ -75,11 +138,12 @@ export const DashboardSchedule: FC = () => {
  *
  */
 const _ScheduleRound: FC<{
-  title: string
+  round: TRound
   teams: TTeam[]
   open: boolean
   toggle: () => void
-}> = ({title, teams, open, toggle}) => {
+  editingSet: (round: TRound) => void
+}> = ({round, teams, open, toggle, editingSet}) => {
   const bghsla = hsla.digest(theme.bgMinorColor)
   return $('div', {
     children: addkeys([
@@ -89,7 +153,6 @@ const _ScheduleRound: FC<{
           display: 'flex',
           justifyContent: 'space-between',
           userSelect: 'none',
-          color: theme.minorColor,
           background: hsla.render(bghsla),
           padding: theme.padify(theme.formPadding),
           '&:hover': {
@@ -101,45 +164,39 @@ const _ScheduleRound: FC<{
         }),
         children: addkeys([
           $('div', {
-            children: `${dayjs().format('D MMMM')}: ${title}`,
+            children: round.title,
           }),
           $('div', {
-            children: $(Icon, {
-              icon: open ? 'angle-double-up' : 'angle-double-down',
-              multiple: 1,
+            className: css({
+              display: 'flex',
+              color: theme.minorColor,
+              '& > *:not(:last-child)': {
+                marginRight: theme.inputPadding,
+              },
             }),
+            children: addkeys([
+              $('div', {
+                children: dayjs(round.date).format('D MMM YYYY'),
+              }),
+              $(Icon, {
+                icon: open ? 'angle-up' : 'angle-down',
+                multiple: 1,
+              }),
+            ]),
           }),
         ]),
       }),
       open &&
         $('div', {
           className: css({
-            padding: theme.formPadding,
             borderTop: theme.border,
+            padding: theme.formPadding,
             animation: `150ms linear ${fadein}`,
+            '& > *:not(:last-child)': {
+              marginBottom: theme.formPadding,
+            },
           }),
           children: addkeys([
-            $('div', {
-              className: css({
-                marginTop: -theme.fontInset,
-              }),
-              children: addkeys([
-                $('div', {
-                  children: title,
-                  className: css({
-                    fontSize: 21,
-                    marginBottom: 5 - theme.fontInset,
-                  }),
-                }),
-                $('div', {
-                  children: dayjs().format('D MMMM YYYY'),
-                  className: css({
-                    marginBottom: 13 - theme.fontInset,
-                    color: theme.minorColor,
-                  }),
-                }),
-              ]),
-            }),
             $(Table, {
               header: {
                 one: {label: 'Team 1', grow: 2},
@@ -147,39 +204,25 @@ const _ScheduleRound: FC<{
                 time: {label: 'Time', grow: 1},
                 place: {label: 'Place', grow: 1},
               },
-              body: new Array(6).fill(0).map((_, index) => {
-                const one = teams[Math.floor(Math.random() * teams.length)]
-                const two = teams[Math.floor(Math.random() * teams.length)]
+              body: round.games.map((game) => {
+                const team1 = teams.find((i) => i.id === game.team1Id)
+                const team2 = teams.find((i) => i.id === game.team2Id)
                 return {
-                  id: {value: index.toString()},
-                  one: {value: one.name, color: one.color},
-                  two: {value: two.name, color: two.color},
-                  time: {value: index < 3 ? '6:45' : '7:45'},
-                  place: {value: `Place ${(index % 3) + 1}`},
+                  id: {value: game.id},
+                  one: {value: team1?.name, color: team1?.color},
+                  two: {value: team2?.name, color: team2?.color},
+                  time: {value: game.time},
+                  place: {value: game.place},
                 }
               }),
+            }),
+            $(FormButton, {
+              label: 'Edit Round',
+              color: hsla.digest(theme.bgAdminColor),
+              click: () => editingSet(round),
             }),
           ]),
         }),
     ]),
   })
-}
-/**
- *
- */
-const teamGenerator = (seasonId: string): TTeam[] => {
-  return [
-    {seasonId, name: 'Pistol Shrimp', color: hsla.string(0, 0, 100)},
-    {seasonId, name: 'Marlow Street', color: hsla.string(0, 100, 65)},
-    {
-      seasonId,
-      name: 'Disc It For The Biscuit',
-      color: hsla.string(210, 100, 70),
-    },
-  ].map((i, index) => ({
-    ...i,
-    id: index.toString(),
-    createdOn: new Date().toISOString(),
-    updatedOn: new Date().toISOString(),
-  }))
 }

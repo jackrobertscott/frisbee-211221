@@ -14,7 +14,7 @@ export const FormColumn: FC<{
       flexShrink: 0,
       display: 'flex',
       flexDirection: 'column',
-      overflow: 'auto',
+      overflow: maxLength ? 'auto' : undefined,
       maxHeight: maxLength,
       '& > *:not(:last-child)': {
         marginBottom: -theme.borderWidth,

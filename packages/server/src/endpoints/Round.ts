@@ -34,6 +34,7 @@ export default new Map<string, RequestHandler>([
     payload: io.object({
       seasonId: io.string(),
       title: io.string(),
+      date: io.date(),
       games: io.array(ioRoundGame),
     }),
     handler: (body) => async (req) => {
@@ -53,6 +54,7 @@ export default new Map<string, RequestHandler>([
     payload: io.object({
       roundId: io.string(),
       title: io.string(),
+      date: io.date(),
       games: io.array(ioRoundGame),
     }),
     handler:

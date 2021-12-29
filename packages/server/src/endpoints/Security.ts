@@ -76,6 +76,7 @@ export default new Map<string, RequestHandler>([
       email: io.string().email().trim(),
       firstName: io.string(),
       lastName: io.string(),
+      gender: io.enum(['male', 'female']),
       password: io.string(),
       termsAccepted: io.boolean(),
       userAgent: io.optional(io.string()),

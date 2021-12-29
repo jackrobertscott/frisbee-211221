@@ -16,6 +16,7 @@ export default new Map<string, RequestHandler>([
     payload: io.object({
       firstName: io.optional(io.string()),
       lastName: io.optional(io.string()),
+      gender: io.optional(io.enum(['male', 'female'])),
       businessMode: io.optional(io.boolean()),
       avatarUrl: io.optional(io.string()),
     }),

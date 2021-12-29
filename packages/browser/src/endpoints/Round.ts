@@ -20,6 +20,7 @@ export const $RoundCreate = createEndpoint({
   payload: io.object({
     seasonId: io.string(),
     title: io.string(),
+    date: io.date(),
     games: io.array(ioRoundGame),
   }),
   result: ioRound,
@@ -32,6 +33,7 @@ export const $RoundUpdate = createEndpoint({
   payload: io.object({
     roundId: io.string(),
     title: io.string(),
+    date: io.date(),
     games: io.array(ioRoundGame),
   }),
   result: ioRound,

@@ -44,6 +44,7 @@ export const $SecuritySignUpRegular = createEndpoint({
   payload: io.object({
     email: io.string().email().trim(),
     firstName: io.string(),
+    gender: io.string(),
     lastName: io.string(),
     password: io.string(),
     termsAccepted: io.boolean(),

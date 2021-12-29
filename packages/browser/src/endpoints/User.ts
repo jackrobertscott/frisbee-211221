@@ -9,6 +9,7 @@ export const $UserUpdate = createEndpoint({
   payload: io.object({
     firstName: io.optional(io.string()),
     lastName: io.optional(io.string()),
+    gender: io.optional(io.string()),
     businessMode: io.optional(io.boolean()),
     avatarUrl: io.optional(io.string()),
   }),

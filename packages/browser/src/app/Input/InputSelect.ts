@@ -29,30 +29,40 @@ export const InputSelect: FC<{
   const current = options.find((i) => i.key === value)
   return $(Popup, {
     open,
+    align: 'start',
     clickOutside: () => openSet(false),
     style: {
       flexGrow: 1,
     },
     wrap: $('div', {
       onClick: () => !disabled && openSet(true),
-      children: current?.label ?? placeholder ?? '...',
       className: css({
         minWidth,
         cursor: 'default',
         userSelect: 'none',
         whiteSpace: 'nowrap',
+        display: 'flex',
+        justifyContent: 'space-between',
         background: current?.color ?? theme.bgColor,
         color: current ? undefined : theme.placeholderColor,
         padding: theme.padify(theme.inputPadding),
         border: theme.border,
       }),
+      children: addkeys([
+        $('div', {
+          children: current?.label ?? placeholder ?? '...',
+        }),
+        $(Icon, {
+          icon: 'angle-down',
+        }),
+      ]),
     }),
     popup: $('div', {
       className: css({
+        maxHeight: 233 + 13,
         display: 'flex',
         flexDirection: 'column',
-        position: 'relative',
-        zIndex: 50,
+        overflow: 'auto',
       }),
       children: options.map((option) => {
         const colorHSLA = hsla.digest(option?.color ?? theme.bgColor)

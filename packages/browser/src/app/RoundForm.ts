@@ -1,6 +1,5 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$RoundCreate} from '../endpoints/Round'
 import {$TeamListOfSeason} from '../endpoints/Team'
 import {TRound} from '../schemas/Round'
 import {TTeam} from '../schemas/Team'
@@ -15,6 +14,7 @@ import {FormButton} from './Form/FormButton'
 import {FormColumn} from './Form/FormColumn'
 import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
+import {InputDate} from './Input/InputDate'
 import {InputSelect} from './Input/InputSelect'
 import {InputString} from './Input/InputString'
 import {Modal} from './Modal'
@@ -25,17 +25,28 @@ import {useForm} from './useForm'
 /**
  *
  */
-export const RoundCreate: FC<{
+interface TRoundForm {
+  title: string
+  date?: string
+  games: Partial<TRound['games'][number]>[]
+}
+/**
+ *
+ */
+export const RoundForm: FC<{
+  round?: TRound
+  loading?: boolean
   close: () => void
-  done: (round: TRound) => void
-}> = ({close, done}) => {
+  done: (round: TRoundForm) => void
+}> = ({round: _round, loading, close, done}) => {
   const auth = useAuth()
-  const $create = useEndpoint($RoundCreate)
   const $teamList = useEndpoint($TeamListOfSeason)
   const [teams, teamsSet] = useState<TTeam[]>()
-  const form = useForm({
+  const form = useForm<TRoundForm>({
     title: '',
-    games: [] as Partial<TRound['games'][number]>[],
+    date: undefined,
+    games: [],
+    ..._round,
   })
   const teamsChosen = spreadify(teams).filter((i) => {
     const index = form.data.games.findIndex((g) => {
@@ -47,11 +58,13 @@ export const RoundCreate: FC<{
     if (auth.current?.season)
       $teamList.fetch({seasonId: auth.current.season.id}).then((_teams) => {
         teamsSet(_teams)
-        form.patch({
-          games: new Array(Math.floor(_teams.length / 2))
-            .fill(0)
-            .map(() => ({id: random.randomString()})),
-        })
+        if (!form.data.games.length) {
+          form.patch({
+            games: new Array(Math.floor(_teams.length / 2))
+              .fill(0)
+              .map(() => ({id: random.randomString()})),
+          })
+        }
       })
   }, [])
   return $(Modal, {
@@ -73,6 +86,15 @@ export const RoundCreate: FC<{
               $(InputString, {
                 value: form.data.title,
                 valueSet: form.link('title'),
+              }),
+            ]),
+          }),
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {label: 'Date'}),
+              $(InputDate, {
+                value: form.data.date,
+                valueSet: form.link('date'),
               }),
             ]),
           }),
@@ -173,15 +195,9 @@ export const RoundCreate: FC<{
               }),
           }),
           $(FormButton, {
-            disabled: $create.loading,
-            label: $create.loading ? 'Loading' : 'Submit',
-            click: () =>
-              auth.current?.season &&
-              $create.fetch({
-                ...form.data,
-                games: form.data.games as TRound['games'],
-                seasonId: auth.current.season.id,
-              }),
+            disabled: loading,
+            label: loading ? 'Loading' : 'Submit',
+            click: () => done(form.data),
           }),
         ]),
       }),

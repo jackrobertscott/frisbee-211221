@@ -9,6 +9,7 @@ import {FormLabel} from '../Form/FormLabel'
 import {FormLink} from '../Form/FormLink'
 import {FormRow} from '../Form/FormRow'
 import {InputBoolean} from '../Input/InputBoolean'
+import {InputSelect} from '../Input/InputSelect'
 import {InputString} from '../Input/InputString'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
@@ -23,6 +24,7 @@ export const SecuritySignUp: FC<{
   const form = useForm({
     firstName: '',
     lastName: '',
+    gender: undefined as undefined | string,
     email: '',
     password: '',
     termsAccepted: false,
@@ -45,6 +47,19 @@ export const SecuritySignUp: FC<{
           $(InputString, {
             value: form.data.lastName,
             valueSet: form.link('lastName'),
+          }),
+        ]),
+      }),
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {label: 'Gender'}),
+          $(InputSelect, {
+            value: form.data.gender,
+            valueSet: form.link('gender'),
+            options: [
+              {key: 'male', label: 'Male'},
+              {key: 'female', label: 'Female'},
+            ],
           }),
         ]),
       }),
@@ -80,10 +95,12 @@ export const SecuritySignUp: FC<{
         disabled: $signUp.loading,
         label: $signUp.loading ? 'Loading' : 'Submit',
         click: () =>
-          $signUp.fetch(form.data).then((data) => {
-            savedEmailSet(data.user.email)
-            auth.login(data)
-          }),
+          $signUp
+            .fetch({...form.data, gender: form.data.gender!})
+            .then((data) => {
+              savedEmailSet(data.user.email)
+              auth.login(data)
+            }),
       }),
       $(FormLink, {
         label: 'Login',

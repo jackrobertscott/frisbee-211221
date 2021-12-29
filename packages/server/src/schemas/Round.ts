@@ -19,6 +19,7 @@ export const ioRound = io.object({
   seasonId: io.string(),
   userId: io.string(),
   title: io.string(),
+  date: io.date(),
   games: io.array(ioRoundGame),
 })
 /**

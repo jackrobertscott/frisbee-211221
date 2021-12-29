@@ -30,12 +30,12 @@ export const createEndpoint = <P extends TioAll>({
           console.log(data)
           let prettyError: string | undefined
           if (data.error?.includes(':')) {
-            const i = data.error.split(':')
-            prettyError = i[0]
+            const [first, ...rest] = data.error.split(':')
+            prettyError = first
               ?.replace('[', '')
               .replace(']', '')
               .concat(' ')
-              .concat(i[1]?.trim().toLowerCase())
+              .concat(rest?.join('').trim().toLowerCase())
           }
           if (prettyError) prettyError = `An error occurred: ${prettyError}`
           throw new Error(prettyError ?? `The input provided is invalid.`)
