@@ -64,41 +64,50 @@ export const InputSelect: FC<{
         flexDirection: 'column',
         overflow: 'auto',
       }),
-      children: options.map((option) => {
-        const colorHSLA = hsla.digest(option?.color ?? theme.bgColor)
-        return $('div', {
-          key: option.key,
-          onClick: () => {
-            if (disabled) return
-            valueSet?.(option.key)
-            openSet(false)
-          },
-          className: css({
-            display: 'flex',
-            justifyContent: 'space-between',
-            userSelect: 'none',
-            whiteSpace: 'nowrap',
-            padding: theme.padify(theme.inputPadding),
-            background: hsla.render(colorHSLA),
-            '&:not(:last-child)': {
-              borderBottom: theme.border,
-            },
-            '& > *:not(:last-child)': {
-              marginRight: theme.inputPadding,
-            },
-            '&:hover': {
-              background: hsla.render(hsla.darken(10, colorHSLA)),
-            },
-            '&:active': {
-              background: hsla.render(hsla.darken(15, colorHSLA)),
-            },
+      children: options.length
+        ? options.map((option) => {
+            const colorHSLA = hsla.digest(option?.color ?? theme.bgColor)
+            return $('div', {
+              key: option.key,
+              onClick: () => {
+                if (disabled) return
+                valueSet?.(option.key)
+                openSet(false)
+              },
+              className: css({
+                display: 'flex',
+                justifyContent: 'space-between',
+                userSelect: 'none',
+                whiteSpace: 'nowrap',
+                padding: theme.padify(theme.inputPadding),
+                background: hsla.render(colorHSLA),
+                '&:not(:last-child)': {
+                  borderBottom: theme.border,
+                },
+                '& > *:not(:last-child)': {
+                  marginRight: theme.inputPadding,
+                },
+                '&:hover': {
+                  background: hsla.render(hsla.darken(10, colorHSLA)),
+                },
+                '&:active': {
+                  background: hsla.render(hsla.darken(15, colorHSLA)),
+                },
+              }),
+              children: addkeys([
+                $('div', {children: option.label}),
+                option.icon && $(Icon, {icon: option.icon}),
+              ]),
+            })
+          })
+        : $('div', {
+            children: 'Empty',
+            className: css({
+              display: 'flex',
+              color: theme.minorColor,
+              padding: theme.padify(theme.inputPadding),
+            }),
           }),
-          children: addkeys([
-            $('div', {children: option.label}),
-            option.icon && $(Icon, {icon: option.icon}),
-          ]),
-        })
-      }),
     }),
   })
 }

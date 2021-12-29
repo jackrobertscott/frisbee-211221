@@ -201,9 +201,9 @@ const _LadderRound: FC<{
             $(Table, {
               header: {
                 team1: {label: 'Team 1', grow: 2},
-                team1Score: {label: 'Team 1 Score', grow: 1},
+                team1Score: {label: 'Score', grow: 1},
                 team2: {label: 'Team 2', grow: 2},
-                team2Score: {label: 'Team 2 Score', grow: 1},
+                team2Score: {label: 'Score', grow: 1},
               },
               body: round.games.map((game) => {
                 const team1 = teams.find((i) => i.id === game.team1Id)

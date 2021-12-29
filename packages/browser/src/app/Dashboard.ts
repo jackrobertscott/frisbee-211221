@@ -21,6 +21,7 @@ import {Question} from './Question'
 import {ReportCreate} from './ReportCreate'
 import {useRouter} from './Router/useRouter'
 import {SeasonCreate} from './SeasonCreate'
+import {useToaster} from './Toaster/useToaster'
 import {TopBar} from './TopBar'
 import {TopBarBadge} from './TopBarBadge'
 import {useEndpoint} from './useEndpoint'
@@ -29,6 +30,7 @@ import {useEndpoint} from './useEndpoint'
  */
 export const Dashboard: FC = () => {
   const auth = useAuth()
+  const toaster = useToaster()
   const [logout, logoutSet] = useState(false)
   const [reporting, reportingSet] = useState(false)
   const router = useRouter('/news', [
@@ -152,7 +154,10 @@ export const Dashboard: FC = () => {
           reporting &&
           $(ReportCreate, {
             close: () => reportingSet(false),
-            done: () => reportingSet(false),
+            done: () => {
+              reportingSet(false)
+              toaster.notify('Score submitted successfully.')
+            },
           }),
       }),
     ]),

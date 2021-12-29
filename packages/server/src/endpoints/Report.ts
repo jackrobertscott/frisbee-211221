@@ -1,0 +1,111 @@
+import {RequestHandler} from 'micro'
+import {io} from 'torva'
+import {$Report} from '../tables/Report'
+import {createEndpoint} from '../utils/endpoints'
+import {requireUser} from './requireUser'
+import {requireUserAdmin} from './requireUserAdmin'
+import {$Round} from '../tables/Round'
+import {requireTeam} from './requireTeam'
+import {$Team} from '../tables/Team'
+import {$Member} from '../tables/Member'
+import {$User} from '../tables/User'
+/**
+ *
+ */
+export default new Map<string, RequestHandler>([
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/ReportListOfRound',
+    payload: io.object({
+      roundId: io.string(),
+      limit: io.optional(io.number()),
+    }),
+    handler:
+      ({roundId, limit}) =>
+      async (req) => {
+        await requireUser(req)
+        return $Report.getMany({roundId}, {limit, sort: {createdOn: -1}})
+      },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/ReportGetRound',
+    payload: io.object({
+      teamId: io.string(),
+      roundId: io.string(),
+    }),
+    handler:
+      ({teamId, roundId}) =>
+      async (req) => {
+        const [user] = await requireUser(req)
+        const [team] = await requireTeam(user, teamId)
+        const round = await $Round.getOne({id: roundId})
+        let teamAgainstId: string | undefined
+        for (const game of round.games) {
+          if (game.team1Id === team.id) {
+            teamAgainstId = game.team2Id
+            break
+          }
+          if (game.team2Id === team.id) {
+            teamAgainstId = game.team1Id
+            break
+          }
+        }
+        if (!teamAgainstId)
+          throw new Error('Failed to find the opposition team.')
+        const teamAgainst = await $Team.getOne({id: teamAgainstId})
+        const members = await $Member.getMany({
+          teamId: teamAgainst.id,
+          pending: false,
+        })
+        const users = await $User.getMany({
+          id: {$in: members.map((i) => i.userId)},
+        })
+        return {
+          teamAgainst,
+          users,
+        }
+      },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/ReportCreate',
+    payload: io.object({
+      teamId: io.string(),
+      roundId: io.string(),
+      scoreFor: io.number(),
+      scoreAgainst: io.number(),
+      mvpMale: io.optional(io.string()),
+      mvpFemale: io.optional(io.string()),
+    }),
+    handler: (body) => async (req) => {
+      const [user] = await requireUser(req)
+      await $Round.getOne({id: body.roundId})
+      return $Report.createOne({
+        ...body,
+        userId: user.id,
+      })
+    },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/ReportDelete',
+    payload: io.object({
+      reportId: io.string(),
+    }),
+    handler:
+      ({reportId}) =>
+      async (req) => {
+        await requireUserAdmin(req)
+        await $Report.deleteOne({id: reportId})
+      },
+  }),
+])

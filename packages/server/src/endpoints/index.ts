@@ -2,6 +2,7 @@ import {RequestHandler} from 'micro'
 import Comment from './Comment'
 import Member from './Member'
 import Post from './Post'
+import Report from './Report'
 import Round from './Round'
 import Season from './Season'
 import Security from './Security'
@@ -14,6 +15,7 @@ export default new Map<string, RequestHandler>([
   ...Comment.entries(),
   ...Member.entries(),
   ...Post.entries(),
+  ...Report.entries(),
   ...Round.entries(),
   ...Season.entries(),
   ...Security.entries(),
