@@ -1,6 +1,6 @@
 import {css} from '@emotion/css'
 import dayjs from 'dayjs'
-import {createElement as $, FC, useState} from 'react'
+import {createElement as $, FC, Fragment, useState} from 'react'
 import {TTeam} from '../schemas/Team'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -10,6 +10,7 @@ import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
 import {FormButton} from './Form/FormButton'
 import {Icon} from './Icon'
+import {RoundCreate} from './RoundCreate'
 import {Table} from './Table'
 import {useLocalState} from './useLocalState'
 /**
@@ -17,38 +18,55 @@ import {useLocalState} from './useLocalState'
  */
 export const DashboardSchedule: FC = () => {
   const auth = useAuth()
+  const [creating, creatingSet] = useState(false)
   const [openrnds, openrndsSet] = useLocalState<string[]>('frisbee.rounds', [])
   const [teams] = useState<TTeam[]>(() => {
     return teamGenerator(auth.current?.season?.id!)
   })
-  return $(Form, {
+  return $(Fragment, {
     children: addkeys([
-      auth.isAdmin() &&
-        $(FormButton, {
-          label: 'Add Round',
-          color: hsla.digest(theme.bgAdminColor),
-        }),
-      $('div', {
-        className: css({
-          border: theme.border,
-          '& > *:not(:last-child)': {
-            borderBottom: theme.border,
-          },
-        }),
-        children: ['Game 1', 'Game 2', 'Game 3'].reverse().map((round) => {
-          return $(_ScheduleRound, {
-            key: round,
-            title: round,
-            teams,
-            open: openrnds.includes(round),
-            toggle: () =>
-              openrndsSet((i) => {
-                return i.includes(round)
-                  ? i.filter((x) => x !== round)
-                  : i.concat(round)
-              }),
-          })
-        }),
+      $(Form, {
+        children: addkeys([
+          auth.isAdmin() &&
+            $(FormButton, {
+              label: 'Add Round',
+              color: hsla.digest(theme.bgAdminColor),
+              click: () => creatingSet(true),
+            }),
+          $('div', {
+            className: css({
+              border: theme.border,
+              '& > *:not(:last-child)': {
+                borderBottom: theme.border,
+              },
+            }),
+            children: ['Game 1', 'Game 2', 'Game 3'].reverse().map((round) => {
+              return $(_ScheduleRound, {
+                key: round,
+                title: round,
+                teams,
+                open: openrnds.includes(round),
+                toggle: () =>
+                  openrndsSet((i) => {
+                    return i.includes(round)
+                      ? i.filter((x) => x !== round)
+                      : i.concat(round)
+                  }),
+              })
+            }),
+          }),
+        ]),
+      }),
+      $(Fragment, {
+        children:
+          creating &&
+          $(RoundCreate, {
+            close: () => creatingSet(false),
+            done: () => {
+              // reload()
+              creatingSet(false)
+            },
+          }),
       }),
     ]),
   })
@@ -127,7 +145,7 @@ const _ScheduleRound: FC<{
                 one: {label: 'Team 1', grow: 2},
                 two: {label: 'Team 2', grow: 2},
                 time: {label: 'Time', grow: 1},
-                field: {label: 'Field', grow: 1},
+                place: {label: 'Place', grow: 1},
               },
               body: new Array(6).fill(0).map((_, index) => {
                 const one = teams[Math.floor(Math.random() * teams.length)]
@@ -137,7 +155,7 @@ const _ScheduleRound: FC<{
                   one: {value: one.name, color: one.color},
                   two: {value: two.name, color: two.color},
                   time: {value: index < 3 ? '6:45' : '7:45'},
-                  field: {value: `Field ${(index % 3) + 1}`},
+                  place: {value: `Place ${(index % 3) + 1}`},
                 }
               }),
             }),

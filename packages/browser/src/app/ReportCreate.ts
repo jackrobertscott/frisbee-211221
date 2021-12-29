@@ -43,24 +43,6 @@ export const ReportCreate: FC<{
               }),
             ]),
           }),
-          $(FormRow, {
-            children: addkeys([
-              $(FormLabel, {label: 'Name'}),
-              $(InputString, {
-                value: form.data.name,
-                valueSet: form.link('name'),
-              }),
-            ]),
-          }),
-          $(FormRow, {
-            children: addkeys([
-              $(FormLabel, {label: 'Name'}),
-              $(InputString, {
-                value: form.data.name,
-                valueSet: form.link('name'),
-              }),
-            ]),
-          }),
           $(FormButton, {
             disabled: $create.loading,
             label: $create.loading ? 'Loading' : 'Submit',

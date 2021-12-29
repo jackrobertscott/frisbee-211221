@@ -119,47 +119,49 @@ export const PostView: FC<{
               $('div', {
                 className: css({
                   width: 377,
+                  padding: 21,
                   flexShrink: 0,
                   borderLeft: theme.border,
                   background: theme.bgMinorColor,
+                  '& > *:not(:last-child)': {
+                    marginBottom: theme.formPadding,
+                  },
                 }),
-                children: $(Form, {
-                  children: addkeys([
-                    $(FormColumn, {
-                      children: addkeys([
-                        $(InputTextarea, {
-                          value: formComment.data.content,
-                          valueSet: formComment.link('content'),
-                          placeholder: 'Write comment...',
-                          rows: 3,
+                children: addkeys([
+                  $(FormColumn, {
+                    children: addkeys([
+                      $(InputTextarea, {
+                        value: formComment.data.content,
+                        valueSet: formComment.link('content'),
+                        placeholder: 'Write comment...',
+                        rows: 3,
+                      }),
+                      $(FormButton, {
+                        label: 'Post',
+                        click: () =>
+                          $commentCreate
+                            .fetch({...formComment.data, postId: post.id})
+                            .then(() => commentList())
+                            .then(() => formComment.reset()),
+                      }),
+                    ]),
+                  }),
+                  comments === undefined
+                    ? $(FormSpinner)
+                    : $(Fragment, {
+                        children: comments.map((comment) => {
+                          const user = users?.find(
+                            (i) => i.id === comment.userId
+                          )
+                          return $(_PostViewComment, {
+                            key: comment.id,
+                            comment,
+                            user,
+                            reload: () => commentList(),
+                          })
                         }),
-                        $(FormButton, {
-                          label: 'Post',
-                          click: () =>
-                            $commentCreate
-                              .fetch({...formComment.data, postId: post.id})
-                              .then(() => commentList())
-                              .then(() => formComment.reset()),
-                        }),
-                      ]),
-                    }),
-                    comments === undefined
-                      ? $(FormSpinner)
-                      : $(Fragment, {
-                          children: comments.map((comment) => {
-                            const user = users?.find(
-                              (i) => i.id === comment.userId
-                            )
-                            return $(_PostViewComment, {
-                              key: comment.id,
-                              comment,
-                              user,
-                              reload: () => commentList(),
-                            })
-                          }),
-                        }),
-                  ]),
-                }),
+                      }),
+                ]),
               }),
             ]),
           }),
@@ -215,6 +217,7 @@ const _PostViewComment: FC<{
       $('div', {
         className: css({
           border: theme.border,
+          background: theme.bgColor,
           padding: theme.padify(theme.inputPadding),
           position: 'relative',
           '&:hover .options': {

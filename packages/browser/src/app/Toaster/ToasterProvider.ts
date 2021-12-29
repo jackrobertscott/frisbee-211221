@@ -23,7 +23,7 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
       type,
       remove: toastClose,
     }
-    setTimeout(() => toastClose(), type === 'error' ? 8000 : 5000)
+    setTimeout(() => toastClose(), type === 'error' ? 5000 : 3000)
     return piece
   }
   return $(ToasterContext.Provider, {

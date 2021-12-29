@@ -2,6 +2,7 @@ import {createElement as $, FC} from 'react'
 import {$PostCreate} from '../endpoints/Post'
 import {TPost} from '../schemas/Post'
 import {addkeys} from '../utils/addkeys'
+import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
 import {FormButton} from './Form/FormButton'
 import {FormColumn} from './Form/FormColumn'
@@ -21,6 +22,7 @@ export const PostCreate: FC<{
   close: () => void
   done: (post: TPost) => void
 }> = ({close, done}) => {
+  const auth = useAuth()
   const $postCreate = useEndpoint($PostCreate)
   const form = useForm({
     title: '',
@@ -60,7 +62,11 @@ export const PostCreate: FC<{
           $(FormButton, {
             disabled: $postCreate.loading,
             label: $postCreate.loading ? 'Loading' : 'Submit',
-            click: () => $postCreate.fetch(form.data).then(done),
+            click: () =>
+              auth.current?.season &&
+              $postCreate
+                .fetch({...form.data, seasonId: auth.current.season.id})
+                .then(done),
           }),
         ]),
       }),

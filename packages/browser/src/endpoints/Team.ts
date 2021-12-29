@@ -5,8 +5,8 @@ import {createEndpoint} from '../utils/endpoints'
 /**
  *
  */
-export const $TeamList = createEndpoint({
-  path: '/TeamList',
+export const $TeamListOfSeason = createEndpoint({
+  path: '/TeamListOfSeason',
   payload: io.object({
     seasonId: io.string(),
     search: io.optional(io.string()),

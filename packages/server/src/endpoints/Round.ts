@@ -1,11 +1,11 @@
 import {RequestHandler} from 'micro'
 import {io} from 'torva'
-import {$Post} from '../tables/Post'
+import {$Round} from '../tables/Round'
 import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
-import {regex} from '../utils/regex'
 import {requireUserAdmin} from './requireUserAdmin'
 import {$Season} from '../tables/Season'
+import {ioRoundGame} from '../schemas/Round'
 /**
  *
  */
@@ -14,36 +14,32 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PostListOfSeason',
+    path: '/RoundListOfSeason',
     payload: io.object({
       seasonId: io.string(),
-      search: io.optional(io.string().emptyok()),
       limit: io.optional(io.number()),
     }),
     handler:
-      ({seasonId, search, limit}) =>
+      ({seasonId, limit}) =>
       async (req) => {
         await requireUser(req)
-        return $Post.getMany(
-          {seasonId, title: regex.from(search ?? '')},
-          {limit, sort: {createdOn: -1}}
-        )
+        return $Round.getMany({seasonId}, {limit, sort: {createdOn: -1}})
       },
   }),
   /**
    *
    */
   createEndpoint({
-    path: '/PostCreate',
+    path: '/RoundCreate',
     payload: io.object({
       seasonId: io.string(),
       title: io.string(),
-      content: io.string(),
+      games: io.array(ioRoundGame),
     }),
     handler: (body) => async (req) => {
       const [user] = await requireUserAdmin(req)
       await $Season.getOne({id: body.seasonId})
-      return $Post.createOne({
+      return $Round.createOne({
         ...body,
         userId: user.id,
       })
@@ -53,18 +49,18 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PostUpdate',
+    path: '/RoundUpdate',
     payload: io.object({
-      postId: io.string(),
+      roundId: io.string(),
       title: io.string(),
-      content: io.string(),
+      games: io.array(ioRoundGame),
     }),
     handler:
-      ({postId, ...body}) =>
+      ({roundId, ...body}) =>
       async (req) => {
         await requireUserAdmin(req)
-        return $Post.updateOne(
-          {id: postId},
+        return $Round.updateOne(
+          {id: roundId},
           {...body, updatedOn: new Date().toISOString()}
         )
       },
@@ -73,15 +69,15 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PostDelete',
+    path: '/RoundDelete',
     payload: io.object({
-      postId: io.string(),
+      roundId: io.string(),
     }),
     handler:
-      ({postId}) =>
+      ({roundId}) =>
       async (req) => {
         await requireUserAdmin(req)
-        await $Post.deleteOne({id: postId})
+        await $Round.deleteOne({id: roundId})
       },
   }),
 ])

@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$PostList} from '../endpoints/Post'
+import {$PostListOfSeason} from '../endpoints/Post'
 import {TPost} from '../schemas/Post'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -24,8 +24,10 @@ export const DashboardNews: FC = () => {
   const [viewId, viewIdSet] = useState<string>()
   const [creating, creatingSet] = useState(false)
   const [posts, postsSet] = useState<TPost[]>()
-  const $postList = useEndpoint($PostList)
-  const postList = () => $postList.fetch({search}).then(postsSet)
+  const $postList = useEndpoint($PostListOfSeason)
+  const postList = () =>
+    auth.current?.season &&
+    $postList.fetch({seasonId: auth.current?.season.id, search}).then(postsSet)
   const postListDelay = useSling(500, postList)
   const postView = viewId ? posts?.find((i) => i.id === viewId) : undefined
   useEffect(() => postListDelay(), [search])

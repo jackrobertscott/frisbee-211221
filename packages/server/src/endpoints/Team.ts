@@ -16,7 +16,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/TeamList',
+    path: '/TeamListOfSeason',
     payload: io.object({
       seasonId: io.string(),
       search: io.optional(io.string().emptyok()),

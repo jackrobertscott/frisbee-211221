@@ -6,6 +6,7 @@ export const ioPost = io.object({
   id: io.string(),
   createdOn: io.date(),
   updatedOn: io.date(),
+  seasonId: io.string(),
   userId: io.string(),
   title: io.string(),
   content: io.string(),

@@ -1,5 +1,5 @@
 import {createElement as $, FC, useEffect, useState} from 'react'
-import {$TeamList} from '../endpoints/Team'
+import {$TeamListOfSeason} from '../endpoints/Team'
 import {TTeam} from '../schemas/Team'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -15,7 +15,7 @@ import {useEndpoint} from './useEndpoint'
 export const DashboardLadder: FC = () => {
   const auth = useAuth()
   const [teams, teamsSet] = useState<TTeam[]>([])
-  const $teamList = useEndpoint($TeamList)
+  const $teamList = useEndpoint($TeamListOfSeason)
   useEffect(() => {
     if (auth.current?.season)
       $teamList.fetch({seasonId: auth.current.season.id}).then(teamsSet)
@@ -36,7 +36,7 @@ export const DashboardLadder: FC = () => {
         },
         body: teams.map((i) => ({
           id: {value: i.id},
-          name: {value: i.name},
+          name: {value: i.name, color: i.color},
         })),
       }),
     ]),

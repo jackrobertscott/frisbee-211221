@@ -1,6 +1,6 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$TeamList} from '../endpoints/Team'
+import {$TeamListOfSeason} from '../endpoints/Team'
 import {TTeam} from '../schemas/Team'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -21,7 +21,7 @@ import {useSling} from './useThrottle'
  */
 export const TeamSetup: FC = () => {
   const auth = useAuth()
-  const $teamList = useEndpoint($TeamList)
+  const $teamList = useEndpoint($TeamListOfSeason)
   const [loaded, loadedSet] = useState(false)
   const [teams, teamsSet] = useState<TTeam[]>([])
   const [logout, logoutSet] = useState(false)
