@@ -200,7 +200,7 @@ const _ScheduleRound: FC<{
           }),
           children: addkeys([
             $(Table, {
-              header: {
+              head: {
                 one: {label: 'Team 1', grow: 2},
                 two: {label: 'Team 2', grow: 2},
                 time: {label: 'Time', grow: 1},

@@ -7,7 +7,7 @@ import {hsla} from '../utils/hsla'
  *
  */
 type TFCTable<T extends string = any> = FC<{
-  header: Record<T, {label: string; grow: number}>
+  head: Record<T, {label: string; grow: number}>
   body: Array<
     Record<'id' | T, undefined | {value?: string | number; color?: string}>
   >
@@ -15,7 +15,7 @@ type TFCTable<T extends string = any> = FC<{
 /**
  *
  */
-export const Table: TFCTable = ({header, body}) => {
+export const Table: TFCTable = ({head: header, body}) => {
   return $('div', {
     className: css({
       flexGrow: 1,

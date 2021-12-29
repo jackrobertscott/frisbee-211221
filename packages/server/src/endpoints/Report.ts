@@ -25,7 +25,7 @@ export default new Map<string, RequestHandler>([
     handler:
       ({roundId, limit}) =>
       async (req) => {
-        await requireUser(req)
+        await requireUserAdmin(req)
         return $Report.getMany({roundId}, {limit, sort: {createdOn: -1}})
       },
   }),
@@ -86,10 +86,25 @@ export default new Map<string, RequestHandler>([
     }),
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)
-      await $Round.getOne({id: body.roundId})
+      const [team] = await requireTeam(user, body.teamId)
+      const round = await $Round.getOne({id: body.roundId})
+      let teamAgainstId: string | undefined
+      for (const game of round.games) {
+        if (game.team1Id === team.id) {
+          teamAgainstId = game.team2Id
+          break
+        }
+        if (game.team2Id === team.id) {
+          teamAgainstId = game.team1Id
+          break
+        }
+      }
+      if (!teamAgainstId) throw new Error('Failed to find the opposition team.')
+      const teamAgainst = await $Team.getOne({id: teamAgainstId})
       return $Report.createOne({
         ...body,
         userId: user.id,
+        teamAgainstId: teamAgainst.id,
       })
     },
   }),

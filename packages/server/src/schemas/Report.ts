@@ -8,6 +8,7 @@ export const ioReport = io.object({
   updatedOn: io.date(),
   userId: io.string(),
   teamId: io.string(),
+  teamAgainstId: io.string(),
   roundId: io.string(),
   scoreFor: io.number(),
   scoreAgainst: io.number(),

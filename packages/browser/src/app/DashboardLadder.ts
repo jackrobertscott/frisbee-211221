@@ -43,7 +43,7 @@ export const DashboardLadder: FC = () => {
       $(Form, {
         children: addkeys([
           $(Table, {
-            header: {
+            head: {
               name: {label: 'Name', grow: 4},
               points: {label: 'Points', grow: 1},
               wins: {label: 'Wins', grow: 1},
@@ -199,7 +199,7 @@ const _LadderRound: FC<{
           }),
           children: addkeys([
             $(Table, {
-              header: {
+              head: {
                 team1: {label: 'Team 1', grow: 2},
                 team1Score: {label: 'Score', grow: 1},
                 team2: {label: 'Team 2', grow: 2},
