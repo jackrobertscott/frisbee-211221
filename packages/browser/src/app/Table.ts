@@ -65,7 +65,7 @@ export const Table: TFCTable = ({header, body}) => {
               const data = entry[key]
               return $('div', {
                 key,
-                children: data?.value || '...',
+                children: data?.value !== undefined ? data?.value : '...',
                 className: css({
                   minWidth: 55 * grow,
                   flexGrow: grow,

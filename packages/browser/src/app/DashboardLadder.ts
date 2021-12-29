@@ -9,6 +9,7 @@ import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {hsla} from '../utils/hsla'
 import {fadein} from '../utils/keyframes'
+import {tallyChart} from '../utils/tallyChart'
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
 import {FormButton} from './Form/FormButton'
@@ -29,6 +30,7 @@ export const DashboardLadder: FC = () => {
   const [rounds, roundsSet] = useState<TRound[]>()
   const [editing, editingSet] = useState<TRound>()
   const [openrnds, openrndsSet] = useState<string[]>([])
+  const tally = tallyChart(rounds ?? [])
   const reload = () => {
     if (!auth.current?.season) return
     const seasonId = auth.current.season.id
@@ -42,15 +44,38 @@ export const DashboardLadder: FC = () => {
         children: addkeys([
           $(Table, {
             header: {
-              name: {label: 'Name', grow: 2},
+              name: {label: 'Name', grow: 4},
+              points: {label: 'Points', grow: 1},
               wins: {label: 'Wins', grow: 1},
               loses: {label: 'Loses', grow: 1},
               draws: {label: 'Draws', grow: 1},
+              for: {label: 'For', grow: 1},
+              against: {label: 'Against', grow: 1},
             },
-            body: teams.map((i) => ({
-              id: {value: i.id},
-              name: {value: i.name, color: i.color},
-            })),
+            body: teams
+              .sort((a, b) => {
+                const pa = tally[a.id]?.points ?? 0
+                const pb = tally[b.id]?.points ?? 0
+                if (pa === pb) {
+                  const fa = tally[a.id]?.for ?? 0
+                  const fb = tally[b.id]?.for ?? 0
+                  return fa === fb ? 0 : fa < fb ? 1 : -1
+                }
+                return pa < pb ? 1 : -1
+              })
+              .map((i) => {
+                const results = tally[i.id]
+                return {
+                  id: {value: i.id},
+                  name: {value: i.name, color: i.color},
+                  points: {value: results?.points},
+                  wins: {value: results?.wins},
+                  loses: {value: results?.loses},
+                  draws: {value: results?.draws},
+                  for: {value: results?.for},
+                  against: {value: results?.against},
+                }
+              }),
           }),
           $(Fragment, {
             children:
