@@ -55,11 +55,6 @@ export const DashboardNews: FC = () => {
                   click: () => viewIdSet(post.id),
                 })
               }),
-          posts !== undefined &&
-            $(FormButton, {
-              icon: 'angle-double-down',
-              label: 'Show More',
-            }),
         ]),
       }),
       $(Fragment, {

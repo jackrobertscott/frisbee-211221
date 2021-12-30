@@ -43,7 +43,9 @@ export const InputSelect: FC<{
         whiteSpace: 'nowrap',
         display: 'flex',
         justifyContent: 'space-between',
-        background: current?.color ?? theme.bgColor,
+        background: disabled
+          ? theme.bgMinorColor
+          : current?.color ?? theme.bgColor,
         color: current ? undefined : theme.placeholderColor,
         padding: theme.padify(theme.inputPadding),
         border: theme.border,
@@ -52,9 +54,10 @@ export const InputSelect: FC<{
         $('div', {
           children: current?.label ?? placeholder ?? '...',
         }),
-        $(Icon, {
-          icon: 'angle-down',
-        }),
+        !disabled &&
+          $(Icon, {
+            icon: 'angle-down',
+          }),
       ]),
     }),
     popup: $('div', {

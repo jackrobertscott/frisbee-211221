@@ -36,6 +36,13 @@ export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
         currentSet(undefined)
         $SecurityLogout.fetch(undefined, current?.token)
       },
+      userSet: (user) => {
+        if (!current)
+          throw new Error('Can not set user because user not logged in.')
+        if (current.user?.id !== user.id)
+          throw new Error('User does not match current user.')
+        currentSet({...current, user})
+      },
       teamSet: (team) => {
         if (!current)
           throw new Error('Can not set team because user not logged in.')

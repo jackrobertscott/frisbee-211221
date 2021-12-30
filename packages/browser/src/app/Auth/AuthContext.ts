@@ -33,6 +33,7 @@ export interface TAuthContext {
   current?: TAuth
   login: (data: TAuthPayload) => void
   logout: () => void
+  userSet: (user: TUser) => void
   teamSet: (team: TTeam) => void
   seasonSet: (season: TSeason) => void
   isAdmin: () => boolean
@@ -44,6 +45,7 @@ export const AuthContext = createContext<TAuthContext>({
   loaded: false,
   login: contextNoop('login'),
   logout: contextNoop('logout'),
+  userSet: contextNoop('userSet'),
   teamSet: contextNoop('teamSet'),
   seasonSet: contextNoop('seasonSet'),
   isAdmin: contextNoop('isAdmin'),

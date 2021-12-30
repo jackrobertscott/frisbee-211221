@@ -21,6 +21,7 @@ import {Question} from './Question'
 import {ReportCreate} from './ReportCreate'
 import {useRouter} from './Router/useRouter'
 import {SeasonCreate} from './SeasonCreate'
+import {Settings} from './Settings/Settings'
 import {useToaster} from './Toaster/useToaster'
 import {TopBar} from './TopBar'
 import {TopBarBadge} from './TopBarBadge'
@@ -33,6 +34,7 @@ export const Dashboard: FC = () => {
   const toaster = useToaster()
   const [logout, logoutSet] = useState(false)
   const [reporting, reportingSet] = useState(false)
+  const [settings, settingsSet] = useState(false)
   const router = useRouter('/news', [
     {
       path: '/news',
@@ -71,7 +73,13 @@ export const Dashboard: FC = () => {
                   }),
                 $(_DashboardSeasonBadge),
                 $(TopBarBadge, {
+                  icon: 'cog',
+                  tooltip: 'Settings',
+                  click: () => settingsSet(true),
+                }),
+                $(TopBarBadge, {
                   icon: 'power-off',
+                  tooltip: 'Logout',
                   click: () => logoutSet(true),
                 }),
               ]),
@@ -160,6 +168,13 @@ export const Dashboard: FC = () => {
             },
           }),
       }),
+      $(Fragment, {
+        children:
+          settings &&
+          $(Settings, {
+            close: () => settingsSet(false),
+          }),
+      }),
     ]),
   })
 }
@@ -184,6 +199,7 @@ const _DashboardSeasonBadge: FC = () => {
         clickOutside: () => openSet(false),
         wrap: $(TopBarBadge, {
           icon: 'sync-alt',
+          tooltip: 'Seasons',
           click: () => openSet(true),
         }),
         popup: $(Form, {

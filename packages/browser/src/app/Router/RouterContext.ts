@@ -6,7 +6,6 @@ import {createContext, ReactNode} from 'react'
 export interface TRoute {
   path: string
   exact?: boolean
-  label?: string
   hide?: boolean
   render: (
     paramSet: Record<string, string>,
