@@ -100,7 +100,7 @@ export const RoundTallyForm: FC<{
                             $(InputNumber, {
                               value: game.team1Score,
                               valueSet: (team1Score) => gamePatch({team1Score}),
-                              placeholder: `${team1?.name} Score`,
+                              placeholder: `Score...`,
                             }),
                             $(FormStatic, {
                               label: team2?.name ?? '...',
@@ -109,12 +109,13 @@ export const RoundTallyForm: FC<{
                             $(InputNumber, {
                               value: game.team2Score,
                               valueSet: (team2Score) => gamePatch({team2Score}),
-                              placeholder: `${team2?.name} Score`,
+                              placeholder: `Score...`,
                             }),
                           ].map((child) => {
                             return $('div', {
                               children: child,
                               className: css({
+                                display: 'flex',
                                 flexGrow: 1,
                                 flexShrink: 1,
                                 flexBasis: 0,

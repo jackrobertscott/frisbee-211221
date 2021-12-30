@@ -62,7 +62,8 @@ export const SeasonCreate: FC<{
         ]),
       }),
       $(FormButton, {
-        label: 'Create',
+        disabled: $seasonCreate.loading,
+        label: $seasonCreate.loading ? 'Loading' : 'Create',
         click: () => $seasonCreate.fetch(form.data).then(seasonSet),
       }),
     ]),

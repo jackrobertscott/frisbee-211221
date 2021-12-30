@@ -1,1 +1,5 @@
 # frisbee
+
+Todos:
+
+- [ ] Spirit scores.

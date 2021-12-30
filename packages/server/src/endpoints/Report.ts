@@ -55,8 +55,11 @@ export default new Map<string, RequestHandler>([
             break
           }
         }
-        if (!teamAgainstId)
-          throw new Error('Failed to find the opposition team.')
+        if (!teamAgainstId) {
+          const message =
+            'Failed to find the opposition team. Your team is may not be playing in this round.'
+          throw new Error(message)
+        }
         const teamAgainst = await $Team.getOne({id: teamAgainstId})
         const members = await $Member.getMany({
           teamId: teamAgainst.id,
@@ -99,7 +102,11 @@ export default new Map<string, RequestHandler>([
           break
         }
       }
-      if (!teamAgainstId) throw new Error('Failed to find the opposition team.')
+      if (!teamAgainstId) {
+        const message =
+          'Failed to find the opposition team. Your team is may not be playing in this round.'
+        throw new Error(message)
+      }
       const teamAgainst = await $Team.getOne({id: teamAgainstId})
       return $Report.createOne({
         ...body,
