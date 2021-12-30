@@ -18,6 +18,7 @@ export default new Map<string, RequestHandler>([
     path: '/MemberListOfUser',
     handler: () => async (req) => {
       const [user] = await requireUser(req)
+      // pending and non-pending
       const members = await $Member.getMany({userId: user.id})
       const teams = await $Team.getMany({
         id: {$in: members.map((i) => i.teamId)},
@@ -36,12 +37,13 @@ export default new Map<string, RequestHandler>([
     payload: io.string(),
     handler: (teamId) => async (req) => {
       const [user] = await requireUser(req)
-      const [team] = await requireTeam(user, teamId)
+      const [team, member] = await requireTeam(user, teamId)
       const members = await $Member.getMany({teamId: team.id})
       const users = await $User.getMany({
         id: {$in: members.map((i) => i.userId)},
       })
       return {
+        current: member,
         members,
         users,
       }
@@ -78,6 +80,7 @@ export default new Map<string, RequestHandler>([
         }
         return $Member.createOne({
           userId: user.id,
+          seasonId: team.seasonId,
           teamId: team.id,
           pending: false,
         })
@@ -91,9 +94,13 @@ export default new Map<string, RequestHandler>([
     payload: io.string(),
     handler: (memberId) => async (req) => {
       const [user] = await requireUser(req)
-      const member = await $Member.maybeOne({id: memberId})
-      if (!member) return
-      const [team] = await requireTeam(user, member.teamId)
+      const memberToDelete = await $Member.maybeOne({id: memberId})
+      if (!memberToDelete) return
+      if (memberToDelete.captain)
+        throw new Error('The team captain can not be removed from the team.')
+      const [team, member] = await requireTeam(user, memberToDelete.teamId)
+      if (!member.captain)
+        throw new Error('Failed: only the team captain can delete members.')
       const countMembersOfTeam = await $Member.count({
         teamId: team.id,
         pending: false,
@@ -114,13 +121,19 @@ export default new Map<string, RequestHandler>([
       const team = await $Team.getOne({id: teamId})
       const member = await $Member.maybeOne({userId: user.id, teamId: team.id})
       if (member) {
-        const message =
-          'User is already a' + member.pending
-            ? ' pending'
-            : '' + ' member of team.'
+        const message = 'You have already requested membership to this team.'
+        throw new Error(message)
+      }
+      const memberOfSeason = await $Member.maybeOne({
+        userId: user.id,
+        seasonId: team.seasonId,
+      })
+      if (memberOfSeason) {
+        const message = 'You have already requested membership to another team.'
         throw new Error(message)
       }
       return $Member.createOne({
+        seasonId: team.seasonId,
         teamId: team.id,
         userId: user.id,
         pending: true,
@@ -138,13 +151,42 @@ export default new Map<string, RequestHandler>([
     }),
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)
-      const member = await $Member.getOne({id: body.memberId})
-      await requireTeam(user, member.teamId)
+      const memberToAdd = await $Member.getOne({id: body.memberId})
+      const [_, member] = await requireTeam(user, memberToAdd.teamId)
+      if (!member.captain)
+        throw new Error(
+          'Failed: only the team captain can accept or deny members.'
+        )
       if (body.accept) {
-        await $Member.updateOne({id: member.id}, {pending: false})
+        await $Member.updateOne({id: memberToAdd.id}, {pending: false})
       } else {
-        await $Member.deleteOne({id: member.id})
+        await $Member.deleteOne({id: memberToAdd.id})
       }
+    },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/MemberSetCaptain',
+    payload: io.string(),
+    handler: (memberId) => async (req) => {
+      const [user] = await requireUser(req)
+      const memberToPromote = await $Member.getOne({id: memberId})
+      if (memberToPromote.captain)
+        throw new Error('This member is already the captain of the team.')
+      const [_, member] = await requireTeam(user, memberToPromote.teamId)
+      if (!member.captain)
+        throw new Error(
+          'Failed: only the team captain can perform this action.'
+        )
+      await Promise.all([
+        $Member.updateOne(
+          {id: memberToPromote.id},
+          {captain: true, pending: false}
+        ),
+        $Member.updateOne({id: member.id}, {captain: false}),
+      ])
     },
   }),
 ])

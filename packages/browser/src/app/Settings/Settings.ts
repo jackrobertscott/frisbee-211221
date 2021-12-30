@@ -7,6 +7,7 @@ import {TopBar} from '../TopBar'
 import {TopBarBadge} from '../TopBarBadge'
 import {useLocalRouter} from '../useLocalRouter'
 import {SettingsAccount} from './SettingsAccount'
+import {SettingsMembers} from './SettingsMembers'
 import {SettingsPassword} from './SettingsPassword'
 import {SettingsTeam} from './SettingsTeam'
 /**
@@ -28,6 +29,11 @@ export const Settings: FC<{close: () => void}> = ({close}) => {
       path: '/team',
       title: 'Team',
       render: () => $(SettingsTeam),
+    },
+    {
+      path: '/members',
+      title: 'Members',
+      render: () => $(SettingsMembers),
     },
   ])
   return $(Modal, {

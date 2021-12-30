@@ -8,6 +8,7 @@ export const ioMember = io.object({
   updatedOn: io.date(),
   userId: io.string(),
   teamId: io.string(),
+  captain: io.optional(io.boolean()),
   pending: io.boolean(),
 })
 /**

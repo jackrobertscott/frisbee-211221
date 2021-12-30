@@ -70,7 +70,9 @@ export default new Map<string, RequestHandler>([
       const team = await $Team.createOne(body)
       const member = await $Member.createOne({
         userId: user.id,
+        seasonId: team.seasonId,
         teamId: team.id,
+        captain: true,
         pending: false,
       })
       await $User.updateOne({id: user.id}, {lastMemberId: member.id})
@@ -94,7 +96,9 @@ export default new Map<string, RequestHandler>([
       ({teamId, ...body}) =>
       async (req) => {
         const [user] = await requireUser(req)
-        const [team] = await requireTeam(user, teamId)
+        const [team, member] = await requireTeam(user, teamId)
+        if (!member.captain)
+          throw new Error('Failed: only the team captain can update the team.')
         return $Team.updateOne(
           {id: team.id},
           {...body, updatedOn: new Date().toISOString()}

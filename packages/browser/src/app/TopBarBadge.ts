@@ -40,7 +40,7 @@ export const TopBarBadge: FC<{
           $('div', {
             children: label,
             className: css({
-              marginLeft: 5,
+              marginLeft: icon ? 5 : undefined,
             }),
           }),
       ]),

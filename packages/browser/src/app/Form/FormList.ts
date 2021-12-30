@@ -1,6 +1,7 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
 import {theme} from '../../theme'
+import {addkeys} from '../../utils/addkeys'
 import {hsla} from '../../utils/hsla'
 /**
  *
@@ -9,6 +10,7 @@ export const FormList: FC<{
   list: Array<{
     id: string
     label: string
+    sublabel?: string
     color?: string
     click?: () => void
   }>
@@ -36,9 +38,10 @@ export const FormList: FC<{
             const color = hsla.digest(item.color ?? defaultColor)
             return $('div', {
               key: item.id,
-              children: item.label,
               onClick: item.click,
               className: css({
+                display: 'flex',
+                justifyContent: 'space-between',
                 userSelect: 'none',
                 background: item.color,
                 padding: theme.padify(theme.inputPadding),
@@ -49,6 +52,10 @@ export const FormList: FC<{
                   background: hsla.render(hsla.darken(15, color)),
                 },
               }),
+              children: addkeys([
+                $('div', {children: item.label}),
+                item.sublabel && $('div', {children: item.sublabel}),
+              ]),
             })
           }),
   })
