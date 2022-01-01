@@ -44,7 +44,8 @@ export const DashboardLadder: FC = () => {
         children: addkeys([
           $(Table, {
             head: {
-              name: {label: 'Name', grow: 4},
+              name: {label: 'Name', grow: 5},
+              games: {label: 'Games', grow: 1},
               points: {label: 'Points', grow: 1},
               wins: {label: 'Wins', grow: 1},
               loses: {label: 'Loses', grow: 1},
@@ -68,6 +69,7 @@ export const DashboardLadder: FC = () => {
                 return {
                   id: {value: i.id},
                   name: {value: i.name, color: i.color},
+                  games: {value: results?.games},
                   points: {value: results?.points},
                   wins: {value: results?.wins},
                   loses: {value: results?.loses},

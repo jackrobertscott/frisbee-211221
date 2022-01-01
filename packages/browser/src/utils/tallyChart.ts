@@ -11,6 +11,7 @@ interface TChart {
   draws: number
   for: number
   against: number
+  games: number
 }
 /**
  *
@@ -23,6 +24,7 @@ const emptyChart = (teamId: string): TChart => ({
   draws: 0,
   for: 0,
   against: 0,
+  games: 0,
 })
 /**
  *
@@ -52,6 +54,8 @@ export const tallyChart = (rounds: TRound[]) => {
       t2Tally.for += game.team2Score
       t1Tally.against += game.team2Score
       t2Tally.against += game.team1Score
+      t1Tally.games += 1
+      t2Tally.games += 1
       tally[game.team1Id] = t1Tally
       tally[game.team2Id] = t2Tally
     }

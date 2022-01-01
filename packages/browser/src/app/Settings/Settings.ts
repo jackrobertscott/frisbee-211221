@@ -87,6 +87,7 @@ export const Settings: FC<{close: () => void}> = ({close}) => {
             children: router.render(),
             className: css({
               flexGrow: 1,
+              background: theme.bgMinorColor,
             }),
           }),
         ]),

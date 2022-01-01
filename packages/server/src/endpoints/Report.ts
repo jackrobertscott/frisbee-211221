@@ -86,6 +86,7 @@ export default new Map<string, RequestHandler>([
       scoreAgainst: io.number(),
       mvpMale: io.optional(io.string()),
       mvpFemale: io.optional(io.string()),
+      spirit: io.number(),
     }),
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)

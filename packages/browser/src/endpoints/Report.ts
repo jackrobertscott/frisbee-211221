@@ -40,6 +40,7 @@ export const $ReportCreate = createEndpoint({
     scoreAgainst: io.number(),
     mvpMale: io.optional(io.string()),
     mvpFemale: io.optional(io.string()),
+    spirit: io.number(),
   }),
   result: ioReport,
 })

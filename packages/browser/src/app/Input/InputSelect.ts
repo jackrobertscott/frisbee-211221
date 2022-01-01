@@ -30,6 +30,7 @@ export const InputSelect: FC<{
   return $(Popup, {
     open,
     align: 'start',
+    maxWidth: '100%',
     clickOutside: () => openSet(false),
     style: {
       flexGrow: 1,
@@ -40,9 +41,9 @@ export const InputSelect: FC<{
         minWidth,
         cursor: 'default',
         userSelect: 'none',
-        whiteSpace: 'nowrap',
         display: 'flex',
         justifyContent: 'space-between',
+        whiteSpace: 'pre-line',
         background: disabled
           ? theme.bgMinorColor
           : current?.color ?? theme.bgColor,
@@ -54,15 +55,15 @@ export const InputSelect: FC<{
         $('div', {
           children: current?.label ?? placeholder ?? '...',
         }),
-        !disabled &&
-          $(Icon, {
-            icon: 'angle-down',
-          }),
+        $(Icon, {
+          icon: disabled ? 'lock' : 'angle-down',
+        }),
       ]),
     }),
     popup: $('div', {
       className: css({
         maxHeight: 233 + 13,
+        maxWidth: '100%',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'auto',
@@ -81,7 +82,6 @@ export const InputSelect: FC<{
                 display: 'flex',
                 justifyContent: 'space-between',
                 userSelect: 'none',
-                whiteSpace: 'nowrap',
                 padding: theme.padify(theme.inputPadding),
                 background: hsla.render(colorHSLA),
                 '&:not(:last-child)': {

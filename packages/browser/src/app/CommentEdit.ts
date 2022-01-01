@@ -1,6 +1,7 @@
 import {createElement as $, FC} from 'react'
 import {$CommentUpdate} from '../endpoints/Comment'
 import {TComment} from '../schemas/Comment'
+import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {Form} from './Form/Form'
 import {FormButton} from './Form/FormButton'
@@ -33,6 +34,7 @@ export const CommentEdit: FC<{
         }),
       }),
       $(Form, {
+        background: theme.bgMinorColor,
         children: addkeys([
           $(InputTextarea, {
             value: form.data.content,

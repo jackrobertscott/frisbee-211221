@@ -24,6 +24,7 @@ export const Popup: FC<{
   align?: 'start' | 'center' | 'end'
   position?: 'above' | 'below'
   clickOutside?: () => void
+  maxWidth?: number | string
 }> = ({
   open,
   wrap,
@@ -32,11 +33,14 @@ export const Popup: FC<{
   align = 'end',
   position = 'below',
   clickOutside,
+  maxWidth,
 }) => {
   const depth = useDepth()
   const wrapRef = useRef<HTMLElement>()
   const popupRef = useRef<HTMLElement>()
+  const contentRef = useRef<HTMLElement>()
   const [box, boxSet] = useState<DOMRect>()
+  const [adjust, adjustSet] = useState({x: 0, y: 0})
   const offset = {x: 0, y: 3}
   const alignValue = (data: Partial<Record<typeof align, any>>) => data[align]
   const posValue = (data: Partial<Record<typeof position, any>>) =>
@@ -58,6 +62,15 @@ export const Popup: FC<{
       boxSet(undefined)
     }
   }, [open])
+  useEffect(() => {
+    if (box) {
+      const data = contentRef.current?.getBoundingClientRect()
+      if (data && data.bottom > window.innerHeight)
+        adjustSet((i) => ({...i, y: data.bottom - window.innerHeight + 13}))
+    } else {
+      if (adjust.y || adjust.x) adjustSet({x: 0, y: 0})
+    }
+  }, [box])
   return $('div', {
     ref: wrapRef,
     className: css(style, {
@@ -76,7 +89,7 @@ export const Popup: FC<{
                 height: box.height,
                 pointerEvents: 'none',
                 position: 'absolute',
-                top: box.top,
+                top: box.top - adjust.y,
                 right: box.right,
                 left: box.left,
                 zIndex: 100,
@@ -124,8 +137,10 @@ export const Popup: FC<{
                       ].join(', '),
                     }),
                     children: $('div', {
+                      ref: contentRef,
                       children: popup,
                       className: css({
+                        maxWidth,
                         position: 'relative',
                         zIndex: 100,
                       }),

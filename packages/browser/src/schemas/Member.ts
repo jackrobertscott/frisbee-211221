@@ -7,6 +7,7 @@ export const ioMember = io.object({
   createdOn: io.date(),
   updatedOn: io.date(),
   userId: io.string(),
+  seasonId: io.string(),
   teamId: io.string(),
   captain: io.optional(io.boolean()),
   pending: io.boolean(),

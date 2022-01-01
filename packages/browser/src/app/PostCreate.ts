@@ -1,6 +1,7 @@
 import {createElement as $, FC} from 'react'
 import {$PostCreate} from '../endpoints/Post'
 import {TPost} from '../schemas/Post'
+import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
@@ -39,6 +40,7 @@ export const PostCreate: FC<{
         }),
       }),
       $(Form, {
+        background: theme.bgMinorColor,
         children: addkeys([
           $(FormRow, {
             children: addkeys([

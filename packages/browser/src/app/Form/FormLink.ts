@@ -1,5 +1,6 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
+import {theme} from '../../theme'
 /**
  *
  */
@@ -11,10 +12,10 @@ export const FormLink: FC<{
     onClick: click,
     children: label,
     className: css({
-      opacity: 0.5,
       userSelect: 'none',
       textAlign: 'center',
       textDecoration: 'underline',
+      color: theme.minorColor,
       '&:hover': {
         opacity: 1,
       },

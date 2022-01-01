@@ -6,10 +6,12 @@ import {$RoundListOfSeason} from '../endpoints/Round'
 import {TRound} from '../schemas/Round'
 import {TTeam} from '../schemas/Team'
 import {TUser} from '../schemas/User'
+import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
 import {FormButton} from './Form/FormButton'
+import {FormColumn} from './Form/FormColumn'
 import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
 import {FormSpinner} from './Form/FormSpinner'
@@ -41,6 +43,7 @@ export const ReportCreate: FC<{
     scoreAgainst: undefined as undefined | number,
     mvpMale: undefined as undefined | string,
     mvpFemale: undefined as undefined | string,
+    spirit: undefined as undefined | number,
   })
   useEffect(() => {
     if (auth.current?.season)
@@ -64,6 +67,7 @@ export const ReportCreate: FC<{
         }),
       }),
       $(Form, {
+        background: theme.bgMinorColor,
         children: addkeys([
           rounds === undefined
             ? $(FormSpinner)
@@ -156,6 +160,58 @@ export const ReportCreate: FC<{
                       }),
                     ]),
                   }),
+                $(FormColumn, {
+                  children: addkeys([
+                    $(FormRow, {
+                      children: addkeys([
+                        $(FormLabel, {label: 'Spirit'}),
+                        $(InputSelect, {
+                          value: form.data.spirit?.toString(),
+                          valueSet: (i) => form.patch({spirit: +i}),
+                          options: [
+                            {
+                              key: '0',
+                              label: `0: They were not fair minded, or did not know the rules, or were not willing to communicate.`,
+                            },
+                            {
+                              key: '1',
+                              label: `1: They were somewhat fair minded, or didn't have a good rules knowledge.`,
+                            },
+                            {
+                              key: '2',
+                              label: `2: They were fair minded, and had sufficient rules knowledge.`,
+                            },
+                            {
+                              key: '3',
+                              label: `3: They upheld the truth of a situation even if it didn't benefit them, or displayed advanced rules knowledge.`,
+                            },
+                            {
+                              key: '4',
+                              label: `4: This team was god-tier in their attitudes on and off the field.`,
+                            },
+                          ],
+                        }),
+                      ]),
+                    }),
+                    $('div', {
+                      className: css({
+                        border: theme.border,
+                        background: theme.bgMinorColor,
+                        color: theme.minorColor,
+                        padding: theme.padify(theme.inputPadding),
+                      }),
+                      children: addkeys([
+                        'See ',
+                        $('a', {
+                          href: 'https://d36m266ykvepgv.cloudfront.net/uploads/media/vQLbEryD9k/o/wfdf-spirit-scoring-examples.pdf',
+                          target: '_blank',
+                          children: 'here',
+                        }),
+                        ' for more details regarding spirit scores.',
+                      ]),
+                    }),
+                  ]),
+                }),
                 $(FormButton, {
                   disabled: $create.loading,
                   label: $create.loading ? 'Loading' : 'Submit',

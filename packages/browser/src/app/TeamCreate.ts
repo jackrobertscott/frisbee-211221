@@ -1,6 +1,7 @@
 import {createElement as $, FC} from 'react'
 import {$TeamCreate} from '../endpoints/Team'
 import {TTeam} from '../schemas/Team'
+import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {SIMPLE_COLORS} from '../utils/colors'
 import {hsla} from '../utils/hsla'
@@ -40,6 +41,7 @@ export const TeamCreate: FC<{
         }),
       }),
       $(Form, {
+        background: theme.bgMinorColor,
         children: addkeys([
           $(FormRow, {
             children: addkeys([

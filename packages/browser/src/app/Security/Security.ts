@@ -61,12 +61,17 @@ export const Security: FC = () => {
               children: router.current?.message,
               className: css({
                 paddingTop: 5,
-                opacity: 0.5,
+                color: theme.minorColor,
               }),
             }),
           ]),
         }),
-        router.render(),
+        $('div', {
+          children: router.render(),
+          className: css({
+            background: theme.bgMinorColor,
+          }),
+        }),
       ]),
     }),
   })

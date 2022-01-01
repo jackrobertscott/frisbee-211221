@@ -14,6 +14,7 @@ export const ioReport = io.object({
   scoreAgainst: io.number(),
   mvpMale: io.optional(io.string()),
   mvpFemale: io.optional(io.string()),
+  spirit: io.number(),
 })
 /**
  *

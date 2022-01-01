@@ -15,10 +15,10 @@ export const FormStatic: FC<{
     children: label,
     className: css({
       color,
-      background,
       flexGrow: 1,
       overflow: 'hidden',
       border: theme.border,
+      background: background ?? theme.bgColor,
       padding: theme.padify(theme.inputPadding),
       userSelect: click ? 'none' : undefined,
       '&:hover': click && {
