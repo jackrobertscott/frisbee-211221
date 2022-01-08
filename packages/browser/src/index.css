@@ -21,9 +21,9 @@ button,
 i {
   line-height: 1.32em;
   box-sizing: border-box;
-  font-family: 'IBM Plex Mono', '-apple-system', 'BlinkMacSystemFont',
-    'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
-    'Droid Sans', 'Helvetica Neue', 'sans-serif';
+  font-family: 'IBM Plex Mono', 'monospace', '-apple-system',
+    'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+    'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'sans-serif';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -36,6 +36,9 @@ i {
 }
 *::-webkit-scrollbar-thumb {
   background-color: hsla(0, 0%, 0%, 0.15);
+}
+*:focus-visible {
+  outline: none;
 }
 #root {
   display: flex;
@@ -89,13 +92,13 @@ h3 {
   font-size: 21px;
 }
 h4 {
-  font-size: 13px;
+  font-size: 18px;
 }
 h5 {
-  font-size: 8px;
+  font-size: 13px;
 }
 h6 {
-  font-size: 5px;
+  font-size: 10px;
 }
 p:not(:last-child) {
   margin-bottom: 10px;

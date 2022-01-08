@@ -1,5 +1,4 @@
 import {hsla} from './hsla'
-
 /**
  *
  */
