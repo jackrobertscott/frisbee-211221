@@ -45,7 +45,7 @@ export const InputSelect: FC<{
         justifyContent: 'space-between',
         whiteSpace: 'pre-line',
         background: disabled
-          ? theme.bgMinor.string()
+          ? theme.bgDisabled.string()
           : current?.color ?? theme.bg.string(),
         color: current ? undefined : theme.fontMinor.string(),
         padding: theme.padify(theme.fib[4]),

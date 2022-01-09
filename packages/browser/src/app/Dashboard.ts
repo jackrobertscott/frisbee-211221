@@ -228,16 +228,21 @@ const _DashboardSeasonBadge: FC = () => {
         popup: $(Form, {
           width: theme.fib[11],
           children: addkeys([
-            $(FormMenu, {
-              empty: seasons === undefined ? 'Loading' : 'Empty',
-              options: spreadify(seasons).map((i) => ({
-                ...i,
-                label: i.name,
-                click: () => {
-                  openSet(false)
-                  auth.seasonSet(i)
-                },
-              })),
+            $('div', {
+              className: css({
+                border: theme.border(),
+              }),
+              children: $(FormMenu, {
+                empty: seasons === undefined ? 'Loading' : 'Empty',
+                options: spreadify(seasons).map((i) => ({
+                  ...i,
+                  label: i.name,
+                  click: () => {
+                    openSet(false)
+                    auth.seasonSet(i)
+                  },
+                })),
+              }),
             }),
             auth.isAdmin() &&
               $(FormBadge, {

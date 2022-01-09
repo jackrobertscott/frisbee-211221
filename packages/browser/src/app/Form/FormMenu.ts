@@ -64,8 +64,10 @@ export const FormMenu: FC<{
           children: empty ?? 'Empty',
           className: css({
             display: 'flex',
+            justifyContent: 'center',
             padding: theme.padify(theme.fib[4]),
             color: theme.fontMinor.string(),
+            textAlign: 'center',
           }),
         }),
   })

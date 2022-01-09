@@ -49,7 +49,7 @@ export const InputDate: FC<{
         cursor: 'default',
         userSelect: 'none',
         whiteSpace: 'nowrap',
-        background: theme.bg.string(),
+        background: disabled ? theme.bgDisabled.string() : theme.bg.string(),
         color: value ? undefined : theme.fontPlaceholder.string(),
         padding: theme.padify(theme.fib[4]),
         border: theme.border(),

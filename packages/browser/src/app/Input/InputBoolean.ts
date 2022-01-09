@@ -9,20 +9,21 @@ import {Icon} from '../Icon'
 export const InputBoolean: FC<{
   value?: boolean
   valueSet?: (value: boolean) => void
-}> = ({value, valueSet}) => {
+  disabled?: boolean
+}> = ({value, valueSet, disabled,}) => {
   return $('div', {
-    onClick: () => valueSet?.(!value),
+    onClick: () => !disabled && valueSet?.(!value),
     className: css({
       padding: 5,
       flexGrow: 1,
       display: 'flex',
       userSelect: 'none',
       border: theme.border(),
-      background: theme.bg.string(),
-      '&:hover': {
+      background: disabled ? theme.bgDisabled.string() :  theme.bg.string(),
+      '&:hover': !disabled && {
         background: theme.bg.hover(),
       },
-      '&:active': {
+      '&:active': !disabled && {
         background: theme.bg.press(),
       },
     }),

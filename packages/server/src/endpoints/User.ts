@@ -14,12 +14,11 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserUpdate',
+    path: '/UserUpdateCurrent',
     payload: io.object({
       firstName: io.optional(io.string()),
       lastName: io.optional(io.string()),
       gender: io.optional(io.enum(['male', 'female'])),
-      businessMode: io.optional(io.boolean()),
       avatarUrl: io.optional(io.string()),
     }),
     handler: (body) => async (req) => {
@@ -77,5 +76,42 @@ export default new Map<string, RequestHandler>([
         }
       )
     },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/UserToggleAdmin',
+    payload: io.object({
+      userId: io.string(),
+    }),
+    handler: (body) => async (req) => {
+      await requireUserAdmin(req)
+      const user = await $User.getOne({id: body.userId})
+      return $User.updateOne({id: user.id}, {admin: !user.admin})
+    },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/UserUpdate',
+    payload: io.object({
+      userId: io.string(),
+      firstName: io.optional(io.string()),
+      lastName: io.optional(io.string()),
+      gender: io.optional(io.enum(['male', 'female'])),
+      avatarUrl: io.optional(io.string()),
+    }),
+    handler:
+      ({userId, ...body}) =>
+      async (req) => {
+        await requireUserAdmin(req)
+        const user = await $User.getOne({id: userId})
+        return $User.updateOne(
+          {id: user.id},
+          {...body, updatedOn: new Date().toISOString()}
+        )
+      },
   }),
 ])

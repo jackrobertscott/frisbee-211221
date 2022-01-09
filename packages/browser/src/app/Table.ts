@@ -24,69 +24,79 @@ type TFCTable<T extends string = any> = FC<{
  *
  */
 export const Table: TFCTable = ({head, body}) => {
-  return $(FormColumn, {
-    children: addkeys([
-      $(FormRow, {
-        children: Object.entries(head).map(([key, {grow, label}]) => {
-          return $('div', {
-            key,
-            className: css({
-              minWidth: theme.fib[8] * grow,
-              flexGrow: grow,
-              flexShrink: 0,
-              flexBasis: 0,
-              display: 'flex',
-              flexDirection: 'column',
-            }),
-            children: $(FormLabel, {
-              label,
-              background: theme.bgMinor,
-              style: {
-                overflow: 'auto',
-                flexGrow: 1,
-              },
-            }),
-          })
+  return $('div', {
+    className: css({
+      background: theme.bg.string(),
+    }),
+    children: $(FormColumn, {
+      children: addkeys([
+        $(FormRow, {
+          children: Object.entries(head).map(([key, {grow, label}]) => {
+            return $('div', {
+              key,
+              className: css({
+                minWidth: theme.fib[8] * grow,
+                flexGrow: grow,
+                flexShrink: 0,
+                flexBasis: 0,
+                display: 'flex',
+                flexDirection: 'column',
+              }),
+              children: $(FormLabel, {
+                label,
+                background: theme.bgMinor,
+                style: {
+                  overflow: 'auto',
+                  flexGrow: 1,
+                },
+              }),
+            })
+          }),
         }),
-      }),
-      $(Fragment, {
-        children: body.map((entry) => {
-          return $(FormRow, {
-            key: entry.key,
-            click: entry.click,
-            children: Object.entries(head).map(([key, {grow}]) => {
-              const data = entry.data[key]
-              return $('div', {
-                key,
-                className: css({
-                  minWidth: theme.fib[8] * grow,
-                  flexGrow: grow,
-                  flexShrink: 0,
-                  flexBasis: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                }),
-                children:
-                  data?.children ??
-                  $(FormLabel, {
-                    label:
-                      data?.value !== undefined ? data.value.toString() : '...',
-                    background: data?.color
-                      ? hsla
-                          .digest(data?.color)
-                          .merge({a: entry.click ? -0.5 : 0})
-                      : hsla.create(0, 0, 0, 0),
-                    font: data ? undefined : hsla.create(0, 0, 0, 0.5),
-                    style: {
-                      overflow: 'auto',
-                      flexGrow: 1,
-                    },
+        $(Fragment, {
+          children: body.map((entry) => {
+            return $(FormRow, {
+              key: entry.key,
+              click: entry.click,
+              children: Object.entries(head).map(([key, {grow}]) => {
+                const data = entry.data[key]
+                const bg = data?.color ? hsla.digest(data?.color) : undefined
+                const font =
+                  bg !== undefined && bg?.l < 55
+                    ? hsla.create(0, 0, 100)
+                    : undefined
+                return $('div', {
+                  key,
+                  className: css({
+                    minWidth: theme.fib[8] * grow,
+                    flexGrow: grow,
+                    flexShrink: 0,
+                    flexBasis: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
                   }),
-              })
-            }),
-          })
+                  children:
+                    data?.children ??
+                    $(FormLabel, {
+                      label:
+                        data?.value !== undefined
+                          ? data.value.toString()
+                          : '...',
+                      background: bg
+                        ? bg.merge({a: entry.click ? -0.5 : 0})
+                        : hsla.create(0, 0, 0, 0),
+                      font: data ? font : font?.merge({a: 0.5}),
+                      style: {
+                        overflow: 'auto',
+                        flexGrow: 1,
+                      },
+                    }),
+                })
+              }),
+            })
+          }),
         }),
-      }),
-    ]),
+      ]),
+    }),
   })
 }

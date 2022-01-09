@@ -81,19 +81,25 @@ export const TeamSetup: FC = () => {
                       valueSet: searchSet,
                       placeholder: 'Search',
                     }),
-                    $(FormMenu, {
-                      empty: loaded ? 'Empty' : 'Loading',
-                      options: teams.map((i) => ({
-                        id: i.id,
-                        label: i.name,
-                        color: i.color,
-                        click: () => teamRequestedSet(i),
-                        sublabel:
-                          membersOfUser &&
-                          membersOfUser.findIndex((x) => x.teamId === i.id) >= 0
-                            ? 'Pending'
-                            : undefined,
-                      })),
+                    $('div', {
+                      className: css({
+                        border: theme.border(),
+                      }),
+                      children: $(FormMenu, {
+                        empty: loaded ? 'No Teams Exist Yet' : 'Loading',
+                        options: teams.map((i) => ({
+                          id: i.id,
+                          label: i.name,
+                          color: i.color,
+                          click: () => teamRequestedSet(i),
+                          sublabel:
+                            membersOfUser &&
+                            membersOfUser.findIndex((x) => x.teamId === i.id) >=
+                              0
+                              ? 'Pending'
+                              : undefined,
+                        })),
+                      }),
                     }),
                   ]),
                 }),

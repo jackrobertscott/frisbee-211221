@@ -36,8 +36,8 @@ export const InputTextarea: FC<{
       width: '100%',
       flexGrow: 1,
       border: theme.border(),
-      background: theme.bg.string(),
       padding: theme.padify(theme.fib[4]),
+      background: disabled ? theme.bgDisabled.string() : theme.bg.string(),
       '&::placeholder': {
         color: theme.fontPlaceholder.string(),
       },

@@ -11,7 +11,7 @@ export const theme = {
   bg: hsla.create(0, 0, 100),
   bgMinor: hsla.create(0, 0, 95),
   bgHighlight: hsla.create(210, 100, 55),
-  bgDisabled: hsla.create(0, 0, 85),
+  bgDisabled: hsla.create(0, 0, 90),
   bgApp: hsla.create(0, 0, 80),
   bgAdmin: hsla.create(270, 100, 90),
   borderColor: hsla.create(0, 0, 0),

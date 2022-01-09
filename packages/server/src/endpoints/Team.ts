@@ -8,6 +8,7 @@ import {requireTeam} from './requireTeam'
 import {$User} from '../tables/$User'
 import {regex} from '../utils/regex'
 import {$Season} from '../tables/$Season'
+import {requireUserAdmin} from './requireUserAdmin'
 /**
  *
  */
@@ -86,7 +87,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/TeamUpdate',
+    path: '/TeamUpdateCurrent',
     payload: io.object({
       teamId: io.string(),
       name: io.string(),
@@ -116,5 +117,26 @@ export default new Map<string, RequestHandler>([
       const [_, member] = await requireTeam(user, teamId)
       await $User.updateOne({id: user.id}, {lastMemberId: member.id})
     },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/TeamUpdate',
+    payload: io.object({
+      teamId: io.string(),
+      name: io.string(),
+      color: io.string(),
+    }),
+    handler:
+      ({teamId, ...body}) =>
+      async (req) => {
+        await requireUserAdmin(req)
+        const team = await $Team.getOne({id: teamId})
+        return $Team.updateOne(
+          {id: team.id},
+          {...body, updatedOn: new Date().toISOString()}
+        )
+      },
   }),
 ])

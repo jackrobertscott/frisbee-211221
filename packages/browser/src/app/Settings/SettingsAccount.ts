@@ -1,5 +1,5 @@
 import {createElement as $, FC} from 'react'
-import {$UserUpdate} from '../../endpoints/User'
+import {$UserUpdateCurrent} from '../../endpoints/User'
 import {addkeys} from '../../utils/addkeys'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
@@ -17,7 +17,7 @@ import {useForm} from '../useForm'
 export const SettingsAccount: FC = () => {
   const auth = useAuth()
   const toaster = useToaster()
-  const $userUpdate = useEndpoint($UserUpdate)
+  const $userUpdate = useEndpoint($UserUpdateCurrent)
   const form = useForm({
     firstName: '',
     lastName: '',

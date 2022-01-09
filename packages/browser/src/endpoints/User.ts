@@ -4,13 +4,12 @@ import {createEndpoint} from '../utils/endpoints'
 /**
  *
  */
-export const $UserUpdate = createEndpoint({
-  path: '/UserUpdate',
+export const $UserUpdateCurrent = createEndpoint({
+  path: '/UserUpdateCurrent',
   payload: io.object({
     firstName: io.optional(io.string()),
     lastName: io.optional(io.string()),
     gender: io.optional(io.string()),
-    businessMode: io.optional(io.boolean()),
     avatarUrl: io.optional(io.string()),
   }),
   result: ioUser,
@@ -36,4 +35,28 @@ export const $UserList = createEndpoint({
     limit: io.optional(io.number()),
   }),
   result: io.array(ioUser),
+})
+/**
+ *
+ */
+export const $UserToggleAdmin = createEndpoint({
+  path: '/UserToggleAdmin',
+  payload: io.object({
+    userId: io.string(),
+  }),
+  result: ioUser,
+})
+/**
+ *
+ */
+export const $UserUpdate = createEndpoint({
+  path: '/UserUpdate',
+  payload: io.object({
+    userId: io.string(),
+    firstName: io.optional(io.string()),
+    lastName: io.optional(io.string()),
+    gender: io.optional(io.string()),
+    avatarUrl: io.optional(io.string()),
+  }),
+  result: ioUser,
 })

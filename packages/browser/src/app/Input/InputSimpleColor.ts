@@ -19,6 +19,7 @@ export const InputSimpleColor: FC<{
       border: theme.border(),
       paddingTop: theme.fib[4],
       paddingLeft: theme.fib[4],
+      background: disabled ? theme.bgDisabled.string() : theme.bg.string(),
       '& > *': {
         marginRight: theme.fib[4],
         marginBottom: theme.fib[4],
@@ -30,7 +31,7 @@ export const InputSimpleColor: FC<{
         key: backgroundString,
         onClick: () => !disabled && valueSet?.(backgroundString),
         className: css({
-          width: 34,
+          width: `${(100 / 18) * 2}%`,
           height: 40,
           flexGrow: 1,
           display: 'flex',
@@ -40,10 +41,10 @@ export const InputSimpleColor: FC<{
           background: backgroundString,
           color:
             background.l > 55 ? hsla.string(0, 0, 0) : hsla.string(0, 0, 100),
-          '&:hover': {
+          '&:hover': !disabled && {
             background: background.hover(),
           },
-          '&:active': {
+          '&:active': !disabled && {
             background: background.press(),
           },
         }),

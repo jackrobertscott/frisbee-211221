@@ -1,20 +1,26 @@
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$UserList} from '../endpoints/User'
+import {$UserList, $UserToggleAdmin, $UserUpdate} from '../endpoints/User'
 import {TUser} from '../schemas/ioUser'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {go} from '../utils/go'
+import {objectify} from '../utils/objectify'
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
+import {FormBadge} from './Form/FormBadge'
 import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
+import {InputSelect} from './Input/InputSelect'
+import {InputString} from './Input/InputString'
 import {Modal} from './Modal'
+import {Question} from './Question'
 import {Spinner} from './Spinner'
 import {Table} from './Table'
 import {TopBar} from './TopBar'
 import {TopBarBadge} from './TopBarBadge'
 import {useEndpoint} from './useEndpoint'
+import {useForm} from './useForm'
 /**
  *
  */
@@ -23,7 +29,8 @@ export const DashboardUsers: FC = () => {
   const $userList = useEndpoint($UserList)
   const seasonId = auth.current?.season?.id
   const [users, usersSet] = useState<TUser[]>()
-  const [current, currentSet] = useState<TUser>()
+  const [currentId, currentIdSet] = useState<string>()
+  const current = currentId && users?.find((i) => currentId === i.id)
   useEffect(() => {
     if (!auth.isAdmin()) go.to('/')
     if (seasonId) $userList.fetch({}).then(usersSet)
@@ -31,6 +38,7 @@ export const DashboardUsers: FC = () => {
   return $(Fragment, {
     children: addkeys([
       $(Form, {
+        background: theme.bgAdmin.lighten(5),
         children:
           users === undefined
             ? $(Spinner)
@@ -44,7 +52,7 @@ export const DashboardUsers: FC = () => {
                 },
                 body: users.map((user) => ({
                   key: user.id,
-                  click: () => currentSet(user),
+                  click: () => currentIdSet(user.id),
                   data: {
                     firstName: {value: user.firstName},
                     lastName: {value: user.lastName},
@@ -64,7 +72,9 @@ export const DashboardUsers: FC = () => {
           current &&
           $(DashboardUsersView, {
             user: current,
-            close: () => currentSet(undefined),
+            userSet: (i) =>
+              usersSet((x) => x?.map((z) => (z.id === i.id ? i : z))),
+            close: () => currentIdSet(undefined),
           }),
       }),
     ]),
@@ -73,65 +83,147 @@ export const DashboardUsers: FC = () => {
 /**
  *
  */
-export const DashboardUsersView: FC<{user: TUser; close: () => void}> = ({
-  user,
-  close,
-}) => {
-  return $(Modal, {
+export const DashboardUsersView: FC<{
+  user: TUser
+  userSet: (user: TUser) => void
+  close: () => void
+}> = ({user, userSet, close}) => {
+  const auth = useAuth()
+  const $toggleAdmin = useEndpoint($UserToggleAdmin)
+  const $userUpdate = useEndpoint($UserUpdate)
+  const [adminify, adminifySet] = useState(false)
+  const form = useForm({
+    ...user,
+  })
+  const isDifferent = !objectify.compareKeys(user, form.data, [
+    'firstName',
+    'lastName',
+    'gender',
+  ])
+  return $(Fragment, {
     children: addkeys([
-      $(TopBar, {
-        title: `${user.firstName} ${user.lastName}`,
-        children: $(TopBarBadge, {
-          icon: 'times',
-          click: close,
-        }),
-      }),
-      $(Form, {
-        background: theme.bgMinor,
+      $(Modal, {
         children: addkeys([
-          $(FormRow, {
-            children: addkeys([
-              $(FormLabel, {label: 'First Name'}),
-              $(FormLabel, {label: user.firstName, grow: true}),
-            ]),
+          $(TopBar, {
+            title: 'User',
+            children: $(TopBarBadge, {
+              icon: 'times',
+              click: close,
+            }),
           }),
-          $(FormRow, {
+          $(Form, {
+            background: theme.bgMinor,
             children: addkeys([
-              $(FormLabel, {label: 'Last Name'}),
-              $(FormLabel, {label: user.lastName, grow: true}),
-            ]),
-          }),
-          $(FormRow, {
-            children: addkeys([
-              $(FormLabel, {label: 'Gender'}),
-              $(FormLabel, {label: user.gender, grow: true}),
-            ]),
-          }),
-          $(FormRow, {
-            children: addkeys([
-              $(FormLabel, {label: 'Email'}),
-              $(FormLabel, {label: user.email, grow: true}),
-            ]),
-          }),
-          $(FormRow, {
-            children: addkeys([
-              $(FormLabel, {label: 'Created'}),
-              $(FormLabel, {
-                label: dayjs(user.createdOn).format(theme.dateFormat),
-                grow: true,
+              $(FormRow, {
+                children: addkeys([
+                  $(FormLabel, {label: 'First Name'}),
+                  $(InputString, {
+                    value: form.data.firstName,
+                    valueSet: form.link('firstName'),
+                  }),
+                ]),
               }),
-            ]),
-          }),
-          $(FormRow, {
-            children: addkeys([
-              $(FormLabel, {label: 'Last Updated'}),
-              $(FormLabel, {
-                label: dayjs(user.updatedOn).format(theme.dateFormat),
-                grow: true,
+              $(FormRow, {
+                children: addkeys([
+                  $(FormLabel, {label: 'Last Name'}),
+                  $(InputString, {
+                    value: form.data.lastName,
+                    valueSet: form.link('lastName'),
+                  }),
+                ]),
               }),
+              $(FormRow, {
+                children: addkeys([
+                  $(FormLabel, {label: 'Gender'}),
+                  $(InputSelect, {
+                    value: form.data.gender,
+                    valueSet: form.link('gender'),
+                    options: [
+                      {key: 'male', label: 'Male'},
+                      {key: 'female', label: 'Female'},
+                    ],
+                  }),
+                ]),
+              }),
+              $(FormRow, {
+                children: addkeys([
+                  $(FormLabel, {label: 'Email'}),
+                  $(InputString, {
+                    value: form.data.email,
+                    valueSet: form.link('email'),
+                    disabled: true,
+                  }),
+                ]),
+              }),
+              $(FormRow, {
+                children: addkeys([
+                  $(FormLabel, {label: 'Created'}),
+                  $(FormLabel, {
+                    label: dayjs(user.createdOn).format(theme.dateFormat),
+                    background: theme.bgDisabled,
+                    grow: true,
+                  }),
+                ]),
+              }),
+              $(FormRow, {
+                children: addkeys([
+                  $(FormLabel, {label: 'Last Updated'}),
+                  $(FormLabel, {
+                    label: dayjs(user.updatedOn).format(theme.dateFormat),
+                    background: theme.bgDisabled,
+                    grow: true,
+                  }),
+                ]),
+              }),
+              $(FormRow, {
+                children: addkeys([
+                  $(FormLabel, {label: 'Admin'}),
+                  $(FormLabel, {
+                    label: user.admin ? 'Yes' : 'No',
+                    grow: true,
+                  }),
+                  $(FormBadge, {
+                    label: user.admin ? 'Remove From Admins' : 'Set As Admin',
+                    background: theme.bgAdmin,
+                    click: () => adminifySet(true),
+                  }),
+                ]),
+              }),
+              isDifferent &&
+                $(FormBadge, {
+                  disabled: $userUpdate.loading,
+                  label: $userUpdate.loading ? 'Loading' : 'Save Changes',
+                  click: () =>
+                    $userUpdate
+                      .fetch({...form.data, userId: user.id})
+                      .then(userSet),
+                }),
             ]),
           }),
         ]),
+      }),
+      $(Fragment, {
+        children:
+          adminify &&
+          $(Question, {
+            close: () => adminifySet(false),
+            title: user.admin ? 'Remove From Admins' : 'Set As Admin',
+            description: user.admin
+              ? 'User will no longer have access to admin privileges.'
+              : 'User will gain access to admin privileges.',
+            options: [
+              {label: 'Cancel', click: () => adminifySet(false)},
+              {
+                label: 'Confirm',
+                click: () =>
+                  $toggleAdmin.fetch({userId: user.id}).then((i) => {
+                    if (i.id === auth.current?.user.id) auth.userSet(i)
+                    userSet(i)
+                    adminifySet(false)
+                  }),
+              },
+            ],
+          }),
       }),
     ]),
   })

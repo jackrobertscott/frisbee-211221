@@ -41,8 +41,8 @@ export const $TeamCreate = createEndpoint({
 /**
  *
  */
-export const $TeamUpdate = createEndpoint({
-  path: '/TeamUpdate',
+export const $TeamUpdateCurrent = createEndpoint({
+  path: '/TeamUpdateCurrent',
   payload: io.object({
     teamId: io.string(),
     name: io.string(),
@@ -56,4 +56,16 @@ export const $TeamUpdate = createEndpoint({
 export const $TeamSwitch = createEndpoint({
   path: '/TeamSwitch',
   payload: io.string(),
+})
+/**
+ *
+ */
+export const $TeamUpdate = createEndpoint({
+  path: '/TeamUpdate',
+  payload: io.object({
+    teamId: io.string(),
+    name: io.string(),
+    color: io.string(),
+  }),
+  result: ioTeam,
 })
