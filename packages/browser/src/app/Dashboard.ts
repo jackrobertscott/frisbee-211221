@@ -26,6 +26,9 @@ import {useEndpoint} from './useEndpoint'
 import {FormMenu} from './Form/FormMenu'
 import {FormBadge} from './Form/FormBadge'
 import {hsla} from '../utils/hsla'
+import {fadein} from '../utils/keyframes'
+import {DashboardTeams} from './DashboardTeams'
+import {DashboardUsers} from './DashboardUsers'
 /**
  *
  */
@@ -51,6 +54,16 @@ export const Dashboard: FC = () => {
       title: 'Ladder',
       render: () => $(DashboardLadder),
     },
+    auth.isAdmin() && {
+      path: '/teams',
+      title: 'Teams',
+      render: () => $(DashboardTeams),
+    },
+    auth.isAdmin() && {
+      path: '/users',
+      title: 'Users',
+      render: () => $(DashboardUsers),
+    },
   ])
   return $(Fragment, {
     children: addkeys([
@@ -59,6 +72,7 @@ export const Dashboard: FC = () => {
           className: css({
             maxWidth: '100%',
             width: theme.fib[14] + theme.fib[12],
+            minHeight: theme.fib[11],
             border: theme.border(),
             background: theme.bg.string(),
           }),
@@ -142,7 +156,14 @@ export const Dashboard: FC = () => {
                 }),
               ]),
             }),
-            router.render(),
+            $('div', {
+              children: router.render(),
+              className: css({
+                '& > *': {
+                  animation: `150ms linear ${fadein}`,
+                },
+              }),
+            }),
           ]),
         }),
       }),

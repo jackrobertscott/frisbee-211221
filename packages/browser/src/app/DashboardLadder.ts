@@ -66,15 +66,17 @@ export const DashboardLadder: FC = () => {
               .map((i) => {
                 const results = tally[i.id]
                 return {
-                  id: {value: i.id},
-                  name: {value: i.name, color: i.color},
-                  games: {value: results?.games},
-                  points: {value: results?.points},
-                  wins: {value: results?.wins},
-                  loses: {value: results?.loses},
-                  draws: {value: results?.draws},
-                  for: {value: results?.for},
-                  against: {value: results?.against},
+                  key: i.id,
+                  data: {
+                    name: {value: i.name, color: i.color},
+                    games: {value: results?.games},
+                    points: {value: results?.points},
+                    wins: {value: results?.wins},
+                    loses: {value: results?.loses},
+                    draws: {value: results?.draws},
+                    for: {value: results?.for},
+                    against: {value: results?.against},
+                  },
                 }
               }),
           }),
@@ -209,11 +211,13 @@ const _LadderRound: FC<{
                 const team1 = teams.find((i) => i.id === game.team1Id)
                 const team2 = teams.find((i) => i.id === game.team2Id)
                 return {
-                  id: {value: game.id},
-                  team1: {value: team1?.name, color: team1?.color},
-                  team1Score: {value: game.team1Score},
-                  team2: {value: team2?.name, color: team2?.color},
-                  team2Score: {value: game.team2Score},
+                  key: game.id,
+                  data: {
+                    team1: {value: team1?.name, color: team1?.color},
+                    team1Score: {value: game.team1Score},
+                    team2: {value: team2?.name, color: team2?.color},
+                    team2Score: {value: game.team2Score},
+                  },
                 }
               }),
             }),

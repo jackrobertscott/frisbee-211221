@@ -181,17 +181,19 @@ export const FixtureTallyForm: FC<{
                             .map((i) => i.charAt(0))
                             .join('')
                         return {
-                          id: {value: i.id},
-                          team1: {
-                            value: initials(team1?.name),
-                            color: team1?.color,
+                          key: i.id,
+                          data: {
+                            team1: {
+                              value: initials(team1?.name),
+                              color: team1?.color,
+                            },
+                            team1Score: {value: i.scoreFor},
+                            team2: {
+                              value: initials(team2?.name),
+                              color: team2?.color,
+                            },
+                            team2Score: {value: i.scoreAgainst},
                           },
-                          team1Score: {value: i.scoreFor},
-                          team2: {
-                            value: initials(team2?.name),
-                            color: team2?.color,
-                          },
-                          team2Score: {value: i.scoreAgainst},
                         }
                       }),
                     })

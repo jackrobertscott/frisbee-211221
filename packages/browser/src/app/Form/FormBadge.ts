@@ -1,4 +1,4 @@
-import {css, CSSInterpolation} from '@emotion/css'
+import {css, CSSObject} from '@emotion/css'
 import {createElement as $, FC} from 'react'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
@@ -17,7 +17,7 @@ export interface TFormBadge {
   background?: THSLA
   padding?: number
   grow?: boolean
-  style?: CSSInterpolation
+  style?: CSSObject
 }
 /**
  *

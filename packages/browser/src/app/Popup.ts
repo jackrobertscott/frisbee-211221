@@ -1,4 +1,4 @@
-import {css, CSSInterpolation} from '@emotion/css'
+import {css, CSSObject} from '@emotion/css'
 import {
   createElement as $,
   FC,
@@ -20,7 +20,7 @@ export const Popup: FC<{
   open: boolean
   wrap: ReactNode
   popup: ReactNode
-  style?: CSSInterpolation
+  style?: CSSObject
   align?: 'start' | 'center' | 'end'
   position?: 'above' | 'below'
   clickOutside?: () => void
@@ -171,8 +171,12 @@ export const Popup: FC<{
                         alignValue({center: 'translateX(-50%)'}) ?? ''
                       } rotate(45deg)`.trim(),
                       background: theme.bg.string(),
-                      marginTop: posValue({below: offset.y + 3}),
-                      marginBottom: posValue({above: offset.y + 3}),
+                      marginTop: posValue({
+                        below: offset.y + theme.borderWidth + 1,
+                      }),
+                      marginBottom: posValue({
+                        above: offset.y + theme.borderWidth + 1,
+                      }),
                       height: 13,
                       width: 13,
                     }),

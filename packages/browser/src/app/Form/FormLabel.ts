@@ -3,12 +3,13 @@ import {FormBadge, TFormBadge} from './FormBadge'
 /**
  *
  */
-export const FormLabel: FC<Omit<TFormBadge, 'style'>> = ({...props}) => {
+export const FormLabel: FC<TFormBadge> = ({...props}) => {
   return $(FormBadge, {
     ...props,
     style: {
       textAlign: 'left',
       justifyContent: 'flex-start',
+      ...props.style,
     },
   })
 }

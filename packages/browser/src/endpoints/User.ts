@@ -26,3 +26,14 @@ export const $UserChangePassword = createEndpoint({
   }),
   result: ioUser,
 })
+/**
+ *
+ */
+export const $UserList = createEndpoint({
+  path: '/UserList',
+  payload: io.object({
+    search: io.optional(io.string().emptyok()),
+    limit: io.optional(io.number()),
+  }),
+  result: io.array(ioUser),
+})

@@ -1,81 +1,87 @@
 import {css} from '@emotion/css'
-import {createElement as $, FC, Fragment} from 'react'
+import {createElement as $, FC, Fragment, ReactNode} from 'react'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {hsla} from '../utils/hsla'
+import {FormColumn} from './Form/FormColumn'
+import {FormLabel} from './Form/FormLabel'
+import {FormRow} from './Form/FormRow'
 /**
  *
  */
 type TFCTable<T extends string = any> = FC<{
   head: Record<T, {label: string; grow: number}>
-  body: Array<
-    Record<'id' | T, undefined | {value?: string | number; color?: string}>
-  >
+  body: Array<{
+    key: string
+    click?: () => void
+    data: Record<
+      T,
+      {children?: ReactNode; value?: string | number; color?: string}
+    >
+  }>
 }>
 /**
  *
  */
-export const Table: TFCTable = ({head: header, body}) => {
-  return $('div', {
-    className: css({
-      flexGrow: 1,
-      display: 'flex',
-      flexDirection: 'column',
-      background: theme.bg.string(),
-      border: theme.border(),
-      '& > *:not(:last-child)': {
-        borderBottom: theme.border(),
-      },
-    }),
+export const Table: TFCTable = ({head, body}) => {
+  return $(FormColumn, {
     children: addkeys([
-      $('div', {
-        className: css({
-          display: 'flex',
-          background: theme.bgMinor.string(),
-          '& > *:not(:last-child)': {
-            borderRight: theme.border(),
-          },
-        }),
-        children: Object.entries(header).map(([key, {grow, label}]) => {
+      $(FormRow, {
+        children: Object.entries(head).map(([key, {grow, label}]) => {
           return $('div', {
             key,
-            children: label,
             className: css({
               minWidth: theme.fib[8] * grow,
               flexGrow: grow,
               flexShrink: 0,
               flexBasis: 0,
-              overflow: 'auto',
-              padding: theme.padify(theme.fib[4]),
+              display: 'flex',
+              flexDirection: 'column',
+            }),
+            children: $(FormLabel, {
+              label,
+              background: theme.bgMinor,
+              style: {
+                overflow: 'auto',
+                flexGrow: 1,
+              },
             }),
           })
         }),
       }),
       $(Fragment, {
         children: body.map((entry) => {
-          return $('div', {
-            key: entry.id?.value,
-            className: css({
-              display: 'flex',
-              '& > *:not(:last-child)': {
-                borderRight: theme.border(),
-              },
-            }),
-            children: Object.entries(header).map(([key, {grow}]) => {
-              const data = entry[key]
+          return $(FormRow, {
+            key: entry.key,
+            click: entry.click,
+            children: Object.entries(head).map(([key, {grow}]) => {
+              const data = entry.data[key]
               return $('div', {
                 key,
-                children: data?.value !== undefined ? data?.value : '...',
                 className: css({
                   minWidth: theme.fib[8] * grow,
                   flexGrow: grow,
                   flexShrink: 0,
                   flexBasis: 0,
-                  overflow: 'auto',
-                  background: data?.color,
-                  padding: theme.padify(theme.fib[4]),
-                  color: data ? undefined : hsla.string(0, 0, 0, 0.5),
+                  display: 'flex',
+                  flexDirection: 'column',
                 }),
+                children:
+                  data?.children ??
+                  $(FormLabel, {
+                    label:
+                      data?.value !== undefined ? data.value.toString() : '...',
+                    background: data?.color
+                      ? hsla
+                          .digest(data?.color)
+                          .merge({a: entry.click ? -0.5 : 0})
+                      : hsla.create(0, 0, 0, 0),
+                    font: data ? undefined : hsla.create(0, 0, 0, 0.5),
+                    style: {
+                      overflow: 'auto',
+                      flexGrow: 1,
+                    },
+                  }),
               })
             }),
           })

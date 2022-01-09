@@ -22,6 +22,14 @@ export const hsla = {
         if (a >= 1) return hsla.create(h, s, l - percent, a)
         return hsla.create(h, s, l, a - percent / 100)
       },
+      merge(i: {h?: number; s?: number; l?: number; a?: number}) {
+        return hsla.create(
+          h + (i.h ?? 0),
+          s + (i.s ?? 0),
+          l + (i.l ?? 0),
+          a + (i.a ?? 0)
+        )
+      },
       hover() {
         return this.darken(10).string()
       },

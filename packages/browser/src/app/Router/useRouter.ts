@@ -9,7 +9,11 @@ import {go} from '../../utils/go'
 /**
  *
  */
-export const useRouter = <T extends TRoute>(fallback: string, routes: T[]) => {
+export const useRouter = <T extends TRoute>(
+  fallback: string,
+  _routes: (T | false)[]
+) => {
+  const routes = _routes.filter(Boolean) as T[]
   if (routes.length < 1) throw new Error('Router must have at least one route.')
   const _parseRoute = (path: string, exact?: boolean) => {
     const keys: Key[] = []

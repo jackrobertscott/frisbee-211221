@@ -4,6 +4,8 @@ import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
 import {$User} from '../tables/$User'
 import hash from '../utils/hash'
+import {requireUserAdmin} from './requireUserAdmin'
+import {regex} from '../utils/regex'
 /**
  *
  */
@@ -47,6 +49,32 @@ export default new Map<string, RequestHandler>([
       return $User.updateOne(
         {id: user.id},
         {password: await hash.encrypt(body.newPassword)}
+      )
+    },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/UserList',
+    payload: io.object({
+      search: io.optional(io.string().emptyok()),
+      limit: io.optional(io.number()),
+    }),
+    handler: (body) => async (req) => {
+      await requireUserAdmin(req)
+      const regexSearch = regex.from(body.search ?? '')
+      return $User.getMany(
+        {
+          $or: [
+            {firstName: regexSearch},
+            {lastName: regexSearch},
+            {email: regexSearch},
+          ],
+        },
+        {
+          limit: body.limit,
+        }
       )
     },
   }),
