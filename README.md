@@ -11,6 +11,7 @@ Todos:
 - [ ] Admin to create a team.
 - [ ] Admin to assign a member to team.
 - [ ] Admin import csv files with afda export.
+- [ ] Verify user email on sign up.
 - [ ] Update the server email address.
 - [ ] Opt-in to emails i.e. when game fixtures are released.
 - [ ] Admin send custom emails.

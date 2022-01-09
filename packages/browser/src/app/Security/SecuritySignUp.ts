@@ -5,6 +5,8 @@ import {go} from '../../utils/go'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
+import {FormColumn} from '../Form/FormColumn'
+import {FormHelp} from '../Form/FormHelp'
 import {FormLabel} from '../Form/FormLabel'
 import {FormRow} from '../Form/FormRow'
 import {InputBoolean} from '../Input/InputBoolean'
@@ -17,15 +19,16 @@ import {useForm} from '../useForm'
  *
  */
 export const SecuritySignUp: FC<{
+  email?: string
   savedEmailSet: (email: string) => void
-}> = ({savedEmailSet}) => {
+}> = ({email: _email, savedEmailSet}) => {
   const auth = useAuth()
   const $signUp = useEndpoint($SecuritySignUpRegular)
   const form = useForm({
     firstName: '',
     lastName: '',
     gender: undefined as undefined | string,
-    email: '',
+    email: _email ?? '',
     password: '',
     termsAccepted: false,
     userAgent: navigator.userAgent,
@@ -38,6 +41,7 @@ export const SecuritySignUp: FC<{
           $(InputString, {
             value: form.data.firstName,
             valueSet: form.link('firstName'),
+            autofocus: true,
           }),
         ]),
       }),
@@ -82,12 +86,33 @@ export const SecuritySignUp: FC<{
           }),
         ]),
       }),
-      $(FormRow, {
+      $(FormColumn, {
         children: addkeys([
-          $(FormLabel, {label: 'T&Cs Accepted'}),
-          $(InputBoolean, {
-            value: form.data.termsAccepted,
-            valueSet: form.link('termsAccepted'),
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {label: 'T&Cs Accepted'}),
+              $(InputBoolean, {
+                value: form.data.termsAccepted,
+                valueSet: form.link('termsAccepted'),
+              }),
+            ]),
+          }),
+          $(FormHelp, {
+            children: addkeys([
+              'See ',
+              $('a', {
+                target: '_blank',
+                href: 'https://marlowstreetultimate.ultimatecentral.com/insurance',
+                children: 'insurance',
+              }),
+              ' and ',
+              $('a', {
+                target: '_blank',
+                href: 'https://marlowstreetultimate.ultimatecentral.com/policies',
+                children: 'policy',
+              }),
+              ' pages.',
+            ]),
           }),
         ]),
       }),

@@ -26,6 +26,29 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
+    path: '/SecurityStatus',
+    payload: io.object({
+      email: io.string().email().trim(),
+    }),
+    handler:
+      ({email}) =>
+      async () => {
+        const user = await $User.maybeOne({email: regex.normalize(email)})
+        let data: {status: string; email: string; firstName?: string}
+        if (!user) data = {status: 'unknown', email}
+        else if (!user.password) {
+          data = {status: 'passwordless', email, firstName: user.firstName}
+          /**
+           * todo: send email to user containing password code...
+           */
+        } else data = {status: 'good', email, firstName: user.firstName}
+        return data
+      },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
     path: '/SecurityLoginPassword',
     payload: io.object({
       email: io.string().email().trim(),
@@ -33,11 +56,11 @@ export default new Map<string, RequestHandler>([
       userAgent: io.optional(io.string()),
     }),
     handler: (body) => async () => {
-      const user = await $User.maybeOne({
-        email: regex.normalize(body.email),
-      })
+      const user = await $User.maybeOne({email: regex.normalize(body.email)})
       if (!user)
         throw new Error(`User with email ${body.email} does not exist.`)
+      if (!user.password?.trim().length)
+        throw new Error('User does not have a password.')
       if (!(await hash.compare(body.password, user.password)))
         throw new Error('Password is incorrect.')
       const session = await gatekeeper.createUserSession(user, body.userAgent)
@@ -86,10 +109,7 @@ export default new Map<string, RequestHandler>([
         throw new Error('Password must be at least 5 characters long.')
       if (!body.termsAccepted)
         throw new Error('Please accept our terms to create an account.')
-      const countUserMatchingEmail = await $User.count({
-        email: regex.normalize(body.email),
-      })
-      if (countUserMatchingEmail)
+      if (await $User.count({email: regex.normalize(body.email)}))
         throw new Error(`User already exists with email "${body.email}".`)
       // const code = await _sendUserVerificationEmail(body.email, body.firstName)
       const user = await $User.createOne({
@@ -136,9 +156,7 @@ export default new Map<string, RequestHandler>([
       userAgent: io.optional(io.string()),
     }),
     handler: (body) => async () => {
-      let user = await $User.maybeOne({
-        email: regex.normalize(body.email),
-      })
+      let user = await $User.maybeOne({email: regex.normalize(body.email)})
       if (!user)
         throw new Error(`User with email ${body.email} does not exist.`)
       if (user.emailCode !== body.code.split('-').join('').split(' ').join(''))

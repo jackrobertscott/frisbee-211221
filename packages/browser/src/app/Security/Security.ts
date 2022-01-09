@@ -1,5 +1,6 @@
+import marlowPng from '../../assets/marlowstreet.png'
 import {css} from '@emotion/css'
-import {createElement as $, FC} from 'react'
+import {createElement as $, FC, useState} from 'react'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {useRouter} from '../Router/useRouter'
@@ -8,19 +9,40 @@ import {SecurityForgot} from './SecurityForgot'
 import {SecuritySignUp} from './SecuritySignUp'
 import {useLocalState} from '../useLocalState'
 import {Center} from '../Center'
+import {SecurityStatus, TSecurityStatus} from './SecurityStatus'
+import {hsla} from '../../utils/hsla'
+import {go} from '../../utils/go'
+import {SecurityVerify} from './SecurityVerify'
 /**
  *
  */
 export const Security: FC = () => {
+  const [status, statusSet] = useState<TSecurityStatus>()
   const [savedEmail, savedEmailSet] = useLocalState('frisbee.savedEmail', '')
-  const router = useRouter('/login', [
+  const router = useRouter('/welcome', [
+    {
+      path: '/welcome',
+      label: 'Welcome',
+      message: 'Please provide your email address.',
+      render: () =>
+        $(SecurityStatus, {
+          statusSet: (data) => {
+            statusSet(data)
+            console.log(data)
+            if (data.status === 'unknown') go.to('/sign-up')
+            else if (data.status === 'passwordless')
+              go.to(`/verify?email=${encodeURIComponent(data.email)}`)
+            else go.to('/login')
+          },
+        }),
+    },
     {
       path: '/login',
       label: 'Login',
       message: 'Please sign in to your account.',
       render: () =>
         $(SecurityLogin, {
-          savedEmail,
+          email: status?.email ?? savedEmail,
           savedEmailSet,
         }),
     },
@@ -30,49 +52,99 @@ export const Security: FC = () => {
       message: 'Create an account to get started.',
       render: () =>
         $(SecuritySignUp, {
+          email: status?.email,
           savedEmailSet,
         }),
     },
     {
       path: '/forgot-password',
       label: 'Forgot Password',
-      message: 'Reset your password.',
-      render: () => $(SecurityForgot),
+      message: 'A password recovery code will be sent to your email.',
+      render: (_: any, query: Record<string, any>) =>
+        $(SecurityForgot, {
+          email: query.email,
+        }),
+    },
+    {
+      path: '/verify',
+      label: 'Verify Email',
+      message: 'Check you inbox for the code.',
+      render: (_: any, query: Record<string, any>) =>
+        $(SecurityVerify, {
+          email: query.email,
+        }),
     },
   ])
   return $(Center, {
-    children: $('div', {
-      className: css({
-        width: theme.fib[12],
-        border: theme.border(),
-        background: theme.bg.string(),
-      }),
-      children: addkeys([
-        $('div', {
+    children: addkeys([
+      $('div', {
+        className: css({
+          display: 'flex',
+          justifyContent: 'center',
+          marginBottom: theme.fib[6],
+          marginRight: theme.fib[4],
+        }),
+        children: $('div', {
           className: css({
-            borderBottom: theme.border(),
-            padding: theme.padify(theme.fib[5]),
+            position: 'relative',
           }),
           children: addkeys([
-            $('div', {
-              children: router.current?.label,
+            $('img', {
+              src: marlowPng,
+              className: css({
+                width: theme.fib[11],
+                position: 'relative',
+                zIndex: 10,
+              }),
             }),
             $('div', {
-              children: router.current?.message,
               className: css({
-                paddingTop: 5,
-                color: theme.fontMinor.string(),
+                width: theme.fib[5],
+                height: theme.fib[10],
+                background: hsla.string(0, 0, 0),
+                borderRadius: 3,
+                position: 'absolute',
+                right: 24,
+                top: -5,
               }),
             }),
           ]),
         }),
-        $('div', {
-          children: router.render(),
-          className: css({
-            background: theme.bgMinor.string(),
-          }),
+      }),
+      $('div', {
+        className: css({
+          width: theme.fib[12],
+          border: theme.border(),
+          background: theme.bg.string(),
+          position: 'relative',
         }),
-      ]),
-    }),
+        children: addkeys([
+          $('div', {
+            className: css({
+              borderBottom: theme.border(),
+              padding: theme.padify(theme.fib[5]),
+            }),
+            children: addkeys([
+              $('div', {
+                children: router.current?.label,
+              }),
+              $('div', {
+                children: router.current?.message,
+                className: css({
+                  paddingTop: theme.fib[2],
+                  color: theme.fontMinor.string(),
+                }),
+              }),
+            ]),
+          }),
+          $('div', {
+            children: router.render(),
+            className: css({
+              background: theme.bgMinor.string(),
+            }),
+          }),
+        ]),
+      }),
+    ]),
   })
 }

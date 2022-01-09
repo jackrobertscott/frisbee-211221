@@ -16,6 +16,20 @@ const _ioAuthPayload = io.object({
 /**
  *
  */
+export const $SecurityStatus = createEndpoint({
+  path: '/SecurityStatus',
+  payload: io.object({
+    email: io.string(),
+  }),
+  result: io.object({
+    status: io.enum(['unknown', 'passwordless', 'good']),
+    email: io.string(),
+    firstName: io.optional(io.string()),
+  }),
+})
+/**
+ *
+ */
 export const $SecurityLoginPassword = createEndpoint({
   path: '/SecurityLoginPassword',
   payload: io.object({

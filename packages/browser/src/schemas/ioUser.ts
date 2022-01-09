@@ -10,7 +10,7 @@ export const ioUser = io.object({
   firstName: io.string(),
   lastName: io.string(),
   gender: io.string(),
-  password: io.string(),
+  password: io.optional(io.string()),
   email: io.string(),
   emailVerified: io.boolean(),
   emailCode: io.string(),

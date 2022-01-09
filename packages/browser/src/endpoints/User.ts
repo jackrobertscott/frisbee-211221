@@ -60,3 +60,18 @@ export const $UserUpdate = createEndpoint({
   }),
   result: ioUser,
 })
+/**
+ *
+ */
+export const $UserCreate = createEndpoint({
+  path: '/UserCreate',
+  payload: io.object({
+    email: io.string().email().trim(),
+    firstName: io.string(),
+    lastName: io.string(),
+    gender: io.string(),
+    password: io.optional(io.string()),
+    termsAccepted: io.boolean(),
+  }),
+  result: ioUser,
+})

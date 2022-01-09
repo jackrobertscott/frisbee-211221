@@ -17,13 +17,13 @@ import {useForm} from '../useForm'
  *
  */
 export const SecurityLogin: FC<{
-  savedEmail?: string
+  email?: string
   savedEmailSet: (email: string) => void
-}> = ({savedEmail, savedEmailSet}) => {
+}> = ({email: _email, savedEmailSet}) => {
   const auth = useAuth()
   const $login = useEndpoint($SecurityLoginPassword)
   const form = useForm({
-    email: savedEmail ?? '',
+    email: _email ?? '',
     password: '',
     userAgent: navigator.userAgent,
   })
@@ -49,6 +49,7 @@ export const SecurityLogin: FC<{
           $(InputString, {
             value: form.data.password,
             valueSet: form.link('password'),
+            autofocus: !!_email,
             type: 'password',
             enter: submit,
           }),
@@ -74,9 +75,18 @@ export const SecurityLogin: FC<{
           }),
           $(Link, {
             label: 'Forgot Password?',
-            click: () => go.to('/forgot-password'),
+            click: () => {
+              let url = '/forgot-password'
+              if (form.data.email)
+                url += `?email=${encodeURIComponent(form.data.email)}`
+              go.to(url)
+            },
           }),
         ]),
+      }),
+      $(Link, {
+        label: 'Try New Email',
+        click: () => go.to('/status'),
       }),
     ]),
   })

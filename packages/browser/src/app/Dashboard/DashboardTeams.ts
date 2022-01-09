@@ -39,37 +39,45 @@ export const DashboardTeams: FC = () => {
     children: addkeys([
       $(Form, {
         background: theme.bgAdmin.lighten(5),
-        children:
-          teams === undefined
-            ? $(Spinner)
-            : $(Table, {
-                head: {
-                  name: {label: 'Name', grow: 1},
-                  createdOn: {label: 'Created', grow: 1},
-                  updatedOn: {label: 'Updated', grow: 1},
-                },
-                body: teams.map((team) => ({
-                  key: team.id,
-                  click: () => currentIdSet(team.id),
-                  data: {
-                    name: {
-                      value: team.name,
-                      color: team.color,
+        children: addkeys([
+          $(FormBadge, {
+            label: 'Create Team',
+            background: theme.bgAdmin,
+          }),
+          $(Fragment, {
+            children:
+              teams === undefined
+                ? $(Spinner)
+                : $(Table, {
+                    head: {
+                      name: {label: 'Name', grow: 1},
+                      createdOn: {label: 'Created', grow: 1},
+                      updatedOn: {label: 'Updated', grow: 1},
                     },
-                    createdOn: {
-                      value: dayjs(team.createdOn).format('DD/MM/YYYY'),
-                    },
-                    updatedOn: {
-                      value: dayjs(team.updatedOn).format('DD/MM/YYYY'),
-                    },
-                  },
-                })),
-              }),
+                    body: teams.map((team) => ({
+                      key: team.id,
+                      click: () => currentIdSet(team.id),
+                      data: {
+                        name: {
+                          value: team.name,
+                          color: team.color,
+                        },
+                        createdOn: {
+                          value: dayjs(team.createdOn).format('DD/MM/YYYY'),
+                        },
+                        updatedOn: {
+                          value: dayjs(team.updatedOn).format('DD/MM/YYYY'),
+                        },
+                      },
+                    })),
+                  }),
+          }),
+        ]),
       }),
       $(Fragment, {
         children:
           current &&
-          $(DashboardTeamsView, {
+          $(_DashboardTeamsView, {
             team: current,
             teamSet: (i) =>
               teamsSet((x) => x?.map((z) => (z.id === i.id ? i : z))),
@@ -82,7 +90,7 @@ export const DashboardTeams: FC = () => {
 /**
  *
  */
-export const DashboardTeamsView: FC<{
+export const _DashboardTeamsView: FC<{
   team: TTeam
   teamSet: (team: TTeam) => void
   close: () => void
