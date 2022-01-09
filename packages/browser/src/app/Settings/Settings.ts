@@ -53,11 +53,11 @@ export const Settings: FC<{close: () => void}> = ({close}) => {
         children: addkeys([
           $('div', {
             className: css({
-              minWidth: 233,
-              maxWidth: 233,
+              minWidth: theme.fib[11],
+              maxWidth: theme.fib[11],
               borderRight: theme.border(),
               background: theme.bgMinor.string(),
-              paddingBottom: 89,
+              paddingBottom: theme.fib[9],
               '& > *': {
                 borderBottom: theme.border(),
               },

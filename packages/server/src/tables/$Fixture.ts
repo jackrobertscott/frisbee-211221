@@ -1,13 +1,13 @@
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-import {ioRound} from '../schemas/ioFixture'
+import {ioFixture} from '../schemas/ioFixture'
 /**
  *
  */
 export const $Fixture = db.table({
   key: 'fixture',
   index: ['id'],
-  schema: ioRound,
+  schema: ioFixture,
   defaults: {
     id: () => random.generateId(),
     createdOn: () => new Date().toISOString(),

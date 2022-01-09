@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {$TeamListOfSeason} from '../endpoints/Team'
-import {TRound} from '../schemas/ioFixture'
+import {TFixture} from '../schemas/ioFixture'
 import {TTeam} from '../schemas/ioTeam'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -21,29 +21,30 @@ import {TReport} from '../schemas/ioReport'
 import {Table} from './Table'
 import {FormBadge} from './Form/FormBadge'
 import {hsla} from '../utils/hsla'
+import {FormLabel} from './Form/FormLabel'
 /**
  *
  */
-interface TRoundForm {
+interface TFixtureForm {
   title: string
   date: string
-  games: TRound['games']
+  games: TFixture['games']
 }
 /**
  *
  */
-export const RoundTallyForm: FC<{
-  fixture: TRound
+export const FixtureTallyForm: FC<{
+  fixture: TFixture
   loading?: boolean
   close: () => void
-  done: (fixture: TRoundForm) => void
+  done: (fixture: TFixtureForm) => void
 }> = ({fixture, loading, close, done}) => {
   const auth = useAuth()
   const $teamList = useEndpoint($TeamListOfSeason)
   const $reportList = useEndpoint($ReportListOfRound)
   const [teams, teamsSet] = useState<TTeam[]>()
   const [reports, reportsSet] = useState<TReport[]>()
-  const form = useForm<TRoundForm>(fixture)
+  const form = useForm<TFixtureForm>(fixture)
   useEffect(() => {
     if (auth.current?.season)
       $teamList.fetch({seasonId: auth.current.season.id}).then((_teams) => {
@@ -54,7 +55,7 @@ export const RoundTallyForm: FC<{
     $reportList.fetch({roundId: fixture.id}).then(reportsSet)
   }, [fixture.id])
   return $(Modal, {
-    width: 987 + 13 * 2,
+    width: theme.fib[14] + theme.fib[12] + theme.fib[6] * 2,
     children: addkeys([
       $(TopBar, {
         title: fixture.title,
@@ -93,7 +94,8 @@ export const RoundTallyForm: FC<{
                         key: game.id,
                         children: addkeys(
                           [
-                            $(FormBadge, {
+                            $(FormLabel, {
+                              grow: true,
                               label: team1?.name ?? '...',
                               background: team1?.color
                                 ? hsla.digest(team1?.color)
@@ -104,7 +106,8 @@ export const RoundTallyForm: FC<{
                               valueSet: (team1Score) => gamePatch({team1Score}),
                               placeholder: `Score...`,
                             }),
-                            $(FormBadge, {
+                            $(FormLabel, {
+                              grow: true,
                               label: team2?.name ?? '...',
                               background: team2?.color
                                 ? hsla.digest(team2?.color)
@@ -144,7 +147,8 @@ export const RoundTallyForm: FC<{
           reports &&
             $('div', {
               className: css({
-                width: 377,
+                flexGrow: 1,
+                minWidth: theme.fib[12],
                 borderLeft: theme.border(),
                 background: theme.bgMinor.string(),
                 padding: theme.fib[5],

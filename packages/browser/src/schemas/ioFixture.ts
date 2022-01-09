@@ -2,7 +2,7 @@ import {io, TioValue} from 'torva'
 /**
  *
  */
-export const ioRoundGame = io.object({
+export const ioFixtureGame = io.object({
   id: io.string(),
   team1Id: io.string(),
   team2Id: io.string(),
@@ -14,7 +14,7 @@ export const ioRoundGame = io.object({
 /**
  *
  */
-export const ioRound = io.object({
+export const ioFixture = io.object({
   id: io.string(),
   createdOn: io.date(),
   updatedOn: io.date(),
@@ -22,9 +22,9 @@ export const ioRound = io.object({
   userId: io.string(),
   title: io.string(),
   date: io.date(),
-  games: io.array(ioRoundGame),
+  games: io.array(ioFixtureGame),
 })
 /**
  *
  */
-export type TRound = TioValue<typeof ioRound>
+export type TFixture = TioValue<typeof ioFixture>

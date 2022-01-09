@@ -1,7 +1,7 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {$TeamListOfSeason} from '../endpoints/Team'
-import {TRound} from '../schemas/ioFixture'
+import {TFixture} from '../schemas/ioFixture'
 import {TTeam} from '../schemas/ioTeam'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -24,24 +24,24 @@ import {useForm} from './useForm'
 /**
  *
  */
-interface TRoundForm {
+interface TFixtureForm {
   title: string
   date?: string
-  games: Partial<TRound['games'][number]>[]
+  games: Partial<TFixture['games'][number]>[]
 }
 /**
  *
  */
-export const RoundSetupForm: FC<{
-  fixture?: TRound
+export const FixtureSetupForm: FC<{
+  fixture?: TFixture
   loading?: boolean
   close: () => void
-  done: (fixture: TRoundForm) => void
+  done: (fixture: TFixtureForm) => void
 }> = ({fixture: _round, loading, close, done}) => {
   const auth = useAuth()
   const $teamList = useEndpoint($TeamListOfSeason)
   const [teams, teamsSet] = useState<TTeam[]>()
-  const form = useForm<TRoundForm>({
+  const form = useForm<TFixtureForm>({
     title: '',
     date: undefined,
     games: [],
@@ -67,7 +67,7 @@ export const RoundSetupForm: FC<{
       })
   }, [])
   return $(Modal, {
-    width: 987 + 13 * 2,
+    width: theme.fib[14],
     children: addkeys([
       $(TopBar, {
         title: 'New Fixture',
@@ -115,7 +115,7 @@ export const RoundSetupForm: FC<{
                         children: addkeys(
                           [
                             $(InputSelect, {
-                              minWidth: 89,
+                              minWidth: theme.fib[9],
                               value: game.team1Id,
                               valueSet: (team1Id) => gamePatch({team1Id}),
                               options: teams.map((i) => ({
@@ -130,7 +130,7 @@ export const RoundSetupForm: FC<{
                               })),
                             }),
                             $(InputSelect, {
-                              minWidth: 89,
+                              minWidth: theme.fib[9],
                               value: game.team2Id,
                               valueSet: (team2Id) => gamePatch({team2Id}),
                               options: teams.map((i) => ({

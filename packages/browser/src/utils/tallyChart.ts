@@ -1,4 +1,4 @@
-import {TRound} from '../schemas/ioFixture'
+import {TFixture} from '../schemas/ioFixture'
 import {isNumber} from './coerce'
 /**
  *
@@ -29,7 +29,7 @@ const emptyChart = (teamId: string): TChart => ({
 /**
  *
  */
-export const tallyChart = (rounds: TRound[]) => {
+export const tallyChart = (rounds: TFixture[]) => {
   const tally: Record<string, TChart | undefined> = {}
   for (const fixture of rounds) {
     for (const game of fixture.games) {

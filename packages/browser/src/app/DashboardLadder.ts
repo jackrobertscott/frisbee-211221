@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {$RoundListOfSeason, $RoundUpdate} from '../endpoints/Fixture'
 import {$TeamListOfSeason} from '../endpoints/Team'
-import {TRound} from '../schemas/ioFixture'
+import {TFixture} from '../schemas/ioFixture'
 import {TTeam} from '../schemas/ioTeam'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -13,7 +13,7 @@ import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
 import {FormBadge} from './Form/FormBadge'
 import {Icon} from './Icon'
-import {RoundTallyForm} from './RoundTallyForm'
+import {FixtureTallyForm} from './FixtureTallyForm'
 import {Spinner} from './Spinner'
 import {Table} from './Table'
 import {useEndpoint} from './useEndpoint'
@@ -26,8 +26,8 @@ export const DashboardLadder: FC = () => {
   const $teamList = useEndpoint($TeamListOfSeason)
   const $roundList = useEndpoint($RoundListOfSeason)
   const [teams, teamsSet] = useState<TTeam[]>([])
-  const [rounds, roundsSet] = useState<TRound[]>()
-  const [editing, editingSet] = useState<TRound>()
+  const [rounds, roundsSet] = useState<TFixture[]>()
+  const [editing, editingSet] = useState<TFixture>()
   const [openrnds, openrndsSet] = useState<string[]>([])
   const tally = tallyChart(rounds ?? [])
   const reload = () => {
@@ -116,7 +116,7 @@ export const DashboardLadder: FC = () => {
       $(Fragment, {
         children:
           editing &&
-          $(RoundTallyForm, {
+          $(FixtureTallyForm, {
             fixture: editing,
             loading: $roundUpdate.loading,
             close: () => editingSet(undefined),
@@ -139,12 +139,12 @@ export const DashboardLadder: FC = () => {
  *
  */
 const _LadderRound: FC<{
-  fixture: TRound
+  fixture: TFixture
   teams: TTeam[]
   open: boolean
   isAdmin: boolean
   toggle: () => void
-  editingSet: (fixture: TRound) => void
+  editingSet: (fixture: TFixture) => void
 }> = ({fixture, teams, open, isAdmin, toggle, editingSet}) => {
   return $('div', {
     children: addkeys([

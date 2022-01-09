@@ -43,7 +43,7 @@ export const Security: FC = () => {
   return $(Center, {
     children: $('div', {
       className: css({
-        width: 377,
+        width: theme.fib[12],
         border: theme.border(),
         background: theme.bg.string(),
       }),

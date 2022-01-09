@@ -1,5 +1,6 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC, ReactNode} from 'react'
+import {theme} from '../theme'
 /**
  *
  */
@@ -28,7 +29,7 @@ export const Center: FC<{
         flexDirection: 'column',
         alignItems: 'center',
         overflowY: 'auto',
-        padding: 21,
+        padding: theme.fib[6],
       }),
     }),
   })

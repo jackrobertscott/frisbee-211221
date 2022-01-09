@@ -15,7 +15,7 @@ export const Modal: FC<{
   children: ReactNode
   width?: number
   height?: number
-}> = ({close, children, width = 377 + 89, height}) => {
+}> = ({close, children, width = theme.fib[12] + theme.fib[9], height}) => {
   const depth = useDepth()
   const unfocused = useRef<boolean>(!document.querySelector(':focus-within'))
   const handleClose = (event: MouseEvent) => {

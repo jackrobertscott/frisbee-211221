@@ -5,7 +5,7 @@ import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
 import {requireUserAdmin} from './requireUserAdmin'
 import {$Season} from '../tables/$Season'
-import {ioRoundGame} from '../schemas/ioFixture'
+import {ioFixtureGame} from '../schemas/ioFixture'
 /**
  *
  */
@@ -14,7 +14,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/RoundListOfSeason',
+    path: '/FixtureListOfSeason',
     payload: io.object({
       seasonId: io.string(),
       limit: io.optional(io.number()),
@@ -30,12 +30,12 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/RoundCreate',
+    path: '/FixtureCreate',
     payload: io.object({
       seasonId: io.string(),
       title: io.string(),
       date: io.date(),
-      games: io.array(ioRoundGame),
+      games: io.array(ioFixtureGame),
     }),
     handler: (body) => async (req) => {
       const [user] = await requireUserAdmin(req)
@@ -50,12 +50,12 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/RoundUpdate',
+    path: '/FixtureUpdate',
     payload: io.object({
       roundId: io.string(),
       title: io.string(),
       date: io.date(),
-      games: io.array(ioRoundGame),
+      games: io.array(ioFixtureGame),
     }),
     handler:
       ({roundId, ...body}) =>
@@ -71,7 +71,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/RoundDelete',
+    path: '/FixtureDelete',
     payload: io.object({
       roundId: io.string(),
     }),

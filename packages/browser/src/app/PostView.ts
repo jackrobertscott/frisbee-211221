@@ -56,7 +56,7 @@ export const PostView: FC<{
     children: addkeys([
       $(Modal, {
         close,
-        width: 610 + 377 + 26,
+        width: theme.fib[14],
         children: addkeys([
           $(TopBar, {
             title: 'Post',
@@ -88,14 +88,14 @@ export const PostView: FC<{
             children: addkeys([
               $('div', {
                 className: css({
-                  padding: 21,
+                  padding: theme.fib[6],
                   flexGrow: 1,
                 }),
                 children: addkeys([
                   $('div', {
                     children: post.title,
                     className: css({
-                      fontSize: 21,
+                      fontSize: theme.fib[6],
                       marginBottom: 5,
                     }),
                   }),
@@ -116,8 +116,8 @@ export const PostView: FC<{
               }),
               $('div', {
                 className: css({
-                  width: 377,
                   flexShrink: 0,
+                  width: theme.fib[12],
                   borderLeft: theme.border(),
                   background: theme.bgMinor.string(),
                   padding: theme.fib[5],

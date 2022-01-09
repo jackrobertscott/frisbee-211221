@@ -7,7 +7,7 @@ import {
   $RoundUpdate,
 } from '../endpoints/Fixture'
 import {$TeamListOfSeason} from '../endpoints/Team'
-import {TRound} from '../schemas/ioFixture'
+import {TFixture} from '../schemas/ioFixture'
 import {TTeam} from '../schemas/ioTeam'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -16,7 +16,7 @@ import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
 import {FormBadge} from './Form/FormBadge'
 import {Icon} from './Icon'
-import {RoundSetupForm} from './RoundSetupForm'
+import {FixtureSetupForm} from './FixtureSetupForm'
 import {Spinner} from './Spinner'
 import {Table} from './Table'
 import {useEndpoint} from './useEndpoint'
@@ -31,9 +31,9 @@ export const DashboardFixtures: FC = () => {
   const $teamList = useEndpoint($TeamListOfSeason)
   const $roundList = useEndpoint($RoundListOfSeason)
   const [teams, teamsSet] = useState<TTeam[]>()
-  const [rounds, roundsSet] = useState<TRound[]>()
+  const [rounds, roundsSet] = useState<TFixture[]>()
   const [creating, creatingSet] = useState(false)
-  const [editing, editingSet] = useState<TRound>()
+  const [editing, editingSet] = useState<TFixture>()
   const [openrnds, openrndsSet] = useLocalState<string[]>('frisbee.rounds', [])
   const reload = () => {
     if (!auth.current?.season) return
@@ -92,7 +92,7 @@ export const DashboardFixtures: FC = () => {
       $(Fragment, {
         children:
           creating &&
-          $(RoundSetupForm, {
+          $(FixtureSetupForm, {
             loading: $roundCreate.loading,
             close: () => creatingSet(false),
             done: (data) =>
@@ -101,7 +101,7 @@ export const DashboardFixtures: FC = () => {
                 .fetch({
                   ...data,
                   date: data.date!,
-                  games: data.games as TRound['games'],
+                  games: data.games as TFixture['games'],
                   seasonId: auth.current.season.id,
                 })
                 .then(() => {
@@ -113,7 +113,7 @@ export const DashboardFixtures: FC = () => {
       $(Fragment, {
         children:
           editing &&
-          $(RoundSetupForm, {
+          $(FixtureSetupForm, {
             fixture: editing,
             loading: $roundUpdate.loading,
             close: () => editingSet(undefined),
@@ -122,7 +122,7 @@ export const DashboardFixtures: FC = () => {
                 .fetch({
                   ...data,
                   date: data.date!,
-                  games: data.games as TRound['games'],
+                  games: data.games as TFixture['games'],
                   roundId: editing.id,
                 })
                 .then(() => {
@@ -138,12 +138,12 @@ export const DashboardFixtures: FC = () => {
  *
  */
 const _DashboardFixturesCreate: FC<{
-  fixture: TRound
+  fixture: TFixture
   teams: TTeam[]
   open: boolean
   isAdmin: boolean
   toggle: () => void
-  editingSet: (fixture: TRound) => void
+  editingSet: (fixture: TFixture) => void
 }> = ({fixture, teams, open, isAdmin, toggle, editingSet}) => {
   return $('div', {
     children: addkeys([

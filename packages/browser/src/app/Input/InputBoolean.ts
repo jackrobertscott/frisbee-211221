@@ -28,8 +28,8 @@ export const InputBoolean: FC<{
     }),
     children: $('div', {
       className: css({
-        width: 21,
-        height: 21,
+        width: theme.fib[6],
+        height: theme.fib[6],
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',

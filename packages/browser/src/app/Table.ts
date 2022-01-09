@@ -41,7 +41,7 @@ export const Table: TFCTable = ({head: header, body}) => {
             key,
             children: label,
             className: css({
-              minWidth: 55 * grow,
+              minWidth: theme.fib[8] * grow,
               flexGrow: grow,
               flexShrink: 0,
               flexBasis: 0,
@@ -67,7 +67,7 @@ export const Table: TFCTable = ({head: header, body}) => {
                 key,
                 children: data?.value !== undefined ? data?.value : '...',
                 className: css({
-                  minWidth: 55 * grow,
+                  minWidth: theme.fib[8] * grow,
                   flexGrow: grow,
                   flexShrink: 0,
                   flexBasis: 0,

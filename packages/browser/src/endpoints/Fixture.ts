@@ -1,48 +1,48 @@
 import {io} from 'torva'
-import {ioRound, ioRoundGame} from '../schemas/ioFixture'
+import {ioFixture, ioFixtureGame} from '../schemas/ioFixture'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
  */
 export const $RoundListOfSeason = createEndpoint({
-  path: '/RoundListOfSeason',
+  path: '/FixtureListOfSeason',
   payload: io.object({
     seasonId: io.string(),
     limit: io.optional(io.number()),
   }),
-  result: io.array(ioRound),
+  result: io.array(ioFixture),
 })
 /**
  *
  */
 export const $RoundCreate = createEndpoint({
-  path: '/RoundCreate',
+  path: '/FixtureCreate',
   payload: io.object({
     seasonId: io.string(),
     title: io.string(),
     date: io.date(),
-    games: io.array(ioRoundGame),
+    games: io.array(ioFixtureGame),
   }),
-  result: ioRound,
+  result: ioFixture,
 })
 /**
  *
  */
 export const $RoundUpdate = createEndpoint({
-  path: '/RoundUpdate',
+  path: '/FixtureUpdate',
   payload: io.object({
     roundId: io.string(),
     title: io.string(),
     date: io.date(),
-    games: io.array(ioRoundGame),
+    games: io.array(ioFixtureGame),
   }),
-  result: ioRound,
+  result: ioFixture,
 })
 /**
  *
  */
 export const $RoundDelete = createEndpoint({
-  path: '/RoundDelete',
+  path: '/FixtureDelete',
   payload: io.object({
     roundId: io.string(),
   }),

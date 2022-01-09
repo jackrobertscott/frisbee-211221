@@ -109,13 +109,13 @@ const _NewsPost: FC<{
               $('div', {
                 children: post.title,
                 className: css({
-                  fontSize: 21,
+                  fontSize: theme.fib[6],
                 }),
               }),
               $('div', {
                 children: post.content
-                  .slice(0, 233)
-                  .concat(post.content.length > 233 ? '...' : ''),
+                  .slice(0, 377)
+                  .concat(post.content.length > 377 ? '...' : ''),
                 className: css({
                   color: theme.fontMinor.string(),
                   whiteSpace: 'pre-line',

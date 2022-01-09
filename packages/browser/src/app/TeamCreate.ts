@@ -30,7 +30,7 @@ export const TeamCreate: FC<{
     color: SIMPLE_COLORS[0].string(),
   })
   return $(Modal, {
-    width: 377,
+    width: theme.fib[12],
     children: addkeys([
       $(TopBar, {
         title: 'New Team',

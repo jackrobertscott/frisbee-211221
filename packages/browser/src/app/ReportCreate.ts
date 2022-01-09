@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {$ReportCreate, $ReportGetRound} from '../endpoints/Report'
 import {$RoundListOfSeason} from '../endpoints/Fixture'
-import {TRound} from '../schemas/ioFixture'
+import {TFixture} from '../schemas/ioFixture'
 import {TTeam} from '../schemas/ioTeam'
 import {TUser} from '../schemas/ioUser'
 import {theme} from '../theme'
@@ -33,7 +33,7 @@ export const ReportCreate: FC<{
   done: () => void
 }> = ({close, done}) => {
   const auth = useAuth()
-  const [rounds, roundsSet] = useState<TRound[]>()
+  const [rounds, roundsSet] = useState<TFixture[]>()
   const [against, againstSet] = useState<{team: TTeam; users: TUser[]}>()
   const $roundList = useEndpoint($RoundListOfSeason)
   const $roundAgainst = useEndpoint($ReportGetRound)

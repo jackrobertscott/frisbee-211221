@@ -47,7 +47,7 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
           pointerEvents: 'none',
           transition: '150ms',
           '& > *:not(:last-child)': {
-            marginBottom: 21,
+            marginBottom: theme.fib[6],
           },
         }),
         children: toasts.map((toast) => {

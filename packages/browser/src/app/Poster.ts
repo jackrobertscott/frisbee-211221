@@ -1,5 +1,6 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
+import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 /**
  *
@@ -20,7 +21,7 @@ export const Poster: FC<{
       $('div', {
         children: title,
         className: css({
-          fontSize: 21,
+          fontSize: theme.fib[6],
         }),
       }),
       $('div', {
@@ -28,7 +29,7 @@ export const Poster: FC<{
         className: css({
           opacity: 0.5,
           marginTop: 5,
-          maxWidth: 233 + 55,
+          maxWidth: theme.fib[11] + theme.fib[8],
         }),
       }),
     ]),

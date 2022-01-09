@@ -57,8 +57,8 @@ export const Dashboard: FC = () => {
       $(Center, {
         children: $('div', {
           className: css({
-            width: 987,
             maxWidth: '100%',
+            width: theme.fib[14] + theme.fib[12],
             border: theme.border(),
             background: theme.bg.string(),
           }),
@@ -205,7 +205,7 @@ const _DashboardSeasonBadge: FC = () => {
           click: () => openSet(true),
         }),
         popup: $(Form, {
-          width: 233,
+          width: theme.fib[11],
           children: addkeys([
             $(FormMenu, {
               empty: seasons === undefined ? 'Loading' : 'Empty',

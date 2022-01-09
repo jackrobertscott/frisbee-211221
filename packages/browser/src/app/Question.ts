@@ -37,12 +37,12 @@ export const Question: FC<{
       }),
       $('div', {
         className: css({
-          padding: 13,
           display: 'flex',
           borderTop: theme.border(),
           background: theme.bgMinor.string(),
+          padding: theme.fib[5],
           '& > *:not(:last-child)': {
-            marginRight: 13,
+            marginRight: theme.fib[5],
           },
         }),
         children: options.map(({key, label, click, background}) => {

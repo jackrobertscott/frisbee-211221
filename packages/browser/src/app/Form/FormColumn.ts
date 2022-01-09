@@ -9,9 +9,9 @@ export const FormColumn: FC<{
   maxLength?: number
   maxWidth?: string | number
   grow?: boolean
-}> = ({children, maxLength, maxWidth, grow}) => {
-  const innerChildren = $('div', {
-    children,
+}> = ({children: _children, maxLength, maxWidth, grow}) => {
+  const children = $('div', {
+    children: _children,
     className: css({
       flexShrink: 0,
       display: 'flex',
@@ -27,7 +27,7 @@ export const FormColumn: FC<{
   })
   if (maxLength) {
     return $('div', {
-      children: innerChildren,
+      children,
       className: css({
         overflow: 'hidden',
         border: theme.border(),
@@ -37,5 +37,5 @@ export const FormColumn: FC<{
       }),
     })
   }
-  return innerChildren
+  return children
 }

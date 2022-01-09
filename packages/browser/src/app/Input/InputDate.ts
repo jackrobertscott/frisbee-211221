@@ -78,7 +78,7 @@ const _InputDatePicker: FC<{
   console.log(dateViewing.year().toString())
   const today = dayjs()
   return $(Form, {
-    width: 377,
+    width: theme.fib[12],
     children: addkeys([
       $(FormRow, {
         children: addkeys([
