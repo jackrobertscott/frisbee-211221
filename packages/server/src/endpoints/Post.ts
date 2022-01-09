@@ -1,11 +1,11 @@
 import {RequestHandler} from 'micro'
 import {io} from 'torva'
-import {$Post} from '../tables/Post'
+import {$Post} from '../tables/$Post'
 import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
 import {regex} from '../utils/regex'
 import {requireUserAdmin} from './requireUserAdmin'
-import {$Season} from '../tables/Season'
+import {$Season} from '../tables/$Season'
 /**
  *
  */

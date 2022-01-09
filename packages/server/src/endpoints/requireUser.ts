@@ -1,6 +1,6 @@
 import {IncomingMessage} from 'http'
-import {$Session} from '../tables/Session'
-import {$User} from '../tables/User'
+import {$Session} from '../tables/$Session'
+import {$User} from '../tables/$User'
 import gatekeeper from '../utils/gatekeeper'
 /**
  *

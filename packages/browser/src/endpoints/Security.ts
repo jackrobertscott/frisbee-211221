@@ -1,8 +1,8 @@
 import {io} from 'torva'
-import {ioSeason} from '../schemas/Season'
-import {ioSession} from '../schemas/Session'
-import {ioTeam} from '../schemas/Team'
-import {ioUser} from '../schemas/User'
+import {ioSeason} from '../schemas/ioSeason'
+import {ioSession} from '../schemas/ioSession'
+import {ioTeam} from '../schemas/ioTeam'
+import {ioUser} from '../schemas/ioUser'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *

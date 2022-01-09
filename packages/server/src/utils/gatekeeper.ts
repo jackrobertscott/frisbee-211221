@@ -1,7 +1,7 @@
 import {IncomingMessage} from 'http'
 import {io} from 'torva'
-import {TUser} from '../schemas/User'
-import {$Session} from '../tables/Session'
+import {TUser} from '../schemas/ioUser'
+import {$Session} from '../tables/$Session'
 import jwt from './jwt'
 import {random} from './random'
 /**

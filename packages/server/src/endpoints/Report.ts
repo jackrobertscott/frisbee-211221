@@ -1,14 +1,14 @@
 import {RequestHandler} from 'micro'
 import {io} from 'torva'
-import {$Report} from '../tables/Report'
+import {$Report} from '../tables/$Report'
 import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
 import {requireUserAdmin} from './requireUserAdmin'
-import {$Fixture} from '../tables/Fixture'
+import {$Fixture} from '../tables/$Fixture'
 import {requireTeam} from './requireTeam'
-import {$Team} from '../tables/Team'
-import {$Member} from '../tables/Member'
-import {$User} from '../tables/User'
+import {$Team} from '../tables/$Team'
+import {$Member} from '../tables/$Member'
+import {$User} from '../tables/$User'
 /**
  *
  */

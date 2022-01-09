@@ -1,8 +1,8 @@
 import {RequestHandler} from 'micro'
 import {io} from 'torva'
-import {$Comment} from '../tables/Comment'
-import {$Post} from '../tables/Post'
-import {$User} from '../tables/User'
+import {$Comment} from '../tables/$Comment'
+import {$Post} from '../tables/$Post'
+import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
 /**

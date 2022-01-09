@@ -1,13 +1,13 @@
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-import {ioSession} from '../schemas/Session'
+import {ioPost} from '../schemas/ioPost'
 /**
  *
  */
-export const $Session = db.table({
-  key: 'session',
+export const $Post = db.table({
+  key: 'post',
   index: ['id'],
-  schema: ioSession,
+  schema: ioPost,
   defaults: {
     id: () => random.generateId(),
     createdOn: () => new Date().toISOString(),

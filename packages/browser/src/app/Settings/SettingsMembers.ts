@@ -6,8 +6,8 @@ import {
   $MemberRemove,
   $MemberSetCaptain,
 } from '../../endpoints/Member'
-import {TMember} from '../../schemas/Member'
-import {TUser} from '../../schemas/User'
+import {TMember} from '../../schemas/ioMember'
+import {TUser} from '../../schemas/ioUser'
 import {addkeys} from '../../utils/addkeys'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'

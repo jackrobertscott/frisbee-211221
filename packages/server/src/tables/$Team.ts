@@ -1,13 +1,13 @@
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-import {ioReport} from '../schemas/Report'
+import {ioTeam} from '../schemas/ioTeam'
 /**
  *
  */
-export const $Report = db.table({
-  key: 'report',
+export const $Team = db.table({
+  key: 'team',
   index: ['id'],
-  schema: ioReport,
+  schema: ioTeam,
   defaults: {
     id: () => random.generateId(),
     createdOn: () => new Date().toISOString(),

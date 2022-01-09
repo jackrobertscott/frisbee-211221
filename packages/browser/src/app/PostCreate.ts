@@ -1,6 +1,6 @@
 import {createElement as $, FC} from 'react'
 import {$PostCreate} from '../endpoints/Post'
-import {TPost} from '../schemas/Post'
+import {TPost} from '../schemas/ioPost'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {useAuth} from './Auth/useAuth'

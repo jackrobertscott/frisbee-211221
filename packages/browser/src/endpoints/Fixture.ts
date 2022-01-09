@@ -1,5 +1,5 @@
 import {io} from 'torva'
-import {ioRound, ioRoundGame} from '../schemas/Fixture'
+import {ioRound, ioRoundGame} from '../schemas/ioFixture'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *

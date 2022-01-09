@@ -1,6 +1,6 @@
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-import {ioRequest} from '../schemas/Request'
+import {ioRequest} from '../schemas/ioRequest'
 /**
  *
  */

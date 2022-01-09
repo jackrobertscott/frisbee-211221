@@ -1,13 +1,13 @@
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-import {ioComment} from '../schemas/Comment'
+import {ioUser} from '../schemas/ioUser'
 /**
  *
  */
-export const $Comment = db.table({
-  key: 'comment',
+export const $User = db.table({
+  key: 'user',
   index: ['id'],
-  schema: ioComment,
+  schema: ioUser,
   defaults: {
     id: () => random.generateId(),
     createdOn: () => new Date().toISOString(),

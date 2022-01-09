@@ -1,7 +1,7 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
 import {$SeasonCreate} from '../endpoints/Season'
-import {TSeason} from '../schemas/Season'
+import {TSeason} from '../schemas/ioSeason'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {Form} from './Form/Form'

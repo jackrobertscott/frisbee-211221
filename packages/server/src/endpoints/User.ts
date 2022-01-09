@@ -2,7 +2,7 @@ import {RequestHandler} from 'micro'
 import {io} from 'torva'
 import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
-import {$User} from '../tables/User'
+import {$User} from '../tables/$User'
 import hash from '../utils/hash'
 /**
  *

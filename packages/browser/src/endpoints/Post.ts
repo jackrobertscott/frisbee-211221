@@ -1,5 +1,5 @@
 import {io} from 'torva'
-import {ioPost} from '../schemas/Post'
+import {ioPost} from '../schemas/ioPost'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *

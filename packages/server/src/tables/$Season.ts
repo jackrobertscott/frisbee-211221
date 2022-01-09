@@ -1,6 +1,6 @@
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-import {ioSeason} from '../schemas/Season'
+import {ioSeason} from '../schemas/ioSeason'
 /**
  *
  */

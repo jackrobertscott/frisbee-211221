@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {TPost} from '../schemas/Post'
+import {TPost} from '../schemas/ioPost'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {Modal} from './Modal'
@@ -16,8 +16,8 @@ import {
   $CommentDelete,
   $CommentListOfPost,
 } from '../endpoints/Comment'
-import {TComment} from '../schemas/Comment'
-import {TUser} from '../schemas/User'
+import {TComment} from '../schemas/ioComment'
+import {TUser} from '../schemas/ioUser'
 import {Popup} from './Popup'
 import {FormBadge} from './Form/FormBadge'
 import {FormMenu} from './Form/FormMenu'

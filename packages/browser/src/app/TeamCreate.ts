@@ -1,6 +1,6 @@
 import {createElement as $, FC} from 'react'
 import {$TeamCreate} from '../endpoints/Team'
-import {TTeam} from '../schemas/Team'
+import {TTeam} from '../schemas/ioTeam'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {SIMPLE_COLORS} from '../utils/colors'

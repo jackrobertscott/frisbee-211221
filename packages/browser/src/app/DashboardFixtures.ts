@@ -7,8 +7,8 @@ import {
   $RoundUpdate,
 } from '../endpoints/Fixture'
 import {$TeamListOfSeason} from '../endpoints/Team'
-import {TRound} from '../schemas/Fixture'
-import {TTeam} from '../schemas/Team'
+import {TRound} from '../schemas/ioFixture'
+import {TTeam} from '../schemas/ioTeam'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {fadein} from '../utils/keyframes'

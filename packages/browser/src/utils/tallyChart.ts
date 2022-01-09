@@ -1,4 +1,4 @@
-import {TRound} from '../schemas/Fixture'
+import {TRound} from '../schemas/ioFixture'
 import {isNumber} from './coerce'
 /**
  *

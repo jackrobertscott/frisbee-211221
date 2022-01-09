@@ -1,6 +1,6 @@
-import {TUser} from '../schemas/User'
-import {$Member} from '../tables/Member'
-import {$Team} from '../tables/Team'
+import {TUser} from '../schemas/ioUser'
+import {$Member} from '../tables/$Member'
+import {$Team} from '../tables/$Team'
 /**
  *
  */

@@ -1,11 +1,11 @@
 import {RequestHandler} from 'micro'
 import {io} from 'torva'
-import {$Fixture} from '../tables/Fixture'
+import {$Fixture} from '../tables/$Fixture'
 import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
 import {requireUserAdmin} from './requireUserAdmin'
-import {$Season} from '../tables/Season'
-import {ioRoundGame} from '../schemas/Fixture'
+import {$Season} from '../tables/$Season'
+import {ioRoundGame} from '../schemas/ioFixture'
 /**
  *
  */

@@ -1,6 +1,6 @@
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-import {ioRound} from '../schemas/Fixture'
+import {ioRound} from '../schemas/ioFixture'
 /**
  *
  */
