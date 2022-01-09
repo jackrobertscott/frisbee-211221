@@ -5,22 +5,22 @@ import {
   $RoundCreate,
   $RoundListOfSeason,
   $RoundUpdate,
-} from '../endpoints/Fixture'
-import {$TeamListOfSeason} from '../endpoints/Team'
-import {TFixture} from '../schemas/ioFixture'
-import {TTeam} from '../schemas/ioTeam'
-import {theme} from '../theme'
-import {addkeys} from '../utils/addkeys'
-import {fadein} from '../utils/keyframes'
-import {useAuth} from './Auth/useAuth'
-import {Form} from './Form/Form'
-import {FormBadge} from './Form/FormBadge'
-import {Icon} from './Icon'
-import {FixtureSetupForm} from './FixtureSetupForm'
-import {Spinner} from './Spinner'
-import {Table} from './Table'
-import {useEndpoint} from './useEndpoint'
-import {useLocalState} from './useLocalState'
+} from '../../endpoints/Fixture'
+import {$TeamListOfSeason} from '../../endpoints/Team'
+import {TFixture} from '../../schemas/ioFixture'
+import {TTeam} from '../../schemas/ioTeam'
+import {theme} from '../../theme'
+import {addkeys} from '../../utils/addkeys'
+import {fadein} from '../../utils/keyframes'
+import {useAuth} from '../Auth/useAuth'
+import {Form} from '../Form/Form'
+import {FormBadge} from '../Form/FormBadge'
+import {Icon} from '../Icon'
+import {FixtureSetupForm} from '../FixtureSetupForm'
+import {Spinner} from '../Spinner'
+import {Table} from '../Table'
+import {useEndpoint} from '../useEndpoint'
+import {useLocalState} from '../useLocalState'
 /**
  *
  */
