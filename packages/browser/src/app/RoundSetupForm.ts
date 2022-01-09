@@ -1,7 +1,7 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {$TeamListOfSeason} from '../endpoints/Team'
-import {TRound} from '../schemas/Round'
+import {TRound} from '../schemas/Fixture'
 import {TTeam} from '../schemas/Team'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -34,11 +34,11 @@ interface TRoundForm {
  *
  */
 export const RoundSetupForm: FC<{
-  round?: TRound
+  fixture?: TRound
   loading?: boolean
   close: () => void
-  done: (round: TRoundForm) => void
-}> = ({round: _round, loading, close, done}) => {
+  done: (fixture: TRoundForm) => void
+}> = ({fixture: _round, loading, close, done}) => {
   const auth = useAuth()
   const $teamList = useEndpoint($TeamListOfSeason)
   const [teams, teamsSet] = useState<TTeam[]>()
@@ -71,7 +71,7 @@ export const RoundSetupForm: FC<{
     width: 987 + 13 * 2,
     children: addkeys([
       $(TopBar, {
-        title: 'New Round',
+        title: 'New Fixture',
         children: $(TopBarBadge, {
           icon: 'times',
           click: close,

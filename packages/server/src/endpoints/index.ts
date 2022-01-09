@@ -3,7 +3,7 @@ import Comment from './Comment'
 import Member from './Member'
 import Post from './Post'
 import Report from './Report'
-import Round from './Round'
+import Fixture from './Fixture'
 import Season from './Season'
 import Security from './Security'
 import Team from './Team'
@@ -16,7 +16,7 @@ export default new Map<string, RequestHandler>([
   ...Member.entries(),
   ...Post.entries(),
   ...Report.entries(),
-  ...Round.entries(),
+  ...Fixture.entries(),
   ...Season.entries(),
   ...Security.entries(),
   ...Team.entries(),

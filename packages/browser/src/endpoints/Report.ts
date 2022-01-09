@@ -41,6 +41,7 @@ export const $ReportCreate = createEndpoint({
     mvpMale: io.optional(io.string()),
     mvpFemale: io.optional(io.string()),
     spirit: io.number(),
+    spiritComment: io.string(),
   }),
   result: ioReport,
 })

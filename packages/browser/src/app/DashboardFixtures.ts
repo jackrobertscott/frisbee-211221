@@ -5,9 +5,9 @@ import {
   $RoundCreate,
   $RoundListOfSeason,
   $RoundUpdate,
-} from '../endpoints/Round'
+} from '../endpoints/Fixture'
 import {$TeamListOfSeason} from '../endpoints/Team'
-import {TRound} from '../schemas/Round'
+import {TRound} from '../schemas/Fixture'
 import {TTeam} from '../schemas/Team'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -25,7 +25,7 @@ import {useLocalState} from './useLocalState'
 /**
  *
  */
-export const DashboardSchedule: FC = () => {
+export const DashboardFixtures: FC = () => {
   const auth = useAuth()
   const $roundCreate = useEndpoint($RoundCreate)
   const $roundUpdate = useEndpoint($RoundUpdate)
@@ -49,7 +49,7 @@ export const DashboardSchedule: FC = () => {
         children: addkeys([
           auth.isAdmin() &&
             $(FormButton, {
-              label: 'Add Round',
+              label: 'Add Fixture',
               color: hsla.digest(theme.bgAdminColor),
               click: () => creatingSet(true),
             }),
@@ -63,19 +63,19 @@ export const DashboardSchedule: FC = () => {
                   },
                 }),
                 children: rounds.length
-                  ? rounds.map((round) => {
-                      return $(_ScheduleRound, {
-                        key: round.id,
-                        round,
+                  ? rounds.map((fixture) => {
+                      return $(_DashboardFixturesCreate, {
+                        key: fixture.id,
+                        fixture,
                         teams,
                         isAdmin: auth.isAdmin(),
-                        open: openrnds.includes(round.id),
+                        open: openrnds.includes(fixture.id),
                         editingSet,
                         toggle: () =>
                           openrndsSet((i) => {
-                            return i.includes(round.id)
-                              ? i.filter((x) => x !== round.id)
-                              : i.concat(round.id)
+                            return i.includes(fixture.id)
+                              ? i.filter((x) => x !== fixture.id)
+                              : i.concat(fixture.id)
                           }),
                       })
                     })
@@ -115,7 +115,7 @@ export const DashboardSchedule: FC = () => {
         children:
           editing &&
           $(RoundSetupForm, {
-            round: editing,
+            fixture: editing,
             loading: $roundUpdate.loading,
             close: () => editingSet(undefined),
             done: (data) =>
@@ -138,14 +138,14 @@ export const DashboardSchedule: FC = () => {
 /**
  *
  */
-const _ScheduleRound: FC<{
-  round: TRound
+const _DashboardFixturesCreate: FC<{
+  fixture: TRound
   teams: TTeam[]
   open: boolean
   isAdmin: boolean
   toggle: () => void
-  editingSet: (round: TRound) => void
-}> = ({round, teams, open, isAdmin, toggle, editingSet}) => {
+  editingSet: (fixture: TRound) => void
+}> = ({fixture, teams, open, isAdmin, toggle, editingSet}) => {
   const bghsla = hsla.digest(theme.bgMinorColor)
   return $('div', {
     children: addkeys([
@@ -166,7 +166,7 @@ const _ScheduleRound: FC<{
         }),
         children: addkeys([
           $('div', {
-            children: round.title,
+            children: fixture.title,
           }),
           $('div', {
             className: css({
@@ -178,7 +178,7 @@ const _ScheduleRound: FC<{
             }),
             children: addkeys([
               $('div', {
-                children: dayjs(round.date).format('D MMM YYYY'),
+                children: dayjs(fixture.date).format('D MMM YYYY'),
               }),
               $(Icon, {
                 icon: open ? 'angle-up' : 'angle-down',
@@ -206,7 +206,7 @@ const _ScheduleRound: FC<{
                 time: {label: 'Time', grow: 1},
                 place: {label: 'Place', grow: 1},
               },
-              body: round.games.map((game) => {
+              body: fixture.games.map((game) => {
                 const team1 = teams.find((i) => i.id === game.team1Id)
                 const team2 = teams.find((i) => i.id === game.team2Id)
                 return {
@@ -220,9 +220,9 @@ const _ScheduleRound: FC<{
             }),
             isAdmin &&
               $(FormButton, {
-                label: 'Edit Round',
+                label: 'Edit Fixture',
                 color: hsla.digest(theme.bgAdminColor),
-                click: () => editingSet(round),
+                click: () => editingSet(fixture),
               }),
           ]),
         }),

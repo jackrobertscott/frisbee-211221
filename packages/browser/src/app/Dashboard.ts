@@ -11,7 +11,7 @@ import {useAuth} from './Auth/useAuth'
 import {Center} from './Center'
 import {DashboardLadder} from './DashboardLadder'
 import {DashboardNews} from './DashboardNews'
-import {DashboardSchedule} from './DashboardSchedule'
+import {DashboardFixtures} from './DashboardFixtures'
 import {Form} from './Form/Form'
 import {FormButton} from './Form/FormButton'
 import {FormList} from './Form/FormList'
@@ -38,13 +38,13 @@ export const Dashboard: FC = () => {
   const router = useRouter('/news', [
     {
       path: '/news',
-      title: 'Latest News',
+      title: 'News',
       render: () => $(DashboardNews),
     },
     {
-      path: '/schedule',
-      title: 'Game Schedule',
-      render: () => $(DashboardSchedule),
+      path: '/fixtures',
+      title: 'Fixtures',
+      render: () => $(DashboardFixtures),
     },
     {
       path: '/ladder',
@@ -126,9 +126,10 @@ export const Dashboard: FC = () => {
                   onClick: () => reportingSet(true),
                   className: css({
                     userSelect: 'none',
-                    color: theme.minorColor,
                     borderLeft: theme.border,
                     padding: theme.padify(theme.inputPadding),
+                    background: theme.bgHighlightColor,
+                    color: theme.highlightColor,
                     '&:hover': {
                       color: theme.color,
                       background: theme.bgHoverColor,

@@ -2,8 +2,8 @@ import {css} from '@emotion/css'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {$ReportCreate, $ReportGetRound} from '../endpoints/Report'
-import {$RoundListOfSeason} from '../endpoints/Round'
-import {TRound} from '../schemas/Round'
+import {$RoundListOfSeason} from '../endpoints/Fixture'
+import {TRound} from '../schemas/Fixture'
 import {TTeam} from '../schemas/Team'
 import {TUser} from '../schemas/User'
 import {theme} from '../theme'
@@ -23,6 +23,8 @@ import {TopBar} from './TopBar'
 import {TopBarBadge} from './TopBarBadge'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
+import {InputTextarea} from './Input/InputTextarea'
+import {FormHelp} from './Form/FormHelp'
 /**
  *
  */
@@ -44,6 +46,7 @@ export const ReportCreate: FC<{
     mvpMale: undefined as undefined | string,
     mvpFemale: undefined as undefined | string,
     spirit: undefined as undefined | number,
+    spiritComment: '',
   })
   useEffect(() => {
     if (auth.current?.season)
@@ -73,7 +76,7 @@ export const ReportCreate: FC<{
             ? $(FormSpinner)
             : $(FormRow, {
                 children: addkeys([
-                  $(FormLabel, {label: 'Round'}),
+                  $(FormLabel, {label: 'Fixture'}),
                   $(InputSelect, {
                     value: form.data.roundId,
                     valueSet: form.link('roundId'),
@@ -149,7 +152,7 @@ export const ReportCreate: FC<{
                     children: addkeys([
                       $(FormLabel, {label: 'MVP Female'}),
                       $(InputSelect, {
-                        value: form.data.mvpMale,
+                        value: form.data.mvpFemale,
                         valueSet: form.link('mvpFemale'),
                         options: against.users
                           .filter((i) => i.gender === 'female')
@@ -162,44 +165,45 @@ export const ReportCreate: FC<{
                   }),
                 $(FormColumn, {
                   children: addkeys([
-                    $(FormRow, {
-                      children: addkeys([
-                        $(FormLabel, {label: 'Spirit'}),
-                        $(InputSelect, {
-                          value: form.data.spirit?.toString(),
-                          valueSet: (i) => form.patch({spirit: +i}),
-                          options: [
-                            {
-                              key: '0',
-                              label: `0: They were not fair minded, or did not know the rules, or were not willing to communicate.`,
-                            },
-                            {
-                              key: '1',
-                              label: `1: They were somewhat fair minded, or didn't have a good rules knowledge.`,
-                            },
-                            {
-                              key: '2',
-                              label: `2: They were fair minded, and had sufficient rules knowledge.`,
-                            },
-                            {
-                              key: '3',
-                              label: `3: They upheld the truth of a situation even if it didn't benefit them, or displayed advanced rules knowledge.`,
-                            },
-                            {
-                              key: '4',
-                              label: `4: This team was god-tier in their attitudes on and off the field.`,
-                            },
-                          ],
-                        }),
-                      ]),
+                    $(FormLabel, {label: 'Spirit'}),
+                    $(InputSelect, {
+                      value: form.data.spirit?.toString(),
+                      valueSet: (i) => form.patch({spirit: +i}),
+                      options: [
+                        {
+                          key: '0',
+                          label: `0: They were not fair minded, or did not know the rules, or were not willing to communicate.`,
+                        },
+                        {
+                          key: '1',
+                          label: `1: They were somewhat fair minded, or didn't have a good rules knowledge.`,
+                        },
+                        {
+                          key: '2',
+                          label: `2: They were fair minded, and had sufficient rules knowledge.`,
+                        },
+                        {
+                          key: '3',
+                          label: `3: They upheld the truth of a situation even if it didn't benefit them, or displayed advanced rules knowledge.`,
+                        },
+                        {
+                          key: '4',
+                          label: `4: This team was god-tier in their attitudes on and off the field.`,
+                        },
+                      ],
                     }),
-                    $('div', {
-                      className: css({
-                        border: theme.border,
-                        background: theme.bgMinorColor,
-                        color: theme.minorColor,
-                        padding: theme.padify(theme.inputPadding),
+                    typeof form.data.spirit === 'number' &&
+                      $(FormRow, {
+                        children: addkeys([
+                          $(InputTextarea, {
+                            rows: 2,
+                            value: form.data.spiritComment,
+                            valueSet: form.link('spiritComment'),
+                            placeholder: 'Write a comment (optional) ...',
+                          }),
+                        ]),
                       }),
+                    $(FormHelp, {
                       children: addkeys([
                         'See ',
                         $('a', {

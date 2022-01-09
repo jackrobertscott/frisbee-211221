@@ -1,11 +1,11 @@
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-import {ioRound} from '../schemas/Round'
+import {ioRound} from '../schemas/Fixture'
 /**
  *
  */
-export const $Round = db.table({
-  key: 'round',
+export const $Fixture = db.table({
+  key: 'fixture',
   index: ['id'],
   schema: ioRound,
   defaults: {

@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {$TeamListOfSeason} from '../endpoints/Team'
-import {TRound} from '../schemas/Round'
+import {TRound} from '../schemas/Fixture'
 import {TTeam} from '../schemas/Team'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -33,17 +33,17 @@ interface TRoundForm {
  *
  */
 export const RoundTallyForm: FC<{
-  round: TRound
+  fixture: TRound
   loading?: boolean
   close: () => void
-  done: (round: TRoundForm) => void
-}> = ({round, loading, close, done}) => {
+  done: (fixture: TRoundForm) => void
+}> = ({fixture, loading, close, done}) => {
   const auth = useAuth()
   const $teamList = useEndpoint($TeamListOfSeason)
   const $reportList = useEndpoint($ReportListOfRound)
   const [teams, teamsSet] = useState<TTeam[]>()
   const [reports, reportsSet] = useState<TReport[]>()
-  const form = useForm<TRoundForm>(round)
+  const form = useForm<TRoundForm>(fixture)
   useEffect(() => {
     if (auth.current?.season)
       $teamList.fetch({seasonId: auth.current.season.id}).then((_teams) => {
@@ -51,16 +51,16 @@ export const RoundTallyForm: FC<{
       })
   }, [])
   useEffect(() => {
-    $reportList.fetch({roundId: round.id}).then(reportsSet)
-  }, [round.id])
+    $reportList.fetch({roundId: fixture.id}).then(reportsSet)
+  }, [fixture.id])
   return $(Modal, {
     width: 987 + 13 * 2,
     children: addkeys([
       $(TopBar, {
-        title: round.title,
+        title: fixture.title,
         children: addkeys([
           $(TopBarBadge, {
-            label: dayjs(round.date).format('D MMM YYYY'),
+            label: dayjs(fixture.date).format('D MMM YYYY'),
           }),
           $(TopBarBadge, {
             icon: 'times',

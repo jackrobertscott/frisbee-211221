@@ -56,7 +56,7 @@ export const SeasonCreate: FC<{
             ]),
           }),
           $(FormHelp, {
-            value:
+            children:
               'Teams may be registered in the season while this is active.',
           }),
         ]),

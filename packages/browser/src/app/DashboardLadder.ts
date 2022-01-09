@@ -1,9 +1,9 @@
 import {css} from '@emotion/css'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$RoundListOfSeason, $RoundUpdate} from '../endpoints/Round'
+import {$RoundListOfSeason, $RoundUpdate} from '../endpoints/Fixture'
 import {$TeamListOfSeason} from '../endpoints/Team'
-import {TRound} from '../schemas/Round'
+import {TRound} from '../schemas/Fixture'
 import {TTeam} from '../schemas/Team'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -93,19 +93,19 @@ export const DashboardLadder: FC = () => {
                             borderBottom: theme.border,
                           },
                         }),
-                        children: rounds.map((round) => {
+                        children: rounds.map((fixture) => {
                           return $(_LadderRound, {
-                            key: round.id,
-                            round,
+                            key: fixture.id,
+                            fixture,
                             teams,
                             isAdmin: auth.isAdmin(),
-                            open: openrnds.includes(round.id),
+                            open: openrnds.includes(fixture.id),
                             editingSet,
                             toggle: () =>
                               openrndsSet((i) => {
-                                return i.includes(round.id)
-                                  ? i.filter((x) => x !== round.id)
-                                  : i.concat(round.id)
+                                return i.includes(fixture.id)
+                                  ? i.filter((x) => x !== fixture.id)
+                                  : i.concat(fixture.id)
                               }),
                           })
                         }),
@@ -118,7 +118,7 @@ export const DashboardLadder: FC = () => {
         children:
           editing &&
           $(RoundTallyForm, {
-            round: editing,
+            fixture: editing,
             loading: $roundUpdate.loading,
             close: () => editingSet(undefined),
             done: (data) =>
@@ -140,13 +140,13 @@ export const DashboardLadder: FC = () => {
  *
  */
 const _LadderRound: FC<{
-  round: TRound
+  fixture: TRound
   teams: TTeam[]
   open: boolean
   isAdmin: boolean
   toggle: () => void
-  editingSet: (round: TRound) => void
-}> = ({round, teams, open, isAdmin, toggle, editingSet}) => {
+  editingSet: (fixture: TRound) => void
+}> = ({fixture, teams, open, isAdmin, toggle, editingSet}) => {
   const bghsla = hsla.digest(theme.bgMinorColor)
   return $('div', {
     children: addkeys([
@@ -167,7 +167,7 @@ const _LadderRound: FC<{
         }),
         children: addkeys([
           $('div', {
-            children: round.title,
+            children: fixture.title,
           }),
           $('div', {
             className: css({
@@ -179,7 +179,7 @@ const _LadderRound: FC<{
             }),
             children: addkeys([
               $('div', {
-                children: dayjs(round.date).format('D MMM YYYY'),
+                children: dayjs(fixture.date).format('D MMM YYYY'),
               }),
               $(Icon, {
                 icon: open ? 'angle-up' : 'angle-down',
@@ -207,7 +207,7 @@ const _LadderRound: FC<{
                 team2: {label: 'Team 2', grow: 2},
                 team2Score: {label: 'Score', grow: 1},
               },
-              body: round.games.map((game) => {
+              body: fixture.games.map((game) => {
                 const team1 = teams.find((i) => i.id === game.team1Id)
                 const team2 = teams.find((i) => i.id === game.team2Id)
                 return {
@@ -221,9 +221,9 @@ const _LadderRound: FC<{
             }),
             isAdmin &&
               $(FormButton, {
-                label: 'Edit Round Results',
+                label: 'Edit Fixture Results',
                 color: hsla.digest(theme.bgAdminColor),
-                click: () => editingSet(round),
+                click: () => editingSet(fixture),
               }),
           ]),
         }),

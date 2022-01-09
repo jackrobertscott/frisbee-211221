@@ -4,7 +4,7 @@ import {$Report} from '../tables/Report'
 import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
 import {requireUserAdmin} from './requireUserAdmin'
-import {$Round} from '../tables/Round'
+import {$Fixture} from '../tables/Fixture'
 import {requireTeam} from './requireTeam'
 import {$Team} from '../tables/Team'
 import {$Member} from '../tables/Member'
@@ -43,9 +43,9 @@ export default new Map<string, RequestHandler>([
       async (req) => {
         const [user] = await requireUser(req)
         const [team] = await requireTeam(user, teamId)
-        const round = await $Round.getOne({id: roundId})
+        const fixture = await $Fixture.getOne({id: roundId})
         let teamAgainstId: string | undefined
-        for (const game of round.games) {
+        for (const game of fixture.games) {
           if (game.team1Id === team.id) {
             teamAgainstId = game.team2Id
             break
@@ -57,7 +57,7 @@ export default new Map<string, RequestHandler>([
         }
         if (!teamAgainstId) {
           const message =
-            'Failed to find the opposition team. Your team is may not be playing in this round.'
+            'Failed to find the opposition team. Your team is may not be playing in this fixture.'
           throw new Error(message)
         }
         const teamAgainst = await $Team.getOne({id: teamAgainstId})
@@ -87,13 +87,14 @@ export default new Map<string, RequestHandler>([
       mvpMale: io.optional(io.string()),
       mvpFemale: io.optional(io.string()),
       spirit: io.number(),
+      spiritComment: io.string().emptyok(),
     }),
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)
       const [team] = await requireTeam(user, body.teamId)
-      const round = await $Round.getOne({id: body.roundId})
+      const fixture = await $Fixture.getOne({id: body.roundId})
       let teamAgainstId: string | undefined
-      for (const game of round.games) {
+      for (const game of fixture.games) {
         if (game.team1Id === team.id) {
           teamAgainstId = game.team2Id
           break
@@ -105,7 +106,7 @@ export default new Map<string, RequestHandler>([
       }
       if (!teamAgainstId) {
         const message =
-          'Failed to find the opposition team. Your team is may not be playing in this round.'
+          'Failed to find the opposition team. Your team is may not be playing in this fixture.'
         throw new Error(message)
       }
       const teamAgainst = await $Team.getOne({id: teamAgainstId})

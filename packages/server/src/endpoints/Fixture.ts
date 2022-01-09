@@ -1,11 +1,11 @@
 import {RequestHandler} from 'micro'
 import {io} from 'torva'
-import {$Round} from '../tables/Round'
+import {$Fixture} from '../tables/Fixture'
 import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
 import {requireUserAdmin} from './requireUserAdmin'
 import {$Season} from '../tables/Season'
-import {ioRoundGame} from '../schemas/Round'
+import {ioRoundGame} from '../schemas/Fixture'
 /**
  *
  */
@@ -23,7 +23,7 @@ export default new Map<string, RequestHandler>([
       ({seasonId, limit}) =>
       async (req) => {
         await requireUser(req)
-        return $Round.getMany({seasonId}, {limit, sort: {createdOn: -1}})
+        return $Fixture.getMany({seasonId}, {limit, sort: {createdOn: -1}})
       },
   }),
   /**
@@ -40,7 +40,7 @@ export default new Map<string, RequestHandler>([
     handler: (body) => async (req) => {
       const [user] = await requireUserAdmin(req)
       await $Season.getOne({id: body.seasonId})
-      return $Round.createOne({
+      return $Fixture.createOne({
         ...body,
         userId: user.id,
       })
@@ -61,7 +61,7 @@ export default new Map<string, RequestHandler>([
       ({roundId, ...body}) =>
       async (req) => {
         await requireUserAdmin(req)
-        return $Round.updateOne(
+        return $Fixture.updateOne(
           {id: roundId},
           {...body, updatedOn: new Date().toISOString()}
         )
@@ -79,7 +79,7 @@ export default new Map<string, RequestHandler>([
       ({roundId}) =>
       async (req) => {
         await requireUserAdmin(req)
-        await $Round.deleteOne({id: roundId})
+        await $Fixture.deleteOne({id: roundId})
       },
   }),
 ])

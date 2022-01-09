@@ -1,4 +1,4 @@
-import {TRound} from '../schemas/Round'
+import {TRound} from '../schemas/Fixture'
 import {isNumber} from './coerce'
 /**
  *
@@ -31,8 +31,8 @@ const emptyChart = (teamId: string): TChart => ({
  */
 export const tallyChart = (rounds: TRound[]) => {
   const tally: Record<string, TChart | undefined> = {}
-  for (const round of rounds) {
-    for (const game of round.games) {
+  for (const fixture of rounds) {
+    for (const game of fixture.games) {
       if (!isNumber(game.team1Score) || !isNumber(game.team2Score)) continue
       const t1Tally = tally[game.team1Id] ?? emptyChart(game.team1Id)
       const t2Tally = tally[game.team2Id] ?? emptyChart(game.team2Id)
