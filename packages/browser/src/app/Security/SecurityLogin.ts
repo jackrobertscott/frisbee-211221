@@ -6,11 +6,11 @@ import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
-import {FormButton} from '../Form/FormButton'
+import {FormBadge} from '../Form/FormBadge'
 import {FormLabel} from '../Form/FormLabel'
-import {FormLink} from '../Form/FormLink'
 import {FormRow} from '../Form/FormRow'
 import {InputString} from '../Input/InputString'
+import {Link} from '../Link'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
 /**
@@ -54,7 +54,7 @@ export const SecurityLogin: FC<{
           }),
         ]),
       }),
-      $(FormButton, {
+      $(FormBadge, {
         disabled: $login.loading,
         label: $login.loading ? 'Loading' : 'Submit',
         click: submit,
@@ -64,15 +64,15 @@ export const SecurityLogin: FC<{
           display: 'flex',
           justifyContent: 'center',
           '& > *:not(:last-child)': {
-            marginRight: theme.formPadding,
+            marginRight: theme.fib[5],
           },
         }),
         children: addkeys([
-          $(FormLink, {
+          $(Link, {
             label: 'Create Account',
             click: () => go.to('/sign-up'),
           }),
-          $(FormLink, {
+          $(Link, {
             label: 'Forgot Password?',
             click: () => go.to('/forgot-password'),
           }),

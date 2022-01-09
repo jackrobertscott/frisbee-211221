@@ -65,8 +65,20 @@ export const Popup: FC<{
   useEffect(() => {
     if (box) {
       const data = contentRef.current?.getBoundingClientRect()
-      if (data && data.bottom > window.innerHeight)
-        adjustSet((i) => ({...i, y: data.bottom - window.innerHeight + 13}))
+      if (data) {
+        if (data.bottom > window.innerHeight)
+          adjustSet((i) => ({
+            ...i,
+            y: data.bottom - window.innerHeight + theme.fib[5],
+          }))
+        if (data.right > window.innerWidth) {
+          console.log(data.right, window.innerWidth)
+          adjustSet((i) => ({
+            ...i,
+            x: data.right - window.innerWidth + theme.fib[5],
+          }))
+        }
+      }
     } else {
       if (adjust.y || adjust.x) adjustSet({x: 0, y: 0})
     }
@@ -90,8 +102,8 @@ export const Popup: FC<{
                 pointerEvents: 'none',
                 position: 'absolute',
                 top: box.top - adjust.y,
-                right: box.right,
-                left: box.left,
+                right: box.right - adjust.x,
+                left: box.left - adjust.x,
                 zIndex: 100,
               }),
               children: $('div', {
@@ -104,6 +116,7 @@ export const Popup: FC<{
                   $('div', {
                     className: css({
                       position: 'absolute',
+                      display: adjust.x || adjust.y ? 'none' : undefined,
                       top: posValue({below: '100%'}),
                       bottom: posValue({above: '100%'}),
                       left: alignValue({start: offset.x + 8, center: '50%'}),
@@ -111,7 +124,7 @@ export const Popup: FC<{
                       transform: `${
                         alignValue({center: 'translateX(-50%)'}) ?? ''
                       } rotate(45deg)`.trim(),
-                      background: theme.borderColor,
+                      background: theme.borderColor.string(),
                       marginTop: posValue({below: offset.y}),
                       marginBottom: posValue({above: offset.y}),
                       height: 13,
@@ -129,8 +142,8 @@ export const Popup: FC<{
                       transform: alignValue({center: 'translateX(-50%)'}),
                       marginTop: posValue({below: offset.y + 5}),
                       marginBottom: posValue({above: offset.y + 5}),
-                      border: theme.border,
-                      background: theme.bgColor,
+                      background: theme.bg.string(),
+                      border: theme.border(),
                       boxShadow: [
                         `0 0 10px ${hsla.string(0, 0, 0, 0.1)}`,
                         `0 0 50px ${hsla.string(0, 0, 0, 0.1)}`,
@@ -149,6 +162,7 @@ export const Popup: FC<{
                   $('div', {
                     className: css({
                       position: 'absolute',
+                      display: adjust.x || adjust.y ? 'none' : undefined,
                       top: posValue({below: '100%'}),
                       bottom: posValue({above: '100%'}),
                       left: alignValue({start: offset.x + 8, center: '50%'}),
@@ -156,7 +170,7 @@ export const Popup: FC<{
                       transform: `${
                         alignValue({center: 'translateX(-50%)'}) ?? ''
                       } rotate(45deg)`.trim(),
-                      background: theme.bgColor,
+                      background: theme.bg.string(),
                       marginTop: posValue({below: offset.y + 3}),
                       marginBottom: posValue({above: offset.y + 3}),
                       height: 13,

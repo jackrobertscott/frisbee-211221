@@ -4,9 +4,8 @@ import {TTeam} from '../schemas/Team'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {SIMPLE_COLORS} from '../utils/colors'
-import {hsla} from '../utils/hsla'
 import {Form} from './Form/Form'
-import {FormButton} from './Form/FormButton'
+import {FormBadge} from './Form/FormBadge'
 import {FormColumn} from './Form/FormColumn'
 import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
@@ -28,7 +27,7 @@ export const TeamCreate: FC<{
   const $create = useEndpoint($TeamCreate)
   const form = useForm({
     name: '',
-    color: hsla.render(SIMPLE_COLORS[0]),
+    color: SIMPLE_COLORS[0].string(),
   })
   return $(Modal, {
     width: 377,
@@ -41,7 +40,7 @@ export const TeamCreate: FC<{
         }),
       }),
       $(Form, {
-        background: theme.bgMinorColor,
+        background: theme.bgMinor,
         children: addkeys([
           $(FormRow, {
             children: addkeys([
@@ -61,7 +60,7 @@ export const TeamCreate: FC<{
               }),
             ]),
           }),
-          $(FormButton, {
+          $(FormBadge, {
             disabled: $create.loading,
             label: $create.loading ? 'Loading' : 'Submit',
             click: () =>

@@ -10,12 +10,8 @@ import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
-import {FormButton} from './Form/FormButton'
 import {FormColumn} from './Form/FormColumn'
-import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
-import {FormSpinner} from './Form/FormSpinner'
-import {FormStatic} from './Form/FormStatic'
 import {InputNumber} from './Input/InputNumber'
 import {InputSelect} from './Input/InputSelect'
 import {Modal} from './Modal'
@@ -25,6 +21,10 @@ import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
 import {InputTextarea} from './Input/InputTextarea'
 import {FormHelp} from './Form/FormHelp'
+import {Spinner} from './Spinner'
+import {FormBadge} from './Form/FormBadge'
+import {hsla} from '../utils/hsla'
+import {FormLabel} from './Form/FormLabel'
 /**
  *
  */
@@ -70,10 +70,10 @@ export const ReportCreate: FC<{
         }),
       }),
       $(Form, {
-        background: theme.bgMinorColor,
+        background: theme.bgMinor,
         children: addkeys([
           rounds === undefined
-            ? $(FormSpinner)
+            ? $(Spinner)
             : $(FormRow, {
                 children: addkeys([
                   $(FormLabel, {label: 'Fixture'}),
@@ -99,16 +99,16 @@ export const ReportCreate: FC<{
                     }),
                     children: $(FormRow, {
                       children: addkeys([
-                        $(FormStatic, {
+                        $(FormBadge, {
                           label: auth.current.team.name,
-                          background: auth.current.team.color,
+                          background: hsla.digest(auth.current.team.color),
                         }),
-                        $(FormStatic, {
+                        $(FormBadge, {
                           label: 'vs',
                         }),
-                        $(FormStatic, {
+                        $(FormBadge, {
                           label: against.team.name,
-                          background: against.team.color,
+                          background: hsla.digest(against.team.color),
                         }),
                       ]),
                     }),
@@ -216,7 +216,7 @@ export const ReportCreate: FC<{
                     }),
                   ]),
                 }),
-                $(FormButton, {
+                $(FormBadge, {
                   disabled: $create.loading,
                   label: $create.loading ? 'Loading' : 'Submit',
                   click: () => $create.fetch(form.data as any).then(done),

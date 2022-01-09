@@ -48,7 +48,7 @@ export const Modal: FC<{
               flexDirection: 'column',
               boxShadow: `0 0 10px ${hsla.string(0, 0, 0, 0.1)}`,
               background: hsla.string(0, 0, 100),
-              border: theme.border,
+              border: theme.border(),
             }),
           }),
         }),

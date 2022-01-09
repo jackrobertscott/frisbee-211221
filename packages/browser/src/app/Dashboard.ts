@@ -5,7 +5,6 @@ import {TSeason} from '../schemas/Season'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {go} from '../utils/go'
-import {hsla} from '../utils/hsla'
 import {spreadify} from '../utils/spreadify'
 import {useAuth} from './Auth/useAuth'
 import {Center} from './Center'
@@ -13,8 +12,6 @@ import {DashboardLadder} from './DashboardLadder'
 import {DashboardNews} from './DashboardNews'
 import {DashboardFixtures} from './DashboardFixtures'
 import {Form} from './Form/Form'
-import {FormButton} from './Form/FormButton'
-import {FormList} from './Form/FormList'
 import {Modal} from './Modal'
 import {Popup} from './Popup'
 import {Question} from './Question'
@@ -26,6 +23,9 @@ import {useToaster} from './Toaster/useToaster'
 import {TopBar} from './TopBar'
 import {TopBarBadge} from './TopBarBadge'
 import {useEndpoint} from './useEndpoint'
+import {FormMenu} from './Form/FormMenu'
+import {FormBadge} from './Form/FormBadge'
+import {hsla} from '../utils/hsla'
 /**
  *
  */
@@ -59,8 +59,8 @@ export const Dashboard: FC = () => {
           className: css({
             width: 987,
             maxWidth: '100%',
-            border: theme.border,
-            background: theme.bgColor,
+            border: theme.border(),
+            background: theme.bg.string(),
           }),
           children: addkeys([
             $(TopBar, {
@@ -69,7 +69,7 @@ export const Dashboard: FC = () => {
                 auth.current?.team &&
                   $(TopBarBadge, {
                     label: auth.current?.team.name,
-                    color: auth.current?.team.color,
+                    background: hsla.digest(auth.current?.team.color),
                   }),
                 $(_DashboardSeasonBadge),
                 $(TopBarBadge, {
@@ -88,15 +88,15 @@ export const Dashboard: FC = () => {
               className: css({
                 display: 'flex',
                 justifyContent: 'space-between',
-                borderBottom: theme.border,
-                background: theme.bgMinorColor,
+                borderBottom: theme.border(),
+                background: theme.bgMinor.string(),
               }),
               children: addkeys([
                 $('div', {
                   className: css({
                     display: 'flex',
                     '& > *': {
-                      borderRight: theme.border,
+                      borderRight: theme.border(),
                     },
                   }),
                   children: router.routes.map((route) => {
@@ -107,15 +107,17 @@ export const Dashboard: FC = () => {
                       onClick: () => go.to(route.path),
                       className: css({
                         userSelect: 'none',
-                        padding: theme.padify(theme.inputPadding),
-                        color: isCurrent ? theme.color : theme.minorColor,
-                        background: isCurrent ? theme.bgColor : undefined,
+                        padding: theme.padify(theme.fib[4]),
+                        color: isCurrent
+                          ? theme.font.string()
+                          : theme.fontMinor.string(),
+                        background: isCurrent ? theme.bg.string() : undefined,
                         '&:hover': {
-                          color: theme.color,
-                          background: theme.bgHoverColor,
+                          color: theme.font.string(),
+                          background: theme.bg.hover(),
                         },
                         '&:active': {
-                          background: theme.bgPressColor,
+                          background: theme.bg.press(),
                         },
                       }),
                     })
@@ -126,16 +128,15 @@ export const Dashboard: FC = () => {
                   onClick: () => reportingSet(true),
                   className: css({
                     userSelect: 'none',
-                    borderLeft: theme.border,
-                    padding: theme.padify(theme.inputPadding),
-                    background: theme.bgHighlightColor,
-                    color: theme.highlightColor,
+                    borderLeft: theme.border(),
+                    padding: theme.padify(theme.fib[4]),
+                    background: theme.bgHighlight.string(),
+                    color: theme.fontHighlight.string(),
                     '&:hover': {
-                      color: theme.color,
-                      background: theme.bgHoverColor,
+                      background: theme.bgHighlight.hover(),
                     },
                     '&:active': {
-                      background: theme.bgPressColor,
+                      background: theme.bgHighlight.press(),
                     },
                   }),
                 }),
@@ -206,8 +207,9 @@ const _DashboardSeasonBadge: FC = () => {
         popup: $(Form, {
           width: 233,
           children: addkeys([
-            $(FormList, {
-              list: spreadify(seasons).map((i) => ({
+            $(FormMenu, {
+              empty: seasons === undefined ? 'Loading' : 'Empty',
+              options: spreadify(seasons).map((i) => ({
                 ...i,
                 label: i.name,
                 click: () => {
@@ -215,13 +217,12 @@ const _DashboardSeasonBadge: FC = () => {
                   auth.seasonSet(i)
                 },
               })),
-              empty: seasons === undefined ? 'Loading' : 'Empty',
             }),
             auth.isAdmin() &&
-              $(FormButton, {
+              $(FormBadge, {
                 label: 'Create New Season',
                 click: () => creatingSet(true),
-                color: hsla.digest(theme.bgAdminColor),
+                background: theme.bgAdmin,
               }),
           ]),
         }),

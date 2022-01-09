@@ -1,21 +1,21 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
-import {theme} from '../../theme'
+import {theme} from '../theme'
 /**
  *
  */
-export const FormLink: FC<{
+export const Link: FC<{
   label: string
   click?: () => void
 }> = ({label, click}) => {
-  return $('div', {
+  return $('a', {
     onClick: click,
     children: label,
     className: css({
       userSelect: 'none',
       textAlign: 'center',
       textDecoration: 'underline',
-      color: theme.minorColor,
+      color: theme.fontMinor.string(),
       '&:hover': {
         opacity: 1,
       },

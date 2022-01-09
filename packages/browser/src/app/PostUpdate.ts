@@ -4,7 +4,7 @@ import {TPost} from '../schemas/Post'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {Form} from './Form/Form'
-import {FormButton} from './Form/FormButton'
+import {FormBadge} from './Form/FormBadge'
 import {FormColumn} from './Form/FormColumn'
 import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
@@ -39,7 +39,7 @@ export const PostUpdate: FC<{
         }),
       }),
       $(Form, {
-        background: theme.bgMinorColor,
+        background: theme.bgMinor,
         children: addkeys([
           $(FormRow, {
             children: addkeys([
@@ -60,7 +60,7 @@ export const PostUpdate: FC<{
               }),
             ]),
           }),
-          $(FormButton, {
+          $(FormBadge, {
             disabled: $postUpdate.loading,
             label: $postUpdate.loading ? 'Loading' : 'Submit',
             click: () =>

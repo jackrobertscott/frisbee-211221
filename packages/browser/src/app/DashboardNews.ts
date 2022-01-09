@@ -5,16 +5,15 @@ import {$PostListOfSeason} from '../endpoints/Post'
 import {TPost} from '../schemas/Post'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
-import {hsla} from '../utils/hsla'
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
-import {FormButton} from './Form/FormButton'
 import {InputString} from './Input/InputString'
 import {PostCreate} from './PostCreate'
 import {useEndpoint} from './useEndpoint'
 import {useSling} from './useThrottle'
 import {PostView} from './PostView'
-import {FormSpinner} from './Form/FormSpinner'
+import {FormBadge} from './Form/FormBadge'
+import {Spinner} from './Spinner'
 /**
  *
  */
@@ -41,13 +40,13 @@ export const DashboardNews: FC = () => {
             placeholder: 'Search',
           }),
           auth.isAdmin() &&
-            $(FormButton, {
+            $(FormBadge, {
               label: 'Add Post',
-              color: hsla.digest(theme.bgAdminColor),
+              background: theme.bgAdmin,
               click: () => creatingSet(true),
             }),
           posts === undefined
-            ? $(FormSpinner)
+            ? $(Spinner)
             : posts.map((post) => {
                 return $(_NewsPost, {
                   key: post.id,
@@ -93,15 +92,15 @@ const _NewsPost: FC<{
         onClick: click,
         className: css({
           cursor: 'default',
-          border: theme.border,
+          border: theme.border(),
           '&:hover': {
-            background: theme.bgHoverColor,
+            background: theme.bg.hover(),
           },
         }),
         children: addkeys([
           $('div', {
             className: css({
-              padding: theme.padify(theme.formPadding),
+              padding: theme.padify(theme.fib[5]),
               '& > *:not(:last-child)': {
                 marginBottom: 5,
               },
@@ -118,7 +117,7 @@ const _NewsPost: FC<{
                   .slice(0, 233)
                   .concat(post.content.length > 233 ? '...' : ''),
                 className: css({
-                  color: theme.minorColor,
+                  color: theme.fontMinor.string(),
                   whiteSpace: 'pre-line',
                 }),
               }),
@@ -127,10 +126,10 @@ const _NewsPost: FC<{
           $('div', {
             children: dayjs(post.createdOn).format(theme.dateFormat),
             className: css({
-              color: theme.minorColor,
-              borderTop: theme.border,
-              background: hsla.string(0, 0, 0, 0.05),
-              padding: theme.padify(theme.formPadding),
+              borderTop: theme.border(),
+              color: theme.fontMinor.string(),
+              background: theme.bgMinor.string(),
+              padding: theme.padify(theme.fib[5]),
             }),
           }),
         ]),

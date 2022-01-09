@@ -13,10 +13,10 @@ import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
 import {FormColumn} from '../Form/FormColumn'
+import {FormLabel} from '../Form/FormLabel'
 import {FormRow} from '../Form/FormRow'
-import {FormSpinner} from '../Form/FormSpinner'
-import {FormStatic} from '../Form/FormStatic'
 import {Question} from '../Question'
+import {Spinner} from '../Spinner'
 import {useToaster} from '../Toaster/useToaster'
 import {useEndpoint} from '../useEndpoint'
 /**
@@ -44,7 +44,7 @@ export const SettingsMembers: FC = () => {
       $(Form, {
         children:
           state === undefined
-            ? $(FormSpinner)
+            ? $(Spinner)
             : $(FormColumn, {
                 children: state.members.map((member) => {
                   const user = state.users.find((i) => i.id === member.userId)
@@ -52,8 +52,9 @@ export const SettingsMembers: FC = () => {
                   return $(FormRow, {
                     key: member.id,
                     children: addkeys([
-                      $(FormStatic, {
+                      $(FormLabel, {
                         label: `${user.firstName} ${user.lastName}`,
+                        grow: true,
                       }),
                       member.captain
                         ? $(FormBadge, {

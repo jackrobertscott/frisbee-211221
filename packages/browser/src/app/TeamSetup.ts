@@ -9,8 +9,8 @@ import {addkeys} from '../utils/addkeys'
 import {useAuth} from './Auth/useAuth'
 import {Center} from './Center'
 import {Form} from './Form/Form'
-import {FormButton} from './Form/FormButton'
-import {FormList} from './Form/FormList'
+import {FormBadge} from './Form/FormBadge'
+import {FormMenu} from './Form/FormMenu'
 import {InputString} from './Input/InputString'
 import {Question} from './Question'
 import {TeamCreate} from './TeamCreate'
@@ -54,8 +54,8 @@ export const TeamSetup: FC = () => {
         children: $('div', {
           className: css({
             width: 377,
-            border: theme.border,
-            background: theme.bgColor,
+            border: theme.border(),
+            background: theme.bg.string(),
           }),
           children: addkeys([
             $(TopBar, {
@@ -70,7 +70,7 @@ export const TeamSetup: FC = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 '& > *:not(:last-child)': {
-                  borderBottom: theme.border,
+                  borderBottom: theme.border(),
                 },
               }),
               children: addkeys([
@@ -81,9 +81,9 @@ export const TeamSetup: FC = () => {
                       valueSet: searchSet,
                       placeholder: 'Search',
                     }),
-                    $(FormList, {
+                    $(FormMenu, {
                       empty: loaded ? 'Empty' : 'Loading',
-                      list: teams.map((i) => ({
+                      options: teams.map((i) => ({
                         id: i.id,
                         label: i.name,
                         color: i.color,
@@ -98,9 +98,9 @@ export const TeamSetup: FC = () => {
                   ]),
                 }),
                 $(Form, {
-                  background: theme.bgMinorColor,
+                  background: theme.bgMinor,
                   children: addkeys([
-                    $(FormButton, {
+                    $(FormBadge, {
                       label: 'Create New Team',
                       click: () => creatingSet(true),
                     }),

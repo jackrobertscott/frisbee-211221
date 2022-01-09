@@ -55,11 +55,11 @@ export const Settings: FC<{close: () => void}> = ({close}) => {
             className: css({
               minWidth: 233,
               maxWidth: 233,
-              borderRight: theme.border,
-              background: theme.bgMinorColor,
+              borderRight: theme.border(),
+              background: theme.bgMinor.string(),
               paddingBottom: 89,
               '& > *': {
-                borderBottom: theme.border,
+                borderBottom: theme.border(),
               },
             }),
             children: router.routes.map((route) => {
@@ -70,14 +70,16 @@ export const Settings: FC<{close: () => void}> = ({close}) => {
                 onClick: () => router.go(route.path),
                 className: css({
                   userSelect: 'none',
-                  padding: theme.padify(theme.inputPadding),
-                  background: isCurrent ? theme.bgColor : undefined,
-                  color: isCurrent ? theme.color : theme.minorColor,
+                  padding: theme.padify(theme.fib[4]),
+                  background: isCurrent ? theme.bg.string() : undefined,
+                  color: isCurrent
+                    ? theme.font.string()
+                    : theme.fontMinor.string(),
                   '&:hover': {
-                    background: theme.bgHoverColor,
+                    background: theme.bg.hover(),
                   },
                   '&:active': {
-                    background: theme.bgPressColor,
+                    background: theme.bg.press(),
                   },
                 }),
               })
@@ -87,7 +89,7 @@ export const Settings: FC<{close: () => void}> = ({close}) => {
             children: router.render(),
             className: css({
               flexGrow: 1,
-              background: theme.bgMinorColor,
+              background: theme.bgMinor.string(),
             }),
           }),
         ]),

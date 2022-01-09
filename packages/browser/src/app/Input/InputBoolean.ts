@@ -17,13 +17,13 @@ export const InputBoolean: FC<{
       flexGrow: 1,
       display: 'flex',
       userSelect: 'none',
-      border: theme.border,
-      background: theme.bgColor,
+      border: theme.border(),
+      background: theme.bg.string(),
       '&:hover': {
-        background: theme.bgHoverColor,
+        background: theme.bg.hover(),
       },
       '&:active': {
-        background: theme.bgHoverColor,
+        background: theme.bg.press(),
       },
     }),
     children: $('div', {
@@ -34,7 +34,7 @@ export const InputBoolean: FC<{
         justifyContent: 'center',
         alignItems: 'center',
         userSelect: 'none',
-        border: theme.border,
+        border: theme.border(),
         background: value ? hsla.string(210, 100, 70) : hsla.string(210, 0, 80),
       }),
       children: $(Icon, {

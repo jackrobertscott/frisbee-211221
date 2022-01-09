@@ -12,10 +12,10 @@ export const FormHelp: FC<{
     className: css({
       flexGrow: 1,
       overflow: 'hidden',
-      border: theme.border,
-      color: theme.minorColor,
-      background: theme.bgMinorColor,
-      padding: theme.padify(theme.inputPadding),
+      border: theme.border(),
+      color: theme.fontMinor.string(),
+      background: theme.bgMinor.string(),
+      padding: theme.padify(theme.fib[4]),
     }),
   })
 }

@@ -21,19 +21,19 @@ export const Table: TFCTable = ({head: header, body}) => {
       flexGrow: 1,
       display: 'flex',
       flexDirection: 'column',
-      background: theme.bgColor,
-      border: theme.border,
+      background: theme.bg.string(),
+      border: theme.border(),
       '& > *:not(:last-child)': {
-        borderBottom: theme.border,
+        borderBottom: theme.border(),
       },
     }),
     children: addkeys([
       $('div', {
         className: css({
           display: 'flex',
-          background: theme.bgMinorColor,
+          background: theme.bgMinor.string(),
           '& > *:not(:last-child)': {
-            borderRight: theme.border,
+            borderRight: theme.border(),
           },
         }),
         children: Object.entries(header).map(([key, {grow, label}]) => {
@@ -46,7 +46,7 @@ export const Table: TFCTable = ({head: header, body}) => {
               flexShrink: 0,
               flexBasis: 0,
               overflow: 'auto',
-              padding: theme.padify(theme.inputPadding),
+              padding: theme.padify(theme.fib[4]),
             }),
           })
         }),
@@ -58,7 +58,7 @@ export const Table: TFCTable = ({head: header, body}) => {
             className: css({
               display: 'flex',
               '& > *:not(:last-child)': {
-                borderRight: theme.border,
+                borderRight: theme.border(),
               },
             }),
             children: Object.entries(header).map(([key, {grow}]) => {
@@ -73,7 +73,7 @@ export const Table: TFCTable = ({head: header, body}) => {
                   flexBasis: 0,
                   overflow: 'auto',
                   background: data?.color,
-                  padding: theme.padify(theme.inputPadding),
+                  padding: theme.padify(theme.fib[4]),
                   color: data ? undefined : hsla.string(0, 0, 0, 0.5),
                 }),
               })

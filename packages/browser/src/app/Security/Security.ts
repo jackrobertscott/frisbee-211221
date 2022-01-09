@@ -44,14 +44,14 @@ export const Security: FC = () => {
     children: $('div', {
       className: css({
         width: 377,
-        border: theme.border,
-        background: theme.bgColor,
+        border: theme.border(),
+        background: theme.bg.string(),
       }),
       children: addkeys([
         $('div', {
           className: css({
-            borderBottom: theme.border,
-            padding: theme.padify(theme.formPadding),
+            borderBottom: theme.border(),
+            padding: theme.padify(theme.fib[5]),
           }),
           children: addkeys([
             $('div', {
@@ -61,7 +61,7 @@ export const Security: FC = () => {
               children: router.current?.message,
               className: css({
                 paddingTop: 5,
-                color: theme.minorColor,
+                color: theme.fontMinor.string(),
               }),
             }),
           ]),
@@ -69,7 +69,7 @@ export const Security: FC = () => {
         $('div', {
           children: router.render(),
           className: css({
-            background: theme.bgMinorColor,
+            background: theme.bgMinor.string(),
           }),
         }),
       ]),

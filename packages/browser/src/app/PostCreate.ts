@@ -5,7 +5,7 @@ import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
-import {FormButton} from './Form/FormButton'
+import {FormBadge} from './Form/FormBadge'
 import {FormColumn} from './Form/FormColumn'
 import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
@@ -40,7 +40,7 @@ export const PostCreate: FC<{
         }),
       }),
       $(Form, {
-        background: theme.bgMinorColor,
+        background: theme.bgMinor,
         children: addkeys([
           $(FormRow, {
             children: addkeys([
@@ -61,7 +61,7 @@ export const PostCreate: FC<{
               }),
             ]),
           }),
-          $(FormButton, {
+          $(FormBadge, {
             disabled: $postCreate.loading,
             label: $postCreate.loading ? 'Loading' : 'Submit',
             click: () =>

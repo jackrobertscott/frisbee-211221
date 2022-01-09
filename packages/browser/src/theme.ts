@@ -3,26 +3,23 @@ import {hsla} from './utils/hsla'
  *
  */
 export const theme = {
-  color: hsla.string(0, 0, 0),
-  minorColor: hsla.string(0, 0, 40),
-  placeholderColor: hsla.string(0, 0, 50),
-  highlightColor: hsla.string(0, 0, 100),
-  borderColor: hsla.string(0, 0, 0),
-  bgColor: hsla.string(0, 0, 100),
-  bgMinorColor: hsla.string(0, 0, 95),
-  bgHoverColor: hsla.string(0, 0, 90),
-  bgPressColor: hsla.string(0, 0, 85),
-  bgHighlightColor: hsla.string(210, 100, 55),
-  bgDisabledColor: hsla.string(0, 0, 85),
-  bgAppColor: hsla.string(0, 0, 80),
-  bgAdminColor: hsla.string(270, 100, 90),
-  dateFormat: 'D MMM YYYY h:mma',
+  fib: [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987],
+  font: hsla.create(0, 0, 0),
+  fontMinor: hsla.create(0, 0, 40),
+  fontPlaceholder: hsla.create(0, 0, 50),
+  fontHighlight: hsla.create(0, 0, 100),
+  bg: hsla.create(0, 0, 100),
+  bgMinor: hsla.create(0, 0, 95),
+  bgHighlight: hsla.create(210, 100, 55),
+  bgDisabled: hsla.create(0, 0, 85),
+  bgApp: hsla.create(0, 0, 80),
+  bgAdmin: hsla.create(270, 100, 90),
+  borderColor: hsla.create(0, 0, 0),
   borderWidth: 2,
-  inputPadding: 8,
-  formPadding: 13,
   fontInset: 3,
-  get border() {
-    return `${this.borderWidth}px solid ${this.borderColor}`
+  dateFormat: 'D MMM YYYY h:mma',
+  border() {
+    return `${this.borderWidth}px solid ${this.borderColor.string()}`
   },
   padify(pixels: number) {
     if (pixels < this.fontInset)

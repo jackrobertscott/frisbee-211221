@@ -2,7 +2,7 @@ import {css} from '@emotion/css'
 import {createElement as $, FC, useState} from 'react'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
-import {hsla} from '../../utils/hsla'
+import {FormMenu} from '../Form/FormMenu'
 import {Icon} from '../Icon'
 import {Popup} from '../Popup'
 /**
@@ -45,11 +45,11 @@ export const InputSelect: FC<{
         justifyContent: 'space-between',
         whiteSpace: 'pre-line',
         background: disabled
-          ? theme.bgMinorColor
-          : current?.color ?? theme.bgColor,
-        color: current ? undefined : theme.placeholderColor,
-        padding: theme.padify(theme.inputPadding),
-        border: theme.border,
+          ? theme.bgMinor.string()
+          : current?.color ?? theme.bg.string(),
+        color: current ? undefined : theme.fontMinor.string(),
+        padding: theme.padify(theme.fib[4]),
+        border: theme.border(),
       }),
       children: addkeys([
         $('div', {
@@ -60,57 +60,17 @@ export const InputSelect: FC<{
         }),
       ]),
     }),
-    popup: $('div', {
-      className: css({
-        maxHeight: 233 + 13,
-        maxWidth: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'auto',
-      }),
-      children: options.length
-        ? options.map((option) => {
-            const colorHSLA = hsla.digest(option?.color ?? theme.bgColor)
-            return $('div', {
-              key: option.key,
-              onClick: () => {
-                if (disabled) return
-                valueSet?.(option.key)
-                openSet(false)
-              },
-              className: css({
-                display: 'flex',
-                justifyContent: 'space-between',
-                userSelect: 'none',
-                padding: theme.padify(theme.inputPadding),
-                background: hsla.render(colorHSLA),
-                '&:not(:last-child)': {
-                  borderBottom: theme.border,
-                },
-                '& > *:not(:last-child)': {
-                  marginRight: theme.inputPadding,
-                },
-                '&:hover': {
-                  background: hsla.render(hsla.darken(10, colorHSLA)),
-                },
-                '&:active': {
-                  background: hsla.render(hsla.darken(15, colorHSLA)),
-                },
-              }),
-              children: addkeys([
-                $('div', {children: option.label}),
-                option.icon && $(Icon, {icon: option.icon}),
-              ]),
-            })
-          })
-        : $('div', {
-            children: 'Empty',
-            className: css({
-              display: 'flex',
-              color: theme.minorColor,
-              padding: theme.padify(theme.inputPadding),
-            }),
-          }),
+    popup: $(FormMenu, {
+      maxWidth: '100%',
+      maxHeight: theme.fib[12] + theme.fib[5],
+      options: options.map((i) => ({
+        ...i,
+        click: () => {
+          if (disabled) return
+          valueSet?.(i.key)
+          openSet(false)
+        },
+      })),
     }),
   })
 }

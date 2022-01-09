@@ -8,25 +8,28 @@ export const FormRow: FC<{
   children: ReactNode
   click?: () => void
   shrink?: boolean
-}> = ({children, click, shrink = true}) => {
+  grow?: boolean
+  wrap?: boolean
+}> = ({children, click, shrink = true, grow = false, wrap = false}) => {
   return $('div', {
     children,
     onClick: click,
     className: css({
-      flexGrow: 1,
+      flexGrow: grow ? 1 : undefined,
       flexShrink: shrink ? undefined : 0,
+      cursor: click ? 'default' : undefined,
+      overflow: 'hidden',
       display: 'flex',
       flexDirection: 'row',
-      overflow: 'hidden',
-      cursor: click ? 'default' : undefined,
+      flexWrap: wrap ? 'wrap' : undefined,
       '& > *:not(:last-child)': {
         marginRight: -theme.borderWidth,
       },
       '&:hover': click && {
-        background: theme.bgHoverColor,
+        background: theme.bg.hover(),
       },
       '&:active': click && {
-        background: theme.bgPressColor,
+        background: theme.bg.press(),
       },
     }),
   })

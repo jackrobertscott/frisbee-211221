@@ -21,8 +21,8 @@ export const SeasonSetup: FC = () => {
         children: $('div', {
           className: css({
             width: 377,
-            border: theme.border,
-            background: theme.bgColor,
+            border: theme.border(),
+            background: theme.bg.string(),
           }),
           children: addkeys([
             $(TopBar, {

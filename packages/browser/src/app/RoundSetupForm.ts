@@ -10,7 +10,6 @@ import {spreadify} from '../utils/spreadify'
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
 import {FormBadge} from './Form/FormBadge'
-import {FormButton} from './Form/FormButton'
 import {FormColumn} from './Form/FormColumn'
 import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
@@ -78,7 +77,7 @@ export const RoundSetupForm: FC<{
         }),
       }),
       $(Form, {
-        background: theme.bgMinorColor,
+        background: theme.bgMinor,
         children: addkeys([
           $(FormRow, {
             children: addkeys([
@@ -180,7 +179,7 @@ export const RoundSetupForm: FC<{
                       })
                     }),
                   }),
-                  $(FormButton, {
+                  $(FormBadge, {
                     icon: 'plus',
                     label: 'Add New Game',
                     click: () =>
@@ -193,7 +192,7 @@ export const RoundSetupForm: FC<{
                 ]),
               }),
           }),
-          $(FormButton, {
+          $(FormBadge, {
             disabled: loading,
             label: loading ? 'Loading' : 'Submit',
             click: () => done(form.data),

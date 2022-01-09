@@ -11,16 +11,15 @@ export const TopBar: FC<{
 }> = ({title, children}) => {
   return $('div', {
     className: css({
-      flexShrink: 0,
-      userSelect: 'none',
       display: 'flex',
       justifyContent: 'space-between',
-      borderBottom: theme.border,
+      borderBottom: theme.border(),
     }),
     children: addkeys([
       $('div', {
         children: title,
         className: css({
+          flexGrow: 1,
           padding: theme.padify(8),
         }),
       }),

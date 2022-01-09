@@ -7,15 +7,14 @@ import {TRound} from '../schemas/Fixture'
 import {TTeam} from '../schemas/Team'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
-import {hsla} from '../utils/hsla'
 import {fadein} from '../utils/keyframes'
 import {tallyChart} from '../utils/tallyChart'
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
-import {FormButton} from './Form/FormButton'
-import {FormSpinner} from './Form/FormSpinner'
+import {FormBadge} from './Form/FormBadge'
 import {Icon} from './Icon'
 import {RoundTallyForm} from './RoundTallyForm'
+import {Spinner} from './Spinner'
 import {Table} from './Table'
 import {useEndpoint} from './useEndpoint'
 /**
@@ -85,12 +84,12 @@ export const DashboardLadder: FC = () => {
               $(Fragment, {
                 children:
                   teams === undefined
-                    ? $(FormSpinner)
+                    ? $(Spinner)
                     : $('div', {
                         className: css({
-                          border: theme.border,
+                          border: theme.border(),
                           '& > *:not(:last-child)': {
-                            borderBottom: theme.border,
+                            borderBottom: theme.border(),
                           },
                         }),
                         children: rounds.map((fixture) => {
@@ -147,7 +146,6 @@ const _LadderRound: FC<{
   toggle: () => void
   editingSet: (fixture: TRound) => void
 }> = ({fixture, teams, open, isAdmin, toggle, editingSet}) => {
-  const bghsla = hsla.digest(theme.bgMinorColor)
   return $('div', {
     children: addkeys([
       $('div', {
@@ -156,13 +154,13 @@ const _LadderRound: FC<{
           display: 'flex',
           justifyContent: 'space-between',
           userSelect: 'none',
-          background: hsla.render(bghsla),
-          padding: theme.padify(theme.formPadding),
+          background: theme.bgMinor.string(),
+          padding: theme.padify(theme.fib[5]),
           '&:hover': {
-            background: hsla.render(hsla.darken(5, bghsla)),
+            background: theme.bgMinor.hover(),
           },
           '&:active': {
-            background: hsla.render(hsla.darken(10, bghsla)),
+            background: theme.bgMinor.press(),
           },
         }),
         children: addkeys([
@@ -172,9 +170,9 @@ const _LadderRound: FC<{
           $('div', {
             className: css({
               display: 'flex',
-              color: theme.minorColor,
+              color: theme.fontMinor.string(),
               '& > *:not(:last-child)': {
-                marginRight: theme.inputPadding,
+                marginRight: theme.fib[4],
               },
             }),
             children: addkeys([
@@ -192,11 +190,11 @@ const _LadderRound: FC<{
       open &&
         $('div', {
           className: css({
-            borderTop: theme.border,
-            padding: theme.formPadding,
+            borderTop: theme.border(),
+            padding: theme.fib[5],
             animation: `150ms linear ${fadein}`,
             '& > *:not(:last-child)': {
-              marginBottom: theme.formPadding,
+              marginBottom: theme.fib[5],
             },
           }),
           children: addkeys([
@@ -220,9 +218,9 @@ const _LadderRound: FC<{
               }),
             }),
             isAdmin &&
-              $(FormButton, {
+              $(FormBadge, {
                 label: 'Edit Fixture Results',
-                color: hsla.digest(theme.bgAdminColor),
+                background: theme.bgAdmin,
                 click: () => editingSet(fixture),
               }),
           ]),

@@ -8,10 +8,8 @@ import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
-import {FormButton} from './Form/FormButton'
 import {FormColumn} from './Form/FormColumn'
 import {FormRow} from './Form/FormRow'
-import {FormStatic} from './Form/FormStatic'
 import {InputNumber} from './Input/InputNumber'
 import {Modal} from './Modal'
 import {TopBar} from './TopBar'
@@ -21,6 +19,8 @@ import {useForm} from './useForm'
 import {$ReportListOfRound} from '../endpoints/Report'
 import {TReport} from '../schemas/Report'
 import {Table} from './Table'
+import {FormBadge} from './Form/FormBadge'
+import {hsla} from '../utils/hsla'
 /**
  *
  */
@@ -74,7 +74,7 @@ export const RoundTallyForm: FC<{
         }),
         children: addkeys([
           $(Form, {
-            background: theme.bgMinorColor,
+            background: theme.bgMinor,
             children: addkeys([
               $(Fragment, {
                 children:
@@ -93,18 +93,22 @@ export const RoundTallyForm: FC<{
                         key: game.id,
                         children: addkeys(
                           [
-                            $(FormStatic, {
+                            $(FormBadge, {
                               label: team1?.name ?? '...',
-                              background: team1?.color,
+                              background: team1?.color
+                                ? hsla.digest(team1?.color)
+                                : undefined,
                             }),
                             $(InputNumber, {
                               value: game.team1Score,
                               valueSet: (team1Score) => gamePatch({team1Score}),
                               placeholder: `Score...`,
                             }),
-                            $(FormStatic, {
+                            $(FormBadge, {
                               label: team2?.name ?? '...',
-                              background: team2?.color,
+                              background: team2?.color
+                                ? hsla.digest(team2?.color)
+                                : undefined,
                             }),
                             $(InputNumber, {
                               value: game.team2Score,
@@ -129,7 +133,7 @@ export const RoundTallyForm: FC<{
                   }),
               }),
               $('div', {
-                children: $(FormButton, {
+                children: $(FormBadge, {
                   disabled: loading,
                   label: loading ? 'Loading' : 'Submit',
                   click: () => done(form.data),
@@ -141,16 +145,16 @@ export const RoundTallyForm: FC<{
             $('div', {
               className: css({
                 width: 377,
-                borderLeft: theme.border,
-                padding: theme.formPadding,
-                background: theme.bgMinorColor,
+                borderLeft: theme.border(),
+                background: theme.bgMinor.string(),
+                padding: theme.fib[5],
               }),
               children: addkeys([
                 $('div', {
                   children: 'Reports',
                   className: css({
                     margin: `-${theme.fontInset}px 0 ${
-                      theme.formPadding - theme.fontInset
+                      theme.fib[5] - theme.fontInset
                     }px`,
                   }),
                 }),
@@ -187,10 +191,10 @@ export const RoundTallyForm: FC<{
                         }
                       }),
                     })
-                  : $(FormStatic, {
+                  : $(FormBadge, {
                       label: 'Empty',
-                      color: theme.minorColor,
-                      background: theme.bgColor,
+                      background: theme.bg,
+                      font: theme.fontMinor,
                     }),
               ]),
             }),

@@ -7,11 +7,11 @@ import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
-import {FormButton} from '../Form/FormButton'
+import {FormBadge} from '../Form/FormBadge'
 import {FormLabel} from '../Form/FormLabel'
-import {FormLink} from '../Form/FormLink'
 import {FormRow} from '../Form/FormRow'
 import {InputString} from '../Input/InputString'
+import {Link} from '../Link'
 import {useToaster} from '../Toaster/useToaster'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
@@ -42,7 +42,7 @@ export const SecurityForgot: FC = () => {
             }),
           ]),
         }),
-        $(FormButton, {
+        $(FormBadge, {
           disabled: $send.loading,
           label: $send.loading ? 'Loading' : 'Submit',
           click: () =>
@@ -51,7 +51,7 @@ export const SecurityForgot: FC = () => {
               toaster.notify('Please check your email inbox.')
             }),
         }),
-        $(FormLink, {
+        $(Link, {
           label: 'Login',
           click: () => go.to('/login'),
         }),
@@ -90,12 +90,12 @@ export const SecurityForgot: FC = () => {
           }),
         ]),
       }),
-      $(FormButton, {
+      $(FormBadge, {
         disabled: $verify.loading,
         label: $verify.loading ? 'Loading' : 'Submit & Login',
         click: () => $verify.fetch(form.data).then(auth.login),
       }),
-      $(FormLink, {
+      $(Link, {
         label: 'Login',
         click: () => go.to('/login'),
       }),

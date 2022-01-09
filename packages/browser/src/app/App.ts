@@ -5,10 +5,10 @@ import {theme} from '../theme'
 import {useAuth} from './Auth/useAuth'
 import {Center} from './Center'
 import {Dashboard} from './Dashboard'
-import {Icon} from './Icon'
 import {SeasonSetup} from './SeasonSetup'
 import {Security} from './Security/Security'
 import {TeamSetup} from './TeamSetup'
+import {Spinner} from './Spinner'
 /**
  *
  */
@@ -18,7 +18,7 @@ export const App: FC = () => {
     className: css({
       width: '100%',
       height: '100%',
-      background: theme.bgAppColor,
+      background: theme.bgApp.string(),
       backgroundImage: `url(${backgroundSVG})`,
       backgroundPosition: 'center',
       backgroundRepeat: 'repeat',
@@ -42,15 +42,6 @@ const _AppGuard: FC = () => {
  */
 const _AppLoading: FC = () => {
   return $(Center, {
-    children: $('div', {
-      className: css({
-        fontSize: 21,
-        opacity: 0.25,
-      }),
-      children: $(Icon, {
-        icon: 'spinner',
-        multiple: 1,
-      }),
-    }),
+    children: $(Spinner),
   })
 }

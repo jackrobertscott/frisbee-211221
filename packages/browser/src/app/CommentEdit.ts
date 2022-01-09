@@ -4,7 +4,7 @@ import {TComment} from '../schemas/Comment'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {Form} from './Form/Form'
-import {FormButton} from './Form/FormButton'
+import {FormBadge} from './Form/FormBadge'
 import {InputTextarea} from './Input/InputTextarea'
 import {Modal} from './Modal'
 import {TopBar} from './TopBar'
@@ -34,13 +34,13 @@ export const CommentEdit: FC<{
         }),
       }),
       $(Form, {
-        background: theme.bgMinorColor,
+        background: theme.bgMinor,
         children: addkeys([
           $(InputTextarea, {
             value: form.data.content,
             valueSet: form.link('content'),
           }),
-          $(FormButton, {
+          $(FormBadge, {
             disabled: $commentUpdate.loading,
             label: $commentUpdate.loading ? 'Loading' : 'Submit',
             click: () =>

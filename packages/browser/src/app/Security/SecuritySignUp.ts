@@ -4,13 +4,13 @@ import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
-import {FormButton} from '../Form/FormButton'
+import {FormBadge} from '../Form/FormBadge'
 import {FormLabel} from '../Form/FormLabel'
-import {FormLink} from '../Form/FormLink'
 import {FormRow} from '../Form/FormRow'
 import {InputBoolean} from '../Input/InputBoolean'
 import {InputSelect} from '../Input/InputSelect'
 import {InputString} from '../Input/InputString'
+import {Link} from '../Link'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
 /**
@@ -91,7 +91,7 @@ export const SecuritySignUp: FC<{
           }),
         ]),
       }),
-      $(FormButton, {
+      $(FormBadge, {
         disabled: $signUp.loading,
         label: $signUp.loading ? 'Loading' : 'Submit',
         click: () =>
@@ -102,7 +102,7 @@ export const SecuritySignUp: FC<{
               auth.login(data)
             }),
       }),
-      $(FormLink, {
+      $(Link, {
         label: 'Login',
         click: () => go.to('/login'),
       }),

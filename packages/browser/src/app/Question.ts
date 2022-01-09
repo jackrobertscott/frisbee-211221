@@ -3,7 +3,7 @@ import {createElement as $, FC} from 'react'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {THSLA} from '../utils/hsla'
-import {FormButton} from './Form/FormButton'
+import {FormBadge} from './Form/FormBadge'
 import {Modal} from './Modal'
 import {Poster} from './Poster'
 import {TopBar} from './TopBar'
@@ -16,9 +16,10 @@ export const Question: FC<{
   description: string
   close: () => void
   options: Array<{
+    key?: string
     label: string
     click: () => void
-    color?: THSLA
+    background?: THSLA
   }>
 }> = ({title, description, close, options}) => {
   return $(Modal, {
@@ -38,18 +39,19 @@ export const Question: FC<{
         className: css({
           padding: 13,
           display: 'flex',
-          borderTop: theme.border,
-          background: theme.bgMinorColor,
+          borderTop: theme.border(),
+          background: theme.bgMinor.string(),
           '& > *:not(:last-child)': {
             marginRight: 13,
           },
         }),
-        children: options.map(({label, click, color}) => {
-          return $(FormButton, {
-            key: label,
+        children: options.map(({key, label, click, background}) => {
+          return $(FormBadge, {
+            key: key ?? label,
             label,
             click,
-            color,
+            background,
+            grow: true,
           })
         }),
       }),

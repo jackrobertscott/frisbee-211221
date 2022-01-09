@@ -7,15 +7,19 @@ import {theme} from '../../theme'
 export const FormColumn: FC<{
   children: ReactNode
   maxLength?: number
-}> = ({children, maxLength}) => {
+  maxWidth?: string | number
+  grow?: boolean
+}> = ({children, maxLength, maxWidth, grow}) => {
   const innerChildren = $('div', {
     children,
     className: css({
       flexShrink: 0,
       display: 'flex',
       flexDirection: 'column',
+      flexGrow: grow ? 1 : undefined,
       overflow: maxLength ? 'auto' : undefined,
       maxHeight: maxLength,
+      maxWidth: maxWidth,
       '& > *:not(:last-child)': {
         marginBottom: -theme.borderWidth,
       },
@@ -25,10 +29,10 @@ export const FormColumn: FC<{
     return $('div', {
       children: innerChildren,
       className: css({
-        border: theme.border,
         overflow: 'hidden',
+        border: theme.border(),
         '& > *': {
-          margin: -2,
+          margin: -theme.borderWidth,
         },
       }),
     })

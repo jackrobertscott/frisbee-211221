@@ -3,7 +3,7 @@ import {$UserChangePassword} from '../../endpoints/User'
 import {addkeys} from '../../utils/addkeys'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
-import {FormButton} from '../Form/FormButton'
+import {FormBadge} from '../Form/FormBadge'
 import {FormLabel} from '../Form/FormLabel'
 import {FormRow} from '../Form/FormRow'
 import {InputString} from '../Input/InputString'
@@ -43,7 +43,7 @@ export const SettingsPassword: FC = () => {
           }),
         ]),
       }),
-      $(FormButton, {
+      $(FormBadge, {
         disabled: $changePassword.loading,
         label: $changePassword.loading ? 'Loading' : 'Submit',
         click: () =>

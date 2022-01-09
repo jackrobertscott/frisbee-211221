@@ -3,7 +3,7 @@ import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {theme} from '../../theme'
 import {Popup} from '../Popup'
-import {FormSpinner} from '../Form/FormSpinner'
+import {Spinner} from '../Spinner'
 import {Form} from '../Form/Form'
 import {addkeys} from '../../utils/addkeys'
 import {FormRow} from '../Form/FormRow'
@@ -49,10 +49,10 @@ export const InputDate: FC<{
         cursor: 'default',
         userSelect: 'none',
         whiteSpace: 'nowrap',
-        background: theme.bgColor,
-        color: value ? undefined : theme.placeholderColor,
-        padding: theme.padify(theme.inputPadding),
-        border: theme.border,
+        background: theme.bg.string(),
+        color: value ? undefined : theme.fontPlaceholder.string(),
+        padding: theme.padify(theme.fib[4]),
+        border: theme.border(),
       }),
     }),
     popup: dateCurrent
@@ -62,7 +62,7 @@ export const InputDate: FC<{
           valueSet,
           viewingSet: (i) => dateViewingSet(dayjs(i)),
         })
-      : $(FormSpinner),
+      : $(Spinner),
   })
 }
 /**
@@ -113,10 +113,10 @@ const _InputDatePicker: FC<{
                   flexGrow: 1,
                   flexBasis: 0,
                   textAlign: 'center',
-                  color: theme.minorColor,
-                  background: theme.bgMinorColor,
-                  padding: theme.padify(theme.inputPadding),
-                  border: theme.border,
+                  color: theme.fontMinor.string(),
+                  background: theme.bgMinor.string(),
+                  padding: theme.padify(theme.fib[4]),
+                  border: theme.border(),
                 }),
               })
             }),
@@ -149,13 +149,13 @@ const _InputDatePicker: FC<{
                       flexBasis: 0,
                       cursor: 'pointer',
                       textAlign: 'center',
-                      border: theme.border,
-                      padding: theme.padify(theme.inputPadding),
+                      border: theme.border(),
+                      padding: theme.padify(theme.fib[4]),
                       color: isSelected
                         ? hsla.string(0, 0, 100)
                         : sameMonth
-                        ? theme.color
-                        : theme.minorColor,
+                        ? theme.font.string()
+                        : theme.fontMinor.string(),
                       background: isSelected
                         ? hsla.string(210, 100, 50)
                         : isToday

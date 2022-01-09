@@ -9,9 +9,7 @@ import {TopBar} from './TopBar'
 import {TopBarBadge} from './TopBarBadge'
 import {InputTextarea} from './Input/InputTextarea'
 import {useForm} from './useForm'
-import {Form} from './Form/Form'
 import {FormColumn} from './Form/FormColumn'
-import {FormButton} from './Form/FormButton'
 import {useEndpoint} from './useEndpoint'
 import {
   $CommentCreate,
@@ -19,7 +17,6 @@ import {
   $CommentListOfPost,
 } from '../endpoints/Comment'
 import {TComment} from '../schemas/Comment'
-import {FormSpinner} from './Form/FormSpinner'
 import {TUser} from '../schemas/User'
 import {Popup} from './Popup'
 import {FormBadge} from './Form/FormBadge'
@@ -29,6 +26,7 @@ import {Question} from './Question'
 import {CommentEdit} from './CommentEdit'
 import {PostUpdate} from './PostUpdate'
 import {$PostDelete} from '../endpoints/Post'
+import {Spinner} from './Spinner'
 /**
  *
  */
@@ -67,14 +65,14 @@ export const PostView: FC<{
                 $(TopBarBadge, {
                   icon: 'wrench',
                   label: 'Edit',
-                  color: theme.bgAdminColor,
+                  background: theme.bgAdmin,
                   click: () => editingSet(true),
                 }),
               auth.isAdmin() &&
                 $(TopBarBadge, {
                   icon: 'trash-alt',
                   label: 'Delete',
-                  color: theme.bgAdminColor,
+                  background: theme.bgAdmin,
                   click: () => deletingSet(true),
                 }),
               $(TopBarBadge, {
@@ -104,8 +102,8 @@ export const PostView: FC<{
                   $('div', {
                     children: dayjs(post.createdOn).format(theme.dateFormat),
                     className: css({
-                      color: theme.minorColor,
-                      marginBottom: theme.formPadding,
+                      color: theme.fontMinor.string(),
+                      marginBottom: theme.fib[5],
                     }),
                   }),
                   $('div', {
@@ -119,12 +117,12 @@ export const PostView: FC<{
               $('div', {
                 className: css({
                   width: 377,
-                  padding: 21,
                   flexShrink: 0,
-                  borderLeft: theme.border,
-                  background: theme.bgMinorColor,
+                  borderLeft: theme.border(),
+                  background: theme.bgMinor.string(),
+                  padding: theme.fib[5],
                   '& > *:not(:last-child)': {
-                    marginBottom: theme.formPadding,
+                    marginBottom: theme.fib[5],
                   },
                 }),
                 children: addkeys([
@@ -136,7 +134,7 @@ export const PostView: FC<{
                         placeholder: 'Write comment...',
                         rows: 3,
                       }),
-                      $(FormButton, {
+                      $(FormBadge, {
                         label: 'Post',
                         click: () =>
                           $commentCreate
@@ -147,12 +145,12 @@ export const PostView: FC<{
                     ]),
                   }),
                   comments === undefined
-                    ? $(FormSpinner)
+                    ? $(Spinner)
                     : $(Fragment, {
                         children: comments.map((comment) => {
-                          const user = users?.find(
-                            (i) => i.id === comment.userId
-                          )
+                          const user = users?.find((i) => {
+                            return i.id === comment.userId
+                          })
                           return $(_PostViewComment, {
                             key: comment.id,
                             comment,
@@ -216,9 +214,9 @@ const _PostViewComment: FC<{
     children: addkeys([
       $('div', {
         className: css({
-          border: theme.border,
-          background: theme.bgColor,
-          padding: theme.padify(theme.inputPadding),
+          border: theme.border(),
+          background: theme.bg.string(),
+          padding: theme.padify(theme.fib[4]),
           position: 'relative',
           '&:hover .options': {
             opacity: 1,
@@ -233,8 +231,8 @@ const _PostViewComment: FC<{
               comment.createdOn
             ).format(theme.dateFormat)}`.trim(),
             className: css({
-              color: theme.minorColor,
-              marginTop: theme.inputPadding - theme.fontInset * 2,
+              color: theme.fontMinor.string(),
+              marginTop: theme.fib[4] - theme.fontInset * 2,
             }),
           }),
           (auth.isAdmin() || auth.current?.user.id === comment.userId) &&

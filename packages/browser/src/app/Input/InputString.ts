@@ -36,11 +36,11 @@ export const InputString: FC<{
     className: css({
       flexGrow: 1,
       width: '100%',
-      border: theme.border,
-      background: theme.bgColor,
-      padding: theme.padify(theme.inputPadding),
+      border: theme.border(),
+      background: theme.bg.string(),
+      padding: theme.padify(theme.fib[4]),
       '&::placeholder': {
-        color: theme.placeholderColor,
+        color: theme.fontPlaceholder.string(),
       },
     }),
   })

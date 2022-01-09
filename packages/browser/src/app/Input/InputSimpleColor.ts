@@ -16,38 +16,39 @@ export const InputSimpleColor: FC<{
     className: css({
       display: 'flex',
       flexWrap: 'wrap',
-      border: theme.border,
-      paddingTop: theme.inputPadding,
-      paddingLeft: theme.inputPadding,
+      border: theme.border(),
+      paddingTop: theme.fib[4],
+      paddingLeft: theme.fib[4],
       '& > *': {
-        marginRight: theme.inputPadding,
-        marginBottom: theme.inputPadding,
+        marginRight: theme.fib[4],
+        marginBottom: theme.fib[4],
       },
     }),
-    children: SIMPLE_COLORS.map((i) => {
-      const color = hsla.render(i)
+    children: SIMPLE_COLORS.map((background) => {
+      const backgroundString = background.string()
       return $('div', {
-        key: color,
-        onClick: () => !disabled && valueSet?.(color),
+        key: backgroundString,
+        onClick: () => !disabled && valueSet?.(backgroundString),
         className: css({
           width: 34,
           height: 40,
           flexGrow: 1,
-          border: theme.border,
-          background: color,
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          color: i.l > 50 ? hsla.string(0, 0, 0) : hsla.string(0, 0, 100),
+          border: theme.border(),
+          background: backgroundString,
+          color:
+            background.l > 55 ? hsla.string(0, 0, 0) : hsla.string(0, 0, 100),
           '&:hover': {
-            background: hsla.render(hsla.darken(20, i)),
+            background: background.hover(),
           },
           '&:active': {
-            background: hsla.render(hsla.darken(25, i)),
+            background: background.press(),
           },
         }),
         children:
-          color === value &&
+          backgroundString === value &&
           $(Icon, {
             icon: 'check',
             multiple: 1,

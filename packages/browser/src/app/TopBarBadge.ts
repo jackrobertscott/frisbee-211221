@@ -2,48 +2,29 @@ import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, ReactNode} from 'react'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
-import {Icon} from './Icon'
-import {hsla} from '../utils/hsla'
+import {hsla, THSLA} from '../utils/hsla'
+import {FormBadge} from './Form/FormBadge'
 /**
  *
  */
 export const TopBarBadge: FC<{
   icon?: string
   label?: string
-  color?: string
   click?: () => void
+  background?: THSLA
   tooltip?: string
-}> = ({icon, label, color = theme.bgColor, click, tooltip}) => {
-  const hslaColor = hsla.digest(color)
+}> = ({icon, label, click, background = theme.bg, tooltip}) => {
   return $(_TopBarBadgeTooltip, {
     label: tooltip,
-    children: $('div', {
-      onClick: click,
-      className: css({
-        display: 'flex',
-        padding: theme.padify(8),
-        borderLeft: theme.border,
-        background: hsla.render(hslaColor),
-        '&:hover': click && {
-          background: hsla.render(hsla.darken(5, hslaColor)),
-        },
-        '&:active': click && {
-          background: hsla.render(hsla.darken(10, hslaColor)),
-        },
-      }),
-      children: addkeys([
-        icon &&
-          $(Icon, {
-            icon,
-          }),
-        label &&
-          $('div', {
-            children: label,
-            className: css({
-              marginLeft: icon ? 5 : undefined,
-            }),
-          }),
-      ]),
+    children: $(FormBadge, {
+      icon,
+      label,
+      click,
+      background,
+      style: {
+        border: 'none',
+        borderLeft: theme.border(),
+      },
     }),
   })
 }
@@ -77,10 +58,10 @@ const _TopBarBadgeTooltip: FC<{
           opacity: 0,
           marginRight: -2,
           whiteSpace: 'nowrap',
-          border: theme.border,
+          border: theme.border(),
           color: hsla.string(0, 0, 100),
           background: hsla.string(0, 0, 20),
-          padding: theme.padify(theme.inputPadding),
+          padding: theme.padify(theme.fib[4]),
         }).concat(' tooltip'),
       }),
     ]),

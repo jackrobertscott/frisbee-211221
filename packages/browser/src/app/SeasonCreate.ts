@@ -5,7 +5,7 @@ import {TSeason} from '../schemas/Season'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {Form} from './Form/Form'
-import {FormButton} from './Form/FormButton'
+import {FormBadge} from './Form/FormBadge'
 import {FormColumn} from './Form/FormColumn'
 import {FormHelp} from './Form/FormHelp'
 import {FormLabel} from './Form/FormLabel'
@@ -26,7 +26,7 @@ export const SeasonCreate: FC<{
     signUpOpen: false,
   })
   return $(Form, {
-    background: theme.bgAdminColor,
+    background: theme.bgAdmin,
     children: addkeys([
       $('div', {
         children: `A season contains a fixed number of games. A single team will be determined the winner at the end of the season.`,
@@ -61,7 +61,7 @@ export const SeasonCreate: FC<{
           }),
         ]),
       }),
-      $(FormButton, {
+      $(FormBadge, {
         disabled: $seasonCreate.loading,
         label: $seasonCreate.loading ? 'Loading' : 'Create',
         click: () => $seasonCreate.fetch(form.data).then(seasonSet),

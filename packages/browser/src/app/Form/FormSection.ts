@@ -1,5 +1,6 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC, ReactNode} from 'react'
+import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 /**
  *
@@ -17,7 +18,7 @@ export const FormSection: FC<{
       $('div', {
         children: label,
         className: css({
-          marginBottom: 5,
+          marginBottom: theme.fib[3],
         }),
       }),
       children,

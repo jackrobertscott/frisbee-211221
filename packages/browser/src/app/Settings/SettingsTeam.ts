@@ -3,7 +3,7 @@ import {$TeamUpdate} from '../../endpoints/Team'
 import {addkeys} from '../../utils/addkeys'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
-import {FormButton} from '../Form/FormButton'
+import {FormBadge} from '../Form/FormBadge'
 import {FormColumn} from '../Form/FormColumn'
 import {FormLabel} from '../Form/FormLabel'
 import {FormRow} from '../Form/FormRow'
@@ -44,7 +44,7 @@ export const SettingsTeam: FC = () => {
           }),
         ]),
       }),
-      $(FormButton, {
+      $(FormBadge, {
         disabled: $teamUpdate.loading,
         label: $teamUpdate.loading ? 'Loading' : 'Save',
         click: () =>

@@ -61,7 +61,7 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
               pointerEvents: 'all',
               animation: `${fadedown} 0.25s linear`,
               transition: '150ms',
-              border: theme.border,
+              border: theme.border(),
               background: isError
                 ? hsla.string(0, 100, 75)
                 : hsla.string(0, 0, 100),
@@ -89,12 +89,12 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
                   cursor: 'pointer',
                   transition: '150ms',
                   padding: theme.padify(8),
-                  borderLeft: theme.border,
+                  borderLeft: theme.border(),
                   '&:hover': {
-                    background: theme.bgHoverColor,
+                    background: theme.bg.hover(),
                   },
                   '&:active': {
-                    background: theme.bgPressColor,
+                    background: theme.bg.press(),
                   },
                 }),
                 children: $(Icon, {
