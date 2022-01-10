@@ -14,7 +14,7 @@ export interface TPieceOfToast {
  */
 export interface TToasterContext {
   toasts: TPieceOfToast[]
-  notify: (message: string) => void
+  notify: (message: string, time?: number) => void
   error: (message: string) => void
 }
 /**

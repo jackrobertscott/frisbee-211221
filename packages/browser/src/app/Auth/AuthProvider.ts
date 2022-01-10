@@ -3,6 +3,7 @@ import {$SecurityLogout, $SecurityCurrent} from '../../endpoints/Security'
 import {AuthContext, TAuth, TAuthPayload} from './AuthContext'
 import {useLocalState} from '../useLocalState'
 import {$TeamGetOfSeason} from '../../endpoints/Team'
+import {go} from '../../utils/go'
 /**
  *
  */
@@ -35,6 +36,7 @@ export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
       logout: () => {
         currentSet(undefined)
         $SecurityLogout.fetch(undefined, current?.token)
+        go.to('/')
       },
       userSet: (user) => {
         if (!current)

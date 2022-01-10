@@ -12,7 +12,9 @@ import {Form} from './Form/Form'
 import {FormBadge} from './Form/FormBadge'
 import {FormMenu} from './Form/FormMenu'
 import {InputString} from './Input/InputString'
+import {Poster} from './Poster'
 import {Question} from './Question'
+import {Spinner} from './Spinner'
 import {TeamCreate} from './TeamCreate'
 import {useToaster} from './Toaster/useToaster'
 import {TopBar} from './TopBar'
@@ -29,7 +31,7 @@ export const TeamSetup: FC = () => {
   const $memberRequest = useEndpoint($MemberRequestCreate)
   const $membersOfUser = useEndpoint($MemberListOfUser)
   const [loaded, loadedSet] = useState(false)
-  const [teams, teamsSet] = useState<TTeam[]>([])
+  const [teams, teamsSet] = useState<TTeam[]>()
   const [logout, logoutSet] = useState(false)
   const [creating, creatingSet] = useState(false)
   const [teamRequested, teamRequestedSet] = useState<TTeam>()
@@ -44,6 +46,9 @@ export const TeamSetup: FC = () => {
   })
   const memberList = () =>
     $membersOfUser.fetch().then((data) => membersOfUserSet(data.members))
+  const teamPending =
+    membersOfUser &&
+    teams?.find((i) => membersOfUser.findIndex((x) => x.teamId === i.id) >= 0)
   useEffect(() => teamList(), [search])
   useEffect(() => {
     memberList()
@@ -65,55 +70,58 @@ export const TeamSetup: FC = () => {
                 click: () => logoutSet(true),
               }),
             }),
-            $('div', {
-              className: css({
-                display: 'flex',
-                flexDirection: 'column',
-                '& > *:not(:last-child)': {
-                  borderBottom: theme.border(),
-                },
-              }),
-              children: addkeys([
-                $(Form, {
+            teams === undefined
+              ? $(Form, {
+                  children: $(Spinner),
+                })
+              : teamPending
+              ? $(Poster, {
+                  title: 'Request Pending',
+                  description: `Please wait while the team captain responds to your request to join ${teamPending.name}.`,
+                })
+              : $('div', {
+                  className: css({
+                    display: 'flex',
+                    flexDirection: 'column',
+                    '& > *:not(:last-child)': {
+                      borderBottom: theme.border(),
+                    },
+                  }),
                   children: addkeys([
-                    $(InputString, {
-                      value: search,
-                      valueSet: searchSet,
-                      placeholder: 'Search',
+                    $(Form, {
+                      children: addkeys([
+                        $(InputString, {
+                          value: search,
+                          valueSet: searchSet,
+                          placeholder: 'Search',
+                        }),
+                        $('div', {
+                          className: css({
+                            border: theme.border(),
+                          }),
+                          children: $(FormMenu, {
+                            empty: loaded ? 'No Teams Exist Yet' : 'Loading',
+                            options: teams.map((i) => ({
+                              id: i.id,
+                              label: i.name,
+                              color: i.color,
+                              click: () => teamRequestedSet(i),
+                            })),
+                          }),
+                        }),
+                      ]),
                     }),
-                    $('div', {
-                      className: css({
-                        border: theme.border(),
-                      }),
-                      children: $(FormMenu, {
-                        empty: loaded ? 'No Teams Exist Yet' : 'Loading',
-                        options: teams.map((i) => ({
-                          id: i.id,
-                          label: i.name,
-                          color: i.color,
-                          click: () => teamRequestedSet(i),
-                          sublabel:
-                            membersOfUser &&
-                            membersOfUser.findIndex((x) => x.teamId === i.id) >=
-                              0
-                              ? 'Pending'
-                              : undefined,
-                        })),
-                      }),
+                    $(Form, {
+                      background: theme.bgMinor,
+                      children: addkeys([
+                        $(FormBadge, {
+                          label: 'Create New Team',
+                          click: () => creatingSet(true),
+                        }),
+                      ]),
                     }),
                   ]),
                 }),
-                $(Form, {
-                  background: theme.bgMinor,
-                  children: addkeys([
-                    $(FormBadge, {
-                      label: 'Create New Team',
-                      click: () => creatingSet(true),
-                    }),
-                  ]),
-                }),
-              ]),
-            }),
           ]),
         }),
       }),

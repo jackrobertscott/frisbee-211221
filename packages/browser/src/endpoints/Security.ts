@@ -60,7 +60,6 @@ export const $SecuritySignUpRegular = createEndpoint({
     firstName: io.string(),
     gender: io.string(),
     lastName: io.string(),
-    password: io.string(),
     termsAccepted: io.boolean(),
     userAgent: io.optional(io.string()),
   }),

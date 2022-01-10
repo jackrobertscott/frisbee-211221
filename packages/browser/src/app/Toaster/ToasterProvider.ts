@@ -14,7 +14,11 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
   const [toasts, toastsSet] = useState<TPieceOfToast[]>([])
   const removeById = (id: string) =>
     toastsSet((i) => i.filter((x) => x.id !== id))
-  const createToast = (message: string, type: TPieceOfToast['type']) => {
+  const createToast = (
+    message: string,
+    type: TPieceOfToast['type'],
+    timeout?: number
+  ) => {
     const id = random.randomString()
     const toastClose = () => removeById(id)
     const piece: TPieceOfToast = {
@@ -23,14 +27,14 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
       type,
       remove: toastClose,
     }
-    setTimeout(() => toastClose(), type === 'error' ? 5000 : 3000)
+    setTimeout(() => toastClose(), timeout ?? type === 'error' ? 5000 : 3000)
     return piece
   }
   return $(ToasterContext.Provider, {
     value: {
       toasts,
-      notify: (message) =>
-        toastsSet((i) => [...i, createToast(message, 'normal')]),
+      notify: (message, time) =>
+        toastsSet((i) => [...i, createToast(message, 'normal', time)]),
       error: (message) =>
         toastsSet((i) => [...i, createToast(message, 'error')]),
     },

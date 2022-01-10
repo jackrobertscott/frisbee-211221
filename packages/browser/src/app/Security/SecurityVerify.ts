@@ -57,7 +57,7 @@ export const SecurityVerify: FC<{email?: string}> = ({email: _email}) => {
       }),
       $(FormRow, {
         children: addkeys([
-          $(FormLabel, {label: 'New Password'}),
+          $(FormLabel, {label: 'Password'}),
           $(InputString, {
             value: form.data.newPassword,
             valueSet: form.link('newPassword'),

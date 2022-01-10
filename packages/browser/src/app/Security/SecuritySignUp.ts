@@ -2,7 +2,6 @@ import {createElement as $, FC} from 'react'
 import {$SecuritySignUpRegular} from '../../endpoints/Security'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
-import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
 import {FormColumn} from '../Form/FormColumn'
@@ -13,6 +12,7 @@ import {InputBoolean} from '../Input/InputBoolean'
 import {InputSelect} from '../Input/InputSelect'
 import {InputString} from '../Input/InputString'
 import {Link} from '../Link'
+import {useToaster} from '../Toaster/useToaster'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
 /**
@@ -22,14 +22,13 @@ export const SecuritySignUp: FC<{
   email?: string
   savedEmailSet: (email: string) => void
 }> = ({email: _email, savedEmailSet}) => {
-  const auth = useAuth()
+  const toaster = useToaster()
   const $signUp = useEndpoint($SecuritySignUpRegular)
   const form = useForm({
     firstName: '',
     lastName: '',
     gender: undefined as undefined | string,
     email: _email ?? '',
-    password: '',
     termsAccepted: false,
     userAgent: navigator.userAgent,
   })
@@ -76,16 +75,6 @@ export const SecuritySignUp: FC<{
           }),
         ]),
       }),
-      $(FormRow, {
-        children: addkeys([
-          $(FormLabel, {label: 'Password'}),
-          $(InputString, {
-            value: form.data.password,
-            valueSet: form.link('password'),
-            type: 'password',
-          }),
-        ]),
-      }),
       $(FormColumn, {
         children: addkeys([
           $(FormRow, {
@@ -124,7 +113,8 @@ export const SecuritySignUp: FC<{
             .fetch({...form.data, gender: form.data.gender!})
             .then((data) => {
               savedEmailSet(data.user.email)
-              auth.login(data)
+              go.to(`/verify?email=${encodeURIComponent(form.data.email)}`)
+              toaster.notify('Please check your email inbox.', 8000)
             }),
       }),
       $(Link, {

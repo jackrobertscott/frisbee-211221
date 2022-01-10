@@ -26,9 +26,9 @@ export const Security: FC = () => {
       message: 'Please provide your email address.',
       render: () =>
         $(SecurityStatus, {
+          email: savedEmail,
           statusSet: (data) => {
             statusSet(data)
-            console.log(data)
             if (data.status === 'unknown') go.to('/sign-up')
             else if (data.status === 'passwordless')
               go.to(`/verify?email=${encodeURIComponent(data.email)}`)
@@ -113,7 +113,7 @@ export const Security: FC = () => {
       }),
       $('div', {
         className: css({
-          width: theme.fib[12],
+          maxWidth: theme.fib[12],
           border: theme.border(),
           background: theme.bg.string(),
           position: 'relative',

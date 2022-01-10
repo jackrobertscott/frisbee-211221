@@ -20,10 +20,11 @@ export interface TSecurityStatus {
  *
  */
 export const SecurityStatus: FC<{
+  email?: string
   statusSet: (data: TSecurityStatus) => void
-}> = ({statusSet}) => {
+}> = ({email: _email, statusSet}) => {
   const $status = useEndpoint($SecurityStatus)
-  const form = useForm({email: ''})
+  const form = useForm({email: _email ?? ''})
   const submit = () => $status.fetch(form.data).then(statusSet)
   return $(Form, {
     children: addkeys([

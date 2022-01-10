@@ -35,13 +35,22 @@ export default new Map<string, RequestHandler>([
       async () => {
         const user = await $User.maybeOne({email: regex.normalize(email)})
         let data: {status: string; email: string; firstName?: string}
-        if (!user) data = {status: 'unknown', email}
-        else if (!user.password) {
+        if (!user) {
+          data = {status: 'unknown', email}
+        } else if (!user.password) {
           data = {status: 'passwordless', email, firstName: user.firstName}
-          /**
-           * todo: send email to user containing password code...
-           */
-        } else data = {status: 'good', email, firstName: user.firstName}
+          const emailCode = await _sendUserEmailCode({
+            email: user.email,
+            firstName: user.firstName,
+            subject: 'Verify Email',
+          })
+          await $User.updateOne(
+            {id: user.id},
+            {emailCode, emailCodeCreatedOn: new Date().toISOString()}
+          )
+        } else {
+          data = {status: 'good', email: user.email, firstName: user.firstName}
+        }
         return data
       },
   }),
@@ -100,24 +109,24 @@ export default new Map<string, RequestHandler>([
       firstName: io.string(),
       lastName: io.string(),
       gender: io.enum(['male', 'female']),
-      password: io.string(),
       termsAccepted: io.boolean(),
       userAgent: io.optional(io.string()),
     }),
     handler: (body) => async () => {
-      if (body.password.length < 5)
-        throw new Error('Password must be at least 5 characters long.')
       if (!body.termsAccepted)
         throw new Error('Please accept our terms to create an account.')
       if (await $User.count({email: regex.normalize(body.email)}))
         throw new Error(`User already exists with email "${body.email}".`)
-      // const code = await _sendUserVerificationEmail(body.email, body.firstName)
+      const emailCode = await _sendUserEmailCode({
+        email: body.email,
+        firstName: body.firstName,
+        subject: 'Verify Email',
+      })
       const user = await $User.createOne({
         ...body,
-        password: await hash.encrypt(body.password),
-        emailVerified: false,
-        emailCode: random.generateId(), // code,
+        emailCode,
         emailCodeCreatedOn: new Date().toISOString(),
+        emailVerified: false,
       })
       const session = await gatekeeper.createUserSession(user, body.userAgent)
       return _createAuthPayload(user, session)
@@ -134,11 +143,15 @@ export default new Map<string, RequestHandler>([
         email: regex.normalize(email),
       })
       if (!user) throw new Error(`User with email ${email} does not exist.`)
-      const code = await _sendResetPasswordEmail(user.email, user.firstName)
+      const emailCode = await _sendUserEmailCode({
+        email: user.email,
+        firstName: user.firstName,
+        subject: 'Restore Account',
+      })
       await $User.updateOne(
         {id: user.id},
         {
-          emailCode: code,
+          emailCode,
           emailCodeCreatedOn: new Date().toISOString(),
         }
       )
@@ -161,13 +174,17 @@ export default new Map<string, RequestHandler>([
         throw new Error(`User with email ${body.email} does not exist.`)
       if (user.emailCode !== body.code.split('-').join('').split(' ').join(''))
         throw new Error(`Forgot password code is incorrect.`)
-      if (_userEmailCodeHasExpired(user.emailCodeCreatedOn)) {
-        const code = await _sendResetPasswordEmail(body.email, user.firstName)
+      if (_hasUserEmailCodeExpired(user.emailCodeCreatedOn)) {
+        const emailCode = await _sendUserEmailCode({
+          email: user.email,
+          firstName: user.firstName,
+          subject: 'Verify Email',
+        })
         await $User.updateOne(
           {id: user.id},
-          {emailCode: code, emailCodeCreatedOn: new Date().toISOString()}
+          {emailCode, emailCodeCreatedOn: new Date().toISOString()}
         )
-        const message = `Your forgot password code has expired. A new code has been sent to your email.`
+        const message = `Your code has expired. A new code has been sent to your email.`
         throw new Error(message)
       }
       if (body.newPassword.length < 5)
@@ -194,21 +211,20 @@ export default new Map<string, RequestHandler>([
       userAgent: io.optional(io.string()),
     }),
     handler: (body) => async () => {
-      const user = await $User.maybeOne({
-        email: regex.normalize(body.email),
-      })
+      const user = await $User.maybeOne({email: regex.normalize(body.email)})
       if (!user)
         throw new Error(`User with email ${body.email} does not exist.`)
       if (user.emailCode !== body.code.split('-').join('').split(' ').join(''))
         throw new Error(`Verification code is incorrect.`)
-      if (_userEmailCodeHasExpired(user.emailCodeCreatedOn)) {
-        const code = await _sendUserVerificationEmail(
-          body.email,
-          user.firstName
-        )
+      if (_hasUserEmailCodeExpired(user.emailCodeCreatedOn)) {
+        const emailCode = await _sendUserEmailCode({
+          email: user.email,
+          firstName: user.firstName,
+          subject: 'Verify Email',
+        })
         await $User.updateOne(
           {id: user.id},
-          {emailCode: code, emailCodeCreatedOn: new Date().toISOString()}
+          {emailCode, emailCodeCreatedOn: new Date().toISOString()}
         )
         const message = `Your verification code has expired. A new code has been sent to your email.`
         throw new Error(message)
@@ -246,15 +262,19 @@ export default new Map<string, RequestHandler>([
 /**
  *
  */
-const _sendUserVerificationEmail = async (email: string, firstName: string) => {
+const _sendUserEmailCode = async (data: {
+  email: string
+  firstName: string
+  subject: string
+}) => {
   const code = random.randomString(8)
   const codeSliced = `${code.slice(0, 4)}-${code.slice(4, 8)}`
   await mail.send({
-    to: [email],
-    subject: 'Please Verify Your Email',
+    to: [data.email],
+    subject: data.subject,
     html: `
-      Hey ${firstName},<br/><br/>
-      Your email verification code:<br/><br/>
+      Hey ${data.firstName},<br/><br/>
+      Your code is:<br/><br/>
       <strong>${codeSliced}</strong><br/><br/>
       The code will expire in 10 minutes.<br/><br/>
       Have a nice day.
@@ -269,30 +289,7 @@ const _sendUserVerificationEmail = async (email: string, firstName: string) => {
 /**
  *
  */
-const _sendResetPasswordEmail = async (email: string, firstName: string) => {
-  const code = random.randomString(8)
-  const codeSliced = `${code.slice(0, 4)}-${code.slice(4, 8)}`
-  await mail.send({
-    to: [email],
-    subject: 'Forgot Password',
-    html: `
-      Hey ${firstName},<br/><br/>
-      Your password reset code is:<br/><br/>
-      <strong>${codeSliced}</strong><br/><br/>
-      The code will expire in 10 minutes.<br/><br/>
-      Have a nice day.
-    `
-      .split('\n')
-      .map((i) => i.trim())
-      .join('\n')
-      .trim(),
-  })
-  return code
-}
-/**
- *
- */
-export const _userEmailCodeHasExpired = (
+export const _hasUserEmailCodeExpired = (
   createdOn: string,
   length: number = 10,
   type: string = 'minutes'

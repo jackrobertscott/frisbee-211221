@@ -33,7 +33,9 @@ export const FormMenu: FC<{
     }),
     children: options.length
       ? options.map((option) => {
-          const color = option.color ? hsla.digest(option.color) : theme.bg
+          const bg = option.color ? hsla.digest(option.color) : theme.bg
+          const font =
+            bg !== undefined && bg?.l < 55 ? hsla.create(0, 0, 100) : undefined
           return $('div', {
             key: option.key ?? option.label,
             onClick: option.click,
@@ -42,13 +44,14 @@ export const FormMenu: FC<{
               justifyContent: 'space-between',
               userSelect: 'none',
               fontFamily: option.family,
-              background: color.string(),
+              color: font?.string(),
+              background: bg.string(),
               padding: theme.padify(theme.fib[4]),
               '&:hover': option.click && {
-                background: color.hover(),
+                background: bg.hover(),
               },
               '&:active': option.click && {
-                background: color.press(),
+                background: bg.press(),
               },
               '& > div': {
                 fontFamily: 'unset',
