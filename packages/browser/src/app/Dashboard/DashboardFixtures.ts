@@ -21,6 +21,7 @@ import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useEndpoint} from '../useEndpoint'
 import {useLocalState} from '../useLocalState'
+import {FormColumn} from '../Form/FormColumn'
 /**
  *
  */
@@ -56,9 +57,8 @@ export const DashboardFixtures: FC = () => {
             ? $(Spinner)
             : $('div', {
                 className: css({
-                  border: theme.border(),
                   '& > *:not(:last-child)': {
-                    borderBottom: theme.border(),
+                    marginBottom: theme.fib[5],
                   },
                 }),
                 children: rounds.length
@@ -145,7 +145,7 @@ const _DashboardFixturesCreate: FC<{
   toggle: () => void
   editingSet: (fixture: TFixture) => void
 }> = ({fixture, teams, open, isAdmin, toggle, editingSet}) => {
-  return $('div', {
+  return $(FormColumn, {
     children: addkeys([
       $('div', {
         onClick: () => toggle(),
@@ -153,8 +153,9 @@ const _DashboardFixturesCreate: FC<{
           display: 'flex',
           justifyContent: 'space-between',
           userSelect: 'none',
+          border: theme.border(),
           background: theme.bgMinor.string(),
-          padding: theme.padify(theme.fib[5]),
+          padding: theme.padify(theme.fib[4]),
           '&:hover': {
             background: theme.bgMinor.hover(),
           },
@@ -187,15 +188,7 @@ const _DashboardFixturesCreate: FC<{
         ]),
       }),
       open &&
-        $('div', {
-          className: css({
-            borderTop: theme.border(),
-            padding: theme.fib[5],
-            animation: `150ms linear ${fadein}`,
-            '& > *:not(:last-child)': {
-              marginBottom: theme.fib[5],
-            },
-          }),
+        $(FormColumn, {
           children: addkeys([
             $(Table, {
               head: {

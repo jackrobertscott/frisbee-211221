@@ -72,7 +72,6 @@ export const Dashboard: FC = () => {
           className: css({
             maxWidth: '100%',
             width: theme.fib[14] + theme.fib[12],
-            minHeight: theme.fib[11],
             border: theme.border(),
             background: theme.bg.string(),
           }),

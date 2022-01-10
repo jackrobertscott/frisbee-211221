@@ -2,6 +2,7 @@ import {css} from '@emotion/css'
 import {createElement as $, FC, useState} from 'react'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
+import {hsla} from '../../utils/hsla'
 import {FormMenu} from '../Form/FormMenu'
 import {Icon} from '../Icon'
 import {Popup} from '../Popup'
@@ -27,6 +28,11 @@ export const InputSelect: FC<{
 }> = ({value, valueSet, options, placeholder = '...', disabled, minWidth}) => {
   const [open, openSet] = useState(false)
   const current = options.find((i) => i.key === value)
+  const bg = disabled
+    ? theme.bgDisabled
+    : current?.color
+    ? hsla.digest(current?.color)
+    : theme.bg
   return $(Popup, {
     open,
     align: 'start',
@@ -44,10 +50,12 @@ export const InputSelect: FC<{
         display: 'flex',
         justifyContent: 'space-between',
         whiteSpace: 'pre-line',
-        background: disabled
-          ? theme.bgDisabled.string()
-          : current?.color ?? theme.bg.string(),
-        color: current ? undefined : theme.fontMinor.string(),
+        background: bg.string(),
+        color: current
+          ? bg.l < 55
+            ? hsla.string(0, 0, 100)
+            : undefined
+          : theme.fontMinor.string(),
         padding: theme.padify(theme.fib[4]),
         border: theme.border(),
       }),

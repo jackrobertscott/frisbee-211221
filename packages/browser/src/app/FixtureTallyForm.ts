@@ -84,6 +84,12 @@ export const FixtureTallyForm: FC<{
                     children: form.data.games.map((game) => {
                       const team1 = teams.find((i) => i.id === game.team1Id)
                       const team2 = teams.find((i) => i.id === game.team2Id)
+                      const team1Bg = team1?.color
+                        ? hsla.digest(team1?.color)
+                        : undefined
+                      const team2Bg = team2?.color
+                        ? hsla.digest(team2?.color)
+                        : undefined
                       const gamePatch = (data: Partial<typeof game>) =>
                         form.patch({
                           games: form.data.games.map((i) => {
@@ -97,9 +103,11 @@ export const FixtureTallyForm: FC<{
                             $(FormLabel, {
                               grow: true,
                               label: team1?.name ?? '...',
-                              background: team1?.color
-                                ? hsla.digest(team1?.color)
-                                : undefined,
+                              background: team1Bg,
+                              font:
+                                team1Bg && team1Bg.l < 55
+                                  ? hsla.create(0, 0, 100)
+                                  : undefined,
                             }),
                             $(InputNumber, {
                               value: game.team1Score,
@@ -109,9 +117,11 @@ export const FixtureTallyForm: FC<{
                             $(FormLabel, {
                               grow: true,
                               label: team2?.name ?? '...',
-                              background: team2?.color
-                                ? hsla.digest(team2?.color)
-                                : undefined,
+                              background: team2Bg,
+                              font:
+                                team2Bg && team2Bg.l < 55
+                                  ? hsla.create(0, 0, 100)
+                                  : undefined,
                             }),
                             $(InputNumber, {
                               value: game.team2Score,
