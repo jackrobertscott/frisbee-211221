@@ -33,16 +33,15 @@ import {useForm} from '../useForm'
 export const DashboardUsers: FC = () => {
   const auth = useAuth()
   const $userList = useEndpoint($UserList)
-  const seasonId = auth.current?.season?.id
   const [users, usersSet] = useState<TUser[]>()
-  const [currentId, currentIdSet] = useState<string>()
   const [creating, creatingSet] = useState(false)
+  const [currentId, currentIdSet] = useState<string>()
   const current = currentId && users?.find((i) => currentId === i.id)
   const reload = () => $userList.fetch({}).then(usersSet)
   useEffect(() => {
     if (!auth.isAdmin()) go.to('/')
-    if (seasonId) reload()
-  }, [seasonId])
+    reload()
+  }, [auth.current])
   return $(Fragment, {
     children: addkeys([
       $(Form, {
@@ -118,7 +117,6 @@ export const _DashboardUsersCreate: FC<{
     lastName: '',
     email: '',
     gender: undefined as undefined | string,
-    password: undefined as undefined | string,
     termsAccepted: false,
   })
   return $(Modal, {
@@ -170,16 +168,6 @@ export const _DashboardUsersCreate: FC<{
               $(InputString, {
                 value: form.data.email,
                 valueSet: form.link('email'),
-              }),
-            ]),
-          }),
-          $(FormRow, {
-            children: addkeys([
-              $(FormLabel, {label: 'Password'}),
-              $(InputString, {
-                value: form.data.password,
-                valueSet: form.link('password'),
-                type: 'password',
               }),
             ]),
           }),

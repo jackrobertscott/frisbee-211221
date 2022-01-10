@@ -26,8 +26,8 @@ export const $TeamGetOfSeason = createEndpoint({
 /**
  *
  */
-export const $TeamCreate = createEndpoint({
-  path: '/TeamCreate',
+export const $TeamCreateCurrent = createEndpoint({
+  path: '/TeamCreateCurrent',
   payload: io.object({
     seasonId: io.string(),
     name: io.string(),
@@ -64,6 +64,18 @@ export const $TeamUpdate = createEndpoint({
   path: '/TeamUpdate',
   payload: io.object({
     teamId: io.string(),
+    name: io.string(),
+    color: io.string(),
+  }),
+  result: ioTeam,
+})
+/**
+ *
+ */
+export const $TeamCreate = createEndpoint({
+  path: '/TeamCreate',
+  payload: io.object({
+    seasonId: io.string(),
     name: io.string(),
     color: io.string(),
   }),

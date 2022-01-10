@@ -1,5 +1,5 @@
 import {createElement as $, FC} from 'react'
-import {$TeamCreate} from '../endpoints/Team'
+import {$TeamCreateCurrent} from '../endpoints/Team'
 import {TTeam} from '../schemas/ioTeam'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -24,7 +24,7 @@ export const TeamCreate: FC<{
   close: () => void
   done: (team: TTeam) => void
 }> = ({seasonId, close, done}) => {
-  const $create = useEndpoint($TeamCreate)
+  const $create = useEndpoint($TeamCreateCurrent)
   const form = useForm({
     name: '',
     color: SIMPLE_COLORS[0].string(),

@@ -70,7 +70,6 @@ export const $UserCreate = createEndpoint({
     firstName: io.string(),
     lastName: io.string(),
     gender: io.string(),
-    password: io.optional(io.string()),
     termsAccepted: io.boolean(),
   }),
   result: ioUser,

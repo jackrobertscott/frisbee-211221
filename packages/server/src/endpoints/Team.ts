@@ -57,7 +57,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/TeamCreate',
+    path: '/TeamCreateCurrent',
     payload: io.object({
       seasonId: io.string(),
       name: io.string(),
@@ -138,5 +138,21 @@ export default new Map<string, RequestHandler>([
           {...body, updatedOn: new Date().toISOString()}
         )
       },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/TeamCreate',
+    payload: io.object({
+      seasonId: io.string(),
+      name: io.string(),
+      color: io.string(),
+    }),
+    handler: (body) => async (req) => {
+      await requireUserAdmin(req)
+      await $Season.getOne({id: body.seasonId})
+      return $Team.createOne(body)
+    },
   }),
 ])

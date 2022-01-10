@@ -1,9 +1,10 @@
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$TeamListOfSeason, $TeamUpdate} from '../../endpoints/Team'
+import {$TeamCreate, $TeamListOfSeason, $TeamUpdate} from '../../endpoints/Team'
 import {TTeam} from '../../schemas/ioTeam'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
+import {SIMPLE_COLORS} from '../../utils/colors'
 import {go} from '../../utils/go'
 import {objectify} from '../../utils/objectify'
 import {useAuth} from '../Auth/useAuth'
@@ -29,11 +30,13 @@ export const DashboardTeams: FC = () => {
   const $teamList = useEndpoint($TeamListOfSeason)
   const seasonId = auth.current?.season?.id
   const [teams, teamsSet] = useState<TTeam[]>()
+  const [creating, creatingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
   const current = currentId && teams?.find((i) => i.id === currentId)
+  const reload = () => seasonId && $teamList.fetch({seasonId}).then(teamsSet)
   useEffect(() => {
     if (!auth.isAdmin()) go.to('/')
-    if (seasonId) $teamList.fetch({seasonId: seasonId}).then(teamsSet)
+    reload()
   }, [seasonId, auth.current])
   return $(Fragment, {
     children: addkeys([
@@ -43,6 +46,7 @@ export const DashboardTeams: FC = () => {
           $(FormBadge, {
             label: 'Create Team',
             background: theme.bgAdmin,
+            click: () => creatingSet(true),
           }),
           $(Fragment, {
             children:
@@ -76,6 +80,14 @@ export const DashboardTeams: FC = () => {
       }),
       $(Fragment, {
         children:
+          creating &&
+          $(_DashboardTeamsCreate, {
+            teamSet: () => reload(),
+            close: () => creatingSet(false),
+          }),
+      }),
+      $(Fragment, {
+        children:
           current &&
           $(_DashboardTeamsView, {
             team: current,
@@ -83,6 +95,60 @@ export const DashboardTeams: FC = () => {
               teamsSet((x) => x?.map((z) => (z.id === i.id ? i : z))),
             close: () => currentIdSet(undefined),
           }),
+      }),
+    ]),
+  })
+}
+/**
+ *
+ */
+export const _DashboardTeamsCreate: FC<{
+  teamSet: (team: TTeam) => void
+  close: () => void
+}> = ({teamSet, close}) => {
+  const auth = useAuth()
+  const $teamCreate = useEndpoint($TeamCreate)
+  const form = useForm({
+    name: '',
+    color: SIMPLE_COLORS[0].string(),
+    seasonId: auth.current?.season?.id!,
+  })
+  return $(Modal, {
+    children: addkeys([
+      $(TopBar, {
+        title: 'New Team',
+        children: $(TopBarBadge, {
+          icon: 'times',
+          click: close,
+        }),
+      }),
+      $(Form, {
+        background: theme.bgMinor,
+        children: addkeys([
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {label: 'Name'}),
+              $(InputString, {
+                value: form.data.name,
+                valueSet: form.link('name'),
+              }),
+            ]),
+          }),
+          $(FormColumn, {
+            children: addkeys([
+              $(FormLabel, {label: 'Color'}),
+              $(InputSimpleColor, {
+                value: form.data.color,
+                valueSet: form.link('color'),
+              }),
+            ]),
+          }),
+          $(FormBadge, {
+            disabled: $teamCreate.loading,
+            label: $teamCreate.loading ? 'Loading' : 'Submit',
+            click: () => $teamCreate.fetch(form.data).then(teamSet).then(close),
+          }),
+        ]),
       }),
     ]),
   })

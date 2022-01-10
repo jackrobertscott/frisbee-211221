@@ -8,6 +8,8 @@ import {go} from '../../utils/go'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
+import {FormColumn} from '../Form/FormColumn'
+import {FormHelp} from '../Form/FormHelp'
 import {FormLabel} from '../Form/FormLabel'
 import {FormRow} from '../Form/FormRow'
 import {InputString} from '../Input/InputString'
@@ -55,14 +57,21 @@ export const SecurityVerify: FC<{email?: string}> = ({email: _email}) => {
           }),
         ]),
       }),
-      $(FormRow, {
+      $(FormColumn, {
         children: addkeys([
-          $(FormLabel, {label: 'Password'}),
-          $(InputString, {
-            value: form.data.newPassword,
-            valueSet: form.link('newPassword'),
-            type: 'password',
-            enter: submit,
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {label: 'Password'}),
+              $(InputString, {
+                value: form.data.newPassword,
+                valueSet: form.link('newPassword'),
+                type: 'password',
+                enter: submit,
+              }),
+            ]),
+          }),
+          $(FormHelp, {
+            children: 'Add a password to your account.',
           }),
         ]),
       }),
