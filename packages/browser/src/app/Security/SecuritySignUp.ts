@@ -1,5 +1,6 @@
 import {createElement as $, FC} from 'react'
 import {$SecuritySignUpRegular} from '../../endpoints/Security'
+import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
 import {Form} from '../Form/Form'
@@ -119,7 +120,8 @@ export const SecuritySignUp: FC<{
       }),
       $(Link, {
         label: 'Login',
-        click: () => go.to('/login'),
+        font: theme.fontMinor,
+        href: '/login',
       }),
     ]),
   })

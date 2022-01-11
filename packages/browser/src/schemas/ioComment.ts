@@ -9,6 +9,7 @@ export const ioComment = io.object({
   userId: io.string(),
   postId: io.string(),
   content: io.string(),
+  commentParentId: io.optional(io.string()),
 })
 /**
  *

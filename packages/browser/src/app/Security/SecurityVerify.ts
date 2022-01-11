@@ -3,6 +3,7 @@ import {
   $SecurityForgotSend,
   $SecurityForgotVerify,
 } from '../../endpoints/Security'
+import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
 import {useAuth} from '../Auth/useAuth'
@@ -81,6 +82,7 @@ export const SecurityVerify: FC<{email?: string}> = ({email: _email}) => {
         click: submit,
       }),
       $(Link, {
+        font: theme.fontMinor,
         label: $send.loading ? 'Loading' : 'Resend Code',
         click: () =>
           $send
@@ -88,8 +90,9 @@ export const SecurityVerify: FC<{email?: string}> = ({email: _email}) => {
             .then(() => toaster.notify('Please check your email inbox.')),
       }),
       $(Link, {
+        font: theme.fontMinor,
         label: 'Try New Email',
-        click: () => go.to('/status'),
+        href: '/status',
       }),
     ]),
   })

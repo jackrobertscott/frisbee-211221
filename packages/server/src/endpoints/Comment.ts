@@ -39,6 +39,7 @@ export default new Map<string, RequestHandler>([
     payload: io.object({
       postId: io.string(),
       content: io.string(),
+      commentParentId: io.optional(io.string()),
     }),
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)

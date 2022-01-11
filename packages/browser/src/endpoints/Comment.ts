@@ -24,6 +24,7 @@ export const $CommentCreate = createEndpoint({
   payload: io.object({
     postId: io.string(),
     content: io.string(),
+    commentParentId: io.optional(io.string()),
   }),
   result: ioComment,
 })

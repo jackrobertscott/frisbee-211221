@@ -70,23 +70,26 @@ export const SecurityLogin: FC<{
         }),
         children: addkeys([
           $(Link, {
+            font: theme.fontMinor,
             label: 'Create Account',
-            click: () => go.to('/sign-up'),
+            href: '/sign-up',
           }),
           $(Link, {
+            font: theme.fontMinor,
             label: 'Forgot Password?',
-            click: () => {
+            href: (() => {
               let url = '/forgot-password'
               if (form.data.email)
                 url += `?email=${encodeURIComponent(form.data.email)}`
-              go.to(url)
-            },
+              return url
+            })(),
           }),
         ]),
       }),
       $(Link, {
+        font: theme.fontMinor,
         label: 'Try New Email',
-        click: () => go.to('/status'),
+        href: '/status',
       }),
     ]),
   })

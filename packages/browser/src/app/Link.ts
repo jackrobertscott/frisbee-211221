@@ -1,21 +1,29 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
-import {theme} from '../theme'
+import {go} from '../utils/go'
+import {THSLA} from '../utils/hsla'
 /**
  *
  */
 export const Link: FC<{
   label: string
+  href?: string
+  font?: THSLA
   click?: () => void
-}> = ({label, click}) => {
+}> = ({label, href, font, click}) => {
   return $('a', {
-    onClick: click,
+    href,
+    onClick: (event: MouseEvent) => {
+      event.preventDefault()
+      click?.()
+      if (href) go.to(href)
+    },
     children: label,
     className: css({
       userSelect: 'none',
       textAlign: 'center',
       textDecoration: 'underline',
-      color: theme.fontMinor.string(),
+      color: font?.string(),
       '&:hover': {
         opacity: 1,
       },

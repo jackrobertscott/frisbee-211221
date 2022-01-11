@@ -9,11 +9,12 @@ export const FormColumn: FC<{
   maxLength?: number
   maxWidth?: string | number
   grow?: boolean
-}> = ({children: _children, maxLength, maxWidth, grow}) => {
+  shrink?: boolean
+}> = ({children: _children, maxLength, maxWidth, grow, shrink = false}) => {
   const children = $('div', {
     children: _children,
     className: css({
-      flexShrink: 0,
+      flexShrink: shrink ? undefined : 0,
       display: 'flex',
       flexDirection: 'column',
       flexGrow: grow ? 1 : undefined,
