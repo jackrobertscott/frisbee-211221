@@ -7,8 +7,8 @@ Todos:
 - [x] Admin user list page.
 - [x] Admin team list page.
 - [x] Admin to create another admin.
-- [ ] Admin to create a user.
-- [ ] Admin to create a team.
+- [x] Admin to create a user.
+- [x] Admin to create a team.
 - [ ] Admin to assign a member to team.
 - [ ] Admin import csv files with afda export.
 - [ ] Verify user email on sign up.
@@ -18,6 +18,8 @@ Todos:
 - [ ] Captain member management popup.
 - [ ] Make responsive for mobile.
 - [x] Fix font color on dark team.
+- [x] Add replying to comments.
+- [ ] Add rich text editor to posts.
 - [ ] Ability to contact admins.
 - [ ] Automated fixtures.
 - [ ] Facebook login.

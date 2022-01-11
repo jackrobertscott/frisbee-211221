@@ -3,6 +3,7 @@ import {createElement as $, FC} from 'react'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {Modal} from '../Modal'
+import {SideBar} from '../SideBar'
 import {TopBar} from '../TopBar'
 import {TopBarBadge} from '../TopBarBadge'
 import {useLocalRouter} from '../useLocalRouter'
@@ -37,7 +38,7 @@ export const Settings: FC<{close: () => void}> = ({close}) => {
     },
   ])
   return $(Modal, {
-    width: 610,
+    width: theme.fib[13],
     children: addkeys([
       $(TopBar, {
         title: 'Settings',
@@ -51,39 +52,13 @@ export const Settings: FC<{close: () => void}> = ({close}) => {
           display: 'flex',
         }),
         children: addkeys([
-          $('div', {
-            className: css({
-              minWidth: theme.fib[11],
-              maxWidth: theme.fib[11],
-              borderRight: theme.border(),
-              background: theme.bgMinor.string(),
-              paddingBottom: theme.fib[9],
-              '& > *': {
-                borderBottom: theme.border(),
-              },
-            }),
-            children: router.routes.map((route) => {
-              const isCurrent = route.path === router.current.path
-              return $('div', {
-                key: route.path,
-                children: `${isCurrent ? '- ' : ''}${route.title}`,
-                onClick: () => router.go(route.path),
-                className: css({
-                  userSelect: 'none',
-                  padding: theme.padify(theme.fib[4]),
-                  background: isCurrent ? theme.bg.string() : undefined,
-                  color: isCurrent
-                    ? theme.font.string()
-                    : theme.fontMinor.string(),
-                  '&:hover': {
-                    background: theme.bg.hover(),
-                  },
-                  '&:active': {
-                    background: theme.bg.press(),
-                  },
-                }),
-              })
-            }),
+          $(SideBar, {
+            options: router.routes.map((i) => ({
+              key: i.path,
+              label: i.title,
+              click: () => router.go(i.path),
+              active: i.path === router.current.path,
+            })),
           }),
           $('div', {
             children: router.render(),

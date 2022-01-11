@@ -27,21 +27,27 @@ import {TopBar} from '../TopBar'
 import {TopBarBadge} from '../TopBarBadge'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
+import {useSling} from '../useThrottle'
 /**
  *
  */
 export const DashboardUsers: FC = () => {
   const auth = useAuth()
   const $userList = useEndpoint($UserList)
+  const [search, searchSet] = useState('')
   const [users, usersSet] = useState<TUser[]>()
   const [creating, creatingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
   const current = currentId && users?.find((i) => currentId === i.id)
-  const reload = () => $userList.fetch({}).then(usersSet)
+  const userList = () => $userList.fetch({search}).then(usersSet)
+  const userListDelay = useSling(500, userList)
   useEffect(() => {
     if (!auth.isAdmin()) go.to('/')
-    reload()
+    else userList()
   }, [auth.current])
+  useEffect(() => {
+    if (users !== undefined) userListDelay()
+  }, [search])
   return $(Fragment, {
     children: addkeys([
       $(Form, {
@@ -51,6 +57,15 @@ export const DashboardUsers: FC = () => {
             label: 'Create User',
             background: theme.bgAdmin,
             click: () => creatingSet(true),
+          }),
+          $(Fragment, {
+            children:
+              !!users?.length &&
+              $(InputString, {
+                value: search,
+                valueSet: searchSet,
+                placeholder: 'Search',
+              }),
           }),
           $(Fragment, {
             children:
@@ -87,7 +102,7 @@ export const DashboardUsers: FC = () => {
         children:
           creating &&
           $(_DashboardUsersCreate, {
-            userSet: () => reload(),
+            userSet: () => userList(),
             close: () => creatingSet(false),
           }),
       }),

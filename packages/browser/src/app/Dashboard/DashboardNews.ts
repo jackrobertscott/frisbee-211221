@@ -7,10 +7,8 @@ import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
-import {InputString} from '../Input/InputString'
 import {PostCreate} from '../PostCreate'
 import {useEndpoint} from '../useEndpoint'
-import {useSling} from '../useThrottle'
 import {PostView} from '../PostView'
 import {FormBadge} from '../Form/FormBadge'
 import {Spinner} from '../Spinner'
@@ -19,26 +17,21 @@ import {Spinner} from '../Spinner'
  */
 export const DashboardNews: FC = () => {
   const auth = useAuth()
-  const [search, searchSet] = useState('')
   const [viewId, viewIdSet] = useState<string>()
   const [creating, creatingSet] = useState(false)
   const [posts, postsSet] = useState<TPost[]>()
   const $postList = useEndpoint($PostListOfSeason)
   const postList = () =>
     auth.current?.season &&
-    $postList.fetch({seasonId: auth.current?.season.id, search}).then(postsSet)
-  const postListDelay = useSling(500, postList)
+    $postList.fetch({seasonId: auth.current?.season.id}).then(postsSet)
   const postView = viewId ? posts?.find((i) => i.id === viewId) : undefined
-  useEffect(() => postListDelay(), [search])
+  useEffect(() => {
+    postList()
+  }, [])
   return $(Fragment, {
     children: addkeys([
       $(Form, {
         children: addkeys([
-          $(InputString, {
-            value: search,
-            valueSet: searchSet,
-            placeholder: 'Search',
-          }),
           auth.isAdmin() &&
             $(FormBadge, {
               label: 'Add Post',

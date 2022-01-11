@@ -20,7 +20,7 @@ export const $MemberListOfTeam = createEndpoint({
   path: '/MemberListOfTeam',
   payload: io.string(),
   result: io.object({
-    current: ioMember,
+    current: io.optional(ioMember),
     members: io.array(ioMember),
     users: io.array(ioUser),
   }),
@@ -33,6 +33,9 @@ export const $MemberCreate = createEndpoint({
   payload: io.object({
     teamId: io.string(),
     email: io.string(),
+    firstName: io.optional(io.string()),
+    lastName: io.optional(io.string()),
+    gender: io.optional(io.string()),
   }),
   result: ioMember,
 })
@@ -67,4 +70,5 @@ export const $MemberAcceptOrDecline = createEndpoint({
 export const $MemberSetCaptain = createEndpoint({
   path: '/MemberSetCaptain',
   payload: io.string(),
+  result: ioMember,
 })

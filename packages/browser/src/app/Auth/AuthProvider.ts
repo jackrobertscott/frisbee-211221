@@ -48,6 +48,7 @@ export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
       teamSet: (team) => {
         if (!current)
           throw new Error('Can not set team because user not logged in.')
+        if (team === undefined) return currentSet({...current, team})
         if (current.season?.id !== team.seasonId)
           throw new Error('Team does not match current season.')
         currentSet({...current, team})

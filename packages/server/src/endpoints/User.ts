@@ -134,12 +134,7 @@ export default new Map<string, RequestHandler>([
         throw new Error('The user must accept the terms and conditions.')
       if (await $User.count({email: regex.normalize(body.email)}))
         throw new Error(`User already exists with email "${body.email}".`)
-      return $User.createOne({
-        ...body,
-        emailVerified: false,
-        emailCode: random.generateId(), // code,
-        emailCodeCreatedOn: new Date().toISOString(),
-      })
+      return $User.createOne(body)
     },
   }),
 ])
