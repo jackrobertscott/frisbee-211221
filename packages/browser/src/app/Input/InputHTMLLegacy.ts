@@ -10,6 +10,7 @@ import {FormMenu} from '../Form/FormMenu'
 import {FormRow} from '../Form/FormRow'
 import {Popup} from '../Popup'
 import {InputString} from './InputString'
+import {useMedia} from '../Media/useMedia'
 /**
  *
  */
@@ -66,12 +67,14 @@ export const InputHTMLLegacy: FC<{
 const _InputHTMLActions: FC<{
   refHTML: MutableRefObject<HTMLElement | undefined>
 }> = ({refHTML}) => {
+  const media = useMedia()
   const range = useRef<Range>()
   return $('div', {
     className: css({
       border: theme.border(),
       background: theme.bgMinor.string(),
-      overflow: 'hidden',
+      paddingRight: theme.fib[6],
+      overflowY: 'hidden',
       display: 'flex',
       '& > *': {
         margin: -theme.borderWidth,
@@ -174,11 +177,11 @@ const _InputHTMLSelect: FC<{
   const [open, openSet] = useState(false)
   return $(Popup, {
     open,
-    align: 'start',
+    align: 'end',
     clickOutside: () => openSet(false),
     wrap: $(FormBadge, {
       icon,
-      click: () => openSet(true),
+      click: () => openSet((i) => !i),
     }),
     popup: $(FormMenu, {
       maxWidth: '100%',
@@ -213,11 +216,11 @@ const _InputHTMLAnchor: FC<{
   }
   return $(Popup, {
     open,
-    align: 'center',
+    align: 'end',
     clickOutside: () => openSet(false),
     wrap: $(FormBadge, {
       icon: 'link',
-      click: () => openSet(true),
+      click: () => openSet(!open),
     }),
     popup: $(Form, {
       width: theme.fib[12],
