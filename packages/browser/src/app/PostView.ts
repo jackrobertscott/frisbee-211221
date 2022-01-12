@@ -35,7 +35,6 @@ import {$PostDelete} from '../endpoints/Post'
 import {Spinner} from './Spinner'
 import {Link} from './Link'
 import {FormRow} from './Form/FormRow'
-import {InputString} from './Input/InputString'
 /**
  *
  */
@@ -153,7 +152,8 @@ export const PostView: FC<{
                         rows: 3,
                       }),
                       $(FormBadge, {
-                        label: 'Post',
+                        disabled: $commentCreate.loading,
+                        label: $commentCreate.loading ? 'Loading' : 'Post',
                         click: () =>
                           $commentCreate
                             .fetch({...form.data, postId: post.id})
@@ -214,7 +214,7 @@ export const PostView: FC<{
             options: [
               {label: 'Cancel', click: () => deletingSet(false)},
               {
-                label: 'Delete',
+                label: $postDelete.loading ? 'Loading' : 'Delete',
                 click: () =>
                   $postDelete.fetch({postId: post.id}).then(() => reload()),
               },
@@ -312,7 +312,10 @@ const _PostViewComment: FC<{
                           rows: 1,
                         }),
                         $(FormBadge, {
-                          icon: 'paper-plane',
+                          icon: $commentCreate.loading
+                            ? 'spinner'
+                            : 'paper-plane',
+                          disabled: $commentCreate.loading,
                           label: 'Post',
                           click: () =>
                             $commentCreate
@@ -354,7 +357,7 @@ const _PostViewComment: FC<{
             options: [
               {label: 'Cancel', click: () => deletingSet(undefined)},
               {
-                label: 'Delete',
+                label: $commentDelete.loading ? 'Loading' : 'Delete',
                 click: () =>
                   $commentDelete
                     .fetch({commentId: deleting.id})
