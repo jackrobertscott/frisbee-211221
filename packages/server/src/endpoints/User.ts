@@ -70,18 +70,20 @@ export default new Map<string, RequestHandler>([
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
       const regexSearch = regex.from(body.search ?? '')
-      return $User.getMany(
-        {
-          $or: [
-            {firstName: regexSearch},
-            {lastName: regexSearch},
-            {email: regexSearch},
-          ],
-        },
-        {
-          limit: body.limit,
-        }
-      )
+      const [count, users] = await Promise.all([
+        $User.count({}),
+        $User.getMany(
+          {
+            $or: [
+              {firstName: regexSearch},
+              {lastName: regexSearch},
+              {email: regexSearch},
+            ],
+          },
+          {limit: body.limit}
+        ),
+      ])
+      return {count, users}
     },
   }),
   /**

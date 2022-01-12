@@ -39,7 +39,7 @@ export const DashboardFixtures: FC = () => {
   const reload = () => {
     if (!auth.current?.season) return
     const seasonId = auth.current.season.id
-    $teamList.fetch({seasonId}).then(teamsSet)
+    $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))
     $roundList.fetch({seasonId}).then(roundsSet)
   }
   useEffect(() => reload(), [])

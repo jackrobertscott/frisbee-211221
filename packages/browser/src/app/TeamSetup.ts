@@ -41,7 +41,7 @@ export const TeamSetup: FC = () => {
     if (!auth.current?.season?.id) throw new Error('Season does not exist.')
     $teamList
       .fetch({seasonId: auth.current?.season?.id, search})
-      .then(teamsSet)
+      .then((i) => teamsSet(i.teams))
       .then(() => !loaded && loadedSet(true))
   })
   const memberList = () =>

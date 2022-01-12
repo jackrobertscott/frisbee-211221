@@ -25,10 +25,14 @@ export default new Map<string, RequestHandler>([
     handler: (body) => async (req) => {
       await requireUser(req)
       await $Season.getOne({id: body.seasonId})
-      return $Team.getMany({
-        seasonId: body.seasonId,
-        name: regex.from(body.search ?? ''),
-      })
+      const [count, teams] = await Promise.all([
+        $Team.count({seasonId: body.seasonId}),
+        $Team.getMany({
+          seasonId: body.seasonId,
+          name: regex.from(body.search ?? ''),
+        }),
+      ])
+      return {count, teams}
     },
   }),
   /**

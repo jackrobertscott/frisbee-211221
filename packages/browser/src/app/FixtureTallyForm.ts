@@ -47,8 +47,8 @@ export const FixtureTallyForm: FC<{
   const form = useForm<TFixtureForm>(fixture)
   useEffect(() => {
     if (auth.current?.season)
-      $teamList.fetch({seasonId: auth.current.season.id}).then((_teams) => {
-        teamsSet(_teams)
+      $teamList.fetch({seasonId: auth.current.season.id}).then((i) => {
+        teamsSet(i.teams)
       })
   }, [])
   useEffect(() => {

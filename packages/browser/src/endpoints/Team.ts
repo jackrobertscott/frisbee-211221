@@ -11,7 +11,10 @@ export const $TeamListOfSeason = createEndpoint({
     seasonId: io.string(),
     search: io.optional(io.string()),
   }),
-  result: io.array(ioTeam),
+  result: io.object({
+    count: io.number(),
+    teams: io.array(ioTeam),
+  }),
 })
 /**
  *

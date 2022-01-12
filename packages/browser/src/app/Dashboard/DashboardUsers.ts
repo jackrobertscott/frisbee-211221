@@ -16,7 +16,7 @@ import {
   $UserToggleAdmin,
   $UserUpdate,
 } from '../../endpoints/User'
-import { TSeason } from '../../schemas/ioSeason'
+import {TSeason} from '../../schemas/ioSeason'
 import {TUser} from '../../schemas/ioUser'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
@@ -47,12 +47,17 @@ export const DashboardUsers: FC = () => {
   const auth = useAuth()
   const $userList = useEndpoint($UserList)
   const [search, searchSet] = useState('')
+  const [count, countSet] = useState<number>()
   const [users, usersSet] = useState<TUser[]>()
   const [creating, creatingSet] = useState(false)
   const [importing, importingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
   const current = currentId && users?.find((i) => currentId === i.id)
-  const userList = () => $userList.fetch({search}).then(usersSet)
+  const userList = () =>
+    $userList.fetch({search}).then((i) => {
+      usersSet(i.users)
+      countSet(i.count)
+    })
   const userListDelay = useSling(500, userList)
   useEffect(() => {
     if (!auth.isAdmin()) go.to('/')
@@ -83,6 +88,10 @@ export const DashboardUsers: FC = () => {
                     placeholder: 'Search',
                   }),
               }),
+              count &&
+                $(FormBadge, {
+                  label: `${count} Total`,
+                }),
               $(FormBadge, {
                 label: 'Create User',
                 background: theme.bgAdmin,

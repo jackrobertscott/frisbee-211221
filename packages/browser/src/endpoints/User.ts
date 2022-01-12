@@ -34,7 +34,10 @@ export const $UserList = createEndpoint({
     search: io.optional(io.string().emptyok()),
     limit: io.optional(io.number()),
   }),
-  result: io.array(ioUser),
+  result: io.object({
+    count: io.number(),
+    users: io.array(ioUser),
+  }),
 })
 /**
  *

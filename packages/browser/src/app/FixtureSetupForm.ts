@@ -55,11 +55,11 @@ export const FixtureSetupForm: FC<{
   })
   useEffect(() => {
     if (auth.current?.season)
-      $teamList.fetch({seasonId: auth.current.season.id}).then((_teams) => {
-        teamsSet(_teams)
+      $teamList.fetch({seasonId: auth.current.season.id}).then((i) => {
+        teamsSet(i.teams)
         if (!form.data.games.length) {
           form.patch({
-            games: new Array(Math.floor(_teams.length / 2))
+            games: new Array(Math.floor(i.teams.length / 2))
               .fill(0)
               .map(() => ({id: random.randomString()})),
           })

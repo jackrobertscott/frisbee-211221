@@ -32,12 +32,17 @@ export const DashboardTeams: FC = () => {
   const $teamList = useEndpoint($TeamListOfSeason)
   const seasonId = auth.current?.season?.id
   const [search, searchSet] = useState('')
+  const [count, countSet] = useState<number>()
   const [teams, teamsSet] = useState<TTeam[]>()
   const [creating, creatingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
   const current = currentId && teams?.find((i) => i.id === currentId)
   const teamList = () =>
-    seasonId && $teamList.fetch({seasonId, search}).then(teamsSet)
+    seasonId &&
+    $teamList.fetch({seasonId, search}).then((i) => {
+      teamsSet(i.teams)
+      countSet(i.count)
+    })
   const teamListDelay = useSling(500, teamList)
   useEffect(() => {
     if (!auth.isAdmin()) go.to('/')
@@ -68,6 +73,10 @@ export const DashboardTeams: FC = () => {
                     placeholder: 'Search',
                   }),
               }),
+              count &&
+                $(FormBadge, {
+                  label: `${count} Total`,
+                }),
               $(FormBadge, {
                 label: 'Create Team',
                 background: theme.bgAdmin,
