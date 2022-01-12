@@ -10,7 +10,7 @@ export default {
    */
   async send({
     to,
-    from = config.AWSFromEmail,
+    from = `${config.appName} <${config.AWSFromEmail}>`,
     subject,
     text,
     html,
@@ -31,7 +31,7 @@ export default {
       Message: {
         Subject: {
           Charset: 'UTF-8',
-          Data: `${subject.trim()} | ${config.appName}`,
+          Data: subject.trim(),
         },
         Body: {},
       },

@@ -10,16 +10,17 @@ export const InputBoolean: FC<{
   value?: boolean
   valueSet?: (value: boolean) => void
   disabled?: boolean
-}> = ({value, valueSet, disabled,}) => {
+  grow?: boolean
+}> = ({value, valueSet, disabled, grow = true}) => {
   return $('div', {
     onClick: () => !disabled && valueSet?.(!value),
     className: css({
       padding: 5,
-      flexGrow: 1,
+      flexGrow: grow ? 1 : undefined,
       display: 'flex',
       userSelect: 'none',
       border: theme.border(),
-      background: disabled ? theme.bgDisabled.string() :  theme.bg.string(),
+      background: disabled ? theme.bgDisabled.string() : theme.bg.string(),
       '&:hover': !disabled && {
         background: theme.bg.hover(),
       },

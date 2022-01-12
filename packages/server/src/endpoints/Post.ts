@@ -6,6 +6,9 @@ import {requireUser} from './requireUser'
 import {regex} from '../utils/regex'
 import {requireUserAdmin} from './requireUserAdmin'
 import {$Season} from '../tables/$Season'
+import mail from '../utils/mail'
+import {$Member} from '../tables/$Member'
+import {$User} from '../tables/$User'
 /**
  *
  */
@@ -39,14 +42,30 @@ export default new Map<string, RequestHandler>([
       seasonId: io.string(),
       title: io.string(),
       content: io.string(),
+      sendEmail: io.optional(io.boolean()),
     }),
     handler: (body) => async (req) => {
       const [user] = await requireUserAdmin(req)
       await $Season.getOne({id: body.seasonId})
-      return $Post.createOne({
+      const post = await $Post.createOne({
         ...body,
         userId: user.id,
       })
+      if (body.sendEmail) {
+        const memberCaptains = await $Member.getMany({
+          captain: true,
+          seasonId: body.seasonId,
+        })
+        const userCaptains = await $User.getMany({
+          id: {$in: memberCaptains.map((i) => i.userId)},
+        })
+        await mail.send({
+          to: userCaptains.map((i) => i.email),
+          subject: post.title,
+          text: post.content,
+        })
+      }
+      return post
     },
   }),
   /**

@@ -181,9 +181,11 @@ export const FixtureTallyForm: FC<{
                         })
                         const initials = (data?: string) =>
                           data
-                            ?.split(' ')
-                            .map((i) => i.charAt(0))
-                            .join('')
+                            ? data
+                                .split(' ')
+                                .map((i) => i.charAt(0))
+                                .join('')
+                            : '[?]'
                         return {
                           key: i.id,
                           data: {

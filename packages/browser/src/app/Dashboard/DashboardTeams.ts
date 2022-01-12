@@ -131,8 +131,10 @@ export const DashboardTeams: FC = () => {
           current &&
           $(TeamViewAdmin, {
             team: current,
-            teamSet: (i) =>
-              teamsSet((x) => x?.map((z) => (z.id === i.id ? i : z))),
+            teamSet: (i) => {
+              if (i) teamsSet((x) => x?.map((z) => (z.id === i.id ? i : z)))
+              else teamList()
+            },
             close: () => currentIdSet(undefined),
           }),
       }),

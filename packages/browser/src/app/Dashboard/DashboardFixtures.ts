@@ -203,8 +203,14 @@ const _DashboardFixturesCreate: FC<{
                 return {
                   key: game.id,
                   data: {
-                    one: {value: team1?.name, color: team1?.color},
-                    two: {value: team2?.name, color: team2?.color},
+                    one: {
+                      value: team1?.name ?? '[unknown]',
+                      color: team1?.color,
+                    },
+                    two: {
+                      value: team2?.name ?? '[unknown]',
+                      color: team2?.color,
+                    },
                     time: {value: game.time},
                     place: {value: game.place},
                   },

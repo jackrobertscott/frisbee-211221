@@ -72,6 +72,8 @@ export default new Map<string, RequestHandler>([
       const season = await $Season.getOne({id: body.seasonId})
       if (!season.signUpOpen)
         throw new Error('Season is not currently open for new team sign ups.')
+      if (await $Member.count({userId: user.id, seasonId: season.id}))
+        throw new Error('User is already a member of another team.')
       const team = await $Team.createOne(body)
       const member = await $Member.createOne({
         userId: user.id,
@@ -158,5 +160,21 @@ export default new Map<string, RequestHandler>([
       await $Season.getOne({id: body.seasonId})
       return $Team.createOne(body)
     },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/TeamDelete',
+    payload: io.object({
+      teamId: io.string(),
+    }),
+    handler:
+      ({teamId}) =>
+      async (req) => {
+        await requireUserAdmin(req)
+        await $Member.deleteMany({teamId})
+        await $Team.deleteOne({id: teamId})
+      },
   }),
 ])

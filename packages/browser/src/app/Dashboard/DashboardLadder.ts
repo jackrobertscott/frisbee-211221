@@ -206,9 +206,15 @@ const _LadderRound: FC<{
                 return {
                   key: game.id,
                   data: {
-                    team1: {value: team1?.name, color: team1?.color},
+                    team1: {
+                      value: team1?.name ?? '[unknown]',
+                      color: team1?.color,
+                    },
                     team1Score: {value: game.team1Score},
-                    team2: {value: team2?.name, color: team2?.color},
+                    team2: {
+                      value: team2?.name ?? '[unknown]',
+                      color: team2?.color,
+                    },
                     team2Score: {value: game.team2Score},
                   },
                 }

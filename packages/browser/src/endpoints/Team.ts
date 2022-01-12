@@ -84,3 +84,12 @@ export const $TeamCreate = createEndpoint({
   }),
   result: ioTeam,
 })
+/**
+ *
+ */
+export const $TeamDelete = createEndpoint({
+  path: '/TeamDelete',
+  payload: io.object({
+    teamId: io.string(),
+  }),
+})

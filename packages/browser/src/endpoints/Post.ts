@@ -22,6 +22,7 @@ export const $PostCreate = createEndpoint({
     seasonId: io.string(),
     title: io.string(),
     content: io.string(),
+    sendEmail: io.optional(io.boolean()),
   }),
   result: ioPost,
 })

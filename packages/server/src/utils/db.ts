@@ -122,10 +122,18 @@ export const db = {
       /**
        *
        */
-      async deleteOne(query: Filter<V>): Promise<Boolean> {
+      async deleteOne(query: Filter<V>): Promise<number> {
         const collection = await mongo.collection(options.key)
         const result = await collection.deleteOne(query as Filter<Document>)
-        return result.deletedCount === 1
+        return result.deletedCount
+      },
+      /**
+       *
+       */
+      async deleteMany(query: Filter<V>): Promise<number> {
+        const collection = await mongo.collection(options.key)
+        const result = await collection.deleteMany(query as Filter<Document>)
+        return result.deletedCount
       },
       /**
        *

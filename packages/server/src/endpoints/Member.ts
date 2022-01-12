@@ -86,7 +86,7 @@ export default new Map<string, RequestHandler>([
         }
         const member = await $Member.maybeOne({
           userId: user.id,
-          seasonId: team.id,
+          seasonId: team.seasonId,
         })
         if (member) {
           if (member.teamId !== team.id)
@@ -148,11 +148,7 @@ export default new Map<string, RequestHandler>([
         const message = 'You have already requested membership to this team.'
         throw new Error(message)
       }
-      const memberOfSeason = await $Member.maybeOne({
-        userId: user.id,
-        seasonId: team.seasonId,
-      })
-      if (memberOfSeason) {
+      if (await $Member.count({userId: user.id, seasonId: team.seasonId})) {
         const message = 'You have already requested membership to another team.'
         throw new Error(message)
       }

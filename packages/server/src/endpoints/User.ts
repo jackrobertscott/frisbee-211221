@@ -150,7 +150,7 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     path: '/UserImport',
     multipart: true,
-    handler: (body) => async (req) => {
+    handler: () => async (req) => {
       await requireUserAdmin(req)
       const [rawFiles, fields] = await blob.digestRequest(req)
       const seasonId = fields.get('seasonId')

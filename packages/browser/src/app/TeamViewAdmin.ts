@@ -1,7 +1,7 @@
-import {css} from '@emotion/css'
 import dayjs from 'dayjs'
-import {createElement as $, FC} from 'react'
-import {$TeamUpdate} from '../endpoints/Team'
+import {css} from '@emotion/css'
+import {createElement as $, FC, Fragment, useState} from 'react'
+import {$TeamDelete, $TeamUpdate} from '../endpoints/Team'
 import {TTeam} from '../schemas/ioTeam'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -14,6 +14,7 @@ import {FormRow} from './Form/FormRow'
 import {InputSimpleColor} from './Input/InputSimpleColor'
 import {InputString} from './Input/InputString'
 import {Modal} from './Modal'
+import {Question} from './Question'
 import {SideBar} from './SideBar'
 import {TeamMembersView} from './TeamMembersView'
 import {TopBar} from './TopBar'
@@ -26,9 +27,11 @@ import {useLocalRouter} from './useLocalRouter'
  */
 export const TeamViewAdmin: FC<{
   team: TTeam
-  teamSet: (team: TTeam) => void
+  teamSet: (team?: TTeam) => void
   close: () => void
 }> = ({team, teamSet, close}) => {
+  const [deleting, deletingSet] = useState(false)
+  const $teamDelete = useEndpoint($TeamDelete)
   const router = useLocalRouter('/edit', [
     {
       path: '/edit',
@@ -48,38 +51,69 @@ export const TeamViewAdmin: FC<{
         }),
     },
   ])
-  return $(Modal, {
-    width: theme.fib[13],
+  return $(Fragment, {
     children: addkeys([
-      $(TopBar, {
-        title: 'Team',
-        children: $(TopBarBadge, {
-          icon: 'times',
-          click: close,
-        }),
-      }),
-      $('div', {
-        className: css({
-          display: 'flex',
-        }),
+      $(Modal, {
+        width: theme.fib[13],
         children: addkeys([
-          $(SideBar, {
-            width: theme.fib[11] - theme.fib[8],
-            options: router.routes.map((i) => ({
-              key: i.path,
-              label: i.title,
-              click: () => router.go(i.path),
-              active: i.path === router.current.path,
-            })),
+          $(TopBar, {
+            title: 'Team',
+            children: addkeys([
+              $(TopBarBadge, {
+                icon: 'trash-alt',
+                label: 'Delete',
+                click: () => deletingSet(true),
+              }),
+              $(TopBarBadge, {
+                icon: 'times',
+                click: close,
+              }),
+            ]),
           }),
           $('div', {
-            children: router.render(),
             className: css({
-              flexGrow: 1,
-              background: theme.bgMinor.string(),
+              display: 'flex',
             }),
+            children: addkeys([
+              $(SideBar, {
+                width: theme.fib[11] - theme.fib[8],
+                options: router.routes.map((i) => ({
+                  key: i.path,
+                  label: i.title,
+                  click: () => router.go(i.path),
+                  active: i.path === router.current.path,
+                })),
+              }),
+              $('div', {
+                children: router.render(),
+                className: css({
+                  flexGrow: 1,
+                  background: theme.bgMinor.string(),
+                }),
+              }),
+            ]),
           }),
         ]),
+      }),
+      $(Fragment, {
+        children:
+          deleting &&
+          $(Question, {
+            title: 'Delete Team',
+            description: `Are you sure you wish to permanently delete this team?`,
+            close: () => deletingSet(false),
+            options: [
+              {label: 'Cancel', click: () => deletingSet(false)},
+              {
+                label: 'Delete',
+                click: () =>
+                  $teamDelete.fetch({teamId: team.id}).then(() => {
+                    teamSet(undefined)
+                    deletingSet(false)
+                  }),
+              },
+            ],
+          }),
       }),
     ]),
   })

@@ -9,6 +9,7 @@ import {FormBadge} from './Form/FormBadge'
 import {FormColumn} from './Form/FormColumn'
 import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
+import {InputBoolean} from './Input/InputBoolean'
 import {InputString} from './Input/InputString'
 import {InputTextarea} from './Input/InputTextarea'
 import {Modal} from './Modal'
@@ -28,6 +29,7 @@ export const PostCreate: FC<{
   const form = useForm({
     title: '',
     content: '',
+    sendEmail: false,
   })
   return $(Modal, {
     width: 610,
@@ -58,6 +60,16 @@ export const PostCreate: FC<{
                 rows: 10,
                 value: form.data.content,
                 valueSet: form.link('content'),
+              }),
+            ]),
+          }),
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {label: 'Email To Captains'}),
+              $(InputBoolean, {
+                value: form.data.sendEmail,
+                valueSet: form.link('sendEmail'),
+                grow: false,
               }),
             ]),
           }),
