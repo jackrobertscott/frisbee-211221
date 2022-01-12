@@ -83,20 +83,25 @@ export const MenuBarShadow: FC<{
     children,
     onClick: (event: MouseEvent) =>
       event.target === event.currentTarget && click(),
-    className:
-      !deactivated &&
-      css({
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
-        background: hsla.string(0, 0, 0, 0.25),
-        display: 'flex',
-        zIndex: 100,
-        '& > *': {
-          animation: `${slideright} 0.15s linear`,
-        },
-      }),
+    className: !deactivated
+      ? css({
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          background: hsla.string(0, 0, 0, 0.25),
+          display: 'flex',
+          zIndex: 100,
+          '& > *': {
+            animation: `${slideright} 0.15s linear`,
+          },
+        })
+      : css({
+          display: 'flex',
+          '& > *': {
+            flexGrow: 1,
+          },
+        }),
   })
 }

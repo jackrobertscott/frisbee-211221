@@ -72,75 +72,75 @@ export const DashboardUsers: FC = () => {
       $(Form, {
         background: theme.bgAdmin.lighten(5),
         children: addkeys([
-          $('div', {
-            className: css({
-              display: 'flex',
-              '& > *:not(:last-child)': {
-                marginRight: theme.fib[5],
-              },
-            }),
-            children: addkeys([
-              $(Fragment, {
-                children:
-                  !!users?.length &&
-                  $(InputString, {
-                    value: search,
-                    valueSet: searchSet,
-                    placeholder: 'Search',
-                  }),
-              }),
-              $(Fragment, {
-                children:
-                  media.width >= theme.fib[13] &&
-                  count &&
-                  $(FormBadge, {
-                    label: `${count} Total`,
-                  }),
-              }),
-              $(FormBadge, {
-                label: 'Create User',
-                background: theme.bgAdmin,
-                click: () => creatingSet(true),
-              }),
-              $(Fragment, {
-                children:
-                  media.width >= theme.fib[13] &&
-                  $(FormBadge, {
-                    label: 'Import CSV',
-                    background: theme.bgAdmin,
-                    click: () => importingSet(true),
-                  }),
-              }),
-            ]),
-          }),
           $(Fragment, {
             children:
               users === undefined
                 ? $(Spinner)
-                : $(Table, {
-                    head: {
-                      firstName: {label: 'First Name', grow: 3},
-                      lastName: {label: 'Last Name', grow: 3},
-                      gender: {label: 'Gender', grow: 3},
-                      createdOn: {label: 'Created', grow: 3},
-                      updatedOn: {label: 'Updated', grow: 3},
-                    },
-                    body: users.map((user) => ({
-                      key: user.id,
-                      click: () => currentIdSet(user.id),
-                      data: {
-                        firstName: {value: user.firstName},
-                        lastName: {value: user.lastName},
-                        gender: {value: user.gender},
-                        createdOn: {
-                          value: dayjs(user.createdOn).format('DD/MM/YYYY'),
+                : addkeys([
+                    $('div', {
+                      className: css({
+                        display: 'flex',
+                        '& > *:not(:last-child)': {
+                          marginRight: theme.fib[5],
                         },
-                        updatedOn: {
-                          value: dayjs(user.updatedOn).format('DD/MM/YYYY'),
-                        },
+                      }),
+                      children: addkeys([
+                        $(Fragment, {
+                          children: $(InputString, {
+                            value: search,
+                            valueSet: searchSet,
+                            placeholder: 'Search',
+                          }),
+                        }),
+                        $(Fragment, {
+                          children:
+                            media.width >= theme.fib[13] &&
+                            count &&
+                            $(FormBadge, {
+                              label: `${count} Total`,
+                            }),
+                        }),
+                        $(FormBadge, {
+                          label: 'Create User',
+                          background: theme.bgAdmin,
+                          click: () => creatingSet(true),
+                        }),
+                        $(Fragment, {
+                          children:
+                            media.width >= theme.fib[13] &&
+                            $(FormBadge, {
+                              label: 'Import CSV',
+                              background: theme.bgAdmin,
+                              click: () => importingSet(true),
+                            }),
+                        }),
+                      ]),
+                    }),
+                    $(Table, {
+                      head: {
+                        firstName: {label: 'First Name', grow: 3},
+                        lastName: {label: 'Last Name', grow: 3},
+                        gender: {label: 'Gender', grow: 3},
+                        createdOn: {label: 'Created', grow: 3},
+                        updatedOn: {label: 'Updated', grow: 3},
                       },
-                    })),
-                  }),
+                      body: users.map((user) => ({
+                        key: user.id,
+                        click: () => currentIdSet(user.id),
+                        data: {
+                          firstName: {value: user.firstName},
+                          lastName: {value: user.lastName},
+                          gender: {value: user.gender},
+                          createdOn: {
+                            value: dayjs(user.createdOn).format('DD/MM/YYYY'),
+                          },
+                          updatedOn: {
+                            value: dayjs(user.updatedOn).format('DD/MM/YYYY'),
+                          },
+                        },
+                      })),
+                    }),
+                  ]),
           }),
         ]),
       }),

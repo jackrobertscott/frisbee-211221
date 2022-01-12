@@ -57,65 +57,65 @@ export const DashboardTeams: FC = () => {
       $(Form, {
         background: theme.bgAdmin.lighten(5),
         children: addkeys([
-          $('div', {
-            className: css({
-              display: 'flex',
-              '& > *:not(:last-child)': {
-                marginRight: theme.fib[5],
-              },
-            }),
-            children: addkeys([
-              $(Fragment, {
-                children:
-                  !!teams?.length &&
-                  $(InputString, {
-                    value: search,
-                    valueSet: searchSet,
-                    placeholder: 'Search',
-                  }),
-              }),
-              $(Fragment, {
-                children:
-                  media.width >= theme.fib[13] &&
-                  count &&
-                  $(FormBadge, {
-                    label: `${count} Total`,
-                  }),
-              }),
-              $(FormBadge, {
-                label: 'Create Team',
-                background: theme.bgAdmin,
-                click: () => creatingSet(true),
-              }),
-            ]),
-          }),
           $(Fragment, {
             children:
               teams === undefined
                 ? $(Spinner)
-                : $(Table, {
-                    head: {
-                      name: {label: 'Name', grow: 1},
-                      createdOn: {label: 'Created', grow: 1},
-                      updatedOn: {label: 'Updated', grow: 1},
-                    },
-                    body: teams.map((team) => ({
-                      key: team.id,
-                      click: () => currentIdSet(team.id),
-                      data: {
-                        name: {
-                          value: team.name,
-                          color: team.color,
+                : addkeys([
+                    $('div', {
+                      className: css({
+                        display: 'flex',
+                        '& > *:not(:last-child)': {
+                          marginRight: theme.fib[5],
                         },
-                        createdOn: {
-                          value: dayjs(team.createdOn).format('DD/MM/YYYY'),
-                        },
-                        updatedOn: {
-                          value: dayjs(team.updatedOn).format('DD/MM/YYYY'),
-                        },
+                      }),
+                      children: addkeys([
+                        $(Fragment, {
+                          children: $(InputString, {
+                            value: search,
+                            valueSet: searchSet,
+                            placeholder: 'Search',
+                          }),
+                        }),
+                        $(Fragment, {
+                          children:
+                            media.width >= theme.fib[13] &&
+                            count &&
+                            $(FormBadge, {
+                              label: `${count} Total`,
+                            }),
+                        }),
+                        $(FormBadge, {
+                          label: 'Create Team',
+                          background: theme.bgAdmin,
+                          click: () => creatingSet(true),
+                        }),
+                      ]),
+                    }),
+                    $(Table, {
+                      head: {
+                        name: {label: 'Name', grow: 1},
+                        createdOn: {label: 'Created', grow: 1},
+                        updatedOn: {label: 'Updated', grow: 1},
                       },
-                    })),
-                  }),
+                      body: teams.map((team) => ({
+                        key: team.id,
+                        click: () => currentIdSet(team.id),
+                        data: {
+                          name: {
+                            value: team.name,
+                            color: team.color,
+                          },
+                          createdOn: {
+                            value: dayjs(team.createdOn).format('DD/MM/YYYY'),
+                          },
+                          updatedOn: {
+                            value: dayjs(team.updatedOn).format('DD/MM/YYYY'),
+                          },
+                        },
+                      })),
+                    }),
+                  ]),
           }),
         ]),
       }),
