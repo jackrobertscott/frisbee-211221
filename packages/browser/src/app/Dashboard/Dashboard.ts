@@ -267,7 +267,10 @@ const _DashboardSeasonBadge: FC = () => {
             auth.isAdmin() &&
               $(FormBadge, {
                 label: 'Create New Season',
-                click: () => creatingSet(true),
+                click: () => {
+                  creatingSet(true)
+                  openSet(false)
+                },
                 background: theme.bgAdmin,
               }),
           ]),
@@ -286,7 +289,7 @@ const _DashboardSeasonBadge: FC = () => {
                   }),
                   $(TopBarBadge, {
                     icon: 'times',
-                    click: () => openSet(false),
+                    click: () => creatingSet(false),
                   }),
                 ]),
               }),

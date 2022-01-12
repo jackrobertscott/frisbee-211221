@@ -16,11 +16,11 @@ Todos:
 - [x] Make responsive for mobile.
 - [x] Fix font color on dark team.
 - [x] Add replying to comments.
+- [x] Add rich text editor to posts.
 - [ ] Request for players tab.
 - [ ] Opt-in to emails i.e. when game fixtures are released.
 - [ ] Feedback / loading state for team sign up.
 - [ ] Admin send custom emails.
-- [ ] Add rich text editor to posts.
 - [ ] Captain member management popup.
 - [ ] Ability to contact admins.
 - [ ] Automated fixtures.
