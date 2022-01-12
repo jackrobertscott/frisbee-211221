@@ -24,6 +24,8 @@ import {Spinner} from './Spinner'
 import {FormBadge} from './Form/FormBadge'
 import {hsla} from '../utils/hsla'
 import {FormLabel} from './Form/FormLabel'
+import {useMedia} from './Media/useMedia'
+import {initials} from '../utils/initials'
 /**
  *
  */
@@ -32,6 +34,8 @@ export const ReportCreate: FC<{
   done: () => void
 }> = ({close, done}) => {
   const auth = useAuth()
+  const media = useMedia()
+  const isSmall = media.width < theme.fib[12]
   const [rounds, roundsSet] = useState<TFixture[]>()
   const [against, againstSet] = useState<{team: TTeam; users: TUser[]}>()
   const $roundList = useEndpoint($RoundListOfSeason)
@@ -104,15 +108,25 @@ export const ReportCreate: FC<{
                     children: $(FormRow, {
                       children: addkeys([
                         $(FormBadge, {
-                          label: auth.current.team.name,
+                          grow: true,
+                          label: isSmall
+                            ? initials(auth.current.team.name)
+                            : auth.current.team.name,
                           background: hsla.digest(auth.current.team.color),
+                          font: hsla
+                            .digest(auth.current.team.color)
+                            .compliment(),
                         }),
                         $(FormBadge, {
                           label: 'vs',
                         }),
                         $(FormBadge, {
-                          label: against.team.name,
+                          grow: true,
+                          label: isSmall
+                            ? initials(against.team.name)
+                            : against.team.name,
                           background: hsla.digest(against.team.color),
+                          font: hsla.digest(against.team.color).compliment(),
                         }),
                       ]),
                     }),
@@ -128,7 +142,7 @@ export const ReportCreate: FC<{
                 }),
                 $(FormRow, {
                   children: addkeys([
-                    $(FormLabel, {label: 'Opposition Score'}),
+                    $(FormLabel, {label: 'Against Score'}),
                     $(InputNumber, {
                       value: form.data.scoreAgainst,
                       valueSet: form.link('scoreAgainst'),

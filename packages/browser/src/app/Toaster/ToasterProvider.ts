@@ -45,13 +45,20 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
           position: 'fixed',
           zIndex: 1000,
           top: 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          padding: 34,
+          left: 0,
+          right: 0,
+          width: '100%',
           pointerEvents: 'none',
           transition: '150ms',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: theme.fib[7],
           '& > *:not(:last-child)': {
             marginBottom: theme.fib[6],
+          },
+          [theme.ltMedia(theme.fib[13])]: {
+            padding: theme.fib[5],
           },
         }),
         children: toasts.map((toast) => {
@@ -60,6 +67,7 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
             key: toast.id,
             className: css({
               width: 610,
+              maxWidth: '100%',
               display: 'flex',
               overflow: 'hidden',
               pointerEvents: 'all',

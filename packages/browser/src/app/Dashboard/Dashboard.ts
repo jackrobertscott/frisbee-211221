@@ -103,6 +103,7 @@ export const Dashboard: FC = () => {
                 $(TopBarBadge, {
                   grow: true,
                   label: auth.current?.season?.name ?? 'Dashboard',
+                  click: () => toaster.notify('hello'),
                 }),
                 $(Fragment, {
                   children:
