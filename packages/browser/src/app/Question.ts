@@ -6,8 +6,7 @@ import {THSLA} from '../utils/hsla'
 import {FormBadge} from './Form/FormBadge'
 import {Modal} from './Modal'
 import {Poster} from './Poster'
-import {TopBar} from './TopBar'
-import {TopBarBadge} from './TopBarBadge'
+import {TopBar, TopBarBadge} from './TopBar'
 /**
  *
  */
@@ -25,11 +24,16 @@ export const Question: FC<{
   return $(Modal, {
     children: addkeys([
       $(TopBar, {
-        title,
-        children: $(TopBarBadge, {
-          icon: 'times',
-          click: close,
-        }),
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: title,
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
       }),
       $(Poster, {
         title,

@@ -7,8 +7,7 @@ import {Form} from './Form/Form'
 import {FormBadge} from './Form/FormBadge'
 import {InputTextarea} from './Input/InputTextarea'
 import {Modal} from './Modal'
-import {TopBar} from './TopBar'
-import {TopBarBadge} from './TopBarBadge'
+import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
 /**
@@ -27,11 +26,16 @@ export const CommentEdit: FC<{
     width: 610,
     children: addkeys([
       $(TopBar, {
-        title: 'Edit Comment',
-        children: $(TopBarBadge, {
-          icon: 'times',
-          click: close,
-        }),
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: 'Edit Comment',
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
       }),
       $(Form, {
         background: theme.bgMinor,

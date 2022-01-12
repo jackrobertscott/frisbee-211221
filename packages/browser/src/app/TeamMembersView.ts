@@ -23,8 +23,7 @@ import {Modal} from './Modal'
 import {Question} from './Question'
 import {Spinner} from './Spinner'
 import {useToaster} from './Toaster/useToaster'
-import {TopBar} from './TopBar'
-import {TopBarBadge} from './TopBarBadge'
+import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
 /**
@@ -224,11 +223,16 @@ const _TeamMembersViewCreate: FC<{
   return $(Modal, {
     children: addkeys([
       $(TopBar, {
-        title: 'Add Member',
-        children: $(TopBarBadge, {
-          icon: 'times',
-          click: close,
-        }),
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: 'Add Member',
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
       }),
       $(Form, {
         background: theme.bgMinor,

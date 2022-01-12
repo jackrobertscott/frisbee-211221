@@ -15,13 +15,13 @@ import {InputSimpleColor} from './Input/InputSimpleColor'
 import {InputString} from './Input/InputString'
 import {Modal} from './Modal'
 import {Question} from './Question'
-import {SideBar} from './SideBar'
+import {MenuBar, MenuBarOption, MenuBarShadow, MenuBarSpacer} from './MenuBar'
 import {TeamMembersView} from './TeamMembersView'
-import {TopBar} from './TopBar'
-import {TopBarBadge} from './TopBarBadge'
+import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
 import {useLocalRouter} from './useLocalRouter'
+import {useMedia} from './Media/useMedia'
 /**
  *
  */
@@ -30,6 +30,10 @@ export const TeamViewAdmin: FC<{
   teamSet: (team?: TTeam) => void
   close: () => void
 }> = ({team, teamSet, close}) => {
+  const media = useMedia()
+  const bpSmall = theme.fib[13]
+  const isSmall = media.width < bpSmall
+  const [open, openSet] = useState(false)
   const [deleting, deletingSet] = useState(false)
   const $teamDelete = useEndpoint($TeamDelete)
   const router = useLocalRouter('/edit', [
@@ -57,8 +61,11 @@ export const TeamViewAdmin: FC<{
         width: theme.fib[13],
         children: addkeys([
           $(TopBar, {
-            title: 'Team',
             children: addkeys([
+              $(TopBarBadge, {
+                grow: true,
+                label: 'Team',
+              }),
               $(TopBarBadge, {
                 icon: 'trash-alt',
                 label: 'Delete',
@@ -73,22 +80,36 @@ export const TeamViewAdmin: FC<{
           $('div', {
             className: css({
               display: 'flex',
+              position: 'relative',
             }),
             children: addkeys([
-              $(SideBar, {
-                width: theme.fib[11] - theme.fib[8],
-                options: router.routes.map((i) => ({
-                  key: i.path,
-                  label: i.title,
-                  click: () => router.go(i.path),
-                  active: i.path === router.current.path,
-                })),
-              }),
+              (open || !isSmall) &&
+                $(MenuBarShadow, {
+                  click: () => openSet(false),
+                  deactivated: !isSmall,
+                  children: $(MenuBar, {
+                    width: theme.fib[11] - theme.fib[8],
+                    children: addkeys([
+                      $(Fragment, {
+                        children: router.routes.map((i) => {
+                          return $(MenuBarOption, {
+                            key: i.path,
+                            label: i.title,
+                            click: () => router.go(i.path),
+                            active: i.path === router.current.path,
+                          })
+                        }),
+                      }),
+                      $(MenuBarSpacer),
+                    ]),
+                  }),
+                }),
               $('div', {
                 children: router.render(),
                 className: css({
-                  flexGrow: 1,
+                  overflow: 'hidden',
                   background: theme.bgMinor.string(),
+                  flexGrow: 1,
                 }),
               }),
             ]),
@@ -155,7 +176,7 @@ export const _TeamViewAdminEdit: FC<{
         children: addkeys([
           $(FormLabel, {label: 'Created'}),
           $(FormLabel, {
-            label: dayjs(team.createdOn).format(theme.dateFormat),
+            label: dayjs(team.createdOn).format('DD/MM/YY h:mma'),
             background: theme.bgDisabled,
             grow: true,
           }),
@@ -165,7 +186,7 @@ export const _TeamViewAdminEdit: FC<{
         children: addkeys([
           $(FormLabel, {label: 'Last Updated'}),
           $(FormLabel, {
-            label: dayjs(team.updatedOn).format(theme.dateFormat),
+            label: dayjs(team.updatedOn).format('DD/MM/YY h:mma'),
             background: theme.bgDisabled,
             grow: true,
           }),

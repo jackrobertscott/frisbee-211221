@@ -17,8 +17,7 @@ import {Question} from './Question'
 import {Spinner} from './Spinner'
 import {TeamCreate} from './TeamCreate'
 import {useToaster} from './Toaster/useToaster'
-import {TopBar} from './TopBar'
-import {TopBarBadge} from './TopBarBadge'
+import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useSling} from './useThrottle'
 /**
@@ -64,11 +63,16 @@ export const TeamSetup: FC = () => {
           }),
           children: addkeys([
             $(TopBar, {
-              title: 'Join A Team',
-              children: $(TopBarBadge, {
-                icon: 'power-off',
-                click: () => logoutSet(true),
-              }),
+              children: addkeys([
+                $(TopBarBadge, {
+                  grow: true,
+                  label: 'Join A Team',
+                }),
+                $(TopBarBadge, {
+                  icon: 'power-off',
+                  click: () => logoutSet(true),
+                }),
+              ]),
             }),
             teams === undefined
               ? $(Form, {

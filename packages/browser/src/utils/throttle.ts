@@ -7,19 +7,19 @@ export const throttle = {
    * will replace their prior.
    */
   drip: (timeout: number, cb: (...args: any[]) => void) => {
-    let waiting = false
+    let last: number | undefined
     let next: undefined | (() => void)
     return (...args: any[]) => {
-      if (waiting) {
-        next = () => cb(...args)
-      } else {
+      next = () => {
         cb(...args)
-        waiting = true
+        last = Date.now()
         setTimeout(() => {
           if (next) next()
           next = undefined
-          waiting = false
         }, timeout)
+      }
+      if (!last || Date.now() - last > timeout) {
+        next()
       }
     }
   },

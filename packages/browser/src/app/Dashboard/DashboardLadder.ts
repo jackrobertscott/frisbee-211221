@@ -18,6 +18,8 @@ import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useEndpoint} from '../useEndpoint'
 import {FormColumn} from '../Form/FormColumn'
+import {useMedia} from '../Media/useMedia'
+import {initials} from '../../utils/initials'
 /**
  *
  */
@@ -44,7 +46,7 @@ export const DashboardLadder: FC = () => {
         children: addkeys([
           $(Table, {
             head: {
-              name: {label: 'Name', grow: 5},
+              name: {label: 'Name', grow: 4},
               games: {label: 'Games', grow: 1},
               points: {label: 'Points', grow: 1},
               wins: {label: 'Wins', grow: 1},
@@ -148,6 +150,8 @@ const _LadderRound: FC<{
   toggle: () => void
   editingSet: (fixture: TFixture) => void
 }> = ({fixture, teams, open, isAdmin, toggle, editingSet}) => {
+  const media = useMedia()
+  const isSmall = media.width < theme.fib[13]
   return $(FormColumn, {
     children: addkeys([
       $('div', {
@@ -195,10 +199,10 @@ const _LadderRound: FC<{
           children: addkeys([
             $(Table, {
               head: {
-                team1: {label: 'Team 1', grow: 2},
-                team1Score: {label: 'Score', grow: 1},
-                team2: {label: 'Team 2', grow: 2},
-                team2Score: {label: 'Score', grow: 1},
+                team1: {label: 'Team 1', grow: isSmall ? 1 : 2},
+                team1Score: {label: 'Score', grow: isSmall ? 1 : 1},
+                team2: {label: 'Team 2', grow: isSmall ? 1 : 2},
+                team2Score: {label: 'Score', grow: isSmall ? 1 : 1},
               },
               body: fixture.games.map((game) => {
                 const team1 = teams.find((i) => i.id === game.team1Id)
@@ -207,12 +211,16 @@ const _LadderRound: FC<{
                   key: game.id,
                   data: {
                     team1: {
-                      value: team1?.name ?? '[unknown]',
+                      value: isSmall
+                        ? initials(team1?.name)
+                        : team1?.name ?? '[unknown]',
                       color: team1?.color,
                     },
                     team1Score: {value: game.team1Score},
                     team2: {
-                      value: team2?.name ?? '[unknown]',
+                      value: isSmall
+                        ? initials(team2?.name)
+                        : team2?.name ?? '[unknown]',
                       color: team2?.color,
                     },
                     team2Score: {value: game.team2Score},

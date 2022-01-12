@@ -12,8 +12,7 @@ import {FormRow} from './Form/FormRow'
 import {InputSimpleColor} from './Input/InputSimpleColor'
 import {InputString} from './Input/InputString'
 import {Modal} from './Modal'
-import {TopBar} from './TopBar'
-import {TopBarBadge} from './TopBarBadge'
+import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
 /**
@@ -33,11 +32,16 @@ export const TeamCreate: FC<{
     width: theme.fib[12],
     children: addkeys([
       $(TopBar, {
-        title: 'New Team',
-        children: $(TopBarBadge, {
-          icon: 'times',
-          click: close,
-        }),
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: 'New Team',
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
       }),
       $(Form, {
         background: theme.bgMinor,

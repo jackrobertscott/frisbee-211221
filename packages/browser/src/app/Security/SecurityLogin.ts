@@ -3,7 +3,6 @@ import {createElement as $, FC} from 'react'
 import {$SecurityLoginPassword} from '../../endpoints/Security'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
-import {go} from '../../utils/go'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
@@ -66,6 +65,13 @@ export const SecurityLogin: FC<{
           justifyContent: 'center',
           '& > *:not(:last-child)': {
             marginRight: theme.fib[5],
+          },
+          [theme.ltMedia(theme.fib[12])]: {
+            flexDirection: 'column',
+            '& > *:not(:last-child)': {
+              marginRight: 0,
+              marginBottom: theme.fib[5],
+            },
           },
         }),
         children: addkeys([

@@ -27,4 +27,10 @@ export const theme = {
       throw new Error('Pixels must be greater than 3.')
     return `${pixels - this.fontInset}px ${pixels}px`
   },
+  gtMedia(pixels: number) {
+    return `@media (min-width: ${pixels}px)`
+  },
+  ltMedia(pixels: number) {
+    return `@media (max-width: ${pixels - 1}px)`
+  },
 }

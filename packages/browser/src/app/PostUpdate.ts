@@ -11,8 +11,7 @@ import {FormRow} from './Form/FormRow'
 import {InputString} from './Input/InputString'
 import {InputTextarea} from './Input/InputTextarea'
 import {Modal} from './Modal'
-import {TopBar} from './TopBar'
-import {TopBarBadge} from './TopBarBadge'
+import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
 /**
@@ -32,11 +31,16 @@ export const PostUpdate: FC<{
     width: 610,
     children: addkeys([
       $(TopBar, {
-        title: 'Edit Post',
-        children: $(TopBarBadge, {
-          icon: 'times',
-          click: close,
-        }),
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: 'Edit Post',
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
       }),
       $(Form, {
         background: theme.bgMinor,

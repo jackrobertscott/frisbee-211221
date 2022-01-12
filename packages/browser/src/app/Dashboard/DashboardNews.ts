@@ -12,6 +12,7 @@ import {useEndpoint} from '../useEndpoint'
 import {PostView} from '../PostView'
 import {FormBadge} from '../Form/FormBadge'
 import {Spinner} from '../Spinner'
+import {useMedia} from '../Media/useMedia'
 /**
  *
  */
@@ -79,6 +80,9 @@ const _NewsPost: FC<{
   post: TPost
   click: () => void
 }> = ({post, click}) => {
+  const media = useMedia()
+  const previewLength =
+    media.width < theme.fib[13] ? theme.fib[9] : theme.fib[12]
   return $(Fragment, {
     children: addkeys([
       $('div', {
@@ -107,8 +111,8 @@ const _NewsPost: FC<{
               }),
               $('div', {
                 children: post.content
-                  .slice(0, 377)
-                  .concat(post.content.length > 377 ? '...' : ''),
+                  .slice(0, previewLength)
+                  .concat(post.content.length > previewLength ? '...' : ''),
                 className: css({
                   color: theme.fontMinor.string(),
                   whiteSpace: 'pre-line',

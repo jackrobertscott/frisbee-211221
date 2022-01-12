@@ -1,20 +1,24 @@
 import {css} from '@emotion/css'
-import {createElement as $, FC} from 'react'
+import {createElement as $, FC, Fragment, useState} from 'react'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {Modal} from '../Modal'
-import {SideBar} from '../SideBar'
-import {TopBar} from '../TopBar'
-import {TopBarBadge} from '../TopBarBadge'
+import {MenuBar, MenuBarOption, MenuBarShadow, MenuBarSpacer} from '../MenuBar'
+import {TopBar, TopBarBadge} from '../TopBar'
 import {useLocalRouter} from '../useLocalRouter'
 import {SettingsAccount} from './SettingsAccount'
 import {SettingsMembers} from './SettingsMembers'
 import {SettingsPassword} from './SettingsPassword'
 import {SettingsTeam} from './SettingsTeam'
+import {useMedia} from '../Media/useMedia'
 /**
  *
  */
 export const Settings: FC<{close: () => void}> = ({close}) => {
+  const media = useMedia()
+  const bpSmall = theme.fib[13]
+  const isSmall = media.width < bpSmall
+  const [open, openSet] = useState(false)
   const router = useLocalRouter('/account', [
     {
       path: '/account',
@@ -41,25 +45,54 @@ export const Settings: FC<{close: () => void}> = ({close}) => {
     width: theme.fib[13],
     children: addkeys([
       $(TopBar, {
-        title: 'Settings',
-        children: $(TopBarBadge, {
-          icon: 'times',
-          click: close,
-        }),
+        children: addkeys([
+          $(Fragment, {
+            children:
+              isSmall &&
+              $(TopBarBadge, {
+                icon: open ? 'arrow-left' : 'bars',
+                click: () => openSet((i) => !i),
+              }),
+          }),
+          $(TopBarBadge, {
+            grow: true,
+            label: 'Settings',
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
       }),
       $('div', {
         className: css({
           display: 'flex',
+          position: 'relative',
         }),
         children: addkeys([
-          $(SideBar, {
-            options: router.routes.map((i) => ({
-              key: i.path,
-              label: i.title,
-              click: () => router.go(i.path),
-              active: i.path === router.current.path,
-            })),
-          }),
+          (open || !isSmall) &&
+            $(MenuBarShadow, {
+              click: () => openSet(false),
+              deactivated: !isSmall,
+              children: $(MenuBar, {
+                children: addkeys([
+                  $(Fragment, {
+                    children: router.routes.map((i) => {
+                      return $(MenuBarOption, {
+                        key: i.path,
+                        label: i.title,
+                        click: () => {
+                          router.go(i.path)
+                          if (open) openSet(false)
+                        },
+                        active: i.path === router.current.path,
+                      })
+                    }),
+                  }),
+                  $(MenuBarSpacer),
+                ]),
+              }),
+            }),
           $('div', {
             children: router.render(),
             className: css({

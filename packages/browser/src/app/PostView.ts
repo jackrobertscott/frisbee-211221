@@ -12,8 +12,7 @@ import {TPost} from '../schemas/ioPost'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {Modal} from './Modal'
-import {TopBar} from './TopBar'
-import {TopBarBadge} from './TopBarBadge'
+import {TopBar, TopBarBadge} from './TopBar'
 import {InputTextarea} from './Input/InputTextarea'
 import {useForm} from './useForm'
 import {FormColumn} from './Form/FormColumn'
@@ -67,8 +66,11 @@ export const PostView: FC<{
         width: theme.fib[14],
         children: addkeys([
           $(TopBar, {
-            title: 'Post',
             children: addkeys([
+              $(TopBarBadge, {
+                grow: true,
+                label: 'Post',
+              }),
               auth.isAdmin() &&
                 $(TopBarBadge, {
                   icon: 'wrench',
@@ -92,6 +94,9 @@ export const PostView: FC<{
           $('div', {
             className: css({
               display: 'flex',
+              [theme.ltMedia(theme.fib[14])]: {
+                flexDirection: 'column',
+              },
             }),
             children: addkeys([
               $('div', {
@@ -131,6 +136,11 @@ export const PostView: FC<{
                   padding: theme.fib[5],
                   '& > *:not(:last-child)': {
                     marginBottom: theme.fib[5],
+                  },
+                  [theme.ltMedia(theme.fib[14])]: {
+                    borderLeft: 'none',
+                    borderTop: theme.border(),
+                    width: '100%',
                   },
                 }),
                 children: addkeys([

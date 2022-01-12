@@ -12,8 +12,7 @@ import {FormColumn} from './Form/FormColumn'
 import {FormRow} from './Form/FormRow'
 import {InputNumber} from './Input/InputNumber'
 import {Modal} from './Modal'
-import {TopBar} from './TopBar'
-import {TopBarBadge} from './TopBarBadge'
+import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
 import {$ReportListOfRound} from '../endpoints/Report'
@@ -22,6 +21,7 @@ import {Table} from './Table'
 import {FormBadge} from './Form/FormBadge'
 import {hsla} from '../utils/hsla'
 import {FormLabel} from './Form/FormLabel'
+import {initials} from '../utils/initials'
 /**
  *
  */
@@ -58,8 +58,11 @@ export const FixtureTallyForm: FC<{
     width: theme.fib[14] + theme.fib[12] + theme.fib[6] * 2,
     children: addkeys([
       $(TopBar, {
-        title: fixture.title,
         children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: fixture.title,
+          }),
           $(TopBarBadge, {
             label: dayjs(fixture.date).format('D MMM YYYY'),
           }),
@@ -72,6 +75,9 @@ export const FixtureTallyForm: FC<{
       $('div', {
         className: css({
           display: 'flex',
+          [theme.ltMedia(theme.fib[13])]: {
+            flexDirection: 'column',
+          },
         }),
         children: addkeys([
           $(Form, {
@@ -156,6 +162,11 @@ export const FixtureTallyForm: FC<{
                 borderLeft: theme.border(),
                 background: theme.bgMinor.string(),
                 padding: theme.fib[5],
+                [theme.ltMedia(theme.fib[13])]: {
+                  borderLeft: 'none',
+                  borderTop: theme.border(),
+                  minWidth: 0,
+                },
               }),
               children: addkeys([
                 $('div', {
@@ -179,13 +190,6 @@ export const FixtureTallyForm: FC<{
                         const team2 = teams.find((x) => {
                           return x.id === i.teamAgainstId
                         })
-                        const initials = (data?: string) =>
-                          data
-                            ? data
-                                .split(' ')
-                                .map((i) => i.charAt(0))
-                                .join('')
-                            : '[?]'
                         return {
                           key: i.id,
                           data: {

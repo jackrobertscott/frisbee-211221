@@ -7,8 +7,7 @@ import {Center} from './Center'
 import {Poster} from './Poster'
 import {Question} from './Question'
 import {SeasonCreate} from './SeasonCreate'
-import {TopBar} from './TopBar'
-import {TopBarBadge} from './TopBarBadge'
+import {TopBar, TopBarBadge} from './TopBar'
 /**
  *
  */
@@ -26,11 +25,16 @@ export const SeasonSetup: FC = () => {
           }),
           children: addkeys([
             $(TopBar, {
-              title: 'New Season',
-              children: $(TopBarBadge, {
-                icon: 'power-off',
-                click: () => logoutSet(true),
-              }),
+              children: addkeys([
+                $(TopBarBadge, {
+                  grow: true,
+                  label: 'New Season',
+                }),
+                $(TopBarBadge, {
+                  icon: 'power-off',
+                  click: () => logoutSet(true),
+                }),
+              ]),
             }),
             auth.isAdmin()
               ? $(SeasonCreate, {

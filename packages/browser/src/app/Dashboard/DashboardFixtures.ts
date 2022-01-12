@@ -22,6 +22,8 @@ import {Table} from '../Table'
 import {useEndpoint} from '../useEndpoint'
 import {useLocalState} from '../useLocalState'
 import {FormColumn} from '../Form/FormColumn'
+import {useMedia} from '../Media/useMedia'
+import {initials} from '../../utils/initials'
 /**
  *
  */
@@ -63,7 +65,7 @@ export const DashboardFixtures: FC = () => {
                 }),
                 children: rounds.length
                   ? rounds.map((fixture) => {
-                      return $(_DashboardFixturesCreate, {
+                      return $(_DashboardFixturesView, {
                         key: fixture.id,
                         fixture,
                         teams,
@@ -137,7 +139,7 @@ export const DashboardFixtures: FC = () => {
 /**
  *
  */
-const _DashboardFixturesCreate: FC<{
+const _DashboardFixturesView: FC<{
   fixture: TFixture
   teams: TTeam[]
   open: boolean
@@ -145,6 +147,8 @@ const _DashboardFixturesCreate: FC<{
   toggle: () => void
   editingSet: (fixture: TFixture) => void
 }> = ({fixture, teams, open, isAdmin, toggle, editingSet}) => {
+  const media = useMedia()
+  const isSmall = media.width < theme.fib[13]
   return $(FormColumn, {
     children: addkeys([
       $('div', {
@@ -192,10 +196,10 @@ const _DashboardFixturesCreate: FC<{
           children: addkeys([
             $(Table, {
               head: {
-                one: {label: 'Team 1', grow: 2},
-                two: {label: 'Team 2', grow: 2},
-                time: {label: 'Time', grow: 1},
-                place: {label: 'Place', grow: 1},
+                one: {label: 'Team 1', grow: isSmall ? 2 : 2},
+                two: {label: 'Team 2', grow: isSmall ? 2 : 2},
+                time: {label: 'Time', grow: isSmall ? 2 : 1},
+                place: {label: 'Place', grow: isSmall ? 3 : 1},
               },
               body: fixture.games.map((game) => {
                 const team1 = teams.find((i) => i.id === game.team1Id)
@@ -204,11 +208,15 @@ const _DashboardFixturesCreate: FC<{
                   key: game.id,
                   data: {
                     one: {
-                      value: team1?.name ?? '[unknown]',
+                      value: isSmall
+                        ? initials(team1?.name)
+                        : team1?.name ?? '[unknown]',
                       color: team1?.color,
                     },
                     two: {
-                      value: team2?.name ?? '[unknown]',
+                      value: isSmall
+                        ? initials(team2?.name)
+                        : team2?.name ?? '[unknown]',
                       color: team2?.color,
                     },
                     time: {value: game.time},

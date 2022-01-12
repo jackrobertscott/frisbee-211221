@@ -15,8 +15,7 @@ import {FormRow} from './Form/FormRow'
 import {InputNumber} from './Input/InputNumber'
 import {InputSelect} from './Input/InputSelect'
 import {Modal} from './Modal'
-import {TopBar} from './TopBar'
-import {TopBarBadge} from './TopBarBadge'
+import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
 import {InputTextarea} from './Input/InputTextarea'
@@ -63,11 +62,16 @@ export const ReportCreate: FC<{
     width: 610,
     children: addkeys([
       $(TopBar, {
-        title: 'Score Report',
-        children: $(TopBarBadge, {
-          icon: 'times',
-          click: close,
-        }),
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: 'Score Report',
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
       }),
       $(Form, {
         background: theme.bgMinor,

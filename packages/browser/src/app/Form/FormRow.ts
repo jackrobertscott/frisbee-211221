@@ -18,7 +18,6 @@ export const FormRow: FC<{
       flexGrow: grow ? 1 : undefined,
       flexShrink: shrink ? undefined : 0,
       cursor: click ? 'default' : undefined,
-      overflow: 'hidden',
       display: 'flex',
       flexDirection: 'row',
       flexWrap: wrap ? 'wrap' : undefined,

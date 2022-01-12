@@ -17,8 +17,7 @@ import {InputDate} from './Input/InputDate'
 import {InputSelect} from './Input/InputSelect'
 import {InputString} from './Input/InputString'
 import {Modal} from './Modal'
-import {TopBar} from './TopBar'
-import {TopBarBadge} from './TopBarBadge'
+import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
 /**
@@ -70,11 +69,16 @@ export const FixtureSetupForm: FC<{
     width: theme.fib[14],
     children: addkeys([
       $(TopBar, {
-        title: 'New Fixture',
-        children: $(TopBarBadge, {
-          icon: 'times',
-          click: close,
-        }),
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: 'New Fixture',
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
       }),
       $(Form, {
         background: theme.bgMinor,
@@ -172,6 +176,7 @@ export const FixtureSetupForm: FC<{
                                 flexShrink: 1,
                                 flexBasis: 0,
                                 overflow: 'hidden',
+                                display: 'flex',
                               }),
                             })
                           })

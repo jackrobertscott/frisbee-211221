@@ -6,10 +6,11 @@ import {throttle} from '../utils/throttle'
 export const useSling = (timeout: number, cb: () => void) => {
   const ref = useRef(cb)
   ref.current = cb
-  const throttleRef = useRef(throttle.sling(timeout, () => ref.current()))
+  const handler = throttle.sling(timeout, () => ref.current())
+  const throttleRef = useRef(handler)
   useEffect(() => {
-    throttleRef.current = throttle.sling(timeout, () => ref.current())
-  }, [throttle])
+    throttleRef.current = handler
+  }, [timeout])
   return throttleRef.current
 }
 /**
@@ -18,9 +19,10 @@ export const useSling = (timeout: number, cb: () => void) => {
 export const useDrip = (timeout: number, cb: () => void) => {
   const ref = useRef(cb)
   ref.current = cb
-  const throttleRef = useRef(throttle.drip(timeout, () => ref.current()))
+  const handler = throttle.drip(timeout, () => ref.current())
+  const throttleRef = useRef(handler)
   useEffect(() => {
-    throttleRef.current = throttle.drip(timeout, () => ref.current())
-  }, [throttle])
+    throttleRef.current = handler
+  }, [timeout])
   return throttleRef.current
 }

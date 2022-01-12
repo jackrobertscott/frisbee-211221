@@ -40,11 +40,14 @@ export const InputSelect: FC<{
     clickOutside: () => openSet(false),
     style: {
       flexGrow: 1,
+      display: 'flex',
+      flexDirection: 'column',
     },
     wrap: $('div', {
       onClick: () => !disabled && openSet(true),
       className: css({
         minWidth,
+        flexGrow: 1,
         cursor: 'default',
         userSelect: 'none',
         display: 'flex',

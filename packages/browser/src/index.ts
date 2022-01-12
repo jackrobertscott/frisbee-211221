@@ -9,15 +9,18 @@ import {AuthProvider} from './app/Auth/AuthProvider'
 import {ToasterProvider} from './app/Toaster/ToasterProvider'
 import {RouterProvider} from './app/Router/RouterProvider'
 import {DepthProvider} from './app/Depth/DepthProvider'
+import {MediaProvider} from './app/Media/MediaProvider'
 /**
  *
  */
 const root = $(StrictMode, {
-  children: $(DepthProvider, {
-    children: $(ToasterProvider, {
-      children: $(AuthProvider, {
-        children: $(RouterProvider, {
-          children: $(App),
+  children: $(MediaProvider, {
+    children: $(DepthProvider, {
+      children: $(ToasterProvider, {
+        children: $(AuthProvider, {
+          children: $(RouterProvider, {
+            children: $(App),
+          }),
         }),
       }),
     }),

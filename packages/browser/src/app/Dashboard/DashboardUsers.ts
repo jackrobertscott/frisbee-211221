@@ -30,13 +30,13 @@ import {FormRow} from '../Form/FormRow'
 import {InputBoolean} from '../Input/InputBoolean'
 import {InputSelect} from '../Input/InputSelect'
 import {InputString} from '../Input/InputString'
+import {useMedia} from '../Media/useMedia'
 import {Modal} from '../Modal'
 import {Poster} from '../Poster'
 import {Question} from '../Question'
 import {Spinner} from '../Spinner'
 import {Table} from '../Table'
-import {TopBar} from '../TopBar'
-import {TopBarBadge} from '../TopBarBadge'
+import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
 import {useSling} from '../useThrottle'
@@ -45,6 +45,7 @@ import {useSling} from '../useThrottle'
  */
 export const DashboardUsers: FC = () => {
   const auth = useAuth()
+  const media = useMedia()
   const $userList = useEndpoint($UserList)
   const [search, searchSet] = useState('')
   const [count, countSet] = useState<number>()
@@ -88,19 +89,27 @@ export const DashboardUsers: FC = () => {
                     placeholder: 'Search',
                   }),
               }),
-              count &&
-                $(FormBadge, {
-                  label: `${count} Total`,
-                }),
+              $(Fragment, {
+                children:
+                  media.width >= theme.fib[13] &&
+                  count &&
+                  $(FormBadge, {
+                    label: `${count} Total`,
+                  }),
+              }),
               $(FormBadge, {
                 label: 'Create User',
                 background: theme.bgAdmin,
                 click: () => creatingSet(true),
               }),
-              $(FormBadge, {
-                label: 'Import CSV',
-                background: theme.bgAdmin,
-                click: () => importingSet(true),
+              $(Fragment, {
+                children:
+                  media.width >= theme.fib[13] &&
+                  $(FormBadge, {
+                    label: 'Import CSV',
+                    background: theme.bgAdmin,
+                    click: () => importingSet(true),
+                  }),
               }),
             ]),
           }),
@@ -110,11 +119,11 @@ export const DashboardUsers: FC = () => {
                 ? $(Spinner)
                 : $(Table, {
                     head: {
-                      firstName: {label: 'First Name', grow: 1},
-                      lastName: {label: 'Last Name', grow: 1},
-                      gender: {label: 'Gender', grow: 1},
-                      createdOn: {label: 'Created', grow: 1},
-                      updatedOn: {label: 'Updated', grow: 1},
+                      firstName: {label: 'First Name', grow: 3},
+                      lastName: {label: 'Last Name', grow: 3},
+                      gender: {label: 'Gender', grow: 3},
+                      createdOn: {label: 'Created', grow: 3},
+                      updatedOn: {label: 'Updated', grow: 3},
                     },
                     body: users.map((user) => ({
                       key: user.id,
@@ -196,11 +205,16 @@ export const _DashboardUsersImport: FC<{
       $(Modal, {
         children: addkeys([
           $(TopBar, {
-            title: 'Import CSV',
-            children: $(TopBarBadge, {
-              icon: 'times',
-              click: close,
-            }),
+            children: addkeys([
+              $(TopBarBadge, {
+                grow: true,
+                label: 'Import CSV',
+              }),
+              $(TopBarBadge, {
+                icon: 'times',
+                click: close,
+              }),
+            ]),
           }),
           !csv
             ? $(Form, {
@@ -258,11 +272,16 @@ export const _DashboardUsersCreate: FC<{
   return $(Modal, {
     children: addkeys([
       $(TopBar, {
-        title: 'New User',
-        children: $(TopBarBadge, {
-          icon: 'times',
-          click: close,
-        }),
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: 'New User',
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
       }),
       $(Form, {
         background: theme.bgMinor,
@@ -355,11 +374,16 @@ export const _DashboardUsersView: FC<{
       $(Modal, {
         children: addkeys([
           $(TopBar, {
-            title: 'User',
-            children: $(TopBarBadge, {
-              icon: 'times',
-              click: close,
-            }),
+            children: addkeys([
+              $(TopBarBadge, {
+                grow: true,
+                label: 'User',
+              }),
+              $(TopBarBadge, {
+                icon: 'times',
+                click: close,
+              }),
+            ]),
           }),
           $(Form, {
             background: theme.bgMinor,
@@ -409,7 +433,7 @@ export const _DashboardUsersView: FC<{
                 children: addkeys([
                   $(FormLabel, {label: 'Created'}),
                   $(FormLabel, {
-                    label: dayjs(user.createdOn).format(theme.dateFormat),
+                    label: dayjs(user.createdOn).format('DD/MM/YY h:mma'),
                     background: theme.bgDisabled,
                     grow: true,
                   }),
@@ -419,7 +443,7 @@ export const _DashboardUsersView: FC<{
                 children: addkeys([
                   $(FormLabel, {label: 'Last Updated'}),
                   $(FormLabel, {
-                    label: dayjs(user.updatedOn).format(theme.dateFormat),
+                    label: dayjs(user.updatedOn).format('DD/MM/YY h:mma'),
                     background: theme.bgDisabled,
                     grow: true,
                   }),

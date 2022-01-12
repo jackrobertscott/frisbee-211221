@@ -7,7 +7,9 @@ import {theme} from '../theme'
 export const Center: FC<{
   children: ReactNode
   click?: (event: MouseEvent) => void
-}> = ({children, click}) => {
+  breakpoint?: number
+  padding?: number
+}> = ({children, click, breakpoint = theme.fib[12], padding}) => {
   return $('div', {
     onClick: click,
     className: css({
@@ -18,6 +20,9 @@ export const Center: FC<{
       alignItems: 'center',
       justifyContent: 'center',
       overflow: 'auto',
+      [theme.ltMedia(breakpoint)]: {
+        flexDirection: 'column',
+      },
     }),
     children: $('div', {
       children,
@@ -29,7 +34,10 @@ export const Center: FC<{
         flexDirection: 'column',
         alignItems: 'center',
         overflowY: 'auto',
-        padding: theme.fib[6],
+        padding,
+        [theme.ltMedia(breakpoint)]: {
+          flexGrow: 1,
+        },
       }),
     }),
   })

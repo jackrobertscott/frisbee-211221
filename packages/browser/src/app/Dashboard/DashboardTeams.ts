@@ -15,12 +15,12 @@ import {FormLabel} from '../Form/FormLabel'
 import {FormRow} from '../Form/FormRow'
 import {InputSimpleColor} from '../Input/InputSimpleColor'
 import {InputString} from '../Input/InputString'
+import {useMedia} from '../Media/useMedia'
 import {Modal} from '../Modal'
 import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {TeamViewAdmin} from '../TeamViewAdmin'
-import {TopBar} from '../TopBar'
-import {TopBarBadge} from '../TopBarBadge'
+import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
 import {useSling} from '../useThrottle'
@@ -29,6 +29,7 @@ import {useSling} from '../useThrottle'
  */
 export const DashboardTeams: FC = () => {
   const auth = useAuth()
+  const media = useMedia()
   const $teamList = useEndpoint($TeamListOfSeason)
   const seasonId = auth.current?.season?.id
   const [search, searchSet] = useState('')
@@ -73,10 +74,14 @@ export const DashboardTeams: FC = () => {
                     placeholder: 'Search',
                   }),
               }),
-              count &&
-                $(FormBadge, {
-                  label: `${count} Total`,
-                }),
+              $(Fragment, {
+                children:
+                  media.width >= theme.fib[13] &&
+                  count &&
+                  $(FormBadge, {
+                    label: `${count} Total`,
+                  }),
+              }),
               $(FormBadge, {
                 label: 'Create Team',
                 background: theme.bgAdmin,
@@ -158,11 +163,16 @@ export const _DashboardTeamsCreate: FC<{
   return $(Modal, {
     children: addkeys([
       $(TopBar, {
-        title: 'New Team',
-        children: $(TopBarBadge, {
-          icon: 'times',
-          click: close,
-        }),
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: 'New Team',
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
       }),
       $(Form, {
         background: theme.bgMinor,

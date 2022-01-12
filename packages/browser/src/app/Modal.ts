@@ -35,6 +35,10 @@ export const Modal: FC<{
           position: 'fixed',
           background: hsla.string(0, 0, 0, 0.25),
           animation: `${fadein} 0.15s linear`,
+          padding: theme.fib[6],
+          [theme.ltMedia(theme.fib[13])]: {
+            padding: theme.fib[5],
+          },
         }),
         children: $(Center, {
           click: handleClose,

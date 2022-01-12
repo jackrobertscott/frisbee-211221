@@ -27,6 +27,7 @@ export const Table: TFCTable = ({head, body}) => {
   return $('div', {
     className: css({
       background: theme.bg.string(),
+      overflow: 'auto',
     }),
     children: $(FormColumn, {
       children: addkeys([
@@ -41,14 +42,12 @@ export const Table: TFCTable = ({head, body}) => {
                 flexBasis: 0,
                 display: 'flex',
                 flexDirection: 'column',
+                overflow: 'hidden',
               }),
               children: $(FormLabel, {
                 label,
                 background: theme.bgMinor,
-                style: {
-                  overflow: 'auto',
-                  flexGrow: 1,
-                },
+                grow: true,
               }),
             })
           }),
@@ -71,6 +70,7 @@ export const Table: TFCTable = ({head, body}) => {
                     flexBasis: 0,
                     display: 'flex',
                     flexDirection: 'column',
+                    overflow: 'hidden',
                   }),
                   children:
                     data?.children ??
@@ -83,10 +83,7 @@ export const Table: TFCTable = ({head, body}) => {
                         ? bg.merge({a: entry.click ? -0.5 : 0})
                         : hsla.create(0, 0, 0, 0),
                       font: data ? font : font?.merge({a: 0.5}),
-                      style: {
-                        overflow: 'auto',
-                        flexGrow: 1,
-                      },
+                      grow: true,
                     }),
                 })
               }),

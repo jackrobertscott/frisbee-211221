@@ -75,76 +75,101 @@ export const Security: FC = () => {
         }),
     },
   ])
-  return $(Center, {
-    children: addkeys([
-      $('div', {
-        className: css({
-          display: 'flex',
-          justifyContent: 'center',
-          marginBottom: theme.fib[6],
-          marginRight: theme.fib[4],
-        }),
-        children: $('div', {
+  return $('div', {
+    className: css({
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      padding: theme.fib[6],
+      [theme.ltMedia(theme.fib[12])]: {
+        padding: 0,
+        border: theme.border(),
+      },
+    }),
+    children: $(Center, {
+      children: addkeys([
+        $('div', {
           className: css({
-            position: 'relative',
+            display: 'flex',
+            justifyContent: 'center',
+            marginBottom: theme.fib[6],
+            marginRight: theme.fib[4],
+            [theme.ltMedia(theme.fib[12])]: {
+              marginBottom: theme.fib[5],
+              marginTop: theme.fib[6],
+            },
           }),
-          children: addkeys([
-            $('img', {
-              src: marlowPng,
-              className: css({
-                width: theme.fib[11],
-                position: 'relative',
-                zIndex: 10,
-              }),
-            }),
-            $('div', {
-              className: css({
-                width: theme.fib[5],
-                height: theme.fib[10],
-                background: hsla.string(0, 0, 0),
-                borderRadius: 3,
-                position: 'absolute',
-                right: 24,
-                top: -5,
-              }),
-            }),
-          ]),
-        }),
-      }),
-      $('div', {
-        className: css({
-          maxWidth: theme.fib[12],
-          border: theme.border(),
-          background: theme.bg.string(),
-          position: 'relative',
-        }),
-        children: addkeys([
-          $('div', {
+          children: $('div', {
             className: css({
-              borderBottom: theme.border(),
-              padding: theme.padify(theme.fib[5]),
+              position: 'relative',
             }),
             children: addkeys([
-              $('div', {
-                children: router.current?.label,
+              $('img', {
+                src: marlowPng,
+                className: css({
+                  width: theme.fib[11],
+                  position: 'relative',
+                  zIndex: 10,
+                }),
               }),
               $('div', {
-                children: router.current?.message,
                 className: css({
-                  paddingTop: theme.fib[2],
-                  color: theme.fontMinor.string(),
+                  width: theme.fib[5],
+                  height: theme.fib[10],
+                  background: hsla.string(0, 0, 0),
+                  borderRadius: 3,
+                  position: 'absolute',
+                  right: 24,
+                  top: -5,
                 }),
               }),
             ]),
           }),
-          $('div', {
-            children: router.render(),
-            className: css({
-              background: theme.bgMinor.string(),
-            }),
+        }),
+        $('div', {
+          className: css({
+            maxWidth: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative',
+            width: theme.fib[12],
+            border: theme.border(),
+            background: theme.bg.string(),
+            [theme.ltMedia(theme.fib[12])]: {
+              border: 'none',
+              borderTop: theme.border(),
+              flexGrow: 1,
+            },
           }),
-        ]),
-      }),
-    ]),
+          children: addkeys([
+            $('div', {
+              className: css({
+                borderBottom: theme.border(),
+                padding: theme.padify(theme.fib[5]),
+              }),
+              children: addkeys([
+                $('div', {
+                  children: router.current?.label,
+                }),
+                $('div', {
+                  children: router.current?.message,
+                  className: css({
+                    paddingTop: theme.fib[2],
+                    color: theme.fontMinor.string(),
+                  }),
+                }),
+              ]),
+            }),
+            $('div', {
+              children: router.render(),
+              className: css({
+                background: theme.bgMinor.string(),
+                flexGrow: 1,
+              }),
+            }),
+          ]),
+        }),
+      ]),
+    }),
   })
 }
