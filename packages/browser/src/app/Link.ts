@@ -20,7 +20,7 @@ export const Link: FC<{
     },
     children: label,
     className: css({
-      userSelect: 'none',
+      cursor: 'default',
       textAlign: 'center',
       textDecoration: 'underline',
       color: font?.string(),

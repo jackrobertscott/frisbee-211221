@@ -9,6 +9,7 @@ import {$Season} from '../tables/$Season'
 import mail from '../utils/mail'
 import {$Member} from '../tables/$Member'
 import {$User} from '../tables/$User'
+import {purify} from '../utils/purify'
 /**
  *
  */
@@ -47,6 +48,7 @@ export default new Map<string, RequestHandler>([
     handler: (body) => async (req) => {
       const [user] = await requireUserAdmin(req)
       await $Season.getOne({id: body.seasonId})
+      body.content = purify.sanitize(body.content)
       const post = await $Post.createOne({
         ...body,
         userId: user.id,
@@ -62,7 +64,7 @@ export default new Map<string, RequestHandler>([
         await mail.send({
           to: userCaptains.map((i) => i.email),
           subject: post.title,
-          text: post.content,
+          html: post.content,
         })
       }
       return post
@@ -82,6 +84,7 @@ export default new Map<string, RequestHandler>([
       ({postId, ...body}) =>
       async (req) => {
         await requireUserAdmin(req)
+        body.content = purify.sanitize(body.content)
         return $Post.updateOne(
           {id: postId},
           {...body, updatedOn: new Date().toISOString()}

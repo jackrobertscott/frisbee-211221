@@ -8,8 +8,10 @@ import {FormBadge} from './Form/FormBadge'
 import {FormColumn} from './Form/FormColumn'
 import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
+import {InputHTMLLegacy} from './Input/InputHTMLLegacy'
 import {InputString} from './Input/InputString'
 import {InputTextarea} from './Input/InputTextarea'
+import {useMedia} from './Media/useMedia'
 import {Modal} from './Modal'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
@@ -22,6 +24,7 @@ export const PostUpdate: FC<{
   close: () => void
   done: (post: TPost) => void
 }> = ({post, close, done}) => {
+  const media = useMedia()
   const $postUpdate = useEndpoint($PostUpdate)
   const form = useForm({
     title: post.title,
@@ -57,10 +60,11 @@ export const PostUpdate: FC<{
           $(FormColumn, {
             children: addkeys([
               $(FormLabel, {label: 'Content'}),
-              $(InputTextarea, {
-                rows: 10,
+              $(InputHTMLLegacy, {
                 value: form.data.content,
                 valueSet: form.link('content'),
+                minHeight:
+                  media.height < theme.fib[13] ? theme.fib[10] : theme.fib[11],
               }),
             ]),
           }),

@@ -10,8 +10,9 @@ import {FormColumn} from './Form/FormColumn'
 import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
 import {InputBoolean} from './Input/InputBoolean'
+import {InputHTMLLegacy} from './Input/InputHTMLLegacy'
 import {InputString} from './Input/InputString'
-import {InputTextarea} from './Input/InputTextarea'
+import {useMedia} from './Media/useMedia'
 import {Modal} from './Modal'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
@@ -24,6 +25,7 @@ export const PostCreate: FC<{
   done: (post: TPost) => void
 }> = ({close, done}) => {
   const auth = useAuth()
+  const media = useMedia()
   const $postCreate = useEndpoint($PostCreate)
   const form = useForm({
     title: '',
@@ -60,10 +62,11 @@ export const PostCreate: FC<{
           $(FormColumn, {
             children: addkeys([
               $(FormLabel, {label: 'Content'}),
-              $(InputTextarea, {
-                rows: 10,
+              $(InputHTMLLegacy, {
                 value: form.data.content,
                 valueSet: form.link('content'),
+                minHeight:
+                  media.height < theme.fib[13] ? theme.fib[10] : theme.fib[11],
               }),
             ]),
           }),

@@ -42,6 +42,7 @@ const _AppGuard: FC = () => {
  */
 const _AppLoading: FC = () => {
   return $(Center, {
+    breakpoint: 0,
     children: $(Spinner),
   })
 }

@@ -83,6 +83,19 @@ const _NewsPost: FC<{
   const media = useMedia()
   const previewLength =
     media.width < theme.fib[13] ? theme.fib[9] : theme.fib[12]
+  const snippetGet = () => {
+    const i = document.createElement('div')
+    i.innerHTML = post.content.split('<br>').join(' ')
+    const text = i.innerText
+    i.remove()
+    return text
+      .slice(0, previewLength)
+      .concat(post.content.length > previewLength ? '...' : '')
+  }
+  const [snippet, snippetSet] = useState(snippetGet)
+  useEffect(() => {
+    snippetSet(snippetGet)
+  }, [post.content, previewLength])
   return $(Fragment, {
     children: addkeys([
       $('div', {
@@ -110,9 +123,7 @@ const _NewsPost: FC<{
                 }),
               }),
               $('div', {
-                children: post.content
-                  .slice(0, previewLength)
-                  .concat(post.content.length > previewLength ? '...' : ''),
+                children: snippet,
                 className: css({
                   color: theme.fontMinor.string(),
                   whiteSpace: 'pre-line',

@@ -35,6 +35,7 @@ import {$PostDelete} from '../endpoints/Post'
 import {Spinner} from './Spinner'
 import {Link} from './Link'
 import {FormRow} from './Form/FormRow'
+import {HTML} from './HTML'
 /**
  *
  */
@@ -61,7 +62,6 @@ export const PostView: FC<{
   return $(Fragment, {
     children: addkeys([
       $(Modal, {
-        close,
         width: theme.fib[14],
         children: addkeys([
           $(TopBar, {
@@ -118,11 +118,8 @@ export const PostView: FC<{
                       marginBottom: theme.fib[5],
                     }),
                   }),
-                  $('div', {
-                    children: post.content,
-                    className: css({
-                      whiteSpace: 'pre-line',
-                    }),
+                  $(HTML, {
+                    html: post.content,
                   }),
                 ]),
               }),

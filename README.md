@@ -13,10 +13,11 @@ Todos:
 - [x] Admin import csv files with afda export.
 - [x] Verify user email on sign up.
 - [x] Update the server email address.
-- [ ] Opt-in to emails i.e. when game fixtures are released.
 - [x] Make responsive for mobile.
 - [x] Fix font color on dark team.
 - [x] Add replying to comments.
+- [ ] Request for players tab.
+- [ ] Opt-in to emails i.e. when game fixtures are released.
 - [ ] Feedback / loading state for team sign up.
 - [ ] Admin send custom emails.
 - [ ] Add rich text editor to posts.
