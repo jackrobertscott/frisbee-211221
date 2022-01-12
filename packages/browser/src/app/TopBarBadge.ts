@@ -21,6 +21,7 @@ export const TopBarBadge: FC<{
       label,
       click,
       background,
+      font: background?.compliment(),
       style: {
         border: 'none',
         borderLeft: theme.border(),

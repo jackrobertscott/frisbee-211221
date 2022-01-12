@@ -45,7 +45,7 @@ const config: {
   prod: env.NODE_ENV === 'production',
   debug: true,
   port: +env.PORT,
-  appName: 'Marlow Street',
+  appName: env.APP_NAME,
   urlClient: env.URL_CLIENT,
   mongodbUri: env.MONGODB_URI,
   mongodbName: env.MONGODB_DB,

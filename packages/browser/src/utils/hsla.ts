@@ -36,6 +36,9 @@ export const hsla = {
       press() {
         return this.darken(15).string()
       },
+      compliment() {
+        return this.l < 55 ? hsla.create(0, 0, 100) : undefined
+      },
     }
   },
   /**

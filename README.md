@@ -9,9 +9,9 @@ Todos:
 - [x] Admin to create another admin.
 - [x] Admin to create a user.
 - [x] Admin to create a team.
-- [ ] Admin to assign a member to team.
+- [x] Admin to assign a member to team.
 - [ ] Admin import csv files with afda export.
-- [ ] Verify user email on sign up.
+- [x] Verify user email on sign up.
 - [ ] Update the server email address.
 - [ ] Opt-in to emails i.e. when game fixtures are released.
 - [ ] Admin send custom emails.
@@ -23,5 +23,6 @@ Todos:
 - [ ] Ability to contact admins.
 - [ ] Automated fixtures.
 - [ ] Facebook login.
+- [ ] Analytics.
 - [ ] Events: late 2021 fun rounds.
 - [ ] Fixture games should have individual dates.

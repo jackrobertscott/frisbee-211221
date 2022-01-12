@@ -34,8 +34,7 @@ export const FormMenu: FC<{
     children: options.length
       ? options.map((option) => {
           const bg = option.color ? hsla.digest(option.color) : theme.bg
-          const font =
-            bg !== undefined && bg?.l < 55 ? hsla.create(0, 0, 100) : undefined
+          const font = bg?.compliment()
           return $('div', {
             key: option.key ?? option.label,
             onClick: option.click,

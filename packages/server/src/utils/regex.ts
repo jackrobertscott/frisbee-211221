@@ -9,26 +9,26 @@ export const regex = {
    *
    */
   from(value: string = '') {
-    return new RegExp(this.escape(value), 'i')
+    return new RegExp(regex.escape(value), 'i')
   },
   /**
    *
    */
   normalize(value: string = '') {
     // "^" means starts with, "$" means ends with
-    return new RegExp(`^${this.escape(value.trim())}$`, 'i')
+    return new RegExp(`^${regex.escape(value.trim())}$`, 'i')
   },
   /**
    *
    */
   startsWith(value: string = '') {
-    return new RegExp(`^${this.escape(value.trim())}`, 'i')
+    return new RegExp(`^${regex.escape(value.trim())}`, 'i')
   },
   /**
    *
    */
   endsWith(value: string = '') {
-    return new RegExp(`${this.escape(value.trim())}$`, 'i')
+    return new RegExp(`${regex.escape(value.trim())}$`, 'i')
   },
   /**
    *

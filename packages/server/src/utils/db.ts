@@ -82,18 +82,29 @@ export const db = {
       async createOne(
         value: Simplify<Omit<V, keyof P> & Partial<P>>
       ): Promise<V> {
-        const compiledDefaults = Object.entries(options.defaults ?? {}).reduce(
-          (all: any, [key, data]: any) => {
-            all[key] = data()
-            return all
-          },
-          {}
-        )
-        const i = options.schema.validate({...compiledDefaults, ...value})
+        const defaults = this._compileDefaults()
+        const i = options.schema.validate({...defaults, ...value})
         if (!i.ok) throw i.error
         const collection = await mongo.collection(options.key)
         const result = await collection.insertOne(i.value)
         return this.getOne({_id: result.insertedId})
+      },
+      /**
+       *
+       */
+      async createMany(
+        value: Simplify<Omit<V, keyof P> & Partial<P>>[]
+      ): Promise<number> {
+        const all = []
+        for (let x = 0; x < value.length; x++) {
+          const defaults = this._compileDefaults()
+          const i = options.schema.validate({...defaults, ...value[x]})
+          if (!i.ok) throw i.error
+          all.push(i.value)
+        }
+        const collection = await mongo.collection(options.key)
+        await collection.insertMany(all)
+        return all.length
       },
       /**
        *
@@ -122,6 +133,17 @@ export const db = {
       _clean(value: WithId<V>): V {
         const {_id, ...result} = value
         return result as any
+      },
+      /**
+       *
+       */
+      _compileDefaults() {
+        if (!options.defaults) return {}
+        return Object.entries(options.defaults).reduce((all, next) => {
+          const [key, data] = next as [string, () => any]
+          all[key] = data()
+          return all
+        }, {} as Record<string, any>)
       },
     }
   },

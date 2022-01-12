@@ -61,10 +61,7 @@ export const Table: TFCTable = ({head, body}) => {
               children: Object.entries(head).map(([key, {grow}]) => {
                 const data = entry.data[key]
                 const bg = data?.color ? hsla.digest(data?.color) : undefined
-                const font =
-                  bg !== undefined && bg?.l < 55
-                    ? hsla.create(0, 0, 100)
-                    : undefined
+                const font = bg?.compliment()
                 return $('div', {
                   key,
                   className: css({

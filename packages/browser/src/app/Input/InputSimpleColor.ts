@@ -2,7 +2,6 @@ import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
 import {theme} from '../../theme'
 import {SIMPLE_COLORS} from '../../utils/colors'
-import {hsla} from '../../utils/hsla'
 import {Icon} from '../Icon'
 /**
  *
@@ -39,8 +38,7 @@ export const InputSimpleColor: FC<{
           alignItems: 'center',
           border: theme.border(),
           background: backgroundString,
-          color:
-            background.l > 55 ? hsla.string(0, 0, 0) : hsla.string(0, 0, 100),
+          color: background.compliment()?.string(),
           '&:hover': !disabled && {
             background: background.hover(),
           },

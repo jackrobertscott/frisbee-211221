@@ -104,10 +104,7 @@ export const FixtureTallyForm: FC<{
                               grow: true,
                               label: team1?.name ?? '...',
                               background: team1Bg,
-                              font:
-                                team1Bg && team1Bg.l < 55
-                                  ? hsla.create(0, 0, 100)
-                                  : undefined,
+                              font: team1Bg?.compliment(),
                             }),
                             $(InputNumber, {
                               value: game.team1Score,
@@ -118,10 +115,7 @@ export const FixtureTallyForm: FC<{
                               grow: true,
                               label: team2?.name ?? '...',
                               background: team2Bg,
-                              font:
-                                team2Bg && team2Bg.l < 55
-                                  ? hsla.create(0, 0, 100)
-                                  : undefined,
+                              font: team2Bg?.compliment(),
                             }),
                             $(InputNumber, {
                               value: game.team2Score,

@@ -1,6 +1,6 @@
 import os from 'os'
 import path from 'path'
-import Busboy from 'busboy'
+import createBusboy from 'busboy'
 import fs from 'fs-extra'
 import config from '../config'
 import {IncomingMessage} from 'http'
@@ -14,10 +14,10 @@ export const blob = {
    *
    */
   digestRequest(req: IncomingMessage) {
-    const busboy = new Busboy({
+    const busboy = createBusboy({
       headers: req.headers as any,
     })
-    const fields = new Map<string, any>()
+    const fields = new Map<string, string | undefined>()
     const files: Array<{
       filepath: string
       filename: string
@@ -26,7 +26,7 @@ export const blob = {
       encoding: string
     }> = []
     busboy.on('field', (fieldname, val) => fields.set(fieldname, val))
-    busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
+    busboy.on('file', (fieldname, file, {filename, encoding, mimeType}) => {
       const filepath = path.join(os.tmpdir(), path.basename(fieldname))
       const extension = path.extname(filename)
       file.pipe(fs.createWriteStream(filepath))
@@ -34,7 +34,7 @@ export const blob = {
         filename,
         filepath,
         extension,
-        mimetype,
+        mimetype: mimeType,
         encoding,
       })
     })

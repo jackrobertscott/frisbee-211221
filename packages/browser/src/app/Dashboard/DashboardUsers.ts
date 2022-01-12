@@ -1,11 +1,22 @@
+import {css} from '@emotion/css'
 import dayjs from 'dayjs'
-import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
+import {
+  ChangeEvent,
+  createElement as $,
+  FC,
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import {
   $UserCreate,
+  $UserImport,
   $UserList,
   $UserToggleAdmin,
   $UserUpdate,
 } from '../../endpoints/User'
+import { TSeason } from '../../schemas/ioSeason'
 import {TUser} from '../../schemas/ioUser'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
@@ -20,6 +31,7 @@ import {InputBoolean} from '../Input/InputBoolean'
 import {InputSelect} from '../Input/InputSelect'
 import {InputString} from '../Input/InputString'
 import {Modal} from '../Modal'
+import {Poster} from '../Poster'
 import {Question} from '../Question'
 import {Spinner} from '../Spinner'
 import {Table} from '../Table'
@@ -37,6 +49,7 @@ export const DashboardUsers: FC = () => {
   const [search, searchSet] = useState('')
   const [users, usersSet] = useState<TUser[]>()
   const [creating, creatingSet] = useState(false)
+  const [importing, importingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
   const current = currentId && users?.find((i) => currentId === i.id)
   const userList = () => $userList.fetch({search}).then(usersSet)
@@ -53,19 +66,34 @@ export const DashboardUsers: FC = () => {
       $(Form, {
         background: theme.bgAdmin.lighten(5),
         children: addkeys([
-          $(FormBadge, {
-            label: 'Create User',
-            background: theme.bgAdmin,
-            click: () => creatingSet(true),
-          }),
-          $(Fragment, {
-            children:
-              !!users?.length &&
-              $(InputString, {
-                value: search,
-                valueSet: searchSet,
-                placeholder: 'Search',
+          $('div', {
+            className: css({
+              display: 'flex',
+              '& > *:not(:last-child)': {
+                marginRight: theme.fib[5],
+              },
+            }),
+            children: addkeys([
+              $(Fragment, {
+                children:
+                  !!users?.length &&
+                  $(InputString, {
+                    value: search,
+                    valueSet: searchSet,
+                    placeholder: 'Search',
+                  }),
               }),
+              $(FormBadge, {
+                label: 'Create User',
+                background: theme.bgAdmin,
+                click: () => creatingSet(true),
+              }),
+              $(FormBadge, {
+                label: 'Import CSV',
+                background: theme.bgAdmin,
+                click: () => importingSet(true),
+              }),
+            ]),
           }),
           $(Fragment, {
             children:
@@ -115,6 +143,90 @@ export const DashboardUsers: FC = () => {
               usersSet((x) => x?.map((z) => (z.id === i.id ? i : z))),
             close: () => currentIdSet(undefined),
           }),
+      }),
+      $(Fragment, {
+        children:
+          importing &&
+          auth.current?.season &&
+          $(_DashboardUsersImport, {
+            done: () => {
+              userList()
+              importingSet(false)
+            },
+            close: () => importingSet(false),
+            season: auth.current.season,
+          }),
+      }),
+    ]),
+  })
+}
+/**
+ *
+ */
+export const _DashboardUsersImport: FC<{
+  done: () => void
+  close: () => void
+  season: TSeason
+}> = ({done, close, season}) => {
+  const ref = useRef<HTMLElement>()
+  const [csv, csvSet] = useState<File>()
+  const $userImport = useEndpoint($UserImport)
+  return $(Fragment, {
+    children: addkeys([
+      $('input', {
+        ref,
+        type: 'file',
+        accept: '.csv',
+        className: css({
+          display: 'none',
+        }),
+        onChange: (event: ChangeEvent<HTMLInputElement>) => {
+          if (event.target.files?.length) csvSet(event.target.files[0])
+        },
+      }),
+      $(Modal, {
+        children: addkeys([
+          $(TopBar, {
+            title: 'Import CSV',
+            children: $(TopBarBadge, {
+              icon: 'times',
+              click: close,
+            }),
+          }),
+          !csv
+            ? $(Form, {
+                background: theme.bgMinor,
+                children: $(FormBadge, {
+                  label: 'Select File',
+                  click: () => ref.current?.click(),
+                }),
+              })
+            : $(Fragment, {
+                children: addkeys([
+                  $(Poster, {
+                    title: 'Ready To Upload',
+                    description: csv.name,
+                  }),
+                  $(Form, {
+                    children: addkeys([
+                      $(FormBadge, {
+                        label: 'Upload',
+                        click: () => {
+                          const data = new FormData()
+                          data.set('csv', csv)
+                          data.set('seasonId', season.id)
+                          $userImport.fetch(data).then(done)
+                        },
+                      }),
+                      $(FormBadge, {
+                        label: 'Change File',
+                        click: () => ref.current?.click(),
+                      }),
+                    ]),
+                  }),
+                ]),
+              }),
+        ]),
       }),
     ]),
   })

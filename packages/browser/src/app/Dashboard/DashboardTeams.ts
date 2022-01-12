@@ -1,3 +1,4 @@
+import {css} from '@emotion/css'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {$TeamCreate, $TeamListOfSeason} from '../../endpoints/Team'
@@ -50,19 +51,29 @@ export const DashboardTeams: FC = () => {
       $(Form, {
         background: theme.bgAdmin.lighten(5),
         children: addkeys([
-          $(FormBadge, {
-            label: 'Create Team',
-            background: theme.bgAdmin,
-            click: () => creatingSet(true),
-          }),
-          $(Fragment, {
-            children:
-              !!teams?.length &&
-              $(InputString, {
-                value: search,
-                valueSet: searchSet,
-                placeholder: 'Search',
+          $('div', {
+            className: css({
+              display: 'flex',
+              '& > *:not(:last-child)': {
+                marginRight: theme.fib[5],
+              },
+            }),
+            children: addkeys([
+              $(Fragment, {
+                children:
+                  !!teams?.length &&
+                  $(InputString, {
+                    value: search,
+                    valueSet: searchSet,
+                    placeholder: 'Search',
+                  }),
               }),
+              $(FormBadge, {
+                label: 'Create Team',
+                background: theme.bgAdmin,
+                click: () => creatingSet(true),
+              }),
+            ]),
           }),
           $(Fragment, {
             children:

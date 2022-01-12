@@ -74,3 +74,10 @@ export const $UserCreate = createEndpoint({
   }),
   result: ioUser,
 })
+/**
+ *
+ */
+export const $UserImport = createEndpoint({
+  path: '/UserImport',
+  multipart: true,
+})
