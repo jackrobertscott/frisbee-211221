@@ -7,10 +7,7 @@ import {MediaContext} from './MediaContext'
 export const MediaProvider: FC<{children: ReactNode}> = ({children}) => {
   const sizeGet = () => ({width: window.innerWidth, height: window.innerHeight})
   const [{width, height}, _sizeSet] = useState(sizeGet)
-  const sizeSet = useDrip(1000, () => {
-    console.log('called')
-    _sizeSet(sizeGet)
-  })
+  const sizeSet = useDrip(1000, () => _sizeSet(sizeGet))
   useEffect(() => {
     const handler = () => sizeSet()
     window.addEventListener('resize', handler)

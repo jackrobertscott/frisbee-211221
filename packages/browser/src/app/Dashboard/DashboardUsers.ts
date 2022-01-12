@@ -488,7 +488,7 @@ export const _DashboardUsersView: FC<{
             options: [
               {label: 'Cancel', click: () => adminifySet(false)},
               {
-                label: 'Confirm',
+                label: $toggleAdmin.loading ? 'Loading' : 'Confirm',
                 click: () =>
                   $toggleAdmin.fetch({userId: user.id}).then((i) => {
                     if (i.id === auth.current?.user.id) auth.userSet(i)
