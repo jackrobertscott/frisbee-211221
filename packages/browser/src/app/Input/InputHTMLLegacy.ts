@@ -98,9 +98,6 @@ const _InputHTMLActions: FC<{
         margin: -theme.borderWidth,
         marginRight: 0,
       },
-      '& > *:last-child': {
-        marginRight: theme.fib[6],
-      },
     }),
     children: addkeys([
       [
@@ -170,6 +167,12 @@ const _InputHTMLActions: FC<{
           }
           document.execCommand('createlink', false, href)
         },
+      }),
+      $('div', {
+        className: css({
+          flexShrink: 0,
+          width: theme.fib[6],
+        }),
       }),
     ]),
   })
