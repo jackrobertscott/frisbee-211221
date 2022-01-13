@@ -4,8 +4,8 @@ import {theme} from '../theme'
 import {hsla} from '../utils/hsla'
 import {fadein} from '../utils/keyframes'
 import {Center} from './Center'
-import {DepthProvider} from './Stack/StackProvider'
-import {useDepth} from './Stack/useStack'
+import {StackProvider} from './Stack/StackProvider'
+import {useStack} from './Stack/useStack'
 import {Portal} from './Portal'
 /**
  *
@@ -16,7 +16,7 @@ export const Modal: FC<{
   width?: number
   height?: number
 }> = ({close, children, width = theme.fib[12] + theme.fib[9], height}) => {
-  const depth = useDepth()
+  const depth = useStack()
   const unfocused = useRef<boolean>(!document.querySelector(':focus-within'))
   const handleClose = (event: MouseEvent) => {
     if (!depth.top()) return
@@ -24,7 +24,7 @@ export const Modal: FC<{
     else unfocused.current = !document.querySelector(':focus-within')
   }
   return $(Portal, {
-    children: $(DepthProvider, {
+    children: $(StackProvider, {
       children: $('div', {
         className: css({
           top: 0,

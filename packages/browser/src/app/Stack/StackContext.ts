@@ -3,13 +3,13 @@ import {contextNoop} from '../../utils/context'
 /**
  *
  */
-export interface TDepthContext {
+export interface TStackContext {
   ref?: MutableRefObject<string[]>
   top: () => boolean
 }
 /**
  *
  */
-export const DepthContext = createContext<TDepthContext>({
+export const StackContext = createContext<TStackContext>({
   top: contextNoop('top'),
 })

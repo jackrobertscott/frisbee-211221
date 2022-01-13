@@ -10,8 +10,8 @@ import {
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {hsla} from '../utils/hsla'
-import {DepthProvider} from './Stack/StackProvider'
-import {useDepth} from './Stack/useStack'
+import {StackProvider} from './Stack/StackProvider'
+import {useStack} from './Stack/useStack'
 import {Portal} from './Portal'
 /**
  *
@@ -35,7 +35,7 @@ export const Popup: FC<{
   clickOutside,
   maxWidth,
 }) => {
-  const depth = useDepth()
+  const depth = useStack()
   const wrapRef = useRef<HTMLElement>()
   const popupRef = useRef<HTMLElement>()
   const contentRef = useRef<HTMLElement>()
@@ -92,7 +92,7 @@ export const Popup: FC<{
       wrap,
       open &&
         box &&
-        $(DepthProvider, {
+        $(StackProvider, {
           children: $(Portal, {
             children: $('div', {
               ref: popupRef,

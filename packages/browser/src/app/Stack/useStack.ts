@@ -1,8 +1,8 @@
 import {useContext} from 'react'
-import {DepthContext} from './StackContext'
+import {StackContext} from './StackContext'
 /**
  *
  */
-export const useDepth = () => {
-  return useContext(DepthContext)
+export const useStack = () => {
+  return useContext(StackContext)
 }

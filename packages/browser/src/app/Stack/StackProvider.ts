@@ -7,11 +7,11 @@ import {
   useState,
 } from 'react'
 import {random} from '../../utils/random'
-import {DepthContext} from './StackContext'
+import {StackContext} from './StackContext'
 /**
  *
  */
-export const DepthProvider: FC<{children: ReactNode}> = ({children}) => {
+export const StackProvider: FC<{children: ReactNode}> = ({children}) => {
   const ref = useRef<string[]>([])
   const [id] = useState(() => random.randomString())
   useEffect(() => {
@@ -21,7 +21,7 @@ export const DepthProvider: FC<{children: ReactNode}> = ({children}) => {
       ref.current = ref.current.filter((i) => i !== id)
     }
   }, [])
-  return $(DepthContext.Provider, {
+  return $(StackContext.Provider, {
     children,
     value: {
       ref,
