@@ -19,7 +19,6 @@ import {TeamCreate} from './TeamCreate'
 import {useToaster} from './Toaster/useToaster'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
-import {useSling} from './useThrottle'
 /**
  *
  */
@@ -29,29 +28,28 @@ export const TeamSetup: FC = () => {
   const $teamList = useEndpoint($TeamListOfSeason)
   const $memberRequest = useEndpoint($MemberRequestCreate)
   const $membersOfUser = useEndpoint($MemberListOfUser)
-  const [loaded, loadedSet] = useState(false)
   const [teams, teamsSet] = useState<TTeam[]>()
   const [logout, logoutSet] = useState(false)
   const [creating, creatingSet] = useState(false)
   const [teamRequested, teamRequestedSet] = useState<TTeam>()
   const [membersOfUser, membersOfUserSet] = useState<TMember[]>()
   const [search, searchSet] = useState('')
-  const teamList = useSling(500, () => {
-    if (!auth.current?.season?.id) throw new Error('Season does not exist.')
-    $teamList
-      .fetch({seasonId: auth.current?.season?.id, search})
-      .then((i) => teamsSet(i.teams))
-      .then(() => !loaded && loadedSet(true))
-  })
   const memberList = () =>
     $membersOfUser.fetch().then((data) => membersOfUserSet(data.members))
   const teamPending =
     membersOfUser &&
     teams?.find((i) => membersOfUser.findIndex((x) => x.teamId === i.id) >= 0)
-  useEffect(() => teamList(), [search])
   useEffect(() => {
+    if (auth.current?.season)
+      $teamList
+        .fetch({seasonId: auth.current.season.id, search})
+        .then((i) => teamsSet(i.teams))
     memberList()
   }, [])
+  const normalize = (data: string) => data.toLowerCase().split(' ').join('')
+  const searchNormalized = normalize(search)
+  const normalizeSearch = (data: string) =>
+    normalize(data).includes(searchNormalized)
   return $(Fragment, {
     children: addkeys([
       $(Center, {
@@ -81,7 +79,7 @@ export const TeamSetup: FC = () => {
               : teamPending
               ? $(Poster, {
                   title: 'Request Pending',
-                  description: `Please wait while the team captain responds to your request to join ${teamPending.name}.`,
+                  description: `You have requested to join ${teamPending.name}. Please wait while the team captain responds to your request.`,
                 })
               : $('div', {
                   className: css({
@@ -104,13 +102,15 @@ export const TeamSetup: FC = () => {
                             border: theme.border(),
                           }),
                           children: $(FormMenu, {
-                            empty: loaded ? 'No Teams Exist Yet' : 'Loading',
-                            options: teams.map((i) => ({
-                              id: i.id,
-                              label: i.name,
-                              color: i.color,
-                              click: () => teamRequestedSet(i),
-                            })),
+                            empty: 'No Teams Found',
+                            options: teams
+                              .filter((i) => normalizeSearch(i.name))
+                              .map((i) => ({
+                                id: i.id,
+                                label: i.name,
+                                color: i.color,
+                                click: () => teamRequestedSet(i),
+                              })),
                           }),
                         }),
                       ]),

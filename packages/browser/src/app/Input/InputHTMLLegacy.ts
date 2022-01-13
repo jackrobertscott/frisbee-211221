@@ -10,7 +10,6 @@ import {FormMenu} from '../Form/FormMenu'
 import {FormRow} from '../Form/FormRow'
 import {Popup} from '../Popup'
 import {InputString} from './InputString'
-import {useMedia} from '../Media/useMedia'
 /**
  *
  */
@@ -20,9 +19,18 @@ export const InputHTMLLegacy: FC<{
   blur?: () => void
   enter?: () => void
   disabled?: boolean
+  height?: number
   maxHeight?: number
   minHeight?: number
-}> = ({value: _value, valueSet, blur, disabled, maxHeight, minHeight}) => {
+}> = ({
+  value: _value,
+  valueSet,
+  blur,
+  disabled,
+  height,
+  maxHeight,
+  minHeight,
+}) => {
   const value = _value === undefined ? '' : _value
   const ref = useRef<HTMLElement>()
   const [html] = useState(() => dompurify.sanitize(value))
@@ -44,8 +52,8 @@ export const InputHTMLLegacy: FC<{
           event.target instanceof HTMLElement &&
           valueSet?.(event.target?.innerHTML),
         className: css({
-          minHeight,
-          maxHeight,
+          minHeight: minHeight ?? height,
+          maxHeight: maxHeight ?? height,
           flexGrow: 1,
           overflow: 'auto',
           maxWidth: '100%',
@@ -67,18 +75,31 @@ export const InputHTMLLegacy: FC<{
 const _InputHTMLActions: FC<{
   refHTML: MutableRefObject<HTMLElement | undefined>
 }> = ({refHTML}) => {
-  const media = useMedia()
-  const range = useRef<Range>()
+  const rangeRef = useRef<Range>()
+  const rangeSave = () => {
+    refHTML.current?.focus()
+    rangeRef.current = document.getSelection()?.getRangeAt(0)
+  }
+  const rangeRestore = () => {
+    refHTML.current?.focus()
+    const dgs = document.getSelection()
+    if (!dgs || !rangeRef.current) return
+    dgs.removeAllRanges()
+    dgs.addRange(rangeRef.current)
+    return rangeRef.current
+  }
   return $('div', {
     className: css({
       border: theme.border(),
       background: theme.bgMinor.string(),
-      paddingRight: theme.fib[6],
       overflowY: 'hidden',
       display: 'flex',
       '& > *': {
         margin: -theme.borderWidth,
         marginRight: 0,
+      },
+      '& > *:last-child': {
+        marginRight: theme.fib[6],
       },
     }),
     children: addkeys([
@@ -139,22 +160,14 @@ const _InputHTMLActions: FC<{
         })),
       }),
       $(_InputHTMLAnchor, {
-        open: () => {
-          refHTML.current?.focus()
-          range.current = document.getSelection()?.getRangeAt(0)
-        },
+        open: () => rangeSave(),
         done: (href) => {
-          refHTML.current?.focus()
-          const sel = document.getSelection()
-          if (!sel) return
-          if (!range.current) return
-          if (range.current.toString().length === 0) {
+          const range = rangeRestore()
+          if (range?.toString().length === 0) {
             const urlNode = document.createElement('div')
             urlNode.innerHTML = href
-            range.current.insertNode(urlNode)
+            range.insertNode(urlNode)
           }
-          sel.removeAllRanges()
-          sel.addRange(range.current)
           document.execCommand('createlink', false, href)
         },
       }),
@@ -213,6 +226,7 @@ const _InputHTMLAnchor: FC<{
   const submit = () => {
     done(href)
     openSet(false)
+    hrefSet('')
   }
   return $(Popup, {
     open,
@@ -233,6 +247,7 @@ const _InputHTMLAnchor: FC<{
               value: href,
               valueSet: hrefSet,
               enter: submit,
+              autofocus: true,
             }),
           ]),
         }),

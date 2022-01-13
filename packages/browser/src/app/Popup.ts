@@ -10,8 +10,8 @@ import {
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {hsla} from '../utils/hsla'
-import {DepthProvider} from './Depth/DepthProvider'
-import {useDepth} from './Depth/useDepth'
+import {DepthProvider} from './Stack/StackProvider'
+import {useDepth} from './Stack/useStack'
 import {Portal} from './Portal'
 /**
  *
@@ -49,7 +49,7 @@ export const Popup: FC<{
     if (open) {
       boxSet(wrapRef.current?.getBoundingClientRect())
       const clickOutsideHandler = (event: MouseEvent) => {
-        if (!depth.atTop() || !clickOutside) return
+        if (!depth.top() || !clickOutside) return
         const clickedOutside =
           popupRef.current &&
           event.target instanceof HTMLElement &&

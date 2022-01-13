@@ -8,7 +8,7 @@ import {App} from './app/App'
 import {AuthProvider} from './app/Auth/AuthProvider'
 import {ToasterProvider} from './app/Toaster/ToasterProvider'
 import {RouterProvider} from './app/Router/RouterProvider'
-import {DepthProvider} from './app/Depth/DepthProvider'
+import {DepthProvider} from './app/Stack/StackProvider'
 import {MediaProvider} from './app/Media/MediaProvider'
 /**
  *

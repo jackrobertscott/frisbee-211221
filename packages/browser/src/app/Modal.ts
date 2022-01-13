@@ -4,8 +4,8 @@ import {theme} from '../theme'
 import {hsla} from '../utils/hsla'
 import {fadein} from '../utils/keyframes'
 import {Center} from './Center'
-import {DepthProvider} from './Depth/DepthProvider'
-import {useDepth} from './Depth/useDepth'
+import {DepthProvider} from './Stack/StackProvider'
+import {useDepth} from './Stack/useStack'
 import {Portal} from './Portal'
 /**
  *
@@ -19,7 +19,7 @@ export const Modal: FC<{
   const depth = useDepth()
   const unfocused = useRef<boolean>(!document.querySelector(':focus-within'))
   const handleClose = (event: MouseEvent) => {
-    if (!depth.atTop()) return
+    if (!depth.top()) return
     if (event.target === event.currentTarget && unfocused.current) close?.()
     else unfocused.current = !document.querySelector(':focus-within')
   }

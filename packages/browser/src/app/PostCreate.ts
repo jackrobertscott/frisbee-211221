@@ -26,6 +26,7 @@ export const PostCreate: FC<{
 }> = ({close, done}) => {
   const auth = useAuth()
   const media = useMedia()
+  const isShort = media.height < theme.fib[13]
   const $postCreate = useEndpoint($PostCreate)
   const form = useForm({
     title: '',
@@ -65,8 +66,8 @@ export const PostCreate: FC<{
               $(InputHTMLLegacy, {
                 value: form.data.content,
                 valueSet: form.link('content'),
-                minHeight:
-                  media.height < theme.fib[13] ? theme.fib[10] : theme.fib[11],
+                height: isShort ? theme.fib[10] : theme.fib[11],
+                maxHeight: isShort ? undefined : theme.fib[12],
               }),
             ]),
           }),

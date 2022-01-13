@@ -96,147 +96,148 @@ export const ReportCreate: FC<{
                 ]),
               }),
           $(Fragment, {
-            children:
-              !form.data.roundId || !auth.current?.team || !against?.users
-                ? $(Spinner)
-                : addkeys([
-                    $('div', {
-                      className: css({
-                        textAlign: 'center',
+            children: !form.data.roundId
+              ? null
+              : !auth.current?.team || !against?.users
+              ? $(Spinner)
+              : addkeys([
+                  $('div', {
+                    className: css({
+                      textAlign: 'center',
+                    }),
+                    children: $(FormRow, {
+                      children: addkeys([
+                        $(FormBadge, {
+                          grow: true,
+                          label: isSmall
+                            ? initials(auth.current.team.name)
+                            : auth.current.team.name,
+                          background: hsla.digest(auth.current.team.color),
+                          font: hsla
+                            .digest(auth.current.team.color)
+                            .compliment(),
+                        }),
+                        $(FormBadge, {
+                          label: 'vs',
+                        }),
+                        $(FormBadge, {
+                          grow: true,
+                          label: isSmall
+                            ? initials(against.team.name)
+                            : against.team.name,
+                          background: hsla.digest(against.team.color),
+                          font: hsla.digest(against.team.color).compliment(),
+                        }),
+                      ]),
+                    }),
+                  }),
+                  $(FormRow, {
+                    children: addkeys([
+                      $(FormLabel, {label: 'Your Score'}),
+                      $(InputNumber, {
+                        value: form.data.scoreFor,
+                        valueSet: form.link('scoreFor'),
                       }),
-                      children: $(FormRow, {
-                        children: addkeys([
-                          $(FormBadge, {
-                            grow: true,
-                            label: isSmall
-                              ? initials(auth.current.team.name)
-                              : auth.current.team.name,
-                            background: hsla.digest(auth.current.team.color),
-                            font: hsla
-                              .digest(auth.current.team.color)
-                              .compliment(),
-                          }),
-                          $(FormBadge, {
-                            label: 'vs',
-                          }),
-                          $(FormBadge, {
-                            grow: true,
-                            label: isSmall
-                              ? initials(against.team.name)
-                              : against.team.name,
-                            background: hsla.digest(against.team.color),
-                            font: hsla.digest(against.team.color).compliment(),
-                          }),
-                        ]),
+                    ]),
+                  }),
+                  $(FormRow, {
+                    children: addkeys([
+                      $(FormLabel, {label: 'Against Score'}),
+                      $(InputNumber, {
+                        value: form.data.scoreAgainst,
+                        valueSet: form.link('scoreAgainst'),
                       }),
-                    }),
-                    $(FormRow, {
-                      children: addkeys([
-                        $(FormLabel, {label: 'Your Score'}),
-                        $(InputNumber, {
-                          value: form.data.scoreFor,
-                          valueSet: form.link('scoreFor'),
-                        }),
-                      ]),
-                    }),
-                    $(FormRow, {
-                      children: addkeys([
-                        $(FormLabel, {label: 'Against Score'}),
-                        $(InputNumber, {
-                          value: form.data.scoreAgainst,
-                          valueSet: form.link('scoreAgainst'),
-                        }),
-                      ]),
-                    }),
-                    $(FormRow, {
-                      children: addkeys([
-                        $(FormLabel, {label: 'MVP Male'}),
-                        $(InputSelect, {
-                          value: form.data.mvpMale,
-                          valueSet: form.link('mvpMale'),
-                          options: against.users
-                            .filter((i) => i.gender === 'male')
-                            .map((i) => ({
-                              key: i.id,
-                              label: `${i.firstName} ${i.lastName}`,
-                            })),
-                        }),
-                      ]),
-                    }),
-                    $(FormRow, {
-                      children: addkeys([
-                        $(FormLabel, {label: 'MVP Female'}),
-                        $(InputSelect, {
-                          value: form.data.mvpFemale,
-                          valueSet: form.link('mvpFemale'),
-                          options: against.users
-                            .filter((i) => i.gender === 'female')
-                            .map((i) => ({
-                              key: i.id,
-                              label: `${i.firstName} ${i.lastName}`,
-                            })),
-                        }),
-                      ]),
-                    }),
-                    $(FormColumn, {
-                      children: addkeys([
-                        $(FormLabel, {label: 'Spirit'}),
-                        $(InputSelect, {
-                          value: form.data.spirit?.toString(),
-                          valueSet: (i) => form.patch({spirit: +i}),
-                          options: [
-                            {
-                              key: '0',
-                              label: `0: They were not fair minded, or did not know the rules, or were not willing to communicate.`,
-                            },
-                            {
-                              key: '1',
-                              label: `1: They were somewhat fair minded, or didn't have a good rules knowledge.`,
-                            },
-                            {
-                              key: '2',
-                              label: `2: They were fair minded, and had sufficient rules knowledge.`,
-                            },
-                            {
-                              key: '3',
-                              label: `3: They upheld the truth of a situation even if it didn't benefit them, or displayed advanced rules knowledge.`,
-                            },
-                            {
-                              key: '4',
-                              label: `4: This team was god-tier in their attitudes on and off the field.`,
-                            },
-                          ],
-                        }),
-                        typeof form.data.spirit === 'number' &&
-                          $(FormRow, {
-                            children: addkeys([
-                              $(InputTextarea, {
-                                rows: 2,
-                                value: form.data.spiritComment,
-                                valueSet: form.link('spiritComment'),
-                                placeholder: 'Write a comment (optional) ...',
-                              }),
-                            ]),
-                          }),
-                        $(FormHelp, {
+                    ]),
+                  }),
+                  $(FormRow, {
+                    children: addkeys([
+                      $(FormLabel, {label: 'MVP Male'}),
+                      $(InputSelect, {
+                        value: form.data.mvpMale,
+                        valueSet: form.link('mvpMale'),
+                        options: against.users
+                          .filter((i) => i.gender === 'male')
+                          .map((i) => ({
+                            key: i.id,
+                            label: `${i.firstName} ${i.lastName}`,
+                          })),
+                      }),
+                    ]),
+                  }),
+                  $(FormRow, {
+                    children: addkeys([
+                      $(FormLabel, {label: 'MVP Female'}),
+                      $(InputSelect, {
+                        value: form.data.mvpFemale,
+                        valueSet: form.link('mvpFemale'),
+                        options: against.users
+                          .filter((i) => i.gender === 'female')
+                          .map((i) => ({
+                            key: i.id,
+                            label: `${i.firstName} ${i.lastName}`,
+                          })),
+                      }),
+                    ]),
+                  }),
+                  $(FormColumn, {
+                    children: addkeys([
+                      $(FormLabel, {label: 'Spirit'}),
+                      $(InputSelect, {
+                        value: form.data.spirit?.toString(),
+                        valueSet: (i) => form.patch({spirit: +i}),
+                        options: [
+                          {
+                            key: '0',
+                            label: `0: They were not fair minded, or did not know the rules, or were not willing to communicate.`,
+                          },
+                          {
+                            key: '1',
+                            label: `1: They were somewhat fair minded, or didn't have a good rules knowledge.`,
+                          },
+                          {
+                            key: '2',
+                            label: `2: They were fair minded, and had sufficient rules knowledge.`,
+                          },
+                          {
+                            key: '3',
+                            label: `3: They upheld the truth of a situation even if it didn't benefit them, or displayed advanced rules knowledge.`,
+                          },
+                          {
+                            key: '4',
+                            label: `4: This team was god-tier in their attitudes on and off the field.`,
+                          },
+                        ],
+                      }),
+                      typeof form.data.spirit === 'number' &&
+                        $(FormRow, {
                           children: addkeys([
-                            'See ',
-                            $('a', {
-                              href: 'https://d36m266ykvepgv.cloudfront.net/uploads/media/vQLbEryD9k/o/wfdf-spirit-scoring-examples.pdf',
-                              target: '_blank',
-                              children: 'here',
+                            $(InputTextarea, {
+                              rows: 2,
+                              value: form.data.spiritComment,
+                              valueSet: form.link('spiritComment'),
+                              placeholder: 'Write a comment (optional) ...',
                             }),
-                            ' for more details regarding spirit scores.',
                           ]),
                         }),
-                      ]),
-                    }),
-                    $(FormBadge, {
-                      disabled: $create.loading,
-                      label: $create.loading ? 'Loading' : 'Submit',
-                      click: () => $create.fetch(form.data as any).then(done),
-                    }),
-                  ]),
+                      $(FormHelp, {
+                        children: addkeys([
+                          'See ',
+                          $('a', {
+                            href: 'https://d36m266ykvepgv.cloudfront.net/uploads/media/vQLbEryD9k/o/wfdf-spirit-scoring-examples.pdf',
+                            target: '_blank',
+                            children: 'here',
+                          }),
+                          ' for more details regarding spirit scores.',
+                        ]),
+                      }),
+                    ]),
+                  }),
+                  $(FormBadge, {
+                    disabled: $create.loading,
+                    label: $create.loading ? 'Loading' : 'Submit',
+                    click: () => $create.fetch(form.data as any).then(done),
+                  }),
+                ]),
           }),
         ]),
       }),

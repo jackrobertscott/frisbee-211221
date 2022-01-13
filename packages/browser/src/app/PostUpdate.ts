@@ -10,7 +10,6 @@ import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
 import {InputHTMLLegacy} from './Input/InputHTMLLegacy'
 import {InputString} from './Input/InputString'
-import {InputTextarea} from './Input/InputTextarea'
 import {useMedia} from './Media/useMedia'
 import {Modal} from './Modal'
 import {TopBar, TopBarBadge} from './TopBar'
@@ -25,6 +24,7 @@ export const PostUpdate: FC<{
   done: (post: TPost) => void
 }> = ({post, close, done}) => {
   const media = useMedia()
+  const isShort = media.height < theme.fib[13]
   const $postUpdate = useEndpoint($PostUpdate)
   const form = useForm({
     title: post.title,
@@ -63,8 +63,8 @@ export const PostUpdate: FC<{
               $(InputHTMLLegacy, {
                 value: form.data.content,
                 valueSet: form.link('content'),
-                minHeight:
-                  media.height < theme.fib[13] ? theme.fib[10] : theme.fib[11],
+                height: isShort ? theme.fib[10] : theme.fib[11],
+                maxHeight: isShort ? undefined : theme.fib[12],
               }),
             ]),
           }),

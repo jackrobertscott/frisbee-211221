@@ -16,5 +16,5 @@ export const SIMPLE_COLORS = [
   hsla.create(300, 100, 70),
   hsla.create(330, 100, 70),
   hsla.create(0, 0, 100),
-  hsla.create(0, 0, 0),
+  hsla.create(0, 0, 15),
 ]
