@@ -1,5 +1,5 @@
 import {createElement as $, FC} from 'react'
-import {$UserChangePassword} from '../../endpoints/User'
+import {$UserCurrentChangePassword} from '../../endpoints/User'
 import {addkeys} from '../../utils/addkeys'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
@@ -16,7 +16,7 @@ import {useForm} from '../useForm'
 export const SettingsPassword: FC = () => {
   const auth = useAuth()
   const toaster = useToaster()
-  const $changePassword = useEndpoint($UserChangePassword)
+  const $changePassword = useEndpoint($UserCurrentChangePassword)
   const form = useForm({
     oldPassword: '',
     newPassword: '',

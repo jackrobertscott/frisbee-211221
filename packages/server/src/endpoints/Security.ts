@@ -58,7 +58,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/SecurityLoginPassword',
+    path: '/SecurityLogin',
     payload: io.object({
       email: io.string().email().trim(),
       password: io.string(),
@@ -103,7 +103,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/SecuritySignUpRegular',
+    path: '/SecuritySignUp',
     payload: io.object({
       email: io.string().email().trim(),
       firstName: io.string(),
@@ -136,7 +136,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/SecurityForgotSend',
+    path: '/SecurityForgot',
     payload: io.string().email(),
     handler: (email) => async () => {
       const user = await $User.maybeOne({
@@ -161,7 +161,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/SecurityForgotVerify',
+    path: '/SecurityVerify',
     payload: io.object({
       email: io.string().email(),
       code: io.string(),
@@ -173,7 +173,7 @@ export default new Map<string, RequestHandler>([
       if (!user)
         throw new Error(`User with email ${body.email} does not exist.`)
       if (user.emailCode !== body.code.split('-').join('').split(' ').join(''))
-        throw new Error(`Forgot password code is incorrect.`)
+        throw new Error(`Code is incorrect.`)
       if (_hasUserEmailCodeExpired(user.emailCodeCreatedOn)) {
         const emailCode = await _sendUserEmailCode({
           email: user.email,
@@ -196,40 +196,6 @@ export default new Map<string, RequestHandler>([
           password: await hash.encrypt(body.newPassword),
         }
       )
-      const session = await gatekeeper.createUserSession(user, body.userAgent)
-      return _createAuthPayload(user, session)
-    },
-  }),
-  /**
-   *
-   */
-  createEndpoint({
-    path: '/SecurityVerifyEmail',
-    payload: io.object({
-      email: io.string().email(),
-      code: io.string(),
-      userAgent: io.optional(io.string()),
-    }),
-    handler: (body) => async () => {
-      const user = await $User.maybeOne({email: regex.normalize(body.email)})
-      if (!user)
-        throw new Error(`User with email ${body.email} does not exist.`)
-      if (user.emailCode !== body.code.split('-').join('').split(' ').join(''))
-        throw new Error(`Verification code is incorrect.`)
-      if (_hasUserEmailCodeExpired(user.emailCodeCreatedOn)) {
-        const emailCode = await _sendUserEmailCode({
-          email: user.email,
-          firstName: user.firstName,
-          subject: 'Verify Email',
-        })
-        await $User.updateOne(
-          {id: user.id},
-          {emailCode, emailCodeCreatedOn: new Date().toISOString()}
-        )
-        const message = `Your verification code has expired. A new code has been sent to your email.`
-        throw new Error(message)
-      }
-      await $User.updateOne({id: user.id}, {emailVerified: true})
       const session = await gatekeeper.createUserSession(user, body.userAgent)
       return _createAuthPayload(user, session)
     },

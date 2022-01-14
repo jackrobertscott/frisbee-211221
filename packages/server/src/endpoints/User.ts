@@ -20,7 +20,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserUpdateCurrent',
+    path: '/UserCurrentUpdate',
     payload: io.object({
       firstName: io.optional(io.string()),
       lastName: io.optional(io.string()),
@@ -42,7 +42,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserChangePassword',
+    path: '/UserCurrentChangePassword',
     payload: io.object({
       oldPassword: io.string(),
       newPassword: io.string(),
@@ -90,14 +90,21 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserToggleAdmin',
+    path: '/UserCreate',
     payload: io.object({
-      userId: io.string(),
+      email: io.string().email().trim(),
+      firstName: io.string(),
+      lastName: io.string(),
+      gender: io.enum(['male', 'female']),
+      termsAccepted: io.boolean(),
     }),
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
-      const user = await $User.getOne({id: body.userId})
-      return $User.updateOne({id: user.id}, {admin: !user.admin})
+      if (!body.termsAccepted)
+        throw new Error('The user must accept the terms and conditions.')
+      if (await $User.count({email: regex.normalize(body.email)}))
+        throw new Error(`User already exists with email "${body.email}".`)
+      return $User.createOne(body)
     },
   }),
   /**
@@ -127,21 +134,14 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserCreate',
+    path: '/UserToggleAdmin',
     payload: io.object({
-      email: io.string().email().trim(),
-      firstName: io.string(),
-      lastName: io.string(),
-      gender: io.enum(['male', 'female']),
-      termsAccepted: io.boolean(),
+      userId: io.string(),
     }),
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
-      if (!body.termsAccepted)
-        throw new Error('The user must accept the terms and conditions.')
-      if (await $User.count({email: regex.normalize(body.email)}))
-        throw new Error(`User already exists with email "${body.email}".`)
-      return $User.createOne(body)
+      const user = await $User.getOne({id: body.userId})
+      return $User.updateOne({id: user.id}, {admin: !user.admin})
     },
   }),
   /**

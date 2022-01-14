@@ -30,8 +30,8 @@ export const $SecurityStatus = createEndpoint({
 /**
  *
  */
-export const $SecurityLoginPassword = createEndpoint({
-  path: '/SecurityLoginPassword',
+export const $SecurityLogin = createEndpoint({
+  path: '/SecurityLogin',
   payload: io.object({
     email: io.string(),
     password: io.string(),
@@ -53,8 +53,8 @@ export const $SecurityLoginGoogle = createEndpoint({
 /**
  *
  */
-export const $SecuritySignUpRegular = createEndpoint({
-  path: '/SecuritySignUpRegular',
+export const $SecuritySignUp = createEndpoint({
+  path: '/SecuritySignUp',
   payload: io.object({
     email: io.string().email().trim(),
     firstName: io.string(),
@@ -68,31 +68,19 @@ export const $SecuritySignUpRegular = createEndpoint({
 /**
  *
  */
-export const $SecurityForgotSend = createEndpoint({
-  path: '/SecurityForgotSend',
+export const $SecurityForgot = createEndpoint({
+  path: '/SecurityForgot',
   payload: io.string(),
 })
 /**
  *
  */
-export const $SecurityForgotVerify = createEndpoint({
-  path: '/SecurityForgotVerify',
+export const $SecurityVerify = createEndpoint({
+  path: '/SecurityVerify',
   payload: io.object({
     email: io.string().email(),
     code: io.string(),
     newPassword: io.string(),
-    userAgent: io.optional(io.string()),
-  }),
-  result: _ioAuthPayload,
-})
-/**
- *
- */
-export const $SecurityVerifyEmail = createEndpoint({
-  path: '/SecurityVerifyEmail',
-  payload: io.object({
-    email: io.string(),
-    code: io.string(),
     userAgent: io.optional(io.string()),
   }),
   result: _ioAuthPayload,

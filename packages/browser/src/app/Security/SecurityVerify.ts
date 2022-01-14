@@ -1,8 +1,5 @@
 import {createElement as $, FC, useEffect} from 'react'
-import {
-  $SecurityForgotSend,
-  $SecurityForgotVerify,
-} from '../../endpoints/Security'
+import {$SecurityForgot, $SecurityVerify} from '../../endpoints/Security'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
@@ -24,8 +21,8 @@ import {useForm} from '../useForm'
 export const SecurityVerify: FC<{email?: string}> = ({email: _email}) => {
   const auth = useAuth()
   const toaster = useToaster()
-  const $send = useEndpoint($SecurityForgotSend)
-  const $verify = useEndpoint($SecurityForgotVerify)
+  const $send = useEndpoint($SecurityForgot)
+  const $verify = useEndpoint($SecurityVerify)
   const form = useForm({
     email: _email ?? '',
     code: '',

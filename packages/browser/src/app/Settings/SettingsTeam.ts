@@ -1,5 +1,5 @@
 import {createElement as $, FC} from 'react'
-import {$TeamUpdateCurrent} from '../../endpoints/Team'
+import {$TeamCurrentUpdate} from '../../endpoints/Team'
 import {addkeys} from '../../utils/addkeys'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
@@ -18,7 +18,7 @@ import {useForm} from '../useForm'
 export const SettingsTeam: FC = () => {
   const auth = useAuth()
   const toaster = useToaster()
-  const $teamUpdate = useEndpoint($TeamUpdateCurrent)
+  const $teamUpdate = useEndpoint($TeamCurrentUpdate)
   const form = useForm({
     name: '',
     color: '',

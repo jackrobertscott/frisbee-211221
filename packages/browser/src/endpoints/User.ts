@@ -4,8 +4,8 @@ import {createEndpoint} from '../utils/endpoints'
 /**
  *
  */
-export const $UserUpdateCurrent = createEndpoint({
-  path: '/UserUpdateCurrent',
+export const $UserCurrentUpdate = createEndpoint({
+  path: '/UserCurrentUpdate',
   payload: io.object({
     firstName: io.optional(io.string()),
     lastName: io.optional(io.string()),
@@ -17,8 +17,8 @@ export const $UserUpdateCurrent = createEndpoint({
 /**
  *
  */
-export const $UserChangePassword = createEndpoint({
-  path: '/UserChangePassword',
+export const $UserCurrentChangePassword = createEndpoint({
+  path: '/UserCurrentChangePassword',
   payload: io.object({
     oldPassword: io.string(),
     newPassword: io.string(),
@@ -42,10 +42,14 @@ export const $UserList = createEndpoint({
 /**
  *
  */
-export const $UserToggleAdmin = createEndpoint({
-  path: '/UserToggleAdmin',
+export const $UserCreate = createEndpoint({
+  path: '/UserCreate',
   payload: io.object({
-    userId: io.string(),
+    email: io.string().email().trim(),
+    firstName: io.string(),
+    lastName: io.string(),
+    gender: io.string(),
+    termsAccepted: io.boolean(),
   }),
   result: ioUser,
 })
@@ -66,14 +70,10 @@ export const $UserUpdate = createEndpoint({
 /**
  *
  */
-export const $UserCreate = createEndpoint({
-  path: '/UserCreate',
+export const $UserToggleAdmin = createEndpoint({
+  path: '/UserToggleAdmin',
   payload: io.object({
-    email: io.string().email().trim(),
-    firstName: io.string(),
-    lastName: io.string(),
-    gender: io.string(),
-    termsAccepted: io.boolean(),
+    userId: io.string(),
   }),
   result: ioUser,
 })

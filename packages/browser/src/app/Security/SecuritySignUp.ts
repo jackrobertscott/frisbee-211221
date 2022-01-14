@@ -1,5 +1,5 @@
 import {createElement as $, FC} from 'react'
-import {$SecuritySignUpRegular} from '../../endpoints/Security'
+import {$SecuritySignUp} from '../../endpoints/Security'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
@@ -24,7 +24,7 @@ export const SecuritySignUp: FC<{
   savedEmailSet: (email: string) => void
 }> = ({email: _email, savedEmailSet}) => {
   const toaster = useToaster()
-  const $signUp = useEndpoint($SecuritySignUpRegular)
+  const $signUp = useEndpoint($SecuritySignUp)
   const form = useForm({
     firstName: '',
     lastName: '',

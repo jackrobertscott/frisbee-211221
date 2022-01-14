@@ -1,5 +1,5 @@
 import {createElement as $, FC} from 'react'
-import {$SecurityForgotSend} from '../../endpoints/Security'
+import {$SecurityForgot} from '../../endpoints/Security'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
@@ -17,7 +17,7 @@ import {useForm} from '../useForm'
  */
 export const SecurityForgot: FC<{email?: string}> = ({email: _email}) => {
   const toaster = useToaster()
-  const $send = useEndpoint($SecurityForgotSend)
+  const $send = useEndpoint($SecurityForgot)
   const form = useForm({email: _email ?? ''})
   return $(Form, {
     children: addkeys([

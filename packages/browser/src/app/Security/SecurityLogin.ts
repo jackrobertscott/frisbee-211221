@@ -1,6 +1,6 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
-import {$SecurityLoginPassword} from '../../endpoints/Security'
+import {$SecurityLogin} from '../../endpoints/Security'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {useAuth} from '../Auth/useAuth'
@@ -20,7 +20,7 @@ export const SecurityLogin: FC<{
   savedEmailSet: (email: string) => void
 }> = ({email: _email, savedEmailSet}) => {
   const auth = useAuth()
-  const $login = useEndpoint($SecurityLoginPassword)
+  const $login = useEndpoint($SecurityLogin)
   const form = useForm({
     email: _email ?? '',
     password: '',
