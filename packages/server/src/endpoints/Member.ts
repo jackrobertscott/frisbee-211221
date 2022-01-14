@@ -8,7 +8,6 @@ import {requireTeam} from './requireTeam'
 import {$User} from '../tables/$User'
 import {regex} from '../utils/regex'
 import {TMember} from '../schemas/ioMember'
-import {requireUserAdmin} from './requireUserAdmin'
 /**
  *
  */

@@ -1,6 +1,6 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC, ReactNode, useState} from 'react'
-import {ToasterContext, TPieceOfToast} from './ToasterContext'
+import {ToasterContext, TToaster} from './ToasterContext'
 import {addkeys} from '../../utils/addkeys'
 import {fadedown} from '../../utils/keyframes'
 import {random} from '../../utils/random'
@@ -11,17 +11,17 @@ import {Icon} from '../Icon'
  *
  */
 export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
-  const [toasts, toastsSet] = useState<TPieceOfToast[]>([])
+  const [toasts, toastsSet] = useState<TToaster[]>([])
   const removeById = (id: string) =>
     toastsSet((i) => i.filter((x) => x.id !== id))
   const createToast = (
     message: string,
-    type: TPieceOfToast['type'],
+    type: TToaster['type'],
     timeout?: number
   ) => {
     const id = random.randomString()
     const toastClose = () => removeById(id)
-    const piece: TPieceOfToast = {
+    const piece: TToaster = {
       id,
       message,
       type,

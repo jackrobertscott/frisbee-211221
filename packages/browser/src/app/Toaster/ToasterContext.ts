@@ -3,7 +3,7 @@ import {contextNoop} from '../../utils/context'
 /**
  *
  */
-export interface TPieceOfToast {
+export interface TToaster {
   id: string
   message: string
   type: 'normal' | 'error'
@@ -13,7 +13,7 @@ export interface TPieceOfToast {
  *
  */
 export interface TToasterContext {
-  toasts: TPieceOfToast[]
+  toasts: TToaster[]
   notify: (message: string, time?: number) => void
   error: (message: string) => void
 }
