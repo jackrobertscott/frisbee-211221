@@ -80,7 +80,7 @@ export default new Map<string, RequestHandler>([
               {email: regexSearch},
             ],
           },
-          {limit: body.limit}
+          {limit: body.limit ?? 1000}
         ),
       ])
       return {count, users}
