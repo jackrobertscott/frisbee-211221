@@ -17,14 +17,15 @@ Todos:
 - [x] Fix font color on dark team.
 - [x] Add replying to comments.
 - [x] Add rich text editor to posts.
-- [ ] Request for players tab.
-- [ ] Opt-in to emails i.e. when game fixtures are released.
-- [ ] Feedback / loading state for team sign up.
+- [ ] Add automatic web-page refresher.
+- [ ] Analytics.
+- [ ] Spirit score and mvp tab.
+- [ ] Opt-in to game fixture emails.
 - [ ] Admin send custom emails.
+- [ ] Request for players tab.
 - [ ] Captain member management popup.
 - [ ] Ability to contact admins.
 - [ ] Automated fixtures.
 - [ ] Facebook login.
-- [ ] Analytics.
 - [ ] Events: late 2021 fun rounds.
 - [ ] Fixture games should have individual dates.
