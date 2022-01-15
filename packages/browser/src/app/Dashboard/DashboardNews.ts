@@ -50,7 +50,7 @@ export const DashboardNews: FC = () => {
                 })
               })
             : $('div', {
-                children: 'No Rounds Yet',
+                children: 'No Fixtures Yet',
                 className: css({
                   color: theme.fontMinor.string(),
                   padding: theme.padify(theme.fib[4]),

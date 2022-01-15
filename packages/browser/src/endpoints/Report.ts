@@ -6,8 +6,8 @@ import {createEndpoint} from '../utils/endpoints'
 /**
  *
  */
-export const $ReportListOfRound = createEndpoint({
-  path: '/ReportListOfRound',
+export const $ReportListOfFixture = createEndpoint({
+  path: '/ReportListOfFixture',
   payload: io.object({
     roundId: io.string(),
     limit: io.optional(io.number()),
@@ -17,8 +17,8 @@ export const $ReportListOfRound = createEndpoint({
 /**
  *
  */
-export const $ReportGetRound = createEndpoint({
-  path: '/ReportGetRound',
+export const $ReportGetFixture = createEndpoint({
+  path: '/ReportGetFixture',
   payload: io.object({
     teamId: io.string(),
     roundId: io.string(),

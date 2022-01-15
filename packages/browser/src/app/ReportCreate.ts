@@ -1,8 +1,8 @@
 import {css} from '@emotion/css'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$ReportCreate, $ReportGetRound} from '../endpoints/Report'
-import {$RoundListOfSeason} from '../endpoints/Fixture'
+import {$ReportCreate, $ReportGetFixture} from '../endpoints/Report'
+import {$FixtureListOfSeason} from '../endpoints/Fixture'
 import {TFixture} from '../schemas/ioFixture'
 import {TTeam} from '../schemas/ioTeam'
 import {TUser} from '../schemas/ioUser'
@@ -36,10 +36,10 @@ export const ReportCreate: FC<{
   const auth = useAuth()
   const media = useMedia()
   const isSmall = media.width < theme.fib[12]
-  const [rounds, roundsSet] = useState<TFixture[]>()
+  const [fixtures, fixturesSet] = useState<TFixture[]>()
   const [against, againstSet] = useState<{team: TTeam; users: TUser[]}>()
-  const $roundList = useEndpoint($RoundListOfSeason)
-  const $roundAgainst = useEndpoint($ReportGetRound)
+  const $fixtureList = useEndpoint($FixtureListOfSeason)
+  const $fixtureAgainst = useEndpoint($ReportGetFixture)
   const $create = useEndpoint($ReportCreate)
   const form = useForm({
     teamId: auth.current?.team?.id,
@@ -53,11 +53,11 @@ export const ReportCreate: FC<{
   })
   useEffect(() => {
     if (auth.current?.season)
-      $roundList.fetch({seasonId: auth.current?.season.id}).then(roundsSet)
+      $fixtureList.fetch({seasonId: auth.current?.season.id}).then(fixturesSet)
   }, [])
   useEffect(() => {
     if (form.data.roundId && auth.current?.team) {
-      $roundAgainst
+      $fixtureAgainst
         .fetch({roundId: form.data.roundId, teamId: auth.current?.team.id})
         .then(({teamAgainst, users}) => againstSet({team: teamAgainst, users}))
     }
@@ -80,7 +80,7 @@ export const ReportCreate: FC<{
       $(Form, {
         background: theme.bgMinor,
         children: addkeys([
-          rounds === undefined
+          fixtures === undefined
             ? $(Spinner)
             : $(FormRow, {
                 children: addkeys([
@@ -88,7 +88,7 @@ export const ReportCreate: FC<{
                   $(InputSelect, {
                     value: form.data.roundId,
                     valueSet: form.link('roundId'),
-                    options: rounds.map((i) => ({
+                    options: fixtures.map((i) => ({
                       key: i.id,
                       label: `${i.title} - ${dayjs(i.date).format('DD/MM/YY')}`,
                     })),

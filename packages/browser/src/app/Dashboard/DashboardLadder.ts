@@ -1,13 +1,12 @@
 import {css} from '@emotion/css'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$RoundListOfSeason, $RoundUpdate} from '../../endpoints/Fixture'
+import {$FixtureListOfSeason, $FixtureUpdate} from '../../endpoints/Fixture'
 import {$TeamListOfSeason} from '../../endpoints/Team'
 import {TFixture} from '../../schemas/ioFixture'
 import {TTeam} from '../../schemas/ioTeam'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
-import {fadein} from '../../utils/keyframes'
 import {tallyChart} from '../../utils/tallyChart'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
@@ -25,19 +24,19 @@ import {initials} from '../../utils/initials'
  */
 export const DashboardLadder: FC = () => {
   const auth = useAuth()
-  const $roundUpdate = useEndpoint($RoundUpdate)
+  const $fixtureUpdate = useEndpoint($FixtureUpdate)
   const $teamList = useEndpoint($TeamListOfSeason)
-  const $roundList = useEndpoint($RoundListOfSeason)
+  const $fixtureList = useEndpoint($FixtureListOfSeason)
   const [teams, teamsSet] = useState<TTeam[]>([])
-  const [rounds, roundsSet] = useState<TFixture[]>()
+  const [fixtures, fixturesSet] = useState<TFixture[]>()
   const [editing, editingSet] = useState<TFixture>()
   const [openrnds, openrndsSet] = useState<string[]>([])
-  const tally = tallyChart(rounds ?? [])
+  const tally = tallyChart(fixtures ?? [])
   const reload = () => {
     if (!auth.current?.season) return
     const seasonId = auth.current.season.id
     $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))
-    $roundList.fetch({seasonId}).then(roundsSet)
+    $fixtureList.fetch({seasonId}).then(fixturesSet)
   }
   useEffect(() => reload(), [])
   return $(Fragment, {
@@ -85,7 +84,7 @@ export const DashboardLadder: FC = () => {
           }),
           $(Fragment, {
             children:
-              !!rounds?.length &&
+              !!fixtures?.length &&
               $(Fragment, {
                 children:
                   teams === undefined
@@ -96,8 +95,8 @@ export const DashboardLadder: FC = () => {
                             marginBottom: theme.fib[5],
                           },
                         }),
-                        children: rounds.map((fixture) => {
-                          return $(_LadderRound, {
+                        children: fixtures.map((fixture) => {
+                          return $(_LadderFixture, {
                             key: fixture.id,
                             fixture,
                             teams,
@@ -122,10 +121,10 @@ export const DashboardLadder: FC = () => {
           editing &&
           $(FixtureTallyForm, {
             fixture: editing,
-            loading: $roundUpdate.loading,
+            loading: $fixtureUpdate.loading,
             close: () => editingSet(undefined),
             done: (data) =>
-              $roundUpdate
+              $fixtureUpdate
                 .fetch({
                   ...data,
                   roundId: editing.id,
@@ -142,7 +141,7 @@ export const DashboardLadder: FC = () => {
 /**
  *
  */
-const _LadderRound: FC<{
+const _LadderFixture: FC<{
   fixture: TFixture
   teams: TTeam[]
   open: boolean

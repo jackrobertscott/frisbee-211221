@@ -4,7 +4,7 @@ import {createEndpoint} from '../utils/endpoints'
 /**
  *
  */
-export const $RoundListOfSeason = createEndpoint({
+export const $FixtureListOfSeason = createEndpoint({
   path: '/FixtureListOfSeason',
   payload: io.object({
     seasonId: io.string(),
@@ -15,7 +15,7 @@ export const $RoundListOfSeason = createEndpoint({
 /**
  *
  */
-export const $RoundCreate = createEndpoint({
+export const $FixtureCreate = createEndpoint({
   path: '/FixtureCreate',
   payload: io.object({
     seasonId: io.string(),
@@ -28,7 +28,7 @@ export const $RoundCreate = createEndpoint({
 /**
  *
  */
-export const $RoundUpdate = createEndpoint({
+export const $FixtureUpdate = createEndpoint({
   path: '/FixtureUpdate',
   payload: io.object({
     roundId: io.string(),
@@ -41,7 +41,7 @@ export const $RoundUpdate = createEndpoint({
 /**
  *
  */
-export const $RoundDelete = createEndpoint({
+export const $FixtureDelete = createEndpoint({
   path: '/FixtureDelete',
   payload: io.object({
     roundId: io.string(),

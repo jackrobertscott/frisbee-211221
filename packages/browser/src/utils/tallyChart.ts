@@ -29,9 +29,9 @@ const emptyChart = (teamId: string): TChart => ({
 /**
  *
  */
-export const tallyChart = (rounds: TFixture[]) => {
+export const tallyChart = (fixtures: TFixture[]) => {
   const tally: Record<string, TChart | undefined> = {}
-  for (const fixture of rounds) {
+  for (const fixture of fixtures) {
     for (const game of fixture.games) {
       if (!isNumber(game.team1Score) || !isNumber(game.team2Score)) continue
       const t1Tally = tally[game.team1Id] ?? emptyChart(game.team1Id)

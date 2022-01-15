@@ -17,7 +17,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/ReportListOfRound',
+    path: '/ReportListOfFixture',
     payload: io.object({
       roundId: io.string(),
       limit: io.optional(io.number()),
@@ -33,7 +33,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/ReportGetRound',
+    path: '/ReportGetFixture',
     payload: io.object({
       teamId: io.string(),
       roundId: io.string(),

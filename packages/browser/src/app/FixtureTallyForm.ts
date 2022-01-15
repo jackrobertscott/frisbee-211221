@@ -15,7 +15,7 @@ import {Modal} from './Modal'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
-import {$ReportListOfRound} from '../endpoints/Report'
+import {$ReportListOfFixture} from '../endpoints/Report'
 import {TReport} from '../schemas/ioReport'
 import {Table} from './Table'
 import {FormBadge} from './Form/FormBadge'
@@ -41,7 +41,7 @@ export const FixtureTallyForm: FC<{
 }> = ({fixture, loading, close, done}) => {
   const auth = useAuth()
   const $teamList = useEndpoint($TeamListOfSeason)
-  const $reportList = useEndpoint($ReportListOfRound)
+  const $reportList = useEndpoint($ReportListOfFixture)
   const [teams, teamsSet] = useState<TTeam[]>()
   const [reports, reportsSet] = useState<TReport[]>()
   const form = useForm<TFixtureForm>(fixture)

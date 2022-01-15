@@ -13,6 +13,7 @@ export const HTML: FC<{
     },
     className: css({
       flexGrow: 1,
+      wordBreak: 'break-word',
     }),
   })
 }

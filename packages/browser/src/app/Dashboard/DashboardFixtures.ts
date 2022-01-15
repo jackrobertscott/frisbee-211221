@@ -2,9 +2,9 @@ import {css} from '@emotion/css'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {
-  $RoundCreate,
-  $RoundListOfSeason,
-  $RoundUpdate,
+  $FixtureCreate,
+  $FixtureListOfSeason,
+  $FixtureUpdate,
 } from '../../endpoints/Fixture'
 import {$TeamListOfSeason} from '../../endpoints/Team'
 import {TFixture} from '../../schemas/ioFixture'
@@ -29,20 +29,20 @@ import {initials} from '../../utils/initials'
  */
 export const DashboardFixtures: FC = () => {
   const auth = useAuth()
-  const $roundCreate = useEndpoint($RoundCreate)
-  const $roundUpdate = useEndpoint($RoundUpdate)
+  const $fixtureCreate = useEndpoint($FixtureCreate)
+  const $fixtureUpdate = useEndpoint($FixtureUpdate)
   const $teamList = useEndpoint($TeamListOfSeason)
-  const $roundList = useEndpoint($RoundListOfSeason)
+  const $fixtureList = useEndpoint($FixtureListOfSeason)
   const [teams, teamsSet] = useState<TTeam[]>()
-  const [rounds, roundsSet] = useState<TFixture[]>()
+  const [fixtures, fixturesSet] = useState<TFixture[]>()
   const [creating, creatingSet] = useState(false)
   const [editing, editingSet] = useState<TFixture>()
-  const [openrnds, openrndsSet] = useLocalState<string[]>('frisbee.rounds', [])
+  const [openfxs, openfxsSet] = useLocalState<string[]>('frisbee.fixtures', [])
   const reload = () => {
     if (!auth.current?.season) return
     const seasonId = auth.current.season.id
     $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))
-    $roundList.fetch({seasonId}).then(roundsSet)
+    $fixtureList.fetch({seasonId}).then(fixturesSet)
   }
   useEffect(() => reload(), [])
   return $(Fragment, {
@@ -55,7 +55,7 @@ export const DashboardFixtures: FC = () => {
               background: theme.bgAdmin,
               click: () => creatingSet(true),
             }),
-          rounds === undefined || teams === undefined
+          fixtures === undefined || teams === undefined
             ? $(Spinner)
             : $('div', {
                 className: css({
@@ -63,17 +63,17 @@ export const DashboardFixtures: FC = () => {
                     marginBottom: theme.fib[5],
                   },
                 }),
-                children: rounds.length
-                  ? rounds.map((fixture) => {
+                children: fixtures.length
+                  ? fixtures.map((fixture) => {
                       return $(_DashboardFixturesView, {
                         key: fixture.id,
                         fixture,
                         teams,
                         isAdmin: auth.isAdmin(),
-                        open: openrnds.includes(fixture.id),
+                        open: openfxs.includes(fixture.id),
                         editingSet,
                         toggle: () =>
-                          openrndsSet((i) => {
+                          openfxsSet((i) => {
                             return i.includes(fixture.id)
                               ? i.filter((x) => x !== fixture.id)
                               : i.concat(fixture.id)
@@ -81,7 +81,7 @@ export const DashboardFixtures: FC = () => {
                       })
                     })
                   : $('div', {
-                      children: 'No Rounds Yet',
+                      children: 'No Fixtures Yet',
                       className: css({
                         color: theme.fontMinor.string(),
                         padding: theme.padify(theme.fib[4]),
@@ -95,11 +95,11 @@ export const DashboardFixtures: FC = () => {
         children:
           creating &&
           $(FixtureSetupForm, {
-            loading: $roundCreate.loading,
+            loading: $fixtureCreate.loading,
             close: () => creatingSet(false),
             done: (data) =>
               auth.current?.season &&
-              $roundCreate
+              $fixtureCreate
                 .fetch({
                   ...data,
                   date: data.date!,
@@ -117,10 +117,10 @@ export const DashboardFixtures: FC = () => {
           editing &&
           $(FixtureSetupForm, {
             fixture: editing,
-            loading: $roundUpdate.loading,
+            loading: $fixtureUpdate.loading,
             close: () => editingSet(undefined),
             done: (data) =>
-              $roundUpdate
+              $fixtureUpdate
                 .fetch({
                   ...data,
                   date: data.date!,
