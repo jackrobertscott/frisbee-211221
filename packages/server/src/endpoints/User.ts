@@ -196,7 +196,7 @@ const _createTeamsFromObjects = async (
   rawTeams = rawTeams.filter((i) => {
     return !dbTeamNames.includes(i.name.toLowerCase().trim())
   })
-  await $Team.createMany(rawTeams)
+  if (rawTeams.length) await $Team.createMany(rawTeams)
   return $Team.getMany({seasonId})
 }
 /**
@@ -229,7 +229,7 @@ const _createUsersFromObjects = async (
   rawUsers = rawUsers.filter((i) => {
     return !dbUserEmails.includes(i.email.toLowerCase().trim())
   })
-  await $User.createMany(rawUsers)
+  if (rawUsers.length) await $User.createMany(rawUsers)
   const users = await $User.getMany({
     email: {$in: rawUserEmails.map(regex.normalize)},
   })
@@ -252,7 +252,7 @@ const _createUsersFromObjects = async (
     })
     .filter((i) => !!i)
     .map((i) => i!)
-  await $Member.createMany(rawMemberships)
+  if (rawMemberships.length) await $Member.createMany(rawMemberships)
 }
 /**
  *
