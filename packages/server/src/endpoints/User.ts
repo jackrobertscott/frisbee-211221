@@ -189,15 +189,16 @@ const _createTeamsFromObjects = async (
       rawTeamNames.push(i.name)
       return true
     })
-  const dbTeams = await $Team.getMany({
-    name: {$in: rawTeamNames.map(regex.normalize)},
-  })
+  const dbTeams = await $Team.getMany(
+    {name: {$in: rawTeamNames.map(regex.normalize)}},
+    {limit: 1000}
+  )
   const dbTeamNames = dbTeams.map((i) => i.name.toLowerCase().trim())
   rawTeams = rawTeams.filter((i) => {
     return !dbTeamNames.includes(i.name.toLowerCase().trim())
   })
   if (rawTeams.length) await $Team.createMany(rawTeams)
-  return $Team.getMany({seasonId})
+  return $Team.getMany({seasonId}, {limit: 1000})
 }
 /**
  *
@@ -222,17 +223,19 @@ const _createUsersFromObjects = async (
       rawUserEmails.push(i.email)
       return true
     })
-  const dbUsers = await $User.getMany({
-    email: {$in: rawUserEmails.map(regex.normalize)},
-  })
+  const dbUsers = await $User.getMany(
+    {email: {$in: rawUserEmails.map(regex.normalize)}},
+    {limit: 1000}
+  )
   const dbUserEmails = dbUsers.map((i) => i.email.toLowerCase().trim())
   rawUsers = rawUsers.filter((i) => {
     return !dbUserEmails.includes(i.email.toLowerCase().trim())
   })
   if (rawUsers.length) await $User.createMany(rawUsers)
-  const users = await $User.getMany({
-    email: {$in: rawUserEmails.map(regex.normalize)},
-  })
+  const users = await $User.getMany(
+    {email: {$in: rawUserEmails.map(regex.normalize)}},
+    {limit: 1000}
+  )
   const rawMemberships = users
     .map((user) => {
       const userEmail = user.email.toLowerCase().trim()

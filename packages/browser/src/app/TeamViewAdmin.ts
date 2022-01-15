@@ -62,6 +62,14 @@ export const TeamViewAdmin: FC<{
         children: addkeys([
           $(TopBar, {
             children: addkeys([
+              $(Fragment, {
+                children:
+                  isSmall &&
+                  $(TopBarBadge, {
+                    icon: 'bars',
+                    click: () => openSet((i) => !i),
+                  }),
+              }),
               $(TopBarBadge, {
                 grow: true,
                 label: 'Team',

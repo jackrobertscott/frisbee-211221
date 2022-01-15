@@ -41,12 +41,21 @@ export const DashboardNews: FC = () => {
             }),
           posts === undefined
             ? $(Spinner)
-            : posts.map((post) => {
+            : posts.length
+            ? posts.map((post) => {
                 return $(_NewsPost, {
                   key: post.id,
                   post,
                   click: () => viewIdSet(post.id),
                 })
+              })
+            : $('div', {
+                children: 'No Rounds Yet',
+                className: css({
+                  color: theme.fontMinor.string(),
+                  padding: theme.padify(theme.fib[4]),
+                  textAlign: 'center',
+                }),
               }),
         ]),
       }),
