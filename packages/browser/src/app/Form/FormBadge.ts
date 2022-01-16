@@ -17,6 +17,7 @@ export interface TFormBadge {
   background?: THSLA
   padding?: number
   grow?: boolean
+  select?: 'auto' | 'text' | 'none' | 'contain' | 'all'
   style?: CSSObject
 }
 /**
@@ -28,10 +29,11 @@ export const FormBadge: FC<TFormBadge> = ({
   label,
   click,
   disabled,
-  padding,
-  grow,
   font,
   background: _background,
+  padding,
+  grow,
+  select,
   style,
 }) => {
   const background = disabled ? theme.bgDisabled : _background || theme.bg
@@ -43,7 +45,7 @@ export const FormBadge: FC<TFormBadge> = ({
         display: 'flex',
         justifyContent: 'center',
         textAlign: 'center',
-        userSelect: 'none',
+        userSelect: select ?? 'none',
         whiteSpace: 'nowrap',
         border: theme.border(),
         padding: theme.padify(padding ?? theme.fib[4]),

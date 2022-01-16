@@ -47,6 +47,7 @@ export const Table: TFCTable = ({head, body}) => {
               children: $(FormLabel, {
                 label,
                 background: theme.bgMinor,
+                select: 'text',
                 grow: true,
               }),
             })
@@ -83,6 +84,7 @@ export const Table: TFCTable = ({head, body}) => {
                         ? bg.merge({a: entry.click ? -0.5 : 0})
                         : hsla.create(0, 0, 0, 0),
                       font: data ? font : font?.merge({a: 0.5}),
+                      select: !entry.click ? 'text' : undefined,
                       grow: true,
                     }),
                 })
