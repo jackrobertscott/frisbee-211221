@@ -20,6 +20,7 @@ import {TSeason} from '../../schemas/ioSeason'
 import {TUser} from '../../schemas/ioUser'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
+import {GENDER_OPTIONS} from '../../utils/gender'
 import {go} from '../../utils/go'
 import {objectify} from '../../utils/objectify'
 import {useAuth} from '../Auth/useAuth'
@@ -310,10 +311,7 @@ export const _DashboardUsersCreate: FC<{
               $(InputSelect, {
                 value: form.data.gender,
                 valueSet: form.link('gender'),
-                options: [
-                  {key: 'male', label: 'Male'},
-                  {key: 'female', label: 'Female'},
-                ],
+                options: GENDER_OPTIONS,
               }),
             ]),
           }),
@@ -412,10 +410,7 @@ export const _DashboardUsersView: FC<{
                   $(InputSelect, {
                     value: form.data.gender,
                     valueSet: form.link('gender'),
-                    options: [
-                      {key: 'male', label: 'Male'},
-                      {key: 'female', label: 'Female'},
-                    ],
+                    options: GENDER_OPTIONS,
                   }),
                 ]),
               }),

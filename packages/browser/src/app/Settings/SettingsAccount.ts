@@ -1,6 +1,7 @@
 import {createElement as $, FC} from 'react'
 import {$UserCurrentUpdate} from '../../endpoints/User'
 import {addkeys} from '../../utils/addkeys'
+import {GENDER_OPTIONS} from '../../utils/gender'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
@@ -50,10 +51,7 @@ export const SettingsAccount: FC = () => {
             disabled: true,
             value: form.data.gender,
             valueSet: form.link('gender'),
-            options: [
-              {key: 'male', label: 'Male'},
-              {key: 'female', label: 'Female'},
-            ],
+            options: GENDER_OPTIONS,
           }),
         ]),
       }),

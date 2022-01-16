@@ -62,7 +62,7 @@ export default new Map<string, RequestHandler>([
       email: io.string().email(),
       firstName: io.optional(io.string().emptyok()),
       lastName: io.optional(io.string().emptyok()),
-      gender: io.optional(io.enum(['male', 'female'])),
+      gender: io.optional(io.string()),
     }),
     handler:
       ({teamId, ...body}) =>

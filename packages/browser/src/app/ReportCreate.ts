@@ -26,6 +26,7 @@ import {hsla} from '../utils/hsla'
 import {FormLabel} from './Form/FormLabel'
 import {useMedia} from './Media/useMedia'
 import {initials} from '../utils/initials'
+import {useToaster} from './Toaster/useToaster'
 /**
  *
  */
@@ -35,6 +36,7 @@ export const ReportCreate: FC<{
 }> = ({close, done}) => {
   const auth = useAuth()
   const media = useMedia()
+  const toaster = useToaster()
   const isSmall = media.width < theme.fib[12]
   const [fixtures, fixturesSet] = useState<TFixture[]>()
   const [against, againstSet] = useState<{team: TTeam; users: TUser[]}>()
@@ -155,12 +157,10 @@ export const ReportCreate: FC<{
                       $(InputSelect, {
                         value: form.data.mvpMale,
                         valueSet: form.link('mvpMale'),
-                        options: against.users
-                          .filter((i) => i.gender === 'male')
-                          .map((i) => ({
-                            key: i.id,
-                            label: `${i.firstName} ${i.lastName}`,
-                          })),
+                        options: against.users.map((i) => ({
+                          key: i.id,
+                          label: `${i.firstName} ${i.lastName}`,
+                        })),
                       }),
                     ]),
                   }),
@@ -170,12 +170,10 @@ export const ReportCreate: FC<{
                       $(InputSelect, {
                         value: form.data.mvpFemale,
                         valueSet: form.link('mvpFemale'),
-                        options: against.users
-                          .filter((i) => i.gender === 'female')
-                          .map((i) => ({
-                            key: i.id,
-                            label: `${i.firstName} ${i.lastName}`,
-                          })),
+                        options: against.users.map((i) => ({
+                          key: i.id,
+                          label: `${i.firstName} ${i.lastName}`,
+                        })),
                       }),
                     ]),
                   }),
@@ -235,7 +233,14 @@ export const ReportCreate: FC<{
                   $(FormBadge, {
                     disabled: $create.loading,
                     label: $create.loading ? 'Loading' : 'Submit',
-                    click: () => $create.fetch(form.data as any).then(done),
+                    click: () => {
+                      if (form.data.mvpMale === form.data.mvpFemale) {
+                        const message =
+                          'The male and female MVP can not be the same person.'
+                        return toaster.error(message)
+                      }
+                      $create.fetch(form.data as any).then(done)
+                    },
                   }),
                 ]),
           }),

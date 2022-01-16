@@ -24,7 +24,7 @@ export default new Map<string, RequestHandler>([
     payload: io.object({
       firstName: io.optional(io.string()),
       lastName: io.optional(io.string()),
-      gender: io.optional(io.enum(['male', 'female'])),
+      gender: io.optional(io.string()),
       avatarUrl: io.optional(io.string()),
     }),
     handler: (body) => async (req) => {
@@ -95,7 +95,7 @@ export default new Map<string, RequestHandler>([
       email: io.string().email().trim(),
       firstName: io.string(),
       lastName: io.string(),
-      gender: io.enum(['male', 'female']),
+      gender: io.string(),
       termsAccepted: io.boolean(),
     }),
     handler: (body) => async (req) => {
@@ -116,7 +116,7 @@ export default new Map<string, RequestHandler>([
       userId: io.string(),
       firstName: io.optional(io.string()),
       lastName: io.optional(io.string()),
-      gender: io.optional(io.enum(['male', 'female'])),
+      gender: io.optional(io.string()),
       avatarUrl: io.optional(io.string()),
     }),
     handler:

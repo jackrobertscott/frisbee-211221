@@ -2,6 +2,7 @@ import {createElement as $, FC} from 'react'
 import {$SecuritySignUp} from '../../endpoints/Security'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
+import {GENDER_OPTIONS} from '../../utils/gender'
 import {go} from '../../utils/go'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
@@ -60,10 +61,7 @@ export const SecuritySignUp: FC<{
           $(InputSelect, {
             value: form.data.gender,
             valueSet: form.link('gender'),
-            options: [
-              {key: 'male', label: 'Male'},
-              {key: 'female', label: 'Female'},
-            ],
+            options: GENDER_OPTIONS,
           }),
         ]),
       }),

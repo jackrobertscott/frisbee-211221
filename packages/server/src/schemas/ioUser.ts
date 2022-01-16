@@ -9,7 +9,7 @@ export const ioUser = io.object({
   admin: io.optional(io.boolean()),
   firstName: io.string(),
   lastName: io.string(),
-  gender: io.enum(['male', 'female']),
+  gender: io.string(),
   password: io.optional(io.string()),
   email: io.string(),
   emailVerified: io.boolean(),

@@ -11,6 +11,7 @@ import {TTeam} from '../schemas/ioTeam'
 import {TUser} from '../schemas/ioUser'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
+import {GENDER_OPTIONS} from '../utils/gender'
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
 import {FormBadge} from './Form/FormBadge'
@@ -270,10 +271,7 @@ const _TeamMembersViewCreate: FC<{
               $(InputSelect, {
                 value: form.data.gender,
                 valueSet: form.link('gender'),
-                options: [
-                  {key: 'male', label: 'Male'},
-                  {key: 'female', label: 'Female'},
-                ],
+                options: GENDER_OPTIONS,
               }),
             ]),
           }),
