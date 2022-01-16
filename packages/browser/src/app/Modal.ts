@@ -16,10 +16,10 @@ export const Modal: FC<{
   width?: number
   height?: number
 }> = ({close, children, width = theme.fib[12] + theme.fib[9], height}) => {
-  const depth = useStack()
+  const stack = useStack()
   const unfocused = useRef<boolean>(!document.querySelector(':focus-within'))
   const handleClose = (event: MouseEvent) => {
-    if (!depth.top()) return
+    if (!stack.top()) return
     if (event.target === event.currentTarget && unfocused.current) close?.()
     else unfocused.current = !document.querySelector(':focus-within')
   }

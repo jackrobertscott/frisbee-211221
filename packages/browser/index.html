@@ -15,12 +15,15 @@
       src="https://www.googletagmanager.com/gtag/js?id=G-CY7TS2HY1B"
     ></script>
     <script>
-      window.dataLayer = window.dataLayer || []
-      function gtag() {
-        dataLayer.push(arguments)
+      if (!window.location.host.startsWith('localhost')) {
+        console.log('hey')
+        window.dataLayer = window.dataLayer || []
+        function gtag() {
+          dataLayer.push(arguments)
+        }
+        gtag('js', new Date())
+        gtag('config', 'G-CY7TS2HY1B')
       }
-      gtag('js', new Date())
-      gtag('config', 'G-CY7TS2HY1B')
     </script>
     <!-- Made by Jack :) -->
   </body>

@@ -8,16 +8,18 @@ import {
 } from 'react'
 import {random} from '../../utils/random'
 import {StackContext} from './StackContext'
+import {useStack} from './useStack'
 /**
  *
  */
 export const StackProvider: FC<{children: ReactNode}> = ({children}) => {
-  const ref = useRef<string[]>([])
+  const stack = useStack()
+  const _ref = useRef<string[]>([])
+  const ref = stack.ref ?? _ref
   const [id] = useState(() => random.randomString())
   useEffect(() => {
-    ref?.current?.push(id)
+    ref.current.push(id)
     return () => {
-      if (!ref?.current) return
       ref.current = ref.current.filter((i) => i !== id)
     }
   }, [])
@@ -25,7 +27,11 @@ export const StackProvider: FC<{children: ReactNode}> = ({children}) => {
     children,
     value: {
       ref,
-      top: () => ref?.current && ref.current[ref.current.length - 1] === id,
+      top: () => {
+        const idk =
+          ref.current.length > 1 && ref.current[ref.current.length - 2] === id
+        return idk
+      },
     },
   })
 }

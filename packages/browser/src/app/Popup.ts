@@ -35,7 +35,7 @@ export const Popup: FC<{
   clickOutside,
   maxWidth,
 }) => {
-  const depth = useStack()
+  const stack = useStack()
   const wrapRef = useRef<HTMLElement>()
   const popupRef = useRef<HTMLElement>()
   const contentRef = useRef<HTMLElement>()
@@ -49,7 +49,7 @@ export const Popup: FC<{
     if (open) {
       boxSet(wrapRef.current?.getBoundingClientRect())
       const clickOutsideHandler = (event: MouseEvent) => {
-        if (!depth.top() || !clickOutside) return
+        if (!stack.top() || !clickOutside) return
         const clickedOutside =
           popupRef.current &&
           event.target instanceof HTMLElement &&
