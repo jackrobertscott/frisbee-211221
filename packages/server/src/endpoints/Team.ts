@@ -27,10 +27,10 @@ export default new Map<string, RequestHandler>([
       await $Season.getOne({id: body.seasonId})
       const [count, teams] = await Promise.all([
         $Team.count({seasonId: body.seasonId}),
-        $Team.getMany(
-          {seasonId: body.seasonId, name: regex.from(body.search ?? '')},
-          {limit: 1000}
-        ),
+        $Team.getMany({
+          seasonId: body.seasonId,
+          name: regex.from(body.search ?? ''),
+        }),
       ])
       return {count, teams}
     },
