@@ -194,6 +194,7 @@ export const ReportCreate: FC<{
                       $(InputSelect, {
                         value: form.data.spirit?.toString(),
                         valueSet: (i) => form.patch({spirit: +i}),
+                        placeholder: 'Select...',
                         options: [
                           {
                             key: '0',
