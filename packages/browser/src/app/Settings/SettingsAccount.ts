@@ -48,7 +48,6 @@ export const SettingsAccount: FC = () => {
         children: addkeys([
           $(FormLabel, {label: 'Gender'}),
           $(InputSelect, {
-            disabled: true,
             value: form.data.gender,
             valueSet: form.link('gender'),
             options: GENDER_OPTIONS,
