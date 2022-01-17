@@ -133,47 +133,58 @@ export const ReportCreate: FC<{
                       ]),
                     }),
                   }),
-                  $(FormRow, {
+                  $(FormColumn, {
                     children: addkeys([
-                      $(FormLabel, {label: 'Your Score'}),
-                      $(InputNumber, {
-                        value: form.data.scoreFor,
-                        valueSet: form.link('scoreFor'),
+                      $(FormRow, {
+                        children: addkeys([
+                          $(FormLabel, {label: 'Your Score'}),
+                          $(InputNumber, {
+                            value: form.data.scoreFor,
+                            valueSet: form.link('scoreFor'),
+                          }),
+                        ]),
+                      }),
+                      $(FormRow, {
+                        children: addkeys([
+                          $(FormLabel, {label: 'Against Score'}),
+                          $(InputNumber, {
+                            value: form.data.scoreAgainst,
+                            valueSet: form.link('scoreAgainst'),
+                          }),
+                        ]),
                       }),
                     ]),
                   }),
-                  $(FormRow, {
+                  $(FormColumn, {
                     children: addkeys([
-                      $(FormLabel, {label: 'Against Score'}),
-                      $(InputNumber, {
-                        value: form.data.scoreAgainst,
-                        valueSet: form.link('scoreAgainst'),
+                      $(FormRow, {
+                        children: addkeys([
+                          $(FormLabel, {label: 'MVP Male'}),
+                          $(InputSelect, {
+                            value: form.data.mvpMale,
+                            valueSet: form.link('mvpMale'),
+                            options: against.users.map((i) => ({
+                              key: i.id,
+                              label: `${i.firstName} ${i.lastName}`,
+                            })),
+                          }),
+                        ]),
                       }),
-                    ]),
-                  }),
-                  $(FormRow, {
-                    children: addkeys([
-                      $(FormLabel, {label: 'MVP Male'}),
-                      $(InputSelect, {
-                        value: form.data.mvpMale,
-                        valueSet: form.link('mvpMale'),
-                        options: against.users.map((i) => ({
-                          key: i.id,
-                          label: `${i.firstName} ${i.lastName}`,
-                        })),
+                      $(FormRow, {
+                        children: addkeys([
+                          $(FormLabel, {label: 'MVP Female'}),
+                          $(InputSelect, {
+                            value: form.data.mvpFemale,
+                            valueSet: form.link('mvpFemale'),
+                            options: against.users.map((i) => ({
+                              key: i.id,
+                              label: `${i.firstName} ${i.lastName}`,
+                            })),
+                          }),
+                        ]),
                       }),
-                    ]),
-                  }),
-                  $(FormRow, {
-                    children: addkeys([
-                      $(FormLabel, {label: 'MVP Female'}),
-                      $(InputSelect, {
-                        value: form.data.mvpFemale,
-                        valueSet: form.link('mvpFemale'),
-                        options: against.users.map((i) => ({
-                          key: i.id,
-                          label: `${i.firstName} ${i.lastName}`,
-                        })),
+                      $(FormHelp, {
+                        children: `If you can't find the player you are looking for, please put their name in the spirit score comment section.`,
                       }),
                     ]),
                   }),
@@ -206,17 +217,16 @@ export const ReportCreate: FC<{
                           },
                         ],
                       }),
-                      typeof form.data.spirit === 'number' &&
-                        $(FormRow, {
-                          children: addkeys([
-                            $(InputTextarea, {
-                              rows: 2,
-                              value: form.data.spiritComment,
-                              valueSet: form.link('spiritComment'),
-                              placeholder: 'Write a comment (optional) ...',
-                            }),
-                          ]),
-                        }),
+                      $(FormRow, {
+                        children: addkeys([
+                          $(InputTextarea, {
+                            rows: 2,
+                            value: form.data.spiritComment,
+                            valueSet: form.link('spiritComment'),
+                            placeholder: 'Write a comment (optional) ...',
+                          }),
+                        ]),
+                      }),
                       $(FormHelp, {
                         children: addkeys([
                           'See ',
