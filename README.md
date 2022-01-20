@@ -18,14 +18,15 @@ Todos:
 - [x] Add replying to comments.
 - [x] Add rich text editor to posts.
 - [ ] Add automatic web-page refresher.
-- [ ] Analytics.
+- [ ] Captain member management popup.
 - [ ] Spirit score and mvp tab.
 - [ ] Opt-in to game fixture emails.
 - [ ] Admin send custom emails.
+- [ ] Merch store.
 - [ ] Request for players tab.
-- [ ] Captain member management popup.
 - [ ] Ability to contact admins.
 - [ ] Automated fixtures.
-- [ ] Facebook login.
 - [ ] Events: late 2021 fun rounds.
 - [ ] Fixture games should have individual dates.
+- [ ] Facebook login.
+- [ ] Analytics.

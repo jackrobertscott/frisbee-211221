@@ -234,7 +234,9 @@ export const _DashboardUsersImport: FC<{
                   $(Form, {
                     children: addkeys([
                       $(FormBadge, {
-                        label: 'Upload',
+                        disabled: $userImport.loading,
+                        icon: $userImport.loading ? 'spinner' : undefined,
+                        label: $userImport.loading ? 'Loading' : 'Upload',
                         click: () => {
                           const data = new FormData()
                           data.set('csv', csv)

@@ -163,8 +163,8 @@ export default new Map<string, RequestHandler>([
       const content = csvBuffer.toString()
       const objects = _parseCSVString(content)
       await mongo.transaction(async () => {
-        const teams = await _createTeamsFromObjects(objects, season.id)
-        await _createUsersFromObjects(objects, teams)
+        await _createTeamsFromObjects(objects, season.id)
+        await _createUsersFromObjects(objects, season.id)
       })
     },
   }),
@@ -176,8 +176,8 @@ const _createTeamsFromObjects = async (
   objects: Record<string, string>[],
   seasonId: string
 ) => {
-  const rawTeamNames = [] as string[]
-  let rawTeams = objects
+  const teamCSVNameList = [] as string[]
+  let teamCSVList = objects
     .filter((i) => i.type === 'team')
     .map((i) => ({
       seasonId: seasonId,
@@ -185,29 +185,28 @@ const _createTeamsFromObjects = async (
       color: 'hsla(0, 0%, 100%, 1)',
     }))
     .filter((i) => {
-      if (rawTeamNames.includes(i.name)) return false
-      rawTeamNames.push(i.name)
+      if (teamCSVNameList.includes(i.name)) return false
+      teamCSVNameList.push(i.name)
       return true
     })
-  const dbTeams = await $Team.getMany({
-    name: {$in: rawTeamNames.map(regex.normalize)},
+  const teamDBList = await $Team.getMany({
+    name: {$in: teamCSVNameList.map(regex.normalize)},
   })
-  const dbTeamNames = dbTeams.map((i) => i.name.toLowerCase().trim())
-  rawTeams = rawTeams.filter((i) => {
-    return !dbTeamNames.includes(i.name.toLowerCase().trim())
+  const teamDBNameList = teamDBList.map((i) => i.name.toLowerCase().trim())
+  const teamCSVNewList = teamCSVList.filter((i) => {
+    return !teamDBNameList.includes(i.name.toLowerCase().trim())
   })
-  if (rawTeams.length) await $Team.createMany(rawTeams)
-  return $Team.getMany({seasonId})
+  if (teamCSVNewList.length) await $Team.createMany(teamCSVNewList)
 }
 /**
  *
  */
 const _createUsersFromObjects = async (
   objects: Record<string, string>[],
-  teams: TTeam[]
+  seasonId: string
 ) => {
-  const rawUserEmails = [] as string[]
-  let rawUsers = objects
+  const userCSVEmailList = [] as string[]
+  let userCSVList = objects
     .map((i) => ({
       _team: i.team_name,
       _captain: i.type === 'team',
@@ -218,41 +217,50 @@ const _createUsersFromObjects = async (
       termsAccepted: false,
     }))
     .filter((i) => {
-      if (rawUserEmails.includes(i.email)) return false
-      rawUserEmails.push(i.email)
+      if (userCSVEmailList.includes(i.email)) return false
+      userCSVEmailList.push(i.email)
       return true
     })
-  const dbUsers = await $User.getMany({
-    email: {$in: rawUserEmails.map(regex.normalize)},
+  const userDBList = await $User.getMany({
+    email: {$in: userCSVEmailList.map(regex.normalize)},
   })
-  const dbUserEmails = dbUsers.map((i) => i.email.toLowerCase().trim())
-  rawUsers = rawUsers.filter((i) => {
-    return !dbUserEmails.includes(i.email.toLowerCase().trim())
+  const userDBEmailList = userDBList.map((i) => i.email.toLowerCase().trim())
+  const userCSVNewList = userCSVList.filter((i) => {
+    return !userDBEmailList.includes(i.email.toLowerCase().trim())
   })
-  if (rawUsers.length) await $User.createMany(rawUsers)
-  const users = await $User.getMany({
-    email: {$in: rawUserEmails.map(regex.normalize)},
-  })
-  const rawMemberships = users
-    .map((user) => {
-      const userEmail = user.email.toLowerCase().trim()
-      const rawUser = rawUsers.find((i) => {
-        return i.email.toLowerCase().trim() === userEmail
+  if (userCSVNewList.length) await $User.createMany(userCSVNewList)
+  const teamDBList = await $Team.getMany({seasonId})
+  const memberCSVList = userDBList
+    .map((i) => {
+      const userDBEmail = i.email.toLowerCase().trim()
+      const userCSV = userCSVList.find((i) => {
+        return i.email.toLowerCase().trim() === userDBEmail
       })
-      if (!rawUser) return undefined
-      const team = teams.find((i) => i.name === rawUser?._team)
-      if (!team) return undefined
+      if (!userCSV) return undefined
+      const userCSVTeamName = userCSV?._team.toLowerCase().trim()
+      const teamDBOfUser = teamDBList.find((i) => {
+        return i.name.toLowerCase().trim() === userCSVTeamName
+      })
+      if (!teamDBOfUser) return undefined
       return {
-        seasonId: team.seasonId,
-        userId: user.id,
-        teamId: team.id,
-        captain: rawUser._captain,
+        seasonId: teamDBOfUser.seasonId,
+        teamId: teamDBOfUser.id,
+        userId: i.id,
+        captain: userCSV._captain,
         pending: false,
       }
     })
     .filter((i) => !!i)
     .map((i) => i!)
-  if (rawMemberships.length) await $Member.createMany(rawMemberships)
+  const memberDBList = await $Member.getMany({
+    seasonId,
+    userId: {$in: userDBList.map((i) => i.id)},
+  })
+  const memberDBUserIdList = memberDBList.map((i) => i.userId)
+  const memberCSVNewList = memberCSVList.filter((i) => {
+    return !memberDBUserIdList.includes(i.userId)
+  })
+  if (memberCSVNewList.length) await $Member.createMany(memberCSVNewList)
 }
 /**
  *
