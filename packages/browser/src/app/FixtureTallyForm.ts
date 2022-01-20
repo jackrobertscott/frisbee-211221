@@ -22,6 +22,7 @@ import {FormBadge} from './Form/FormBadge'
 import {hsla} from '../utils/hsla'
 import {FormLabel} from './Form/FormLabel'
 import {initials} from '../utils/initials'
+import {useMedia} from './Media/useMedia'
 /**
  *
  */
@@ -40,11 +41,13 @@ export const FixtureTallyForm: FC<{
   done: (fixture: TFixtureForm) => void
 }> = ({fixture, loading, close, done}) => {
   const auth = useAuth()
+  const media = useMedia()
   const $teamList = useEndpoint($TeamListOfSeason)
   const $reportList = useEndpoint($ReportListOfFixture)
   const [teams, teamsSet] = useState<TTeam[]>()
   const [reports, reportsSet] = useState<TReport[]>()
   const form = useForm<TFixtureForm>(fixture)
+  const isSmall = media.width < theme.fib[14]
   useEffect(() => {
     if (auth.current?.season)
       $teamList.fetch({seasonId: auth.current.season.id}).then((i) => {
@@ -75,7 +78,7 @@ export const FixtureTallyForm: FC<{
       $('div', {
         className: css({
           display: 'flex',
-          [theme.ltMedia(theme.fib[13])]: {
+          [theme.ltMedia(theme.fib[13] + theme.fib[11])]: {
             flexDirection: 'column',
           },
         }),
@@ -108,7 +111,11 @@ export const FixtureTallyForm: FC<{
                           [
                             $(FormLabel, {
                               grow: true,
-                              label: team1?.name ?? '...',
+                              label: team1
+                                ? isSmall
+                                  ? initials(team1.name)
+                                  : team1.name
+                                : '...',
                               background: team1Bg,
                               font: team1Bg?.compliment(),
                             }),
@@ -119,7 +126,11 @@ export const FixtureTallyForm: FC<{
                             }),
                             $(FormLabel, {
                               grow: true,
-                              label: team2?.name ?? '...',
+                              label: team2
+                                ? isSmall
+                                  ? initials(team2.name)
+                                  : team2.name
+                                : '...',
                               background: team2Bg,
                               font: team2Bg?.compliment(),
                             }),
@@ -158,14 +169,14 @@ export const FixtureTallyForm: FC<{
             $('div', {
               className: css({
                 flexGrow: 1,
-                minWidth: theme.fib[12],
+                width: theme.fib[13],
                 borderLeft: theme.border(),
                 background: theme.bgMinor.string(),
                 padding: theme.fib[5],
-                [theme.ltMedia(theme.fib[13])]: {
+                [theme.ltMedia(theme.fib[13] + theme.fib[11])]: {
                   borderLeft: 'none',
                   borderTop: theme.border(),
-                  minWidth: 0,
+                  width: 'auto',
                 },
               }),
               children: addkeys([
@@ -180,12 +191,13 @@ export const FixtureTallyForm: FC<{
                 reports.length && teams?.length
                   ? $(Table, {
                       head: {
+                        index: {label: '#', grow: 0.5},
                         team1: {label: 'Team 1', grow: 1},
                         team1Score: {label: 'Score', grow: 1},
                         team2: {label: 'Team 2', grow: 1},
                         team2Score: {label: 'Score', grow: 1},
                       },
-                      body: reports.map((i) => {
+                      body: reports.map((i, index) => {
                         const team1 = teams.find((x) => x.id === i.teamId)
                         const team2 = teams.find((x) => {
                           return x.id === i.teamAgainstId
@@ -193,6 +205,9 @@ export const FixtureTallyForm: FC<{
                         return {
                           key: i.id,
                           data: {
+                            index: {
+                              value: (reports.length - index).toString(),
+                            },
                             team1: {
                               value: initials(team1?.name),
                               color: team1?.color,
