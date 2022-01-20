@@ -9,10 +9,12 @@ import {SeasonSetup} from './SeasonSetup'
 import {Security} from './Security/Security'
 import {TeamSetup} from './TeamSetup'
 import {Spinner} from './Spinner'
+import {useReload} from './useReload'
 /**
  *
  */
 export const App: FC = () => {
+  useReload()
   return $('div', {
     children: $(_AppGuard),
     className: css({

@@ -17,10 +17,10 @@ Todos:
 - [x] Fix font color on dark team.
 - [x] Add replying to comments.
 - [x] Add rich text editor to posts.
-- [ ] Add automatic web-page refresher.
+- [x] Add automatic web-page refresher.
 - [ ] Captain member management popup.
 - [ ] Spirit score and mvp tab.
-- [ ] Opt-in to game fixture emails.
+- [ ] Send game fixture emails with png.
 - [ ] Admin send custom emails.
 - [ ] Merch store.
 - [ ] Request for players tab.

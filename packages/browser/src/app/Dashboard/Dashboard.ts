@@ -13,7 +13,6 @@ import {Modal} from '../Modal'
 import {Popup} from '../Popup'
 import {Question} from '../Question'
 import {ReportCreate} from '../ReportCreate'
-import {useRouter} from '../Router/useRouter'
 import {SeasonCreate} from '../SeasonCreate'
 import {Settings} from '../Settings/Settings'
 import {useToaster} from '../Toaster/useToaster'
@@ -30,6 +29,7 @@ import {DashboardTeams} from './DashboardTeams'
 import {DashboardUsers} from './DashboardUsers'
 import {useMedia} from '../Media/useMedia'
 import {MenuBar, MenuBarOption, MenuBarShadow, MenuBarSpacer} from '../MenuBar'
+import {Router} from '../Router/Router'
 /**
  *
  */
@@ -43,33 +43,6 @@ export const Dashboard: FC = () => {
   const [settings, settingsSet] = useState(false)
   const bpSmall = theme.fib[13] + theme.fib[10]
   const isSmall = media.width < bpSmall
-  const router = useRouter('/news', [
-    {
-      path: '/news',
-      title: 'News',
-      render: () => $(DashboardNews),
-    },
-    {
-      path: '/fixtures',
-      title: 'Fixtures',
-      render: () => $(DashboardFixtures),
-    },
-    {
-      path: '/ladder',
-      title: 'Ladder',
-      render: () => $(DashboardLadder),
-    },
-    auth.isAdmin() && {
-      path: '/teams',
-      title: 'Teams',
-      render: () => $(DashboardTeams),
-    },
-    auth.isAdmin() && {
-      path: '/users',
-      title: 'Users',
-      render: () => $(DashboardUsers),
-    },
-  ])
   return $(Fragment, {
     children: addkeys([
       $(Center, {
@@ -126,63 +99,100 @@ export const Dashboard: FC = () => {
                 }),
               ]),
             }),
-            $(Fragment, {
-              children:
-                (open || !isSmall) &&
-                $(MenuBarShadow, {
-                  click: () => openSet(false),
-                  deactivated: !isSmall,
-                  children: $(MenuBar, {
-                    horizon: !isSmall,
-                    bordered: isSmall,
-                    children: addkeys([
-                      $(Fragment, {
-                        children:
-                          isSmall &&
-                          $(MenuBarOption, {
-                            label: 'Menu',
-                            background: theme.bg,
-                            font: theme.font,
-                          }),
-                      }),
-                      $(Fragment, {
-                        children: router.routes.map((route) => {
-                          return $(MenuBarOption, {
-                            key: route.path,
-                            label: route.title,
-                            click: () => go.to(route.path),
-                            active: route.path === router.current?.path,
-                          })
+            $(Router, {
+              fallback: '/news',
+              routes: [
+                {
+                  path: '/news',
+                  label: 'News',
+                  render: () => $(DashboardNews),
+                },
+                {
+                  path: '/fixtures',
+                  label: 'Fixtures',
+                  render: () => $(DashboardFixtures),
+                },
+                {
+                  path: '/ladder',
+                  label: 'Ladder',
+                  render: () => $(DashboardLadder),
+                },
+                auth.isAdmin() && {
+                  path: '/teams',
+                  label: 'Teams',
+                  render: () => $(DashboardTeams),
+                },
+                auth.isAdmin() && {
+                  path: '/users',
+                  label: 'Users',
+                  render: () => $(DashboardUsers),
+                },
+              ],
+              render: (children, context) =>
+                addkeys([
+                  $(Fragment, {
+                    children:
+                      (open || !isSmall) &&
+                      $(MenuBarShadow, {
+                        click: () => openSet(false),
+                        deactivated: !isSmall,
+                        children: $(MenuBar, {
+                          horizon: !isSmall,
+                          bordered: isSmall,
+                          children: addkeys([
+                            $(Fragment, {
+                              children:
+                                isSmall &&
+                                $(MenuBarOption, {
+                                  label: 'Menu',
+                                  background: theme.bg,
+                                  font: theme.font,
+                                }),
+                            }),
+                            $(Fragment, {
+                              children: context.routes.map((route) => {
+                                return $(MenuBarOption, {
+                                  key: route.path,
+                                  label: route.label ?? '?',
+                                  click: () => go.to(route.path),
+                                  active: route.path === context.current?.path,
+                                })
+                              }),
+                            }),
+                            $(Fragment, {
+                              children: !isSmall && $(MenuBarSpacer),
+                            }),
+                            $(MenuBarOption, {
+                              label: 'Submit Score Report',
+                              click: () => {
+                                reportingSet(true)
+                                openSet(false)
+                              },
+                              background: theme.bgHighlight,
+                              font: theme.bgHighlight.compliment(),
+                            }),
+                            $(Fragment, {
+                              children: isSmall && $(MenuBarSpacer),
+                            }),
+                          ]),
                         }),
                       }),
-                      $(Fragment, {children: !isSmall && $(MenuBarSpacer)}),
-                      $(MenuBarOption, {
-                        label: 'Submit Score Report',
-                        click: () => {
-                          reportingSet(true)
-                          openSet(false)
-                        },
-                        background: theme.bgHighlight,
-                        font: theme.bgHighlight.compliment(),
-                      }),
-                      $(Fragment, {children: isSmall && $(MenuBarSpacer)}),
-                    ]),
                   }),
-                }),
-            }),
-            $('div', {
-              children: router.render(),
-              className: css({
-                flexGrow: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                [theme.ltMedia(bpSmall)]: {
-                  overflow: 'auto',
-                },
-                '& > *': {
-                  animation: `150ms linear ${fadein}`,
-                },
-              }),
+                  $('div', {
+                    children,
+                    className: css({
+                      flexGrow: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      [theme.ltMedia(bpSmall)]: {
+                        overflow: 'auto',
+                      },
+                      '& > *': {
+                        animation: `150ms linear ${fadein}`,
+                      },
+                    }),
+                  }),
+                ]),
             }),
           ]),
         }),

@@ -9,8 +9,9 @@ import {RouterContext, TRoute} from './RouterContext'
 export const RouterProvider: FC<{
   children: ReactNode
   parents?: TRoute[]
+  current?: TRoute
   location?: Location
-}> = ({children, parents = [], location: _location}) => {
+}> = ({children, location: _location, parents = [], current}) => {
   const mountedRef = useMountedRef()
   const [xyz, xyzSet] = useState(_location ?? history.location)
   const location = _location ?? xyz
@@ -26,6 +27,7 @@ export const RouterProvider: FC<{
     children,
     value: {
       parents,
+      current,
       location,
     },
   })

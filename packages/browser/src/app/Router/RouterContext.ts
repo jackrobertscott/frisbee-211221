@@ -3,20 +3,28 @@ import {createContext, ReactNode} from 'react'
 /**
  *
  */
+export type TRouteParams = Record<string, string>
+/**
+ *
+ */
+export type TRouteQuery = Record<string, string>
+/**
+ *
+ */
 export interface TRoute {
   path: string
   exact?: boolean
   hide?: boolean
-  render: (
-    paramSet: Record<string, string>,
-    querySet: Record<string, string>
-  ) => ReactNode
+  label?: string
+  description?: string
+  render: (params: TRouteParams) => ReactNode
 }
 /**
  *
  */
 export interface TRouterContext {
   parents: TRoute[]
+  current?: TRoute
   location?: Location
 }
 /**
