@@ -193,7 +193,9 @@ const _DashboardFixturesView: FC<{
                 }),
                 children: addkeys([
                   $('div', {
-                    children: dayjs(fixture.date).format('D MMM YYYY'),
+                    children: dayjs(fixture.date).format(
+                      isSmall ? 'DD/MM/YY' : 'D MMM YYYY'
+                    ),
                   }),
                   $(Icon, {
                     icon: open ? 'angle-up' : 'angle-down',
