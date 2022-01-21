@@ -5,7 +5,14 @@ import fs from 'fs-extra'
 import config from '../config'
 import {IncomingMessage} from 'http'
 import {random} from './random'
-import aws from './aws'
+import {S3Client, PutObjectCommand, GetObjectCommand} from '@aws-sdk/client-s3'
+import {getSignedUrl} from '@aws-sdk/s3-request-presigner'
+/**
+ *
+ */
+const s3Client = new S3Client({
+  region: config.AWSBucketRegion,
+})
 /**
  *
  */
@@ -28,7 +35,7 @@ export const blob = {
     busboy.on('field', (fieldname, val) => fields.set(fieldname, val))
     busboy.on('file', (fieldname, file, {filename, encoding, mimeType}) => {
       const filepath = path.join(os.tmpdir(), path.basename(fieldname))
-      const extension = path.extname(filename)
+      const extension = path.extname(filename).toLowerCase()
       file.pipe(fs.createWriteStream(filepath))
       files.push({
         filename,
@@ -53,26 +60,43 @@ export const blob = {
   /**
    *
    */
-  async uploadBuffer(data: {
+  async uploadBuffer({
+    body,
+    mimetype,
+    extension,
+    folder,
+  }: {
     body: Buffer
     mimetype: string
     extension: string
+    folder: string
   }) {
     if (!config.AWSBucket)
       throw new Error('Missing AWS bucket environment variable.')
-    const raw = await aws.s3
-      .upload({
-        Body: data.body,
-        Key: random.randomString(24).concat(data.extension),
-        Bucket: path.join(config.AWSBucket, data.mimetype),
-        ACL: 'public-read',
-        ContentType: data.mimetype,
+    const filename = random.randomString(24).concat(extension)
+    const key = path.join(folder, filename)
+    const bucket = config.AWSBucket
+    await s3Client.send(
+      new PutObjectCommand({
+        Key: key,
+        Bucket: bucket,
+        ContentType: mimetype,
+        Body: body,
       })
-      .promise()
+    )
     return {
-      key: raw.Key,
-      bucket: raw.Bucket,
-      url: raw.Location,
+      key,
+      bucket,
+      mimetype,
+      extension,
+      filename,
     }
+  },
+  /**
+   *
+   */
+  async getObjectUrl(key: string, bucket: string = config.AWSBucket) {
+    const command = new GetObjectCommand({Key: key, Bucket: bucket})
+    return getSignedUrl(s3Client, command)
   },
 }

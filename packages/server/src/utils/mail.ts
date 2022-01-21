@@ -1,10 +1,15 @@
-import {SES} from 'aws-sdk'
+import {SESv2Client, SendEmailCommand} from '@aws-sdk/client-sesv2'
 import config from '../config'
-import aws from './aws'
 /**
  *
  */
-export default {
+const client = new SESv2Client({
+  region: 'us-east-1',
+})
+/**
+ *
+ */
+export const mail = {
   /**
    *
    */
@@ -23,34 +28,17 @@ export default {
     html?: string
     reply?: string
   }) {
-    const email: SES.Types.SendEmailRequest = {
-      Source: from,
-      Destination: {
-        ToAddresses: to,
-      },
-      Message: {
-        Subject: {
-          Charset: 'UTF-8',
-          Data: subject.trim(),
+    const command = new SendEmailCommand({
+      FromEmailAddress: from,
+      Destination: {ToAddresses: to},
+      Content: {
+        Simple: {
+          Subject: {Data: subject},
+          Body: html ? {Html: {Data: html}} : {Text: {Data: text}},
         },
-        Body: {},
       },
-    }
-    if (text) {
-      email.Message.Body.Text = {
-        Charset: 'UTF-8',
-        Data: text,
-      }
-    }
-    if (html) {
-      email.Message.Body.Html = {
-        Charset: 'UTF-8',
-        Data: html,
-      }
-    }
-    if (reply) {
-      email.ReplyToAddresses = [reply]
-    }
-    return aws.ses.sendEmail(email).promise()
+      ReplyToAddresses: reply ? [reply] : undefined,
+    })
+    return client.send(command)
   },
 }

@@ -35,8 +35,8 @@ const config: {
   sentryDSN?: string
   AWSAccessKeyId: string
   AWSAccessKeySecret: string
-  AWSRegion: string
   AWSBucket: string
+  AWSBucketRegion: string
   AWSFromEmail: string
   googleClientId?: string
   googleClientSecret?: string
@@ -52,11 +52,11 @@ const config: {
   stripeSecretKey: env.STRIPE_SECRET_KEY,
   jwtSecret: env.JWT_SECRET,
   sentryDSN: env.SENTRY_DSN,
-  AWSAccessKeyId: env.AMAZON_ACCESS_KEY_ID,
-  AWSAccessKeySecret: env.AMAZON_ACCESS_KEY_SECRET,
-  AWSRegion: env.AMAZON_REGION,
-  AWSBucket: env.AMAZON_BUCKET,
-  AWSFromEmail: env.AMAZON_FROM_EMAIL,
+  AWSAccessKeyId: env.AWS_ACCESS_KEY_ID,
+  AWSAccessKeySecret: env.AWS_SECRET_ACCESS_KEY,
+  AWSBucket: env.AWS_BUCKET,
+  AWSBucketRegion: env.AWS_BUCKET_REGION,
+  AWSFromEmail: env.AWS_FROM_EMAIL,
   googleClientId: env.GOOGLE_CLIENT_ID,
   googleClientSecret: env.GOOGLE_CLIENT_SECRET,
 }
