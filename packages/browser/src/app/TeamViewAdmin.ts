@@ -134,7 +134,7 @@ export const TeamViewAdmin: FC<{
             options: [
               {label: 'Cancel', click: () => deletingSet(false)},
               {
-                label: 'Delete',
+                label: $teamDelete.loading ? 'Loading' : 'Delete',
                 click: () =>
                   $teamDelete.fetch({teamId: team.id}).then(() => {
                     teamSet(undefined)

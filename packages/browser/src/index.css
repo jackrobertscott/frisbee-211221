@@ -1,16 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,500;1,500&display=swap');
 html {
   height: 100%;
+  font-size: 16px;
   font-weight: 500;
   -webkit-print-color-adjust: exact;
+  background: #ccc;
+  color: #000;
 }
 body {
   margin: 0;
   padding: 0;
-  color: #000;
-  background: #fff;
   overflow: hidden;
-  font-size: 16px;
   height: 100%;
 }
 html,

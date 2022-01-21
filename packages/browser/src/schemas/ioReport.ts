@@ -6,16 +6,16 @@ export const ioReport = io.object({
   id: io.string(),
   createdOn: io.date(),
   updatedOn: io.date(),
-  userId: io.string(),
   teamId: io.string(),
   teamAgainstId: io.string(),
   roundId: io.string(),
+  userId: io.optional(io.string()),
   scoreFor: io.number(),
   scoreAgainst: io.number(),
   mvpMale: io.optional(io.string()),
   mvpFemale: io.optional(io.string()),
   spirit: io.number(),
-  spiritComment: io.string(),
+  spiritComment: io.string().emptyok(),
 })
 /**
  *

@@ -9,6 +9,7 @@ import {requireTeam} from './requireTeam'
 import {$Team} from '../tables/$Team'
 import {$Member} from '../tables/$Member'
 import {$User} from '../tables/$User'
+import {TTeam} from '../schemas/ioTeam'
 /**
  *
  */
@@ -54,7 +55,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/ReportGetFixture',
+    path: '/ReportGetFixtureAgainst',
     payload: io.object({
       teamId: io.string(),
       roundId: io.string(),
@@ -63,7 +64,9 @@ export default new Map<string, RequestHandler>([
       ({teamId, roundId}) =>
       async (req) => {
         const [user] = await requireUser(req)
-        const [team] = await requireTeam(user, teamId)
+        let team: TTeam
+        if (user.admin) team = await $Team.getOne({id: teamId})
+        else [team] = await requireTeam(user, teamId)
         const fixture = await $Fixture.getOne({id: roundId})
         let teamAgainstId: string | undefined
         for (const game of fixture.games) {
@@ -112,8 +115,14 @@ export default new Map<string, RequestHandler>([
     }),
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)
-      const [team] = await requireTeam(user, body.teamId)
+      let team: TTeam
+      if (user.admin) team = await $Team.getOne({id: body.teamId})
+      else [team] = await requireTeam(user, body.teamId)
       const fixture = await $Fixture.getOne({id: body.roundId})
+      if (await $Report.count({roundId: fixture.id, teamId: team.id})) {
+        const message = `Report already submitted by ${team.name} for ${fixture.title}.`
+        throw new Error(message)
+      }
       let teamAgainstId: string | undefined
       for (const game of fixture.games) {
         if (game.team1Id === team.id) {
@@ -137,6 +146,33 @@ export default new Map<string, RequestHandler>([
         teamAgainstId: teamAgainst.id,
       })
     },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/ReportUpdate',
+    payload: io.object({
+      reportId: io.string(),
+      scoreFor: io.number(),
+      scoreAgainst: io.number(),
+      mvpMale: io.optional(io.string()),
+      mvpFemale: io.optional(io.string()),
+      spirit: io.number(),
+      spiritComment: io.string().emptyok(),
+    }),
+    handler:
+      ({reportId, ...body}) =>
+      async (req) => {
+        await requireUserAdmin(req)
+        return $Report.updateOne(
+          {id: reportId},
+          {
+            ...body,
+            updatedOn: new Date().toISOString(),
+          }
+        )
+      },
   }),
   /**
    *

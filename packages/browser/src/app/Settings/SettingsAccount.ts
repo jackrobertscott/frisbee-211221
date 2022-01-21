@@ -1,7 +1,7 @@
 import {createElement as $, FC} from 'react'
 import {$UserCurrentUpdate} from '../../endpoints/User'
 import {addkeys} from '../../utils/addkeys'
-import {GENDER_OPTIONS} from '../../utils/gender'
+import {GENDER_OPTIONS} from '../../utils/constants'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'

@@ -1,7 +1,13 @@
 import {css} from '@emotion/css'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$ReportListOfSeason} from '../../endpoints/Report'
+import {
+  $ReportCreate,
+  $ReportDelete,
+  $ReportGetFixtureAgainst,
+  $ReportListOfSeason,
+  $ReportUpdate,
+} from '../../endpoints/Report'
 import {$TeamListOfSeason} from '../../endpoints/Team'
 import {$UserListManyById} from '../../endpoints/User'
 import {TFixture} from '../../schemas/ioFixture'
@@ -10,28 +16,47 @@ import {TTeam} from '../../schemas/ioTeam'
 import {TUser} from '../../schemas/ioUser'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
+import {SPIRIT_OPTIONS} from '../../utils/constants'
 import {go} from '../../utils/go'
 import {hsla} from '../../utils/hsla'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
 import {FormColumn} from '../Form/FormColumn'
+import {FormLabel} from '../Form/FormLabel'
+import {FormRow} from '../Form/FormRow'
+import {InputNumber} from '../Input/InputNumber'
+import {InputSelect} from '../Input/InputSelect'
+import {InputTextarea} from '../Input/InputTextarea'
+import {Modal} from '../Modal'
 import {Pager} from '../Pager/Pager'
 import {usePager} from '../Pager/usePager'
+import {Question} from '../Question'
 import {Spinner} from '../Spinner'
 import {Table} from '../Table'
+import {useToaster} from '../Toaster/useToaster'
+import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
+import {useForm} from '../useForm'
 /**
  *
  */
-export const DashboardReports: FC<{}> = () => {
+export const DashboardReports: FC = () => {
   const auth = useAuth()
   const pager = usePager()
+  const toaster = useToaster()
   const $teamList = useEndpoint($TeamListOfSeason)
   const $reportList = useEndpoint($ReportListOfSeason)
+  const $reportCreate = useEndpoint($ReportCreate)
+  const $reportUpdate = useEndpoint($ReportUpdate)
+  const $reportDelete = useEndpoint($ReportDelete)
   const [teams, teamsSet] = useState<TTeam[]>()
   const [fixtures, fixturesSet] = useState<TFixture[]>()
   const [_reports, reportsSet] = useState<TReport[]>()
+  const [creating, creatingSet] = useState(false)
+  const [deleting, deletingSet] = useState(false)
+  const [currentId, currentIdSet] = useState<string>()
+  const current = currentId && _reports?.find((i) => i.id === currentId)
   const seasonId = auth.current?.season?.id
   const reportList = () =>
     seasonId &&
@@ -70,6 +95,7 @@ export const DashboardReports: FC<{}> = () => {
                       grow: true,
                       label: 'Create Report',
                       background: theme.bgAdmin,
+                      click: () => creatingSet(true),
                     }),
                     $(FormBadge, {
                       icon: 'wrench',
@@ -80,11 +106,12 @@ export const DashboardReports: FC<{}> = () => {
                 }),
                 $(Table, {
                   head: {
-                    fixture: {label: 'Fixture', grow: 1},
-                    by: {label: 'By', grow: 1},
-                    against: {label: 'Against', grow: 1},
-                    spirit: {label: 'Spirit', grow: 1},
-                    createdOn: {label: 'Created', grow: 1},
+                    fixture: {label: 'Fixture', grow: 2},
+                    by: {label: 'By', grow: 3},
+                    against: {label: 'Against', grow: 3},
+                    spirit: {label: 'Spirit', grow: 2},
+                    mvps: {label: 'MVPs', grow: 1},
+                    createdOn: {label: 'Created', grow: 2},
                   },
                   body: reports.map((report) => {
                     const fixture = fixtures?.find((i) => {
@@ -98,7 +125,7 @@ export const DashboardReports: FC<{}> = () => {
                     })
                     return {
                       key: report.id,
-                      // click: () => currentIdSet(team.id),
+                      click: () => currentIdSet(report.id),
                       data: {
                         fixture: {value: fixture?.title ?? report.roundId},
                         by: {
@@ -110,6 +137,15 @@ export const DashboardReports: FC<{}> = () => {
                           color: teamAgainst?.color,
                         },
                         spirit: {value: report.spirit},
+                        mvps: {
+                          children: $(FormLabel, {
+                            multiple: 0.9,
+                            icon:
+                              report.mvpFemale && report.mvpMale
+                                ? 'check'
+                                : 'times',
+                          }),
+                        },
                         createdOn: {
                           value: dayjs(report.createdOn).format('DD/MM/YYYY'),
                         },
@@ -135,6 +171,13 @@ export const DashboardReports: FC<{}> = () => {
                         '& > *:not(:last-child)': {
                           marginRight: theme.fib[5],
                         },
+                        [theme.ltMedia(theme.fib[14])]: {
+                          flexDirection: 'column',
+                          '& > *:not(:last-child)': {
+                            marginBottom: theme.fib[5],
+                            marginRight: 0,
+                          },
+                        },
                       }),
                       children: addkeys([
                         $(_DashboardReportsSpirit, {
@@ -148,6 +191,264 @@ export const DashboardReports: FC<{}> = () => {
                     }),
                 }),
               ]),
+      }),
+      $(Fragment, {
+        children:
+          creating &&
+          teams !== undefined &&
+          fixtures !== undefined &&
+          $(_DashboardReportsForm, {
+            title: 'New Report',
+            teams,
+            fixtures,
+            loading: $reportCreate.loading,
+            dataSet: (data: any) =>
+              $reportCreate.fetch(data).then(() => {
+                toaster.notify('Report created.')
+                creatingSet(false)
+                reportList()
+              }),
+            close: () => creatingSet(false),
+          }),
+      }),
+      $(Fragment, {
+        children:
+          current &&
+          teams !== undefined &&
+          fixtures !== undefined &&
+          $(_DashboardReportsForm, {
+            title: 'Edit Report',
+            teams,
+            fixtures,
+            data: current,
+            options: [{label: 'Delete', click: () => deletingSet(true)}],
+            loading: $reportUpdate.loading,
+            dataSet: (data: any) =>
+              $reportUpdate.fetch({...data, reportId: current.id}).then(() => {
+                toaster.notify('Report updated.')
+                reportList()
+              }),
+            close: () => currentIdSet(undefined),
+          }),
+      }),
+      $(Fragment, {
+        children:
+          deleting &&
+          current &&
+          $(Question, {
+            title: 'Delete Report',
+            description: `Are you sure you wish to permanently delete this report?`,
+            close: () => deletingSet(false),
+            options: [
+              {label: 'Cancel', click: () => deletingSet(false)},
+              {
+                label: $reportDelete.loading ? 'Loading' : 'Delete',
+                click: () =>
+                  $reportDelete.fetch({reportId: current.id}).then(() => {
+                    currentIdSet(undefined)
+                    deletingSet(false)
+                    reportList()
+                  }),
+              },
+            ],
+          }),
+      }),
+    ]),
+  })
+}
+/**
+ *
+ */
+const _DashboardReportsForm: FC<{
+  title: string
+  teams: TTeam[]
+  fixtures: TFixture[]
+  loading?: boolean
+  options?: {label: string; click: () => void}[]
+  data?: Partial<TReport>
+  dataSet: (data: Partial<TReport>) => void
+  close: () => void
+}> = ({title, teams, fixtures, loading, options, data, dataSet, close}) => {
+  const toaster = useToaster()
+  const $fixtureAgainst = useEndpoint($ReportGetFixtureAgainst)
+  const [against, againstSet] = useState<{team: TTeam; users: TUser[]}>()
+  const form = useForm({
+    teamId: undefined as undefined | string,
+    roundId: undefined as undefined | string,
+    scoreFor: undefined as undefined | number,
+    scoreAgainst: undefined as undefined | number,
+    mvpMale: undefined as undefined | string,
+    mvpFemale: undefined as undefined | string,
+    spirit: undefined as undefined | number,
+    spiritComment: '',
+    ...data,
+  })
+  useEffect(() => {
+    if (form.data.roundId && form.data.teamId) {
+      $fixtureAgainst
+        .fetch({roundId: form.data.roundId, teamId: form.data.teamId})
+        .then(({teamAgainst, users}) => againstSet({team: teamAgainst, users}))
+    }
+  }, [form.data.roundId, form.data.teamId])
+  return $(Fragment, {
+    children: addkeys([
+      $(Modal, {
+        children: addkeys([
+          $(TopBar, {
+            children: addkeys([
+              $(TopBarBadge, {
+                grow: true,
+                label: title,
+              }),
+              $(Fragment, {
+                children: options?.map((i) => {
+                  return $(TopBarBadge, {
+                    key: i.label,
+                    label: i.label,
+                    click: i.click,
+                  })
+                }),
+              }),
+              $(TopBarBadge, {
+                icon: 'times',
+                click: close,
+              }),
+            ]),
+          }),
+          $(Form, {
+            children: addkeys([
+              $(FormRow, {
+                children: addkeys([
+                  $(FormLabel, {label: 'Fixture'}),
+                  $(InputSelect, {
+                    value: form.data.roundId,
+                    valueSet: form.link('roundId'),
+                    options: fixtures.map((i) => ({
+                      key: i.id,
+                      label: `${i.title} - ${dayjs(i.date).format('DD/MM/YY')}`,
+                    })),
+                  }),
+                ]),
+              }),
+              $(FormRow, {
+                children: addkeys([
+                  $(FormLabel, {label: 'For'}),
+                  $(InputSelect, {
+                    value: form.data.teamId,
+                    valueSet: form.link('teamId'),
+                    options: teams.map((i) => ({
+                      key: i.id,
+                      label: i.name,
+                      color: i.color,
+                    })),
+                  }),
+                ]),
+              }),
+              $(Fragment, {
+                children:
+                  against &&
+                  addkeys([
+                    $(FormRow, {
+                      children: addkeys([
+                        $(FormLabel, {label: 'Against'}),
+                        $(FormLabel, {
+                          grow: true,
+                          label: against.team.name,
+                          font: hsla.digest(against.team.color).compliment(),
+                          background: hsla.digest(against.team.color),
+                        }),
+                      ]),
+                    }),
+                    $(FormColumn, {
+                      children: addkeys([
+                        $(FormRow, {
+                          children: addkeys([
+                            $(FormLabel, {label: 'For Score'}),
+                            $(InputNumber, {
+                              value: form.data.scoreFor,
+                              valueSet: form.link('scoreFor'),
+                            }),
+                          ]),
+                        }),
+                        $(FormRow, {
+                          children: addkeys([
+                            $(FormLabel, {label: 'Against Score'}),
+                            $(InputNumber, {
+                              value: form.data.scoreAgainst,
+                              valueSet: form.link('scoreAgainst'),
+                            }),
+                          ]),
+                        }),
+                      ]),
+                    }),
+                    $(FormColumn, {
+                      children: addkeys([
+                        $(FormRow, {
+                          children: addkeys([
+                            $(FormLabel, {label: 'MVP Male'}),
+                            $(InputSelect, {
+                              value: form.data.mvpMale,
+                              valueSet: form.link('mvpMale'),
+                              options: against.users.map((i) => ({
+                                key: i.id,
+                                label: `${i.firstName} ${i.lastName}`,
+                              })),
+                            }),
+                          ]),
+                        }),
+                        $(FormRow, {
+                          children: addkeys([
+                            $(FormLabel, {label: 'MVP Female'}),
+                            $(InputSelect, {
+                              value: form.data.mvpFemale,
+                              valueSet: form.link('mvpFemale'),
+                              options: against.users.map((i) => ({
+                                key: i.id,
+                                label: `${i.firstName} ${i.lastName}`,
+                              })),
+                            }),
+                          ]),
+                        }),
+                      ]),
+                    }),
+                    $(FormColumn, {
+                      children: addkeys([
+                        $(FormLabel, {label: 'Spirit'}),
+                        $(InputSelect, {
+                          value: form.data.spirit?.toString(),
+                          valueSet: (i) => form.patch({spirit: +i}),
+                          placeholder: 'Select...',
+                          options: SPIRIT_OPTIONS,
+                        }),
+                        $(FormRow, {
+                          children: addkeys([
+                            $(InputTextarea, {
+                              rows: 2,
+                              value: form.data.spiritComment,
+                              valueSet: form.link('spiritComment'),
+                              placeholder: 'Write a comment (optional) ...',
+                            }),
+                          ]),
+                        }),
+                      ]),
+                    }),
+                    $(FormBadge, {
+                      disabled: loading,
+                      label: loading ? 'Loading' : 'Submit',
+                      click: () => {
+                        if (form.data.mvpMale === form.data.mvpFemale) {
+                          const message =
+                            'The male and female MVP can not be the same person.'
+                          return toaster.error(message)
+                        }
+                        dataSet(form.data)
+                      },
+                    }),
+                  ]),
+              }),
+            ]),
+          }),
+        ]),
       }),
     ]),
   })

@@ -1,7 +1,6 @@
 import backgroundSVG from '../assets/noise.svg'
 import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
-import {theme} from '../theme'
 import {useAuth} from './Auth/useAuth'
 import {Center} from './Center'
 import {Dashboard} from './Dashboard/Dashboard'
@@ -20,7 +19,6 @@ export const App: FC = () => {
     className: css({
       width: '100%',
       height: '100%',
-      background: theme.bgApp.string(),
       backgroundImage: `url(${backgroundSVG})`,
       backgroundPosition: 'center',
       backgroundRepeat: 'repeat',

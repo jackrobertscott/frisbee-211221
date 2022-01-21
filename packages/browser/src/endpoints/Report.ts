@@ -32,8 +32,8 @@ export const $ReportListOfSeason = createEndpoint({
 /**
  *
  */
-export const $ReportGetFixture = createEndpoint({
-  path: '/ReportGetFixture',
+export const $ReportGetFixtureAgainst = createEndpoint({
+  path: '/ReportGetFixtureAgainst',
   payload: io.object({
     teamId: io.string(),
     roundId: io.string(),
@@ -57,6 +57,22 @@ export const $ReportCreate = createEndpoint({
     mvpFemale: io.optional(io.string()),
     spirit: io.number(),
     spiritComment: io.string(),
+  }),
+  result: ioReport,
+})
+/**
+ *
+ */
+export const $ReportUpdate = createEndpoint({
+  path: '/ReportUpdate',
+  payload: io.object({
+    reportId: io.string(),
+    scoreFor: io.number(),
+    scoreAgainst: io.number(),
+    mvpMale: io.optional(io.string()),
+    mvpFemale: io.optional(io.string()),
+    spirit: io.number(),
+    spiritComment: io.string().emptyok(),
   }),
   result: ioReport,
 })

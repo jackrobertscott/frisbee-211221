@@ -9,6 +9,7 @@ import {Icon} from '../Icon'
  */
 export interface TFormBadge {
   icon?: string
+  multiple?: number
   prefix?: string
   label?: string
   click?: (event: MouseEvent) => void
@@ -25,6 +26,7 @@ export interface TFormBadge {
  */
 export const FormBadge: FC<TFormBadge> = ({
   icon,
+  multiple,
   prefix,
   label,
   click,
@@ -70,6 +72,7 @@ export const FormBadge: FC<TFormBadge> = ({
         $(Icon, {
           icon,
           prefix,
+          multiple,
         }),
       label &&
         $('div', {

@@ -31,7 +31,6 @@ export const Pager: FC<{
           value: data.limit.toString(),
           valueSet: (limit) => dataSet({...data, limit: +limit}),
           options: [
-            {key: '2', label: '2'},
             {key: '10', label: '10'},
             {key: '25', label: '25'},
             {key: '50', label: '50'},
