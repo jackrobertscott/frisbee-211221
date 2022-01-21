@@ -1,5 +1,6 @@
 import {io} from 'torva'
 import {ioFixture, ioFixtureGame} from '../schemas/ioFixture'
+import {ioTeam} from '../schemas/ioTeam'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
@@ -11,6 +12,19 @@ export const $FixtureListOfSeason = createEndpoint({
     limit: io.optional(io.number()),
   }),
   result: io.array(ioFixture),
+})
+/**
+ *
+ */
+export const $FixtureGet = createEndpoint({
+  path: '/FixtureGet',
+  payload: io.object({
+    fixtureId: io.string(),
+  }),
+  result: io.object({
+    fixture: ioFixture,
+    teams: io.array(ioTeam),
+  }),
 })
 /**
  *
@@ -43,6 +57,15 @@ export const $FixtureUpdate = createEndpoint({
  */
 export const $FixtureDelete = createEndpoint({
   path: '/FixtureDelete',
+  payload: io.object({
+    fixtureId: io.string(),
+  }),
+})
+/**
+ *
+ */
+export const $FixtureSnapshot = createEndpoint({
+  path: '/FixtureSnapshot',
   payload: io.object({
     fixtureId: io.string(),
   }),

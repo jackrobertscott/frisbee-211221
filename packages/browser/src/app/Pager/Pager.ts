@@ -29,7 +29,7 @@ export const Pager: FC<{
           position: 'above',
           minWidth: theme.fib[9],
           value: data.limit.toString(),
-          valueSet: (limit) => dataSet({...data, limit: +limit}),
+          valueSet: (limit) => dataSet({...data, limit: +limit, skip: 0}),
           options: [
             {key: '10', label: '10'},
             {key: '25', label: '25'},

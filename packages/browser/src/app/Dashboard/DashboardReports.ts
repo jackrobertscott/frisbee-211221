@@ -311,6 +311,7 @@ const _DashboardReportsForm: FC<{
             ]),
           }),
           $(Form, {
+            background: theme.bgMinor,
             children: addkeys([
               $(FormRow, {
                 children: addkeys([

@@ -1,11 +1,14 @@
+import puppeteer from 'puppeteer'
 import {RequestHandler} from 'micro'
 import {io} from 'torva'
+import config from '../config'
 import {$Fixture} from '../tables/$Fixture'
 import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
 import {requireUserAdmin} from './requireUserAdmin'
 import {$Season} from '../tables/$Season'
 import {ioFixtureGame} from '../schemas/ioFixture'
+import {$Team} from '../tables/$Team'
 /**
  *
  */
@@ -24,6 +27,22 @@ export default new Map<string, RequestHandler>([
       async (req) => {
         await requireUser(req)
         return $Fixture.getMany({seasonId}, {limit, sort: {createdOn: -1}})
+      },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/FixtureGet',
+    payload: io.object({
+      fixtureId: io.string(),
+    }),
+    handler:
+      ({fixtureId}) =>
+      async () => {
+        const fixture = await $Fixture.getOne({id: fixtureId})
+        const teams = await $Team.getMany({seasonId: fixture.seasonId})
+        return {fixture, teams}
       },
   }),
   /**
@@ -82,4 +101,40 @@ export default new Map<string, RequestHandler>([
         await $Fixture.deleteOne({id: fixtureId})
       },
   }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/FixtureSnapshot',
+    payload: io.object({
+      fixtureId: io.string(),
+    }),
+    handler:
+      ({fixtureId}) =>
+      async (req, res) => {
+        await requireUserAdmin(req)
+        const fixture = await $Fixture.getOne({id: fixtureId})
+        const buffer = await _fixtureScreenshot(fixture.id)
+        res.setHeader('Content-Type', 'image/png')
+        res.end(buffer)
+      },
+  }),
 ])
+/**
+ *
+ */
+const _fixtureScreenshot = async (fixtureId: string) => {
+  const browser = await puppeteer.launch()
+  const page = await browser.newPage()
+  await page.setViewport({width: 987, height: 987})
+  await page.goto(`${config.urlClient}/?fixtureId=${fixtureId}`, {
+    waitUntil: 'networkidle0',
+  })
+  const $clip = await page.$('#clip')
+  const box = await $clip?.boundingBox()
+  const screenshot = await page.screenshot({
+    clip: box ? {x: 0, y: 0, width: box.width, height: box.height} : undefined,
+  })
+  await browser.close()
+  return screenshot as Buffer
+}

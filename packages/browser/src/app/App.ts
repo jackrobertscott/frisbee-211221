@@ -9,11 +9,19 @@ import {Security} from './Security/Security'
 import {TeamSetup} from './TeamSetup'
 import {Spinner} from './Spinner'
 import {useReload} from './useReload'
+import {useRouter} from './Router/useRouter'
+import {FixtureView} from './FixtureView'
 /**
  *
  */
 export const App: FC = () => {
   useReload()
+  const router = useRouter()
+  if (router.query.fixtureId) {
+    return $(FixtureView, {
+      fixtureId: router.query.fixtureId,
+    })
+  }
   return $('div', {
     children: $(_AppGuard),
     className: css({

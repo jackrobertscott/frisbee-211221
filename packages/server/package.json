@@ -42,6 +42,7 @@
     "jsonwebtoken": "^8.5.1",
     "micro": "^9.3.4",
     "mongodb": "^4.2.2",
+    "puppeteer": "^13.1.1",
     "sharp": "^0.29.3",
     "stripe": "^8.194.0",
     "torva": "^0.2.0"

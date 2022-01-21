@@ -26,8 +26,8 @@ type TFCTable<T extends string = any> = FC<{
 export const Table: TFCTable = ({head, body}) => {
   return $('div', {
     className: css({
-      background: theme.bg.string(),
       overflow: 'auto',
+      background: theme.bg.string(),
     }),
     children: $(FormColumn, {
       children: addkeys([
