@@ -42,14 +42,15 @@ export const FixtureView: FC<{
         $('div', {
           className: css({
             display: 'flex',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
             background: theme.bgMinor.string(),
             padding: theme.padify(theme.fib[4]),
             border: theme.border(),
           }),
           children: addkeys([
-            $('div', {children: fixture.title}),
-            $('div', {children: dayjs(fixture.date).format('DD MMM YYYY')}),
+            $('div', {
+              children: fixture.title,
+            }),
           ]),
         }),
         $(Table, {
