@@ -7,10 +7,16 @@ import {createEndpoint} from '../utils/endpoints'
 /**
  *
  */
+export const $ReportRepair = createEndpoint({
+  path: '/ReportRepair',
+})
+/**
+ *
+ */
 export const $ReportListOfFixture = createEndpoint({
   path: '/ReportListOfFixture',
   payload: io.object({
-    roundId: io.string(),
+    fixtureId: io.string(),
     limit: io.optional(io.number()),
   }),
   result: io.array(ioReport),
@@ -36,7 +42,7 @@ export const $ReportGetFixtureAgainst = createEndpoint({
   path: '/ReportGetFixtureAgainst',
   payload: io.object({
     teamId: io.string(),
-    roundId: io.string(),
+    fixtureId: io.string(),
   }),
   result: io.object({
     teamAgainst: ioTeam,
@@ -50,7 +56,7 @@ export const $ReportCreate = createEndpoint({
   path: '/ReportCreate',
   payload: io.object({
     teamId: io.string(),
-    roundId: io.string(),
+    fixtureId: io.string(),
     scoreFor: io.number(),
     scoreAgainst: io.number(),
     mvpMale: io.optional(io.string()),

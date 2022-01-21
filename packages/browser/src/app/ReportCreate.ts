@@ -46,7 +46,7 @@ export const ReportCreate: FC<{
   const $create = useEndpoint($ReportCreate)
   const form = useForm({
     teamId: auth.current?.team?.id,
-    roundId: undefined as undefined | string,
+    fixtureId: undefined as undefined | string,
     scoreFor: undefined as undefined | number,
     scoreAgainst: undefined as undefined | number,
     mvpMale: undefined as undefined | string,
@@ -59,12 +59,12 @@ export const ReportCreate: FC<{
       $fixtureList.fetch({seasonId: auth.current?.season.id}).then(fixturesSet)
   }, [])
   useEffect(() => {
-    if (form.data.roundId && auth.current?.team) {
+    if (form.data.fixtureId && auth.current?.team) {
       $fixtureAgainst
-        .fetch({roundId: form.data.roundId, teamId: auth.current?.team.id})
+        .fetch({fixtureId: form.data.fixtureId, teamId: auth.current?.team.id})
         .then(({teamAgainst, users}) => againstSet({team: teamAgainst, users}))
     }
-  }, [form.data.roundId])
+  }, [form.data.fixtureId])
   return $(Modal, {
     width: 610,
     children: addkeys([
@@ -89,8 +89,8 @@ export const ReportCreate: FC<{
                 children: addkeys([
                   $(FormLabel, {label: 'Fixture'}),
                   $(InputSelect, {
-                    value: form.data.roundId,
-                    valueSet: form.link('roundId'),
+                    value: form.data.fixtureId,
+                    valueSet: form.link('fixtureId'),
                     options: fixtures.map((i) => ({
                       key: i.id,
                       label: `${i.title} - ${dayjs(i.date).format('DD/MM/YY')}`,
@@ -99,7 +99,7 @@ export const ReportCreate: FC<{
                 ]),
               }),
           $(Fragment, {
-            children: !form.data.roundId
+            children: !form.data.fixtureId
               ? null
               : !auth.current?.team || !against?.users
               ? $(Spinner)

@@ -31,7 +31,7 @@ export const $FixtureCreate = createEndpoint({
 export const $FixtureUpdate = createEndpoint({
   path: '/FixtureUpdate',
   payload: io.object({
-    roundId: io.string(),
+    fixtureId: io.string(),
     title: io.string(),
     date: io.date(),
     games: io.array(ioFixtureGame),
@@ -44,6 +44,6 @@ export const $FixtureUpdate = createEndpoint({
 export const $FixtureDelete = createEndpoint({
   path: '/FixtureDelete',
   payload: io.object({
-    roundId: io.string(),
+    fixtureId: io.string(),
   }),
 })

@@ -18,16 +18,32 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
+    path: '/ReportRepair',
+    handler: () => async (req) => {
+      await requireUserAdmin(req)
+      const brokenReports = await $Report.getMany({
+        fixtureId: {$exists: false},
+      })
+      const tasks = brokenReports.map(async (report) => {
+        $Report.updateOne({id: report.id}, {fixtureId: report.roundId})
+      })
+      await Promise.all(tasks)
+    },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
     path: '/ReportListOfFixture',
     payload: io.object({
-      roundId: io.string(),
+      fixtureId: io.string(),
       limit: io.optional(io.number()),
     }),
     handler:
-      ({roundId, limit}) =>
+      ({fixtureId, limit}) =>
       async (req) => {
         await requireUserAdmin(req)
-        return $Report.getMany({roundId}, {limit, sort: {createdOn: -1}})
+        return $Report.getMany({fixtureId}, {limit, sort: {createdOn: -1}})
       },
   }),
   /**
@@ -43,7 +59,7 @@ export default new Map<string, RequestHandler>([
       async (req) => {
         await requireUserAdmin(req)
         const fixtures = await $Fixture.getMany({seasonId})
-        const query = {roundId: {$in: fixtures.map((i) => i.id)}}
+        const query = {fixtureId: {$in: fixtures.map((i) => i.id)}}
         const [count, reports] = await Promise.all([
           $Report.count(query),
           $Report.getMany(query, {sort: {createdOn: -1}}),
@@ -58,16 +74,16 @@ export default new Map<string, RequestHandler>([
     path: '/ReportGetFixtureAgainst',
     payload: io.object({
       teamId: io.string(),
-      roundId: io.string(),
+      fixtureId: io.string(),
     }),
     handler:
-      ({teamId, roundId}) =>
+      ({teamId, fixtureId}) =>
       async (req) => {
         const [user] = await requireUser(req)
         let team: TTeam
         if (user.admin) team = await $Team.getOne({id: teamId})
         else [team] = await requireTeam(user, teamId)
-        const fixture = await $Fixture.getOne({id: roundId})
+        const fixture = await $Fixture.getOne({id: fixtureId})
         let teamAgainstId: string | undefined
         for (const game of fixture.games) {
           if (game.team1Id === team.id) {
@@ -105,7 +121,7 @@ export default new Map<string, RequestHandler>([
     path: '/ReportCreate',
     payload: io.object({
       teamId: io.string(),
-      roundId: io.string(),
+      fixtureId: io.string(),
       scoreFor: io.number(),
       scoreAgainst: io.number(),
       mvpMale: io.optional(io.string()),
@@ -118,8 +134,8 @@ export default new Map<string, RequestHandler>([
       let team: TTeam
       if (user.admin) team = await $Team.getOne({id: body.teamId})
       else [team] = await requireTeam(user, body.teamId)
-      const fixture = await $Fixture.getOne({id: body.roundId})
-      if (await $Report.count({roundId: fixture.id, teamId: team.id})) {
+      const fixture = await $Fixture.getOne({id: body.fixtureId})
+      if (await $Report.count({fixtureId: fixture.id, teamId: team.id})) {
         const message = `Report already submitted by ${team.name} for ${fixture.title}.`
         throw new Error(message)
       }

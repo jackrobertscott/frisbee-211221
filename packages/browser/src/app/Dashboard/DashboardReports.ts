@@ -6,6 +6,7 @@ import {
   $ReportDelete,
   $ReportGetFixtureAgainst,
   $ReportListOfSeason,
+  $ReportRepair,
   $ReportUpdate,
 } from '../../endpoints/Report'
 import {$TeamListOfSeason} from '../../endpoints/Team'
@@ -46,6 +47,7 @@ export const DashboardReports: FC = () => {
   const pager = usePager()
   const toaster = useToaster()
   const $teamList = useEndpoint($TeamListOfSeason)
+  const $reportRepair = useEndpoint($ReportRepair)
   const $reportList = useEndpoint($ReportListOfSeason)
   const $reportCreate = useEndpoint($ReportCreate)
   const $reportUpdate = useEndpoint($ReportUpdate)
@@ -99,8 +101,13 @@ export const DashboardReports: FC = () => {
                     }),
                     $(FormBadge, {
                       icon: 'wrench',
-                      label: 'Repair',
+                      label: $reportRepair.loading ? 'Loading' : 'Repair',
                       background: theme.bgAdmin,
+                      click: () =>
+                        $reportRepair.fetch().then(() => {
+                          toaster.notify('Repaired.')
+                          reportList()
+                        }),
                     }),
                   ]),
                 }),
@@ -115,7 +122,7 @@ export const DashboardReports: FC = () => {
                   },
                   body: reports.map((report) => {
                     const fixture = fixtures?.find((i) => {
-                      return i.id === report.roundId
+                      return i.id === report.fixtureId
                     })
                     const teamBy = teams?.find((i) => {
                       return i.id === report.teamId
@@ -127,7 +134,7 @@ export const DashboardReports: FC = () => {
                       key: report.id,
                       click: () => currentIdSet(report.id),
                       data: {
-                        fixture: {value: fixture?.title ?? report.roundId},
+                        fixture: {value: fixture?.title ?? report.fixtureId},
                         by: {
                           value: teamBy?.name ?? report.teamId,
                           color: teamBy?.color,
@@ -274,7 +281,7 @@ const _DashboardReportsForm: FC<{
   const [against, againstSet] = useState<{team: TTeam; users: TUser[]}>()
   const form = useForm({
     teamId: undefined as undefined | string,
-    roundId: undefined as undefined | string,
+    fixtureId: undefined as undefined | string,
     scoreFor: undefined as undefined | number,
     scoreAgainst: undefined as undefined | number,
     mvpMale: undefined as undefined | string,
@@ -284,12 +291,12 @@ const _DashboardReportsForm: FC<{
     ...data,
   })
   useEffect(() => {
-    if (form.data.roundId && form.data.teamId) {
+    if (form.data.fixtureId && form.data.teamId) {
       $fixtureAgainst
-        .fetch({roundId: form.data.roundId, teamId: form.data.teamId})
+        .fetch({fixtureId: form.data.fixtureId, teamId: form.data.teamId})
         .then(({teamAgainst, users}) => againstSet({team: teamAgainst, users}))
     }
-  }, [form.data.roundId, form.data.teamId])
+  }, [form.data.fixtureId, form.data.teamId])
   return $(Fragment, {
     children: addkeys([
       $(Modal, {
@@ -321,8 +328,8 @@ const _DashboardReportsForm: FC<{
                 children: addkeys([
                   $(FormLabel, {label: 'Fixture'}),
                   $(InputSelect, {
-                    value: form.data.roundId,
-                    valueSet: form.link('roundId'),
+                    value: form.data.fixtureId,
+                    valueSet: form.link('fixtureId'),
                     options: fixtures.map((i) => ({
                       key: i.id,
                       label: `${i.title} - ${dayjs(i.date).format('DD/MM/YY')}`,

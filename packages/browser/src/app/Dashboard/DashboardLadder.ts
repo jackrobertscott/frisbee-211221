@@ -127,7 +127,7 @@ export const DashboardLadder: FC = () => {
               $fixtureUpdate
                 .fetch({
                   ...data,
-                  roundId: editing.id,
+                  fixtureId: editing.id,
                 })
                 .then(() => {
                   reload()

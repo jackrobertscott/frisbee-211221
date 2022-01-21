@@ -52,17 +52,17 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     path: '/FixtureUpdate',
     payload: io.object({
-      roundId: io.string(),
+      fixtureId: io.string(),
       title: io.string(),
       date: io.date(),
       games: io.array(ioFixtureGame),
     }),
     handler:
-      ({roundId, ...body}) =>
+      ({fixtureId, ...body}) =>
       async (req) => {
         await requireUserAdmin(req)
         return $Fixture.updateOne(
-          {id: roundId},
+          {id: fixtureId},
           {...body, updatedOn: new Date().toISOString()}
         )
       },
@@ -73,13 +73,13 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     path: '/FixtureDelete',
     payload: io.object({
-      roundId: io.string(),
+      fixtureId: io.string(),
     }),
     handler:
-      ({roundId}) =>
+      ({fixtureId}) =>
       async (req) => {
         await requireUserAdmin(req)
-        await $Fixture.deleteOne({id: roundId})
+        await $Fixture.deleteOne({id: fixtureId})
       },
   }),
 ])

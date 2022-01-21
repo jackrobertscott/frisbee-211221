@@ -22,7 +22,7 @@ Todos:
   - [ ] List all reports.
   - [ ] List mvp standings filterable by gender.
   - [ ] List team spirit scores.
-  - [ ] Change "roundId" to "fixtureId" using migration.
+  - [ ] Change "fixtureId" to "fixtureId" using migration.
   - [ ] Add "seasonId" to reports.
 - [ ] Add data export feature.
 - [ ] Captain member management popup.

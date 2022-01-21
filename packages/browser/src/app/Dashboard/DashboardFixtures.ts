@@ -125,7 +125,7 @@ export const DashboardFixtures: FC = () => {
                   ...data,
                   date: data.date!,
                   games: data.games as TFixture['games'],
-                  roundId: editing.id,
+                  fixtureId: editing.id,
                 })
                 .then(() => {
                   reload()

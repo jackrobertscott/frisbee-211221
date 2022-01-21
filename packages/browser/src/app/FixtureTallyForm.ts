@@ -55,7 +55,7 @@ export const FixtureTallyForm: FC<{
       })
   }, [])
   useEffect(() => {
-    $reportList.fetch({roundId: fixture.id}).then(reportsSet)
+    $reportList.fetch({fixtureId: fixture.id}).then(reportsSet)
   }, [fixture.id])
   return $(Modal, {
     width: theme.fib[14] + theme.fib[12] + theme.fib[6] * 2,
