@@ -7,6 +7,7 @@ import {Center} from './Center'
 import {StackProvider} from './Stack/StackProvider'
 import {useStack} from './Stack/useStack'
 import {Portal} from './Portal'
+import {useMedia} from './Media/useMedia'
 /**
  *
  */
@@ -17,6 +18,7 @@ export const Modal: FC<{
   height?: number
 }> = ({close, children, width = theme.fib[12] + theme.fib[9], height}) => {
   const stack = useStack()
+  const media = useMedia()
   const unfocused = useRef<boolean>(!document.querySelector(':focus-within'))
   const handleClose = (event: MouseEvent) => {
     if (!stack.top()) return
@@ -41,7 +43,7 @@ export const Modal: FC<{
         }),
         children: $(Center, {
           click: handleClose,
-          padding: theme.fib[6],
+          padding: media.width < theme.fib[13] ? theme.fib[5] : theme.fib[6],
           children: $('div', {
             children,
             className: css({

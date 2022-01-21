@@ -341,6 +341,13 @@ const _DashboardReportsForm: FC<{
               }),
               $(Fragment, {
                 children:
+                  !against &&
+                  form.data.teamId &&
+                  form.data.fixtureId &&
+                  $(Spinner),
+              }),
+              $(Fragment, {
+                children:
                   against &&
                   addkeys([
                     $(FormRow, {
@@ -487,7 +494,7 @@ const _DashboardReportsMVP: FC<{
       }),
       $(Table, {
         head: {
-          user: {label: 'User', grow: 1},
+          user: {label: 'User', grow: 2},
           votes: {label: 'Votes', grow: 1},
         },
         body: usersAndVotes.map(({userId, votes}) => {
@@ -538,7 +545,7 @@ const _DashboardReportsSpirit: FC<{
       }),
       $(Table, {
         head: {
-          team: {label: 'Fixture', grow: 1},
+          team: {label: 'Fixture', grow: 2},
           spirit: {label: 'Spirit', grow: 1},
         },
         body: teamsAndSpirit.map(({team, spirit}) => {

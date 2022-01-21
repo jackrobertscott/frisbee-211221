@@ -41,9 +41,9 @@ export const Pager: FC<{
       }),
       $(FormBadge, {
         grow: true,
-        label: `Showing ${data.skip} to ${
-          count ? data.skip + count : '...'
-        } of ${total ?? '...'}`,
+        label: `${data.skip} to ${count ? data.skip + count : '...'} of ${
+          total ?? '...'
+        }`,
       }),
       $(FormBadge, {
         icon: 'arrow-left',
