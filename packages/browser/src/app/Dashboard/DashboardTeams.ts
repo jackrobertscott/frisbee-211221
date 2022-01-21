@@ -17,6 +17,8 @@ import {InputSimpleColor} from '../Input/InputSimpleColor'
 import {InputString} from '../Input/InputString'
 import {useMedia} from '../Media/useMedia'
 import {Modal} from '../Modal'
+import {Pager} from '../Pager/Pager'
+import {usePager} from '../Pager/usePager'
 import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {TeamViewAdmin} from '../TeamViewAdmin'
@@ -30,25 +32,25 @@ import {useSling} from '../useThrottle'
 export const DashboardTeams: FC = () => {
   const auth = useAuth()
   const media = useMedia()
+  const pager = usePager()
   const $teamList = useEndpoint($TeamListOfSeason)
-  const seasonId = auth.current?.season?.id
   const [search, searchSet] = useState('')
-  const [count, countSet] = useState<number>()
   const [teams, teamsSet] = useState<TTeam[]>()
   const [creating, creatingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
   const current = currentId && teams?.find((i) => i.id === currentId)
+  const seasonId = auth.current?.season?.id
   const teamList = () =>
     seasonId &&
-    $teamList.fetch({seasonId, search}).then((i) => {
+    $teamList.fetch({...pager.data, seasonId, search}).then((i) => {
       teamsSet(i.teams)
-      countSet(i.count)
+      pager.totalSet(i.count)
     })
   const teamListDelay = useSling(500, teamList)
   useEffect(() => {
     if (!auth.isAdmin()) go.to('/')
     else teamList()
-  }, [auth.current, seasonId])
+  }, [auth.current, pager.data, seasonId])
   useEffect(() => {
     if (teams !== undefined) teamListDelay()
   }, [search])
@@ -76,14 +78,6 @@ export const DashboardTeams: FC = () => {
                             valueSet: searchSet,
                             placeholder: 'Search',
                           }),
-                        }),
-                        $(Fragment, {
-                          children:
-                            media.width >= theme.fib[13] &&
-                            count &&
-                            $(FormBadge, {
-                              label: `${count} Total`,
-                            }),
                         }),
                         $(FormBadge, {
                           label: 'Create Team',
@@ -116,6 +110,10 @@ export const DashboardTeams: FC = () => {
                       })),
                     }),
                   ]),
+          }),
+          $(Pager, {
+            ...pager,
+            count: teams?.length,
           }),
         ]),
       }),

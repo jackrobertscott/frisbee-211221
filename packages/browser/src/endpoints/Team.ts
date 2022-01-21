@@ -10,6 +10,8 @@ export const $TeamListOfSeason = createEndpoint({
   payload: io.object({
     seasonId: io.string(),
     search: io.optional(io.string()),
+    limit: io.optional(io.number()),
+    skip: io.optional(io.number()),
   }),
   result: io.object({
     count: io.number(),

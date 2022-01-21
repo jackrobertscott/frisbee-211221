@@ -66,6 +66,7 @@ export default new Map<string, RequestHandler>([
     payload: io.object({
       search: io.optional(io.string().emptyok()),
       limit: io.optional(io.number()),
+      skip: io.optional(io.number()),
     }),
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
@@ -80,7 +81,10 @@ export default new Map<string, RequestHandler>([
               {email: regexSearch},
             ],
           },
-          {limit: body.limit}
+          {
+            limit: body.limit,
+            skip: body.skip,
+          }
         ),
       ])
       return {count, users}

@@ -33,6 +33,8 @@ import {InputSelect} from '../Input/InputSelect'
 import {InputString} from '../Input/InputString'
 import {useMedia} from '../Media/useMedia'
 import {Modal} from '../Modal'
+import {Pager} from '../Pager/Pager'
+import {usePager} from '../Pager/usePager'
 import {Poster} from '../Poster'
 import {Question} from '../Question'
 import {Spinner} from '../Spinner'
@@ -47,24 +49,24 @@ import {useSling} from '../useThrottle'
 export const DashboardUsers: FC = () => {
   const auth = useAuth()
   const media = useMedia()
+  const pager = usePager()
   const $userList = useEndpoint($UserList)
   const [search, searchSet] = useState('')
-  const [count, countSet] = useState<number>()
   const [users, usersSet] = useState<TUser[]>()
   const [creating, creatingSet] = useState(false)
   const [importing, importingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
   const current = currentId && users?.find((i) => currentId === i.id)
   const userList = () =>
-    $userList.fetch({search}).then((i) => {
+    $userList.fetch({...pager.data, search}).then((i) => {
       usersSet(i.users)
-      countSet(i.count)
+      pager.totalSet(i.count)
     })
   const userListDelay = useSling(500, userList)
   useEffect(() => {
     if (!auth.isAdmin()) go.to('/')
     else userList()
-  }, [auth.current])
+  }, [auth.current, pager.data])
   useEffect(() => {
     if (users !== undefined) userListDelay()
   }, [search])
@@ -92,14 +94,6 @@ export const DashboardUsers: FC = () => {
                             valueSet: searchSet,
                             placeholder: 'Search',
                           }),
-                        }),
-                        $(Fragment, {
-                          children:
-                            media.width >= theme.fib[13] &&
-                            count &&
-                            $(FormBadge, {
-                              label: `${count} Total`,
-                            }),
                         }),
                         $(FormBadge, {
                           label: 'Create User',
@@ -142,6 +136,10 @@ export const DashboardUsers: FC = () => {
                       })),
                     }),
                   ]),
+          }),
+          $(Pager, {
+            ...pager,
+            count: users?.length,
           }),
         ]),
       }),

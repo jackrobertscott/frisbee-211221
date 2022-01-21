@@ -25,7 +25,16 @@ export const InputSelect: FC<{
   placeholder?: string
   disabled?: boolean
   minWidth?: number
-}> = ({value, valueSet, options, placeholder = '...', disabled, minWidth}) => {
+  position?: 'above' | 'below'
+}> = ({
+  value,
+  valueSet,
+  options,
+  placeholder = '...',
+  disabled,
+  minWidth,
+  position,
+}) => {
   const [open, openSet] = useState(false)
   const current = options.find((i) => i.key === value)
   const bg = disabled
@@ -35,6 +44,7 @@ export const InputSelect: FC<{
     : theme.bg
   return $(Popup, {
     open,
+    position,
     align: 'start',
     maxWidth: '100%',
     clickOutside: () => openSet(false),

@@ -33,6 +33,7 @@ export const $UserList = createEndpoint({
   payload: io.object({
     search: io.optional(io.string().emptyok()),
     limit: io.optional(io.number()),
+    skip: io.optional(io.number()),
   }),
   result: io.object({
     count: io.number(),
