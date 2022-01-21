@@ -94,6 +94,19 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
+    path: '/UserListManyById',
+    payload: io.object({
+      userIds: io.array(io.string()),
+    }),
+    handler: (body) => async (req) => {
+      await requireUserAdmin(req)
+      return $User.getMany({id: {$in: body.userIds}})
+    },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
     path: '/UserCreate',
     payload: io.object({
       email: io.string().email().trim(),

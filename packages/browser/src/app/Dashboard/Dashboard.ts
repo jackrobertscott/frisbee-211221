@@ -21,7 +21,7 @@ import {useEndpoint} from '../useEndpoint'
 import {FormMenu} from '../Form/FormMenu'
 import {FormBadge} from '../Form/FormBadge'
 import {hsla} from '../../utils/hsla'
-import {fadein, slideright} from '../../utils/keyframes'
+import {fadein} from '../../utils/keyframes'
 import {DashboardNews} from './DashboardNews'
 import {DashboardLadder} from './DashboardLadder'
 import {DashboardFixtures} from './DashboardFixtures'
@@ -30,6 +30,7 @@ import {DashboardUsers} from './DashboardUsers'
 import {useMedia} from '../Media/useMedia'
 import {MenuBar, MenuBarOption, MenuBarShadow, MenuBarSpacer} from '../MenuBar'
 import {Router} from '../Router/Router'
+import {DashboardReports} from './DashboardReports'
 /**
  *
  */
@@ -126,6 +127,11 @@ export const Dashboard: FC = () => {
                   path: '/users',
                   label: 'Users',
                   render: () => $(DashboardUsers),
+                },
+                auth.isAdmin() && {
+                  path: '/reports',
+                  label: 'Reports',
+                  render: () => $(DashboardReports),
                 },
               ],
               render: (children, context) =>

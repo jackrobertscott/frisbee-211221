@@ -33,6 +33,27 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
+    path: '/ReportListOfSeason',
+    payload: io.object({
+      seasonId: io.string(),
+    }),
+    handler:
+      ({seasonId}) =>
+      async (req) => {
+        await requireUserAdmin(req)
+        const fixtures = await $Fixture.getMany({seasonId})
+        const query = {roundId: {$in: fixtures.map((i) => i.id)}}
+        const [count, reports] = await Promise.all([
+          $Report.count(query),
+          $Report.getMany(query, {sort: {createdOn: -1}}),
+        ])
+        return {count, reports, fixtures}
+      },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
     path: '/ReportGetFixture',
     payload: io.object({
       teamId: io.string(),

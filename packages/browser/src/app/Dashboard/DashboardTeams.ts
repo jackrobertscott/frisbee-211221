@@ -15,7 +15,6 @@ import {FormLabel} from '../Form/FormLabel'
 import {FormRow} from '../Form/FormRow'
 import {InputSimpleColor} from '../Input/InputSimpleColor'
 import {InputString} from '../Input/InputString'
-import {useMedia} from '../Media/useMedia'
 import {Modal} from '../Modal'
 import {Pager} from '../Pager/Pager'
 import {usePager} from '../Pager/usePager'
@@ -31,7 +30,6 @@ import {useSling} from '../useThrottle'
  */
 export const DashboardTeams: FC = () => {
   const auth = useAuth()
-  const media = useMedia()
   const pager = usePager()
   const $teamList = useEndpoint($TeamListOfSeason)
   const [search, searchSet] = useState('')
@@ -72,12 +70,10 @@ export const DashboardTeams: FC = () => {
                         },
                       }),
                       children: addkeys([
-                        $(Fragment, {
-                          children: $(InputString, {
-                            value: search,
-                            valueSet: searchSet,
-                            placeholder: 'Search',
-                          }),
+                        $(InputString, {
+                          value: search,
+                          valueSet: searchSet,
+                          placeholder: 'Search',
                         }),
                         $(FormBadge, {
                           label: 'Create Team',
@@ -109,11 +105,11 @@ export const DashboardTeams: FC = () => {
                         },
                       })),
                     }),
+                    $(Pager, {
+                      ...pager,
+                      count: teams?.length,
+                    }),
                   ]),
-          }),
-          $(Pager, {
-            ...pager,
-            count: teams?.length,
           }),
         ]),
       }),

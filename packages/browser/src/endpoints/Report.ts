@@ -1,4 +1,5 @@
 import {io} from 'torva'
+import {ioFixture} from '../schemas/ioFixture'
 import {ioReport} from '../schemas/ioReport'
 import {ioTeam} from '../schemas/ioTeam'
 import {ioUser} from '../schemas/ioUser'
@@ -13,6 +14,20 @@ export const $ReportListOfFixture = createEndpoint({
     limit: io.optional(io.number()),
   }),
   result: io.array(ioReport),
+})
+/**
+ *
+ */
+export const $ReportListOfSeason = createEndpoint({
+  path: '/ReportListOfSeason',
+  payload: io.object({
+    seasonId: io.string(),
+  }),
+  result: io.object({
+    count: io.number(),
+    reports: io.array(ioReport),
+    fixtures: io.array(ioFixture),
+  }),
 })
 /**
  *

@@ -3,7 +3,6 @@ import {useMemo, useState} from 'react'
  *
  */
 export interface TPager {
-  total?: number
   limit: number
   skip: number
 }
@@ -11,6 +10,7 @@ export interface TPager {
  *
  */
 export const usePager = (defaults?: Partial<TPager>) => {
+  const [total, totalSet] = useState<number>()
   const [pager, pagerSet] = useState<TPager>({
     limit: 25,
     skip: 0,
@@ -21,7 +21,8 @@ export const usePager = (defaults?: Partial<TPager>) => {
       ...pager,
       data: pager,
       dataSet: pagerSet,
-      totalSet: (total?: number) => pagerSet((i) => ({...i, total})),
+      total,
+      totalSet,
     }
-  }, [pager])
+  }, [pager, total])
 }

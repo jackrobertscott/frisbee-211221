@@ -10,10 +10,11 @@ import {TPager} from './usePager'
  */
 export const Pager: FC<{
   count?: number
+  total?: number
   data: TPager
   dataSet: (pager: TPager) => void
-}> = ({count, data, dataSet}) => {
-  const hasNext = () => data.total && data.skip + data.limit < data.total
+}> = ({count, total, data, dataSet}) => {
+  const hasNext = () => total && data.skip + data.limit < total
   const hasPrev = () => data.skip > 0
   const goNext = () => dataSet({...data, skip: data.skip + data.limit})
   const goPrev = () =>
@@ -30,9 +31,9 @@ export const Pager: FC<{
           value: data.limit.toString(),
           valueSet: (limit) => dataSet({...data, limit: +limit}),
           options: [
+            {key: '2', label: '2'},
             {key: '10', label: '10'},
             {key: '25', label: '25'},
-            {key: '30', label: '30'},
             {key: '50', label: '50'},
             {key: '100', label: '100'},
             {key: '250', label: '250'},
@@ -43,7 +44,7 @@ export const Pager: FC<{
         grow: true,
         label: `Showing ${data.skip} to ${
           count ? data.skip + count : '...'
-        } of ${data.total ?? '...'}`,
+        } of ${total ?? '...'}`,
       }),
       $(FormBadge, {
         icon: 'arrow-left',

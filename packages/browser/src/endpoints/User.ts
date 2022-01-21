@@ -43,6 +43,16 @@ export const $UserList = createEndpoint({
 /**
  *
  */
+export const $UserListManyById = createEndpoint({
+  path: '/UserListManyById',
+  payload: io.object({
+    userIds: io.array(io.string()),
+  }),
+  result: io.array(ioUser),
+})
+/**
+ *
+ */
 export const $UserCreate = createEndpoint({
   path: '/UserCreate',
   payload: io.object({

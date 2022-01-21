@@ -18,8 +18,14 @@ Todos:
 - [x] Add replying to comments.
 - [x] Add rich text editor to posts.
 - [x] Add automatic web-page refresher.
-- [ ] Captain member management popup.
 - [ ] Spirit score and mvp tab.
+  - [ ] List all reports.
+  - [ ] List mvp standings filterable by gender.
+  - [ ] List team spirit scores.
+  - [ ] Change "roundId" to "fixtureId" using migration.
+  - [ ] Add "seasonId" to reports.
+- [ ] Add data export feature.
+- [ ] Captain member management popup.
 - [ ] Send game fixture emails with png.
 - [ ] Admin send custom emails.
 - [ ] Merch store.

@@ -135,11 +135,11 @@ export const DashboardUsers: FC = () => {
                         },
                       })),
                     }),
+                    $(Pager, {
+                      ...pager,
+                      count: users?.length,
+                    }),
                   ]),
-          }),
-          $(Pager, {
-            ...pager,
-            count: users?.length,
           }),
         ]),
       }),
