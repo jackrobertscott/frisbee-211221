@@ -130,6 +130,8 @@ const _fixtureScreenshot = async (fixtureId: string) => {
   await page.goto(`${config.urlClient}/?fixtureId=${fixtureId}`, {
     waitUntil: 'networkidle0',
   })
+  await page.emulateTimezone('Australia/Perth')
+  await page.evaluateHandle('document.fonts.ready')
   const $clip = await page.$('#clip')
   const box = await $clip?.boundingBox()
   const screenshot = await page.screenshot({
