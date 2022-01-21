@@ -6,7 +6,6 @@ import {
   $ReportDelete,
   $ReportGetFixtureAgainst,
   $ReportListOfSeason,
-  $ReportRepair,
   $ReportUpdate,
 } from '../../endpoints/Report'
 import {$TeamListOfSeason} from '../../endpoints/Team'
@@ -47,7 +46,6 @@ export const DashboardReports: FC = () => {
   const pager = usePager()
   const toaster = useToaster()
   const $teamList = useEndpoint($TeamListOfSeason)
-  const $reportRepair = useEndpoint($ReportRepair)
   const $reportList = useEndpoint($ReportListOfSeason)
   const $reportCreate = useEndpoint($ReportCreate)
   const $reportUpdate = useEndpoint($ReportUpdate)
@@ -98,16 +96,6 @@ export const DashboardReports: FC = () => {
                       label: 'Create Report',
                       background: theme.bgAdmin,
                       click: () => creatingSet(true),
-                    }),
-                    $(FormBadge, {
-                      icon: 'wrench',
-                      label: $reportRepair.loading ? 'Loading' : 'Repair',
-                      background: theme.bgAdmin,
-                      click: () =>
-                        $reportRepair.fetch().then(() => {
-                          toaster.notify('Repaired.')
-                          reportList()
-                        }),
                     }),
                   ]),
                 }),

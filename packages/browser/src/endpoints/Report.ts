@@ -7,12 +7,6 @@ import {createEndpoint} from '../utils/endpoints'
 /**
  *
  */
-export const $ReportRepair = createEndpoint({
-  path: '/ReportRepair',
-})
-/**
- *
- */
 export const $ReportListOfFixture = createEndpoint({
   path: '/ReportListOfFixture',
   payload: io.object({

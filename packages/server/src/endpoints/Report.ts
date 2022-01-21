@@ -18,22 +18,6 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/ReportRepair',
-    handler: () => async (req) => {
-      await requireUserAdmin(req)
-      const brokenReports = await $Report.getMany({
-        fixtureId: {$exists: false},
-      })
-      const tasks = brokenReports.map(async (report) => {
-        $Report.updateOne({id: report.id}, {fixtureId: report.roundId})
-      })
-      await Promise.all(tasks)
-    },
-  }),
-  /**
-   *
-   */
-  createEndpoint({
     path: '/ReportListOfFixture',
     payload: io.object({
       fixtureId: io.string(),
