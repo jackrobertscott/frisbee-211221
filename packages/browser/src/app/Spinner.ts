@@ -5,14 +5,16 @@ import {Icon} from './Icon'
 /**
  *
  */
-export const Spinner: FC = () => {
+export const Spinner: FC<{
+  size?: number
+}> = ({size}) => {
   return $('div', {
     className: css({
-      display: 'flex',
-      justifyContent: 'center',
+      flexGrow: 1,
       textAlign: 'center',
+      justifyContent: 'center',
       padding: theme.padify(theme.fib[4]),
-      fontSize: theme.fib[6],
+      fontSize: size,
       opacity: 0.25,
     }),
     children: $(Icon, {
