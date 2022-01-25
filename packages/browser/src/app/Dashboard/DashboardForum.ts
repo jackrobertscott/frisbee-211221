@@ -13,18 +13,23 @@ import {PostView} from '../PostView'
 import {FormBadge} from '../Form/FormBadge'
 import {Spinner} from '../Spinner'
 import {useMedia} from '../Media/useMedia'
+import {TUser} from '../../schemas/ioUser'
 /**
  *
  */
-export const DashboardNews: FC = () => {
+export const DashboardForum: FC = () => {
   const auth = useAuth()
   const [viewId, viewIdSet] = useState<string>()
   const [creating, creatingSet] = useState(false)
   const [posts, postsSet] = useState<TPost[]>()
+  const [users, usersSet] = useState<TUser[]>()
   const $postList = useEndpoint($PostListOfSeason)
   const postList = () =>
     auth.current?.season &&
-    $postList.fetch({seasonId: auth.current?.season.id}).then(postsSet)
+    $postList.fetch({seasonId: auth.current?.season.id}).then((i) => {
+      postsSet(i.posts)
+      usersSet(i.users)
+    })
   const postView = viewId ? posts?.find((i) => i.id === viewId) : undefined
   useEffect(() => {
     postList()
@@ -33,12 +38,10 @@ export const DashboardNews: FC = () => {
     children: addkeys([
       $(Form, {
         children: addkeys([
-          auth.isAdmin() &&
-            $(FormBadge, {
-              label: 'Add Post',
-              background: theme.bgAdmin,
-              click: () => creatingSet(true),
-            }),
+          $(FormBadge, {
+            label: 'Write A Post...',
+            click: () => creatingSet(true),
+          }),
           posts === undefined
             ? $(Spinner)
             : posts.length
@@ -46,6 +49,7 @@ export const DashboardNews: FC = () => {
                 return $(_NewsPost, {
                   key: post.id,
                   post,
+                  user: users?.find((i) => i.id === post.userId),
                   click: () => viewIdSet(post.id),
                 })
               })
@@ -75,6 +79,7 @@ export const DashboardNews: FC = () => {
           postView &&
           $(PostView, {
             post: postView,
+            user: users?.find((i) => i.id === postView.userId),
             close: () => viewIdSet(undefined),
             reload: () => postList(),
           }),
@@ -87,8 +92,9 @@ export const DashboardNews: FC = () => {
  */
 const _NewsPost: FC<{
   post: TPost
+  user?: TUser
   click: () => void
-}> = ({post, click}) => {
+}> = ({post, user, click}) => {
   const media = useMedia()
   const previewLength =
     media.width < theme.fib[13] ? theme.fib[9] : theme.fib[12]
@@ -111,42 +117,38 @@ const _NewsPost: FC<{
         onClick: click,
         className: css({
           cursor: 'default',
+          whiteSpace: 'pre-line',
           border: theme.border(),
+          padding: theme.padify(theme.fib[5]),
           '&:hover': {
             background: theme.bg.hover(),
           },
         }),
         children: addkeys([
           $('div', {
+            children: post.title,
             className: css({
-              padding: theme.padify(theme.fib[5]),
-              '& > *:not(:last-child)': {
-                marginBottom: 5,
-              },
+              fontSize: theme.fontSizeMajor,
+              marginBottom: theme.fib[3],
             }),
-            children: addkeys([
-              $('div', {
-                children: post.title,
-                className: css({
-                  fontSize: theme.fib[6],
-                }),
-              }),
-              $('div', {
-                children: snippet,
-                className: css({
-                  color: theme.fontMinor.string(),
-                  whiteSpace: 'pre-line',
-                }),
-              }),
-            ]),
           }),
           $('div', {
-            children: dayjs(post.createdOn).format(theme.dateFormat),
+            children: snippet,
             className: css({
-              borderTop: theme.border(),
               color: theme.fontMinor.string(),
-              background: theme.bgMinor.string(),
-              padding: theme.padify(theme.fib[5]),
+              marginBottom: theme.fib[3] + 2,
+            }),
+          }),
+          $('div', {
+            children: [
+              user ? `${user.firstName} ${user.lastName}` : '',
+              dayjs(post.createdOn).format('DD/MM/YY h:mma'),
+            ]
+              .filter((i) => !!i)
+              .join(' - '),
+            className: css({
+              fontSize: theme.fontSizeMinor,
+              color: theme.fontMinor.string(),
             }),
           }),
         ]),

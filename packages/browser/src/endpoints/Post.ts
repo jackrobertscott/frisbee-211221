@@ -1,5 +1,6 @@
 import {io} from 'torva'
 import {ioPost} from '../schemas/ioPost'
+import {ioUser} from '../schemas/ioUser'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
@@ -11,7 +12,10 @@ export const $PostListOfSeason = createEndpoint({
     search: io.optional(io.string().emptyok()),
     limit: io.optional(io.number()),
   }),
-  result: io.array(ioPost),
+  result: io.object({
+    posts: io.array(ioPost),
+    users: io.array(ioUser),
+  }),
 })
 /**
  *

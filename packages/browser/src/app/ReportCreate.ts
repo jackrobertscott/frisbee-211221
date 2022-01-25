@@ -204,7 +204,7 @@ export const ReportCreate: FC<{
                             rows: 2,
                             value: form.data.spiritComment,
                             valueSet: form.link('spiritComment'),
-                            placeholder: 'Write a comment (optional) ...',
+                            placeholder: 'Write a comment... (optional)',
                           }),
                         ]),
                       }),

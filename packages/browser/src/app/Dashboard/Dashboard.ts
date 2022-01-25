@@ -22,7 +22,7 @@ import {FormMenu} from '../Form/FormMenu'
 import {FormBadge} from '../Form/FormBadge'
 import {hsla} from '../../utils/hsla'
 import {fadein} from '../../utils/keyframes'
-import {DashboardNews} from './DashboardNews'
+import {DashboardForum} from './DashboardForum'
 import {DashboardLadder} from './DashboardLadder'
 import {DashboardFixtures} from './DashboardFixtures'
 import {DashboardTeams} from './DashboardTeams'
@@ -101,12 +101,12 @@ export const Dashboard: FC = () => {
               ]),
             }),
             $(Router, {
-              fallback: '/news',
+              fallback: '/forum',
               routes: [
                 {
-                  path: '/news',
-                  label: 'News',
-                  render: () => $(DashboardNews),
+                  path: '/forum',
+                  label: 'Forum',
+                  render: () => $(DashboardForum),
                 },
                 {
                   path: '/fixtures',

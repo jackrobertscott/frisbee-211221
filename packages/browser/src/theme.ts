@@ -17,6 +17,7 @@ export const theme = {
   borderWidth: 2,
   fontInset: 3,
   fontSizeMinor: 14,
+  fontSizeMajor: 21,
   dateFormat: 'D MMM YYYY h:mma',
   border() {
     return `${this.borderWidth}px solid ${this.borderColor.string()}`

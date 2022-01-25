@@ -41,9 +41,10 @@ import {HTML} from './HTML'
  */
 export const PostView: FC<{
   post: TPost
+  user?: TUser
   close: () => void
   reload: () => void
-}> = ({post, close, reload}) => {
+}> = ({post, user, close, reload}) => {
   const auth = useAuth()
   const [{comments, users}, stateSet] = useState<{
     comments?: TComment[]
@@ -70,20 +71,22 @@ export const PostView: FC<{
                 grow: true,
                 label: 'Post',
               }),
-              auth.isAdmin() &&
-                $(TopBarBadge, {
-                  icon: 'wrench',
-                  label: 'Edit',
-                  background: theme.bgAdmin,
-                  click: () => editingSet(true),
-                }),
-              auth.isAdmin() &&
-                $(TopBarBadge, {
-                  icon: 'trash-alt',
-                  label: 'Delete',
-                  background: theme.bgAdmin,
-                  click: () => deletingSet(true),
-                }),
+              $(Fragment, {
+                children:
+                  (auth.isAdmin() || auth.current?.user.id === user?.id) &&
+                  addkeys([
+                    $(TopBarBadge, {
+                      icon: 'wrench',
+                      label: 'Edit',
+                      click: () => editingSet(true),
+                    }),
+                    $(TopBarBadge, {
+                      icon: 'trash-alt',
+                      label: 'Delete',
+                      click: () => deletingSet(true),
+                    }),
+                  ]),
+              }),
               $(TopBarBadge, {
                 icon: 'times',
                 click: close,
@@ -93,7 +96,9 @@ export const PostView: FC<{
           $('div', {
             className: css({
               display: 'flex',
+              minHeight: theme.fib[12],
               [theme.ltMedia(theme.fib[14])]: {
+                minHeight: 'auto',
                 flexDirection: 'column',
               },
             }),
@@ -108,14 +113,20 @@ export const PostView: FC<{
                     children: post.title,
                     className: css({
                       fontSize: theme.fib[6],
-                      marginBottom: 5,
+                      marginBottom: theme.fib[4],
                     }),
                   }),
                   $('div', {
-                    children: dayjs(post.createdOn).format(theme.dateFormat),
+                    children: [
+                      user ? `${user.firstName} ${user.lastName}` : '',
+                      dayjs(post.createdOn).format(theme.dateFormat),
+                    ]
+                      .filter((i) => !!i)
+                      .join(' - '),
                     className: css({
+                      fontSize: theme.fontSizeMinor,
                       color: theme.fontMinor.string(),
-                      marginBottom: theme.fib[5],
+                      marginBottom: theme.fib[4],
                     }),
                   }),
                   $(HTML, {

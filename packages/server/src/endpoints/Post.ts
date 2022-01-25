@@ -28,10 +28,17 @@ export default new Map<string, RequestHandler>([
       ({seasonId, search, limit}) =>
       async (req) => {
         await requireUser(req)
-        return $Post.getMany(
+        const posts = await $Post.getMany(
           {seasonId, title: regex.from(search ?? '')},
           {limit, sort: {createdOn: -1}}
         )
+        const users = await $User.getMany({
+          id: {$in: posts.map((i) => i.userId)},
+        })
+        return {
+          posts,
+          users,
+        }
       },
   }),
   /**
@@ -46,14 +53,14 @@ export default new Map<string, RequestHandler>([
       sendEmail: io.optional(io.boolean()),
     }),
     handler: (body) => async (req) => {
-      const [user] = await requireUserAdmin(req)
+      const [user] = await requireUser(req)
       await $Season.getOne({id: body.seasonId})
       body.content = purify.sanitize(body.content)
       const post = await $Post.createOne({
         ...body,
         userId: user.id,
       })
-      if (body.sendEmail) {
+      if (user.admin && body.sendEmail) {
         const memberCaptains = await $Member.getMany({
           captain: true,
           seasonId: body.seasonId,
@@ -83,7 +90,10 @@ export default new Map<string, RequestHandler>([
     handler:
       ({postId, ...body}) =>
       async (req) => {
-        await requireUserAdmin(req)
+        const [user] = await requireUser(req)
+        const post = await $Post.getOne({id: postId})
+        if (post.userId !== user.id && !user.admin)
+          throw new Error('Failed: you can only update your own posts.')
         body.content = purify.sanitize(body.content)
         return $Post.updateOne(
           {id: postId},
@@ -102,7 +112,10 @@ export default new Map<string, RequestHandler>([
     handler:
       ({postId}) =>
       async (req) => {
-        await requireUserAdmin(req)
+        const [user] = await requireUser(req)
+        const post = await $Post.getOne({id: postId})
+        if (post.userId !== user.id && !user.admin)
+          throw new Error('Failed: you can only delete your own posts.')
         await $Post.deleteOne({id: postId})
       },
   }),

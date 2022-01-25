@@ -1,4 +1,4 @@
-import {createElement as $, FC} from 'react'
+import {createElement as $, FC, Fragment} from 'react'
 import {$PostCreate} from '../endpoints/Post'
 import {TPost} from '../schemas/ioPost'
 import {theme} from '../theme'
@@ -71,15 +71,22 @@ export const PostCreate: FC<{
               }),
             ]),
           }),
-          $(FormRow, {
-            children: addkeys([
-              $(FormLabel, {label: 'Email To Captains'}),
-              $(InputBoolean, {
-                value: form.data.sendEmail,
-                valueSet: form.link('sendEmail'),
-                grow: false,
+          $(Fragment, {
+            children:
+              auth.isAdmin() &&
+              $(FormRow, {
+                children: addkeys([
+                  $(FormLabel, {
+                    background: theme.bgAdmin,
+                    label: 'Email To Captains',
+                  }),
+                  $(InputBoolean, {
+                    value: form.data.sendEmail,
+                    valueSet: form.link('sendEmail'),
+                    grow: false,
+                  }),
+                ]),
               }),
-            ]),
           }),
           $(FormBadge, {
             disabled: $postCreate.loading,
