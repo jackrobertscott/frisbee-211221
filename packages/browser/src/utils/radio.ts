@@ -36,8 +36,11 @@ export const radio = {
    */
   async handleResponse(i: Response) {
     if (i.status === 204) return undefined
-    if (i.headers.get('Content-Type')?.startsWith('image/')) return i.blob()
-    if (i.status >= 200 && i.status < 300) return i.json()
+    if (i.status >= 200 && i.status < 300) {
+      if (!i.headers.get('Content-Type')?.startsWith('application/json'))
+        return i.blob()
+      return i.json()
+    }
     const payload = await i.json()
     if (payload.message) throw new Error(payload.message)
     throw new Error('Server request failed.')

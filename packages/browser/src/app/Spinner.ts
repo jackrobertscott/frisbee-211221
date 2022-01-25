@@ -11,8 +11,9 @@ export const Spinner: FC<{
   return $('div', {
     className: css({
       flexGrow: 1,
-      textAlign: 'center',
+      display: 'flex',
       justifyContent: 'center',
+      textAlign: 'center',
       padding: theme.padify(theme.fib[4]),
       fontSize: size,
       opacity: 0.25,
