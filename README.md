@@ -23,6 +23,8 @@ Todos:
   - [x] List mvp standings filterable by gender.
   - [x] List team spirit scores.
   - [x] Change "fixtureId" to "fixtureId" using migration.
+- [ ] Make joining a team optional.
+- [ ] Allow one user to have multiple emails.
 - [ ] Send game fixture emails with png.
 - [ ] Admin send custom emails.
 - [ ] Captain member management popup.

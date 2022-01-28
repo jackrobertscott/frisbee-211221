@@ -8,16 +8,16 @@ export const FormColumn: FC<{
   children: ReactNode
   maxLength?: number
   maxWidth?: string | number
-  grow?: boolean
   shrink?: boolean
-}> = ({children: _children, maxLength, maxWidth, grow, shrink = false}) => {
+  grow?: boolean
+}> = ({children: _children, maxLength, maxWidth, shrink, grow}) => {
   const children = $('div', {
     children: _children,
     className: css({
-      flexShrink: shrink ? undefined : 0,
       display: 'flex',
       flexDirection: 'column',
       flexGrow: grow ? 1 : undefined,
+      flexShrink: shrink ? undefined : 0,
       overflow: maxLength ? 'auto' : undefined,
       maxHeight: maxLength,
       maxWidth: maxWidth,

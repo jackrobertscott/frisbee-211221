@@ -1,5 +1,5 @@
 import {css} from '@emotion/css'
-import {createElement as $, FC, Fragment, ReactNode} from 'react'
+import {createElement as $, FC, Fragment, ReactNode, ReactText} from 'react'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {hsla} from '../utils/hsla'
@@ -14,10 +14,7 @@ type TFCTable<T extends string = any> = FC<{
   body: Array<{
     key: string
     click?: () => void
-    data: Record<
-      T,
-      {children?: ReactNode; value?: string | number; color?: string}
-    >
+    data: Record<T, {children?: ReactNode; value?: ReactText; color?: string}>
   }>
 }>
 /**
@@ -30,20 +27,14 @@ export const Table: TFCTable = ({head, body}) => {
       background: theme.bg.string(),
     }),
     children: $(FormColumn, {
+      grow: true,
+      maxWidth: '100%',
       children: addkeys([
         $(FormRow, {
           children: Object.entries(head).map(([key, {grow, label}]) => {
-            return $('div', {
+            return $(_TableCell, {
               key,
-              className: css({
-                minWidth: theme.fib[8] * grow,
-                flexGrow: grow,
-                flexShrink: 0,
-                flexBasis: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-              }),
+              grow,
               children: $(FormLabel, {
                 label,
                 background: theme.bgMinor,
@@ -62,17 +53,9 @@ export const Table: TFCTable = ({head, body}) => {
                 const data = entry.data[key]
                 const bg = data?.color ? hsla.digest(data?.color) : undefined
                 const font = bg?.compliment()
-                return $('div', {
+                return $(_TableCell, {
                   key,
-                  className: css({
-                    minWidth: theme.fib[8] * grow,
-                    flexGrow: grow,
-                    flexShrink: 0,
-                    flexBasis: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                  }),
+                  grow,
                   children:
                     data?.children ??
                     $(FormLabel, {
@@ -93,6 +76,26 @@ export const Table: TFCTable = ({head, body}) => {
           }),
         }),
       ]),
+    }),
+  })
+}
+/**
+ *
+ */
+const _TableCell: FC<{
+  grow: number
+  children: ReactNode
+}> = ({grow, children}) => {
+  return $('div', {
+    children,
+    className: css({
+      display: 'flex',
+      flexBasis: 0,
+      flexShrink: 0,
+      flexGrow: grow,
+      flexDirection: 'column',
+      minWidth: theme.fib[8] * grow,
+      overflow: 'hidden',
     }),
   })
 }

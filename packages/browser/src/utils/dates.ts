@@ -6,13 +6,13 @@ export const DATETIME_PERIOD = ['AM', 'PM']
  *
  */
 export const DATETIME_DAYS = [
+  'Sunday',
   'Monday',
   'Tuesday',
   'Wednesday',
   'Thursday',
   'Friday',
   'Saturday',
-  'Sunday',
 ]
 /**
  *

@@ -43,10 +43,10 @@ export const FormBadge: FC<TFormBadge> = ({
     onClick: (event: MouseEvent) => !disabled && click?.(event),
     className: css(
       {
-        flexGrow: grow ? 1 : undefined,
         display: 'flex',
-        justifyContent: 'center',
         textAlign: 'center',
+        justifyContent: 'center',
+        flexGrow: grow ? 1 : undefined,
         userSelect: select ?? 'none',
         whiteSpace: 'nowrap',
         border: theme.border(),
