@@ -25,6 +25,8 @@ Todos:
   - [x] Change "fixtureId" to "fixtureId" using migration.
 - [ ] Make joining a team optional.
 - [ ] Allow one user to have multiple emails.
+- [ ] Add a user merge function.
+- [ ] Allow a user to leave a team.
 - [ ] Send game fixture emails with png.
 - [ ] Admin send custom emails.
 - [ ] Captain member management popup.

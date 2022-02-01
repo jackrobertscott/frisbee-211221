@@ -11,10 +11,12 @@ import {SettingsMembers} from './SettingsMembers'
 import {SettingsPassword} from './SettingsPassword'
 import {SettingsTeam} from './SettingsTeam'
 import {useMedia} from '../Media/useMedia'
+import {useAuth} from '../Auth/useAuth'
 /**
  *
  */
 export const Settings: FC<{close: () => void}> = ({close}) => {
+  const auth = useAuth()
   const media = useMedia()
   const bpSmall = theme.fib[13]
   const isSmall = media.width < bpSmall
@@ -30,12 +32,12 @@ export const Settings: FC<{close: () => void}> = ({close}) => {
       title: 'Change Password',
       render: () => $(SettingsPassword),
     },
-    {
+    !!auth.current?.team && {
       path: '/team',
       title: 'Team',
       render: () => $(SettingsTeam),
     },
-    {
+    !!auth.current?.team && {
       path: '/members',
       title: 'Members',
       render: () => $(SettingsMembers),

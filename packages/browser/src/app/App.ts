@@ -42,7 +42,6 @@ const _AppGuard: FC = () => {
   if (!auth.loaded) return $(_AppLoading)
   if (!auth.current) return $(Security)
   if (!auth.current.season) return $(SeasonSetup)
-  if (!auth.current.team) return $(TeamSetup)
   return $(Dashboard)
 }
 /**

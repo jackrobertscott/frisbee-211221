@@ -44,12 +44,17 @@ export const DashboardFixtures: FC = () => {
     if (!auth.current?.season) return
     const seasonId = auth.current.season.id
     $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))
-    $fixtureList.fetch({seasonId}).then(fixturesSet)
+    $fixtureList.fetch({seasonId}).then((i) => {
+      if (fixtures === undefined && i[0] && !openfxs.includes(i[0].id))
+        openfxsSet((x) => [...x, i[0].id])
+      fixturesSet(i)
+    })
   }
   useEffect(() => reload(), [])
   return $(Fragment, {
     children: addkeys([
       $(Form, {
+        background: theme.bgMinor,
         children: addkeys([
           $(Fragment, {
             children:

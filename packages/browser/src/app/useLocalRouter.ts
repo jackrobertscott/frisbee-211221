@@ -11,8 +11,9 @@ export interface TRoute {
  */
 export const useLocalRouter = <T extends TRoute>(
   fallback: string,
-  routes: T[]
+  _routes: (T | false)[]
 ) => {
+  const routes = _routes.filter((i) => i) as T[]
   if (routes.length < 1) throw new Error('Router must have at least one route.')
   const [pathCurrent, pathCurrentSet] = useState(fallback)
   const current = routes.find((i) => i.path === pathCurrent) ?? routes[0]

@@ -42,6 +42,7 @@ export const DashboardLadder: FC = () => {
   return $(Fragment, {
     children: addkeys([
       $(Form, {
+        background: theme.bgMinor,
         children: addkeys([
           $(Table, {
             head: {

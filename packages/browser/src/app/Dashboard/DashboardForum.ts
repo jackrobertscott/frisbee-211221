@@ -37,6 +37,7 @@ export const DashboardForum: FC = () => {
   return $(Fragment, {
     children: addkeys([
       $(Form, {
+        background: theme.bgMinor,
         children: addkeys([
           $(FormBadge, {
             label: 'Write A Post...',

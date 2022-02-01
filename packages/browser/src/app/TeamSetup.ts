@@ -7,11 +7,11 @@ import {TTeam} from '../schemas/ioTeam'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {useAuth} from './Auth/useAuth'
-import {Center} from './Center'
 import {Form} from './Form/Form'
 import {FormBadge} from './Form/FormBadge'
 import {FormMenu} from './Form/FormMenu'
 import {InputString} from './Input/InputString'
+import {Modal} from './Modal'
 import {Poster} from './Poster'
 import {Question} from './Question'
 import {Spinner} from './Spinner'
@@ -22,7 +22,9 @@ import {useEndpoint} from './useEndpoint'
 /**
  *
  */
-export const TeamSetup: FC = () => {
+export const TeamSetup: FC<{
+  close: () => void
+}> = ({close}) => {
   const auth = useAuth()
   const toaster = useToaster()
   const $teamList = useEndpoint($TeamListOfSeason)
@@ -52,82 +54,79 @@ export const TeamSetup: FC = () => {
     normalize(data).includes(searchNormalized)
   return $(Fragment, {
     children: addkeys([
-      $(Center, {
-        children: $('div', {
-          className: css({
-            width: 377,
-            border: theme.border(),
-            background: theme.bg.string(),
+      $(Modal, {
+        width: theme.fib[12] + theme.fib[8],
+        children: addkeys([
+          $(TopBar, {
+            children: addkeys([
+              $(TopBarBadge, {
+                grow: true,
+                label: 'Join A Team',
+              }),
+              $(TopBarBadge, {
+                icon: 'times',
+                click: close,
+              }),
+            ]),
           }),
-          children: addkeys([
-            $(TopBar, {
-              children: addkeys([
-                $(TopBarBadge, {
-                  grow: true,
-                  label: 'Join A Team',
-                }),
-                $(TopBarBadge, {
-                  icon: 'power-off',
-                  click: () => logoutSet(true),
-                }),
-              ]),
-            }),
-            teams === undefined
-              ? $(Form, {
-                  children: $(Spinner),
-                })
-              : teamPending
-              ? $(Poster, {
-                  title: 'Request Pending',
-                  description: `You have requested to join ${teamPending.name}. Please wait while the team captain responds to your request.`,
-                })
-              : $('div', {
-                  className: css({
-                    display: 'flex',
-                    flexDirection: 'column',
-                    '& > *:not(:last-child)': {
-                      borderBottom: theme.border(),
-                    },
+          $(Fragment, {
+            children:
+              teams === undefined
+                ? $(Form, {
+                    children: $(Spinner),
+                  })
+                : teamPending
+                ? $(Poster, {
+                    title: 'Request Pending',
+                    description: `You have requested to join ${teamPending.name}. Please wait while the team captain responds to your request.`,
+                  })
+                : $('div', {
+                    className: css({
+                      display: 'flex',
+                      flexDirection: 'column',
+                      '& > *:not(:last-child)': {
+                        borderBottom: theme.border(),
+                      },
+                    }),
+                    children: addkeys([
+                      $(Form, {
+                        children: addkeys([
+                          $(InputString, {
+                            value: search,
+                            valueSet: searchSet,
+                            placeholder: 'Search',
+                          }),
+                          $('div', {
+                            className: css({
+                              border: theme.border(),
+                            }),
+                            children: $(FormMenu, {
+                              empty: 'No Teams Found',
+                              options: teams
+                                .filter((i) => normalizeSearch(i.name))
+                                .map((i) => ({
+                                  id: i.id,
+                                  label: i.name,
+                                  color: i.color,
+                                  click: () => teamRequestedSet(i),
+                                })),
+                            }),
+                          }),
+                        ]),
+                      }),
+                      $(Form, {
+                        background: theme.bgMinor,
+                        children: addkeys([
+                          $(FormBadge, {
+                            label: 'Create New Team',
+                            click: () => creatingSet(true),
+                          }),
+                        ]),
+                      }),
+                    ]),
                   }),
-                  children: addkeys([
-                    $(Form, {
-                      children: addkeys([
-                        $(InputString, {
-                          value: search,
-                          valueSet: searchSet,
-                          placeholder: 'Search',
-                        }),
-                        $('div', {
-                          className: css({
-                            border: theme.border(),
-                          }),
-                          children: $(FormMenu, {
-                            empty: 'No Teams Found',
-                            options: teams
-                              .filter((i) => normalizeSearch(i.name))
-                              .map((i) => ({
-                                id: i.id,
-                                label: i.name,
-                                color: i.color,
-                                click: () => teamRequestedSet(i),
-                              })),
-                          }),
-                        }),
-                      ]),
-                    }),
-                    $(Form, {
-                      background: theme.bgMinor,
-                      children: addkeys([
-                        $(FormBadge, {
-                          label: 'Create New Team',
-                          click: () => creatingSet(true),
-                        }),
-                      ]),
-                    }),
-                  ]),
-                }),
-          ]),
-        }),
+          }),
+        ]),
       }),
       $(Fragment, {
         children:

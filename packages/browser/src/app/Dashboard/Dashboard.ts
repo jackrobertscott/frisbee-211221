@@ -31,6 +31,7 @@ import {useMedia} from '../Media/useMedia'
 import {MenuBar, MenuBarOption, MenuBarShadow, MenuBarSpacer} from '../MenuBar'
 import {Router} from '../Router/Router'
 import {DashboardReports} from './DashboardReports'
+import {TeamSetup} from '../TeamSetup'
 /**
  *
  */
@@ -41,6 +42,7 @@ export const Dashboard: FC = () => {
   const [open, openSet] = useState(false)
   const [logout, logoutSet] = useState(false)
   const [reporting, reportingSet] = useState(false)
+  const [teamSetup, teamSetupSet] = useState(false)
   const [settings, settingsSet] = useState(false)
   const bpSmall = theme.fib[13] + theme.fib[10]
   const isSmall = media.width < bpSmall
@@ -80,11 +82,17 @@ export const Dashboard: FC = () => {
                 }),
                 $(Fragment, {
                   children:
-                    auth.current?.team &&
                     media.width >= theme.fib[13] &&
-                    $(TopBarBadge, {
-                      label: auth.current?.team.name,
-                      background: hsla.digest(auth.current?.team.color),
+                    $(Fragment, {
+                      children: auth.current?.team
+                        ? $(TopBarBadge, {
+                            label: auth.current?.team.name,
+                            background: hsla.digest(auth.current?.team.color),
+                          })
+                        : $(TopBarBadge, {
+                            label: 'Join A Team',
+                            click: () => teamSetupSet(true),
+                          }),
                     }),
                 }),
                 $(_DashboardSeasonBadge),
@@ -168,14 +176,18 @@ export const Dashboard: FC = () => {
                             $(Fragment, {
                               children: !isSmall && $(MenuBarSpacer),
                             }),
-                            $(MenuBarOption, {
-                              label: 'Submit Score Report',
-                              click: () => {
-                                reportingSet(true)
-                                openSet(false)
-                              },
-                              background: theme.bgHighlight,
-                              font: theme.bgHighlight.compliment(),
+                            $(Fragment, {
+                              children:
+                                auth.current?.team &&
+                                $(MenuBarOption, {
+                                  label: 'Submit Score Report',
+                                  click: () => {
+                                    reportingSet(true)
+                                    openSet(false)
+                                  },
+                                  background: theme.bgHighlight,
+                                  font: theme.bgHighlight.compliment(),
+                                }),
                             }),
                             $(Fragment, {
                               children: isSmall && $(MenuBarSpacer),
@@ -232,6 +244,13 @@ export const Dashboard: FC = () => {
           settings &&
           $(Settings, {
             close: () => settingsSet(false),
+          }),
+      }),
+      $(Fragment, {
+        children:
+          teamSetup &&
+          $(TeamSetup, {
+            close: () => teamSetupSet(false),
           }),
       }),
     ]),

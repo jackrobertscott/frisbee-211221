@@ -112,7 +112,7 @@ export default new Map<string, RequestHandler>([
     handler:
       ({fixtureId}) =>
       async (req, res) => {
-        await requireUserAdmin(req)
+        await requireUser(req)
         const fixture = await $Fixture.getOne({id: fixtureId})
         const buffer = await _fixtureScreenshot(fixture.id)
         res.setHeader('Content-Type', 'image/png')
