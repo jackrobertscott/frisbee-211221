@@ -123,6 +123,7 @@ const _NewsPost: FC<{
           cursor: 'default',
           whiteSpace: 'pre-line',
           border: theme.border(),
+          background: theme.bg.string(),
           padding: theme.padify(theme.fib[5]),
           '&:hover': {
             background: theme.bg.hover(),
