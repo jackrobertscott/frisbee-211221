@@ -3,7 +3,7 @@ import {isNumber} from './coerce'
 /**
  *
  */
-interface TChart {
+export interface TTallyChart {
   teamId: string
   points: number
   wins: number
@@ -18,7 +18,7 @@ interface TChart {
 /**
  *
  */
-const emptyChart = (teamId: string): TChart => ({
+const emptyChart = (teamId: string): TTallyChart => ({
   teamId,
   points: 0,
   wins: 0,
@@ -34,7 +34,7 @@ const emptyChart = (teamId: string): TChart => ({
  *
  */
 export const tallyChart = (fixtures: TFixture[]) => {
-  const tally: Record<string, TChart | undefined> = {}
+  const tally: Record<string, TTallyChart | undefined> = {}
   for (const fixture of fixtures) {
     for (const game of fixture.games) {
       if (!isNumber(game.team1Score) || !isNumber(game.team2Score)) continue
@@ -65,7 +65,8 @@ export const tallyChart = (fixtures: TFixture[]) => {
     }
   }
   for (const id in tally) {
-    const data = tally[id]!
+    const data = tally[id]
+    if (!data) continue
     data.aveFor = Math.round((data.for / data.games) * 100) / 100
     data.aveAgainst = Math.round((data.against / data.games) * 100) / 100
   }
