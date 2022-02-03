@@ -28,7 +28,7 @@ export const SecurityLogin: FC<{
   })
   const submit = () =>
     $login.fetch(form.data).then((data) => {
-      savedEmailSet(data.user.email)
+      savedEmailSet(form.data.email)
       auth.login(data)
     })
   return $(Form, {

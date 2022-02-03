@@ -6,8 +6,8 @@ import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
 import {requireTeam} from './requireTeam'
 import {$User} from '../tables/$User'
-import {regex} from '../utils/regex'
 import {TMember} from '../schemas/ioMember'
+import {userEmail} from './userEmail'
 /**
  *
  */
@@ -74,13 +74,13 @@ export default new Map<string, RequestHandler>([
             throw new Error('Failed: only the team captain can add members.')
         }
         const team = await $Team.getOne({id: teamId})
-        let user = await $User.maybeOne({
-          email: regex.normalize(body.email),
-        })
+        let user = await userEmail.maybeUser(body.email)
         if (!user) {
+          let raw: any = body
           user = await $User.createOne({
-            ...(body as any),
+            ...raw,
             termsAccepted: false,
+            emails: [userEmail.create(body.email)],
           })
         }
         const member = await $Member.maybeOne({
