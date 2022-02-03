@@ -46,14 +46,16 @@ export const DashboardLadder: FC = () => {
         children: addkeys([
           $(Table, {
             head: {
-              name: {label: 'Name', grow: 4},
-              games: {label: 'Games', grow: 1},
-              points: {label: 'Points', grow: 1},
-              wins: {label: 'Wins', grow: 1},
-              loses: {label: 'Loses', grow: 1},
-              draws: {label: 'Draws', grow: 1},
-              for: {label: 'For', grow: 1},
-              against: {label: 'Against', grow: 1},
+              name: {label: 'Name', grow: 5},
+              games: {label: 'Games', grow: 1.5},
+              points: {label: 'Points', grow: 1.5},
+              wins: {label: 'Wins', grow: 1.5},
+              loses: {label: 'Loses', grow: 1.5},
+              draws: {label: 'Draws', grow: 1.5},
+              for: {label: 'For', grow: 1.5},
+              against: {label: 'Agnst', grow: 1.5},
+              aveFor: {label: 'Av.For', grow: 1.5},
+              aveAgainst: {label: 'Av.Agt', grow: 1.5},
             },
             body: teams
               .sort((a, b) => {
@@ -79,6 +81,8 @@ export const DashboardLadder: FC = () => {
                     draws: {value: results?.draws},
                     for: {value: results?.for},
                     against: {value: results?.against},
+                    aveFor: {value: results?.aveFor},
+                    aveAgainst: {value: results?.aveAgainst},
                   },
                 }
               }),

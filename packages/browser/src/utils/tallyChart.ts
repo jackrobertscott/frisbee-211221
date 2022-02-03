@@ -12,6 +12,8 @@ interface TChart {
   for: number
   against: number
   games: number
+  aveFor: number
+  aveAgainst: number
 }
 /**
  *
@@ -25,6 +27,8 @@ const emptyChart = (teamId: string): TChart => ({
   for: 0,
   against: 0,
   games: 0,
+  aveFor: 0,
+  aveAgainst: 0,
 })
 /**
  *
@@ -59,6 +63,11 @@ export const tallyChart = (fixtures: TFixture[]) => {
       tally[game.team1Id] = t1Tally
       tally[game.team2Id] = t2Tally
     }
+  }
+  for (const id in tally) {
+    const data = tally[id]!
+    data.aveFor = Math.round((data.for / data.games) * 100) / 100
+    data.aveAgainst = Math.round((data.against / data.games) * 100) / 100
   }
   return tally
 }
