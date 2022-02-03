@@ -130,7 +130,7 @@ export const DashboardLadder: FC = () => {
                 title: 'All Teams, All Games',
                 yLabel: 'Occurrences',
                 xLabel: 'Points Scored',
-                line: (() => {
+                bars: (() => {
                   const all = fixtures
                     .map((i) => {
                       return i.games
