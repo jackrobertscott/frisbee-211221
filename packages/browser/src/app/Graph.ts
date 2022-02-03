@@ -148,7 +148,8 @@ export const Graph: FC<{
     if (title) {
       ctx.beginPath()
       ctx.fillStyle = 'rgba(0, 0, 0, 1)'
-      ctx.fillText(title, width / 2, 20)
+      const x = Math.round((width - axis) / 2 + axis)
+      ctx.fillText(title, x, 20)
     }
   }, [media.width])
   return $('div', {
