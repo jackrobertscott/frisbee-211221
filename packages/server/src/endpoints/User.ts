@@ -9,9 +9,9 @@ import {regex} from '../utils/regex'
 import {blob} from '../utils/blob'
 import {$Team} from '../tables/$Team'
 import {$Season} from '../tables/$Season'
-import {TTeam} from '../schemas/ioTeam'
 import {$Member} from '../tables/$Member'
 import mongo from '../utils/mongo'
+import {userEmail} from './userEmail'
 /**
  *
  */
@@ -117,11 +117,12 @@ export default new Map<string, RequestHandler>([
     }),
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
-      if (!body.termsAccepted)
-        throw new Error('The user must accept the terms and conditions.')
-      if (await $User.count({email: regex.normalize(body.email)}))
+      if (await userEmail.maybeUser(body.email))
         throw new Error(`User already exists with email "${body.email}".`)
-      return $User.createOne(body)
+      return $User.createOne({
+        ...body,
+        emails: [userEmail.create(body.email)],
+      })
     },
   }),
   /**
@@ -232,6 +233,7 @@ const _createUsersFromObjects = async (
       email: i.email_address,
       gender: i.gender as any,
       termsAccepted: false,
+      emails: [userEmail.create(i.email_address)],
     }))
     .filter((i) => {
       if (userCSVEmailList.includes(i.email)) return false
@@ -239,9 +241,15 @@ const _createUsersFromObjects = async (
       return true
     })
   const userDBList = await $User.getMany({
-    email: {$in: userCSVEmailList.map(regex.normalize)},
+    $or: [
+      {email: {$in: userCSVEmailList.map(regex.normalize)}},
+      {'emails.value': {$in: userCSVEmailList.map(regex.normalize)}},
+    ],
   })
-  const userDBEmailList = userDBList.map((i) => i.email.toLowerCase().trim())
+  const userDBEmailList = userDBList.flatMap((i) => [
+    i.email.toLowerCase().trim(),
+    ...(i.emails ?? []).map((x) => x.value.toLowerCase().trim()),
+  ])
   const userCSVNewList = userCSVList.filter((i) => {
     return !userDBEmailList.includes(i.email.toLowerCase().trim())
   })
@@ -249,9 +257,12 @@ const _createUsersFromObjects = async (
   const teamDBList = await $Team.getMany({seasonId})
   const memberCSVList = userDBList
     .map((i) => {
-      const userDBEmail = i.email.toLowerCase().trim()
-      const userCSV = userCSVList.find((i) => {
-        return i.email.toLowerCase().trim() === userDBEmail
+      const userDBEmails = [
+        i.email.toLowerCase().trim(),
+        ...(i.emails ?? []).map((x) => x.value.toLowerCase().trim()),
+      ]
+      const userCSV = userCSVList.find((x) => {
+        return userDBEmails.includes(x.email.toLowerCase().trim())
       })
       if (!userCSV) return undefined
       const userCSVTeamName = userCSV?._team.toLowerCase().trim()
