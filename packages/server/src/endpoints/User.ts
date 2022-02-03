@@ -42,6 +42,36 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
+    path: '/UserCurrentEmailAdd',
+    payload: io.object({
+      email: io.string(),
+    }),
+    handler:
+      ({email}) =>
+      async (req) => {
+        const [user] = await requireUser(req)
+        return userEmail.add(user, email)
+      },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/UserCurrentEmailRemove',
+    payload: io.object({
+      email: io.string(),
+    }),
+    handler:
+      ({email}) =>
+      async (req) => {
+        const [user] = await requireUser(req)
+        return userEmail.remove(user, email)
+      },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
     path: '/UserCurrentChangePassword',
     payload: io.object({
       oldPassword: io.string(),
@@ -246,10 +276,12 @@ const _createUsersFromObjects = async (
       {'emails.value': {$in: userCSVEmailList.map(regex.normalize)}},
     ],
   })
-  const userDBEmailList = userDBList.flatMap((i) => [
-    i.email.toLowerCase().trim(),
-    ...(i.emails ?? []).map((x) => x.value.toLowerCase().trim()),
-  ])
+  const userDBEmailList = userDBList
+    .flatMap((i) => [
+      i.email?.toLowerCase().trim(),
+      ...(i.emails ?? []).map((x) => x.value.toLowerCase().trim()),
+    ])
+    .filter((i) => i)
   const userCSVNewList = userCSVList.filter((i) => {
     return !userDBEmailList.includes(i.email.toLowerCase().trim())
   })
@@ -258,9 +290,9 @@ const _createUsersFromObjects = async (
   const memberCSVList = userDBList
     .map((i) => {
       const userDBEmails = [
-        i.email.toLowerCase().trim(),
+        i.email?.toLowerCase().trim(),
         ...(i.emails ?? []).map((x) => x.value.toLowerCase().trim()),
-      ]
+      ].filter((i) => i)
       const userCSV = userCSVList.find((x) => {
         return userDBEmails.includes(x.email.toLowerCase().trim())
       })

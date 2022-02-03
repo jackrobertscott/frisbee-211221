@@ -99,10 +99,14 @@ export const Security: FC = () => {
                     email: savedEmail,
                     statusSet: (data) => {
                       statusSet(data)
-                      if (data.status === 'unknown') go.to('/sign-up')
-                      else if (data.status === 'passwordless')
-                        go.to(`/verify?email=${encodeURIComponent(data.email)}`)
-                      else go.to('/login')
+                      if (data.status === 'good') go.to('/login')
+                      else if (data.status === 'unknown') go.to('/sign-up')
+                      else
+                        go.to(
+                          `/verify?email=${encodeURIComponent(
+                            data.email
+                          )}&status=${encodeURIComponent(data.status)}`
+                        )
                     },
                   }),
               },
@@ -133,7 +137,7 @@ export const Security: FC = () => {
                   'A password recovery code will be sent to your email.',
                 render: () =>
                   $(SecurityForgot, {
-                    email: router.query.email,
+                    ...router.query,
                   }),
               },
               {
@@ -142,7 +146,7 @@ export const Security: FC = () => {
                 description: 'Check you inbox for the code.',
                 render: () =>
                   $(SecurityVerify, {
-                    email: router.query.email,
+                    ...router.query,
                   }),
               },
             ],

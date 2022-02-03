@@ -99,6 +99,7 @@ export const Settings: FC<{close: () => void}> = ({close}) => {
             children: router.render(),
             className: css({
               flexGrow: 1,
+              overflow: 'hidden',
               background: theme.bgMinor.string(),
             }),
           }),

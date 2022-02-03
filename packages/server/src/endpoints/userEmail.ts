@@ -36,12 +36,15 @@ export const userEmail = {
    *
    */
   async migrate(user: TUser) {
-    if (user.emails?.length) throw new Error('User has already migrated.')
+    const raw: any = $User.getOne({id: user.id})
+    if (raw.emails?.length) throw new Error('User has already migrated.')
+    if (!raw.email) throw new Error('User is missing legacy email.')
+    const fallback = userEmail.create(raw.email)
     const data: TUserEmail = {
-      value: user.email,
-      verified: user.emailVerified,
-      createdOn: user.emailCodeCreatedOn,
-      code: user.emailCode,
+      value: raw.email,
+      verified: raw.emailVerified ?? fallback.verified,
+      createdOn: raw.emailCodeCreatedOn ?? fallback.createdOn,
+      code: raw.emailCode ?? fallback.code,
       primary: true,
     }
     return $User.updateOne({id: user.id}, {emails: [data]})
@@ -64,13 +67,16 @@ export const userEmail = {
   /**
    *
    */
-  async add(user: TUser, email: string, code: string) {
+  async add(user: TUser, email: string) {
     if (userEmail.get(user, email))
       throw new Error('Email already exists on this user.')
     if (await userEmail.maybeUser(email))
       throw new Error('Another account already has this email.')
-    const emails = user.emails ? [...user.emails] : []
-    emails.push(userEmail.create(email, code))
+    if (user.emails?.length === 0 && user.email)
+      user = await userEmail.migrate(user)
+    const data = userEmail.create(email)
+    await userEmail.codeSend(data.value, user.firstName, 'Verify Email')
+    const emails = user.emails ? [...user.emails, data] : [data]
     return $User.updateOne({id: user.id}, {emails})
   },
   /**

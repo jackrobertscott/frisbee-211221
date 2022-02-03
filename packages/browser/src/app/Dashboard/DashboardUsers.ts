@@ -418,8 +418,7 @@ export const _DashboardUsersView: FC<{
                 children: addkeys([
                   $(FormLabel, {label: 'Email'}),
                   $(InputString, {
-                    value:
-                      form.data.emails?.[0].value ?? 'old:' + form.data.email,
+                    value: form.data.emails?.[0].value ?? form.data.email,
                     disabled: true,
                   }),
                 ]),

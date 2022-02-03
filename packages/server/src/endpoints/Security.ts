@@ -38,7 +38,12 @@ export default new Map<string, RequestHandler>([
           data = {status: 'passwordless', email, firstName: user.firstName}
           await userEmail.codeSendSave(user, email, 'Verify Email')
         } else {
-          data = {status: 'good', email: user.email, firstName: user.firstName}
+          const i = userEmail.get(user, email)
+          data = {
+            status: !i?.verified ? 'unverified' : 'good',
+            firstName: user.firstName,
+            email,
+          }
         }
         return data
       },
@@ -53,17 +58,18 @@ export default new Map<string, RequestHandler>([
       password: io.string(),
       userAgent: io.optional(io.string()),
     }),
-    handler: (body) => async () => {
-      const user = await userEmail.maybeUser(body.email)
-      if (!user)
-        throw new Error(`User with email ${body.email} does not exist.`)
-      if (!user.password?.trim().length)
-        throw new Error('User does not have a password.')
-      if (!(await hash.compare(body.password, user.password)))
-        throw new Error('Password is incorrect.')
-      const session = await gatekeeper.createUserSession(user, body.userAgent)
-      return _createAuthPayload(user, session)
-    },
+    handler:
+      ({email, password, userAgent}) =>
+      async () => {
+        const user = await userEmail.maybeUser(email)
+        if (!user) throw new Error(`User with email ${email} does not exist.`)
+        if (!user.password?.trim().length)
+          throw new Error('User does not have a password.')
+        if (!(await hash.compare(password, user.password)))
+          throw new Error('Password is incorrect.')
+        const session = await gatekeeper.createUserSession(user, userAgent)
+        return _createAuthPayload(user, session)
+      },
   }),
   /**
    *
@@ -74,17 +80,19 @@ export default new Map<string, RequestHandler>([
       code: io.string().trim(),
       userAgent: io.optional(io.string()),
     }),
-    handler: (body) => async () => {
-      const {access_token} = await getGoogleAccessToken(body.code)
-      const userInfo = await getGoogleUserInfo(access_token)
-      const user = await userEmail.maybeUser(userInfo.email)
-      if (!user) {
-        const message = `There are no accounts with the email ${userInfo.email}. Please sign up before logging in with Google.`
-        throw new Error(message)
-      }
-      const session = await gatekeeper.createUserSession(user, body.userAgent)
-      return _createAuthPayload(user, session)
-    },
+    handler:
+      ({code, userAgent}) =>
+      async () => {
+        const {access_token} = await getGoogleAccessToken(code)
+        const userInfo = await getGoogleUserInfo(access_token)
+        const user = await userEmail.maybeUser(userInfo.email)
+        if (!user) {
+          const message = `There are no accounts with the email ${userInfo.email}. Please sign up before logging in with Google.`
+          throw new Error(message)
+        }
+        const session = await gatekeeper.createUserSession(user, userAgent)
+        return _createAuthPayload(user, session)
+      },
   }),
   /**
    *
@@ -99,20 +107,24 @@ export default new Map<string, RequestHandler>([
       termsAccepted: io.boolean(),
       userAgent: io.optional(io.string()),
     }),
-    handler: (body) => async () => {
-      const {email, firstName} = body
-      if (!body.termsAccepted)
-        throw new Error('Please accept our terms to create an account.')
-      if (await userEmail.maybeUser(email))
-        throw new Error(`User already exists with email "${email}".`)
-      const code = await userEmail.codeSend(email, firstName, 'Verify Email')
-      const user = await $User.createOne({
-        ...body,
-        emails: [userEmail.create(email, code)],
-      })
-      const session = await gatekeeper.createUserSession(user, body.userAgent)
-      return _createAuthPayload(user, session)
-    },
+    handler:
+      ({userAgent, email, firstName, termsAccepted, ...body}) =>
+      async () => {
+        if (!termsAccepted)
+          throw new Error('Please accept our terms to create an account.')
+        if (await userEmail.maybeUser(email))
+          throw new Error(`User already exists with email "${email}".`)
+        const code = await userEmail.codeSend(email, firstName, 'Verify Email')
+        const user = await $User.createOne({
+          ...body,
+          email,
+          firstName,
+          termsAccepted,
+          emails: [userEmail.create(email, code)],
+        })
+        const session = await gatekeeper.createUserSession(user, userAgent)
+        return _createAuthPayload(user, session)
+      },
   }),
   /**
    *
@@ -134,7 +146,7 @@ export default new Map<string, RequestHandler>([
     payload: io.object({
       email: io.string().email(),
       code: io.string(),
-      newPassword: io.string(),
+      newPassword: io.string().emptyok(),
       userAgent: io.optional(io.string()),
     }),
     handler:
@@ -142,17 +154,19 @@ export default new Map<string, RequestHandler>([
       async () => {
         let user = await userEmail.maybeUser(email)
         if (!user) throw new Error(`User with email ${email} does not exist.`)
-        if (userEmail.isCodeEqual(user, email, code))
+        if (!userEmail.isCodeEqual(user, email, code))
           throw new Error(`Code is incorrect.`)
         if (userEmail.isCodeExpired(user, email)) {
           await userEmail.codeSendSave(user, email, 'Verify Email')
           const message = `Your code has expired. A new code has been sent to your email.`
           throw new Error(message)
         }
-        if (newPassword.length < 5)
-          throw new Error('Password must be at least 5 characters long.')
-        const password = await hash.encrypt(newPassword)
-        user = await $User.updateOne({id: user.id}, {password})
+        if (newPassword.trim().length || !user.password) {
+          if (newPassword.length < 5)
+            throw new Error('Password must be at least 5 characters long.')
+          const password = await hash.encrypt(newPassword)
+          user = await $User.updateOne({id: user.id}, {password})
+        }
         user = await userEmail.verify(user, email)
         const session = await gatekeeper.createUserSession(user, userAgent)
         return _createAuthPayload(user, session)

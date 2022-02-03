@@ -12,7 +12,7 @@ import {useForm} from '../useForm'
  *
  */
 export interface TSecurityStatus {
-  status: 'unknown' | 'passwordless' | 'good'
+  status: 'unknown' | 'passwordless' | 'unverified' | 'good'
   email: string
   firstName?: string
 }

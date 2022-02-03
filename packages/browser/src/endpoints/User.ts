@@ -17,6 +17,26 @@ export const $UserCurrentUpdate = createEndpoint({
 /**
  *
  */
+export const $UserCurrentEmailAdd = createEndpoint({
+  path: '/UserCurrentEmailAdd',
+  payload: io.object({
+    email: io.string(),
+  }),
+  result: ioUser,
+})
+/**
+ *
+ */
+export const $UserCurrentEmailRemove = createEndpoint({
+  path: '/UserCurrentEmailRemove',
+  payload: io.object({
+    email: io.string(),
+  }),
+  result: ioUser,
+})
+/**
+ *
+ */
 export const $UserCurrentChangePassword = createEndpoint({
   path: '/UserCurrentChangePassword',
   payload: io.object({

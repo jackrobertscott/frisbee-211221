@@ -94,6 +94,7 @@ export const MenuBarShadow: FC<{
           display: 'flex',
           zIndex: 100,
           '& > *': {
+            transform: 'translateX(0)',
             animation: `${slideright} 0.15s linear`,
           },
         })
