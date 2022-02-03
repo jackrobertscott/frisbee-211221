@@ -127,7 +127,7 @@ export const DashboardLadder: FC = () => {
               $(Graph, {
                 height:
                   media.width > theme.fib[13] ? theme.fib[12] : theme.fib[11],
-                title: 'All Teams - All Games',
+                title: 'All Teams, All Games',
                 yLabel: 'Occurrences',
                 xLabel: 'Points Scored',
                 line: (() => {
