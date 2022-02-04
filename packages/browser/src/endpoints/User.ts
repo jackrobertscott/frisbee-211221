@@ -27,6 +27,37 @@ export const $UserCurrentEmailAdd = createEndpoint({
 /**
  *
  */
+export const $UserCurrentEmailVerify = createEndpoint({
+  path: '/UserCurrentEmailVerify',
+  payload: io.object({
+    email: io.string(),
+    code: io.string(),
+  }),
+  result: ioUser,
+})
+/**
+ *
+ */
+export const $UserCurrentEmailCodeResend = createEndpoint({
+  path: '/UserCurrentEmailCodeResend',
+  payload: io.object({
+    email: io.string(),
+  }),
+  result: ioUser,
+})
+/**
+ *
+ */
+export const $UserCurrentEmailPrimarySet = createEndpoint({
+  path: '/UserCurrentEmailPrimarySet',
+  payload: io.object({
+    email: io.string(),
+  }),
+  result: ioUser,
+})
+/**
+ *
+ */
 export const $UserCurrentEmailRemove = createEndpoint({
   path: '/UserCurrentEmailRemove',
   payload: io.object({

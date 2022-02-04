@@ -22,7 +22,7 @@ export const $SecurityStatus = createEndpoint({
     email: io.string(),
   }),
   result: io.object({
-    status: io.enum(['unknown', 'passwordless', 'unverified', 'good']),
+    status: io.enum(['unknown', 'password', 'unverified', 'good']),
     email: io.string(),
     firstName: io.optional(io.string()),
   }),

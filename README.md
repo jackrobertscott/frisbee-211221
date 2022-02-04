@@ -32,7 +32,8 @@ Todos:
 - [ ] Admin send custom emails.
 - [ ] Captain member management popup.
 - [ ] Add data export feature.
-- [ ] Request for players tab.
+- [ ] Allow user to verify email inside settings modal.
+- [ ] Request players tab.
 - [ ] Ability to contact admins.
 - [ ] Automated fixtures.
 - [ ] Events: late 2021 fun rounds.

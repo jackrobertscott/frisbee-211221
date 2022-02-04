@@ -43,7 +43,6 @@ export const SecurityVerify: FC<{
           $(FormLabel, {label: 'Email'}),
           $(InputString, {
             value: form.data.email,
-            valueSet: form.link('email'),
             disabled: true,
           }),
         ]),
@@ -60,7 +59,7 @@ export const SecurityVerify: FC<{
       }),
       $(Fragment, {
         children:
-          status === 'passwordless' &&
+          status === 'password' &&
           $(FormColumn, {
             children: addkeys([
               $(FormRow, {

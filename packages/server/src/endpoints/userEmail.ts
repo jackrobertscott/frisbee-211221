@@ -36,7 +36,7 @@ export const userEmail = {
    *
    */
   async migrate(user: TUser) {
-    const raw: any = $User.getOne({id: user.id})
+    const raw: any = await $User.getOne({id: user.id})
     if (raw.emails?.length) throw new Error('User has already migrated.')
     if (!raw.email) throw new Error('User is missing legacy email.')
     const fallback = userEmail.create(raw.email)
@@ -74,9 +74,9 @@ export const userEmail = {
       throw new Error('Another account already has this email.')
     if (user.emails?.length === 0 && user.email)
       user = await userEmail.migrate(user)
-    const data = userEmail.create(email)
-    await userEmail.codeSend(data.value, user.firstName, 'Verify Email')
-    const emails = user.emails ? [...user.emails, data] : [data]
+    const i = userEmail.create(email)
+    i.code = await userEmail.codeSend(i.value, user.firstName, 'Verify Email')
+    const emails = user.emails ? [...user.emails, i] : [i]
     return $User.updateOne({id: user.id}, {emails})
   },
   /**
@@ -84,7 +84,11 @@ export const userEmail = {
    */
   async remove(user: TUser, email: string) {
     let emails = user.emails ? [...user.emails] : []
-    emails = emails.filter((i) => !regex.normalize(email).test(i.value))
+    const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
+    if (index === -1) throw new Error('Email does not exist on user.')
+    if (emails[index].primary)
+      throw new Error('Primary email can not be deleted.')
+    emails.splice(index, 1)
     if (emails.length < 1) throw new Error('User must have at least one email.')
     return $User.updateOne({id: user.id}, {emails})
   },
@@ -97,6 +101,18 @@ export const userEmail = {
     if (index === -1) throw new Error('Email does not exist on user.')
     const data = emails[index]
     emails.splice(index, 1, {...data, verified: true})
+    return $User.updateOne({id: user.id}, {emails})
+  },
+  /**
+   *
+   */
+  async primarySet(user: TUser, email: string) {
+    let emails = user.emails ? [...user.emails] : []
+    const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
+    if (index === -1) throw new Error('Email does not exist on user.')
+    emails = emails.map((i) => ({...i, primary: false}))
+    const data = emails[index]
+    emails.splice(index, 1, {...data, primary: true})
     return $User.updateOne({id: user.id}, {emails})
   },
   /**

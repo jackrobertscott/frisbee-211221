@@ -35,7 +35,7 @@ export default new Map<string, RequestHandler>([
         if (!user) {
           data = {status: 'unknown', email}
         } else if (!user.password) {
-          data = {status: 'passwordless', email, firstName: user.firstName}
+          data = {status: 'password', email, firstName: user.firstName}
           await userEmail.codeSendSave(user, email, 'Verify Email')
         } else {
           const i = userEmail.get(user, email)

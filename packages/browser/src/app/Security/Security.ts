@@ -101,12 +101,12 @@ export const Security: FC = () => {
                       statusSet(data)
                       if (data.status === 'good') go.to('/login')
                       else if (data.status === 'unknown') go.to('/sign-up')
-                      else
-                        go.to(
-                          `/verify?email=${encodeURIComponent(
-                            data.email
-                          )}&status=${encodeURIComponent(data.status)}`
-                        )
+                      else {
+                        const url =
+                          `/verify?email=${encodeURIComponent(data.email)}` +
+                          `&status=${encodeURIComponent(data.status)}`
+                        go.to(url)
+                      }
                     },
                   }),
               },

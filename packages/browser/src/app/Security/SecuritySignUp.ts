@@ -110,7 +110,11 @@ export const SecuritySignUp: FC<{
         click: () =>
           $signUp.fetch({...form.data, gender: form.data.gender!}).then(() => {
             savedEmailSet(form.data.email)
-            go.to(`/verify?email=${encodeURIComponent(form.data.email)}`)
+            const url =
+              '/verify?email=' +
+              encodeURIComponent(form.data.email) +
+              '&status=password'
+            go.to(url)
             toaster.notify('Please check your email inbox.', 8000)
           }),
       }),

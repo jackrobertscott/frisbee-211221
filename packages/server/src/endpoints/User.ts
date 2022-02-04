@@ -57,6 +57,59 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
+    path: '/UserCurrentEmailVerify',
+    payload: io.object({
+      email: io.string(),
+      code: io.string(),
+    }),
+    handler:
+      ({email, code}) =>
+      async (req) => {
+        const [user] = await requireUser(req)
+        if (!userEmail.isCodeEqual(user, email, code))
+          throw new Error(`Code is incorrect.`)
+        if (userEmail.isCodeExpired(user, email)) {
+          await userEmail.codeSendSave(user, email, 'Verify Email')
+          const message = `Your code has expired. A new code has been sent to your email.`
+          throw new Error(message)
+        }
+        return userEmail.verify(user, email)
+      },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/UserCurrentEmailCodeResend',
+    payload: io.object({
+      email: io.string(),
+    }),
+    handler:
+      ({email}) =>
+      async (req) => {
+        const [user] = await requireUser(req)
+        return userEmail.codeSendSave(user, email, 'Verify Email')
+      },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/UserCurrentEmailPrimarySet',
+    payload: io.object({
+      email: io.string(),
+    }),
+    handler:
+      ({email}) =>
+      async (req) => {
+        const [user] = await requireUser(req)
+        return userEmail.primarySet(user, email)
+      },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
     path: '/UserCurrentEmailRemove',
     payload: io.object({
       email: io.string(),
