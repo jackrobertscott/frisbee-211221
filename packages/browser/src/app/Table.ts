@@ -45,35 +45,42 @@ export const Table: TFCTable = ({head, body}) => {
           }),
         }),
         $(Fragment, {
-          children: body.map((entry) => {
-            return $(FormRow, {
-              key: entry.key,
-              click: entry.click,
-              children: Object.entries(head).map(([key, {grow}]) => {
-                const data = entry.data[key]
-                const bg = data?.color ? hsla.digest(data?.color) : undefined
-                const font = bg?.compliment()
-                return $(_TableCell, {
-                  key,
-                  grow,
-                  children:
-                    data?.children ??
-                    $(FormLabel, {
-                      label:
-                        data?.value !== undefined
-                          ? data.value.toString()
-                          : '...',
-                      background: bg
-                        ? bg.merge({a: entry.click ? -0.5 : 0})
-                        : hsla.create(0, 0, 0, 0),
-                      font: data ? font : font?.merge({a: 0.5}),
-                      select: !entry.click ? 'text' : undefined,
-                      grow: true,
-                    }),
+          children: body.length
+            ? body.map((entry) => {
+                return $(FormRow, {
+                  key: entry.key,
+                  click: entry.click,
+                  children: Object.entries(head).map(([key, {grow}]) => {
+                    const data = entry.data[key]
+                    const bg = data?.color
+                      ? hsla.digest(data?.color)
+                      : undefined
+                    const font = bg?.compliment()
+                    return $(_TableCell, {
+                      key,
+                      grow,
+                      children:
+                        data?.children ??
+                        $(FormLabel, {
+                          label:
+                            data?.value !== undefined
+                              ? data.value.toString()
+                              : '...',
+                          background: bg
+                            ? bg.merge({a: entry.click ? -0.5 : 0})
+                            : hsla.create(0, 0, 0, 0),
+                          font: data ? font : font?.merge({a: 0.5}),
+                          select: !entry.click ? 'text' : undefined,
+                          grow: true,
+                        }),
+                    })
+                  }),
                 })
+              })
+            : $(FormLabel, {
+                font: theme.fontMinor,
+                label: 'Empty',
               }),
-            })
-          }),
         }),
       ]),
     }),

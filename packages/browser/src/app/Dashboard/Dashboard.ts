@@ -43,7 +43,7 @@ export const Dashboard: FC = () => {
   const [logout, logoutSet] = useState(false)
   const [reporting, reportingSet] = useState(false)
   const [teamSetup, teamSetupSet] = useState(false)
-  const [settings, settingsSet] = useState(true)
+  const [settings, settingsSet] = useState(false)
   const bpSmall = theme.fib[13] + theme.fib[10]
   const isSmall = media.width < bpSmall
   return $(Fragment, {

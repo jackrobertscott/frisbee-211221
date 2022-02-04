@@ -179,7 +179,7 @@ export default new Map<string, RequestHandler>([
     path: '/SecurityCurrent',
     handler: () => async (req) => {
       let [user, session] = await requireUser(req)
-      if (user.email && user.emails?.length === 0)
+      if (user.email && !user.emails?.length)
         user = await userEmail.migrate(user)
       return _createAuthPayload(user, session)
     },

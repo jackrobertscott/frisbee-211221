@@ -25,7 +25,7 @@ export const ioUser = io.object({
   lastName: io.string(),
   gender: io.string(),
   password: io.optional(io.string()),
-  email: io.optional(io.string()), // depreciated
+  email: io.null(io.optional(io.string())), // depreciated
   emails: io.optional(io.array(ioUserEmail)),
   avatarUrl: io.optional(io.string().trim()),
   bio: io.optional(io.string().trim()),

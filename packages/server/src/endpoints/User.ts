@@ -249,6 +249,26 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
+    path: '/UserMerge',
+    payload: io.object({
+      userIdToMerge: io.string(),
+      userIdToDelete: io.string(),
+    }),
+    handler: (body) => async (req) => {
+      await requireUserAdmin(req)
+      const [userMerge, userDelete] = await Promise.all([
+        $User.getOne({id: body.userIdToMerge}),
+        $User.getOne({id: body.userIdToDelete}),
+      ])
+      /**
+       * Todo...
+       */
+    },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
     path: '/UserImport',
     multipart: true,
     handler: () => async (req) => {

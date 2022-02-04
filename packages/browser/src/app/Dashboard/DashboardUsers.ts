@@ -42,6 +42,7 @@ import {Table} from '../Table'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
+import {UserMerge} from '../UserMerge'
 import {useSling} from '../useThrottle'
 /**
  *
@@ -74,74 +75,70 @@ export const DashboardUsers: FC = () => {
     children: addkeys([
       $(Form, {
         background: theme.bgAdmin.lighten(5),
-        children: addkeys([
-          $(Fragment, {
-            children:
-              users === undefined
-                ? $(Spinner)
-                : addkeys([
-                    $('div', {
-                      className: css({
-                        display: 'flex',
-                        '& > *:not(:last-child)': {
-                          marginRight: theme.fib[5],
-                        },
+        children:
+          users === undefined
+            ? $(Spinner)
+            : addkeys([
+                $('div', {
+                  className: css({
+                    display: 'flex',
+                    '& > *:not(:last-child)': {
+                      marginRight: theme.fib[5],
+                    },
+                  }),
+                  children: addkeys([
+                    $(Fragment, {
+                      children: $(InputString, {
+                        value: search,
+                        valueSet: searchSet,
+                        placeholder: 'Search',
                       }),
-                      children: addkeys([
-                        $(Fragment, {
-                          children: $(InputString, {
-                            value: search,
-                            valueSet: searchSet,
-                            placeholder: 'Search',
-                          }),
-                        }),
+                    }),
+                    $(FormBadge, {
+                      label: 'Create User',
+                      background: theme.bgAdmin,
+                      click: () => creatingSet(true),
+                    }),
+                    $(Fragment, {
+                      children:
+                        media.width >= theme.fib[13] &&
                         $(FormBadge, {
-                          label: 'Create User',
+                          label: 'Import CSV',
                           background: theme.bgAdmin,
-                          click: () => creatingSet(true),
+                          click: () => importingSet(true),
                         }),
-                        $(Fragment, {
-                          children:
-                            media.width >= theme.fib[13] &&
-                            $(FormBadge, {
-                              label: 'Import CSV',
-                              background: theme.bgAdmin,
-                              click: () => importingSet(true),
-                            }),
-                        }),
-                      ]),
-                    }),
-                    $(Table, {
-                      head: {
-                        firstName: {label: 'First Name', grow: 3},
-                        lastName: {label: 'Last Name', grow: 3},
-                        gender: {label: 'Gender', grow: 3},
-                        createdOn: {label: 'Created', grow: 3},
-                        updatedOn: {label: 'Updated', grow: 3},
-                      },
-                      body: users.map((user) => ({
-                        key: user.id,
-                        click: () => currentIdSet(user.id),
-                        data: {
-                          firstName: {value: user.firstName},
-                          lastName: {value: user.lastName},
-                          gender: {value: user.gender},
-                          createdOn: {
-                            value: dayjs(user.createdOn).format('DD/MM/YYYY'),
-                          },
-                          updatedOn: {
-                            value: dayjs(user.updatedOn).format('DD/MM/YYYY'),
-                          },
-                        },
-                      })),
-                    }),
-                    $(Pager, {
-                      ...pager,
-                      count: users?.length,
                     }),
                   ]),
-          }),
-        ]),
+                }),
+                $(Table, {
+                  head: {
+                    firstName: {label: 'First Name', grow: 3},
+                    lastName: {label: 'Last Name', grow: 3},
+                    gender: {label: 'Gender', grow: 3},
+                    createdOn: {label: 'Created', grow: 3},
+                    updatedOn: {label: 'Updated', grow: 3},
+                  },
+                  body: users.map((user) => ({
+                    key: user.id,
+                    click: () => currentIdSet(user.id),
+                    data: {
+                      firstName: {value: user.firstName},
+                      lastName: {value: user.lastName},
+                      gender: {value: user.gender},
+                      createdOn: {
+                        value: dayjs(user.createdOn).format('DD/MM/YYYY'),
+                      },
+                      updatedOn: {
+                        value: dayjs(user.updatedOn).format('DD/MM/YYYY'),
+                      },
+                    },
+                  })),
+                }),
+                $(Pager, {
+                  ...pager,
+                  count: users?.length,
+                }),
+              ]),
       }),
       $(Fragment, {
         children:
@@ -358,6 +355,7 @@ export const _DashboardUsersView: FC<{
   const auth = useAuth()
   const $toggleAdmin = useEndpoint($UserToggleAdmin)
   const $userUpdate = useEndpoint($UserUpdate)
+  const [merge, mergeSet] = useState(false)
   const [adminify, adminifySet] = useState(false)
   const form = useForm({
     ...user,
@@ -376,6 +374,10 @@ export const _DashboardUsersView: FC<{
               $(TopBarBadge, {
                 grow: true,
                 label: 'User',
+              }),
+              $(TopBarBadge, {
+                label: 'Merge',
+                click: () => mergeSet(true),
               }),
               $(TopBarBadge, {
                 icon: 'times',
@@ -491,6 +493,14 @@ export const _DashboardUsersView: FC<{
                   }),
               },
             ],
+          }),
+      }),
+      $(Fragment, {
+        children:
+          merge &&
+          $(UserMerge, {
+            user,
+            close: () => mergeSet(false),
           }),
       }),
     ]),
