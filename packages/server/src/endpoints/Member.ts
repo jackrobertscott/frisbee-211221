@@ -19,7 +19,7 @@ export default new Map<string, RequestHandler>([
     path: '/MemberListOfUser',
     handler: () => async (req) => {
       const [user] = await requireUser(req)
-      // get both pending and non-pending
+      // pending and non-pending
       const members = await $Member.getMany({userId: user.id})
       const teams = await $Team.getMany({
         id: {$in: members.map((i) => i.teamId)},
@@ -40,7 +40,30 @@ export default new Map<string, RequestHandler>([
       const [user] = await requireUser(req)
       let memberCurrent: TMember | undefined
       if (!user.admin) [, memberCurrent] = await requireTeam(user, teamId)
-      // get both pending and non-pending
+      else memberCurrent = await $Member.maybeOne({userId: user.id, teamId})
+      // pending and non-pending
+      const members = await $Member.getMany({teamId})
+      const users = await $User.getMany({
+        id: {$in: members.map((i) => i.userId)},
+      })
+      return {
+        current: memberCurrent,
+        members,
+        users,
+      }
+    },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/MemberDelete',
+    payload: io.string(),
+    handler: (teamId) => async (req) => {
+      const [user] = await requireUser(req)
+      let memberCurrent: TMember | undefined
+      if (!user.admin) [, memberCurrent] = await requireTeam(user, teamId)
+      // pending and non-pending
       const members = await $Member.getMany({teamId})
       const users = await $User.getMany({
         id: {$in: members.map((i) => i.userId)},
@@ -127,7 +150,7 @@ export default new Map<string, RequestHandler>([
       }
       if (!user.admin) {
         const [, member] = await requireTeam(user, memberDelete.teamId)
-        if (!member.captain)
+        if (!member.captain && member.id !== memberDelete.id)
           throw new Error('Failed: only the team captain can delete members.')
       }
       await $Member.deleteOne({id: memberId})

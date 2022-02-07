@@ -105,6 +105,15 @@ export const TeamMembersView: FC<{team: TTeam}> = ({team}) => {
                     }),
                   }),
           }),
+          $(Fragment, {
+            children:
+              state?.current &&
+              state?.members.some((i) => i.id === state.current?.id) &&
+              $(FormBadge, {
+                label: 'Leave Team',
+                click: () => state.current && removeIdSet(state.current.id),
+              }),
+          }),
         ]),
       }),
       $(Fragment, {
@@ -145,8 +154,9 @@ export const TeamMembersView: FC<{team: TTeam}> = ({team}) => {
           removeId &&
           $(Question, {
             title: 'Remove Membership',
-            description:
-              'Are you sure you wish to remove this person from your team?',
+            description: `Are you sure you wish to remove ${
+              removeId === state?.current?.id ? 'yourself' : 'this person'
+            } from the team?`,
             close: () => removeIdSet(undefined),
             options: [
               {
@@ -157,10 +167,12 @@ export const TeamMembersView: FC<{team: TTeam}> = ({team}) => {
                 label: 'Remove',
                 click: () =>
                   $memberRemove.fetch(removeId).then(() => {
-                    reload()
                     toaster.notify('Member removed from team.')
                     if (removeId === state?.current?.id) auth.teamSet(undefined)
-                    removeIdSet(undefined)
+                    else {
+                      reload()
+                      removeIdSet(undefined)
+                    }
                   }),
               },
             ],
