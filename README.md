@@ -23,16 +23,17 @@ Todos:
   - [x] List mvp standings filterable by gender.
   - [x] List team spirit scores.
   - [x] Change "fixtureId" to "fixtureId" using migration.
-- [ ] Make joining a team optional.
+- [x] Make joining a team optional.
 - [ ] Allow one user to have multiple emails.
 - [ ] Add a user merge function.
 - [ ] Allow a user to leave a team.
+- [ ] Add merch store.
 - [ ] Send game fixture emails with png.
 - [ ] Admin send custom emails.
 - [ ] Captain member management popup.
 - [ ] Add data export feature.
-- [ ] Merch store.
-- [ ] Request for players tab.
+- [ ] Allow user to verify email inside settings modal.
+- [ ] Request players tab.
 - [ ] Ability to contact admins.
 - [ ] Automated fixtures.
 - [ ] Events: late 2021 fun rounds.

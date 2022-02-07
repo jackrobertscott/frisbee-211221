@@ -10,6 +10,7 @@ import {mail} from '../utils/mail'
 import {$Member} from '../tables/$Member'
 import {$User} from '../tables/$User'
 import {purify} from '../utils/purify'
+import {userEmail} from './userEmail'
 /**
  *
  */
@@ -68,11 +69,15 @@ export default new Map<string, RequestHandler>([
         const userCaptains = await $User.getMany({
           id: {$in: memberCaptains.map((i) => i.userId)},
         })
-        await mail.send({
-          to: userCaptains.map((i) => i.email),
-          subject: post.title,
-          html: post.content,
-        })
+        const toEmailTasks = userCaptains.map((i) => userEmail.primary(i))
+        const toEmailPayloads = await Promise.all(toEmailTasks)
+        const toEmails = toEmailPayloads.map((i) => i.value).filter((i) => i)
+        if (toEmails.length)
+          await mail.send({
+            to: toEmails,
+            subject: post.title,
+            html: post.content,
+          })
       }
       return post
     },

@@ -108,13 +108,15 @@ export const SecuritySignUp: FC<{
         disabled: $signUp.loading,
         label: $signUp.loading ? 'Loading' : 'Submit',
         click: () =>
-          $signUp
-            .fetch({...form.data, gender: form.data.gender!})
-            .then((data) => {
-              savedEmailSet(data.user.email)
-              go.to(`/verify?email=${encodeURIComponent(form.data.email)}`)
-              toaster.notify('Please check your email inbox.', 8000)
-            }),
+          $signUp.fetch({...form.data, gender: form.data.gender!}).then(() => {
+            savedEmailSet(form.data.email)
+            const url =
+              '/verify?email=' +
+              encodeURIComponent(form.data.email) +
+              '&status=password'
+            go.to(url)
+            toaster.notify('Please check your email inbox.', 8000)
+          }),
       }),
       $(Link, {
         label: 'Login',

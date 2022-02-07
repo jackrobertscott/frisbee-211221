@@ -49,15 +49,16 @@ export const DashboardLadder: FC = () => {
           $(Table, {
             head: {
               name: {label: 'Name', grow: 5},
-              games: {label: 'Games', grow: 1.5},
-              points: {label: 'Points', grow: 1.5},
-              wins: {label: 'Wins', grow: 1.5},
-              loses: {label: 'Loses', grow: 1.5},
-              draws: {label: 'Draws', grow: 1.5},
-              for: {label: 'For', grow: 1.5},
-              against: {label: 'Agnst', grow: 1.5},
-              aveFor: {label: 'Av.For', grow: 1.5},
-              aveAgainst: {label: 'Av.Agt', grow: 1.5},
+              games: {label: 'Games', grow: 1.2},
+              points: {label: 'Points', grow: 1.2},
+              wins: {label: 'Wins', grow: 1.2},
+              loses: {label: 'Loses', grow: 1.2},
+              draws: {label: 'Draws', grow: 1.2},
+              for: {label: 'For', grow: 1.2},
+              against: {label: 'Agnst', grow: 1.2},
+              ratio: {label: 'Ratio', grow: 1.2},
+              aveFor: {label: 'Av.For', grow: 1.2},
+              aveAgainst: {label: 'Av.Agt', grow: 1.2},
             },
             body: teams
               .sort((a, b) => {
@@ -83,6 +84,7 @@ export const DashboardLadder: FC = () => {
                     draws: {value: results?.draws},
                     for: {value: results?.for},
                     against: {value: results?.against},
+                    ratio: {value: results?.ratio},
                     aveFor: {value: results?.aveFor},
                     aveAgainst: {value: results?.aveAgainst},
                   },
@@ -139,7 +141,7 @@ export const DashboardLadder: FC = () => {
                     })
                     .flat()
                     .filter((i) => typeof i === 'number') as number[]
-                  const max = Math.max(...all)
+                  const max = Math.max(0, ...all)
                   const data = new Array(max + 1).fill(0)
                   for (let i = 0; i < data.length; i++)
                     data[i] = all.filter((x) => x === i).length

@@ -17,6 +17,57 @@ export const $UserCurrentUpdate = createEndpoint({
 /**
  *
  */
+export const $UserCurrentEmailAdd = createEndpoint({
+  path: '/UserCurrentEmailAdd',
+  payload: io.object({
+    email: io.string(),
+  }),
+  result: ioUser,
+})
+/**
+ *
+ */
+export const $UserCurrentEmailVerify = createEndpoint({
+  path: '/UserCurrentEmailVerify',
+  payload: io.object({
+    email: io.string(),
+    code: io.string(),
+  }),
+  result: ioUser,
+})
+/**
+ *
+ */
+export const $UserCurrentEmailCodeResend = createEndpoint({
+  path: '/UserCurrentEmailCodeResend',
+  payload: io.object({
+    email: io.string(),
+  }),
+  result: ioUser,
+})
+/**
+ *
+ */
+export const $UserCurrentEmailPrimarySet = createEndpoint({
+  path: '/UserCurrentEmailPrimarySet',
+  payload: io.object({
+    email: io.string(),
+  }),
+  result: ioUser,
+})
+/**
+ *
+ */
+export const $UserCurrentEmailRemove = createEndpoint({
+  path: '/UserCurrentEmailRemove',
+  payload: io.object({
+    email: io.string(),
+  }),
+  result: ioUser,
+})
+/**
+ *
+ */
 export const $UserCurrentChangePassword = createEndpoint({
   path: '/UserCurrentChangePassword',
   payload: io.object({
@@ -85,6 +136,17 @@ export const $UserToggleAdmin = createEndpoint({
   path: '/UserToggleAdmin',
   payload: io.object({
     userId: io.string(),
+  }),
+  result: ioUser,
+})
+/**
+ *
+ */
+export const $UserMerge = createEndpoint({
+  path: '/UserMerge',
+  payload: io.object({
+    user1Id: io.string(),
+    user2Id: io.string(),
   }),
   result: ioUser,
 })

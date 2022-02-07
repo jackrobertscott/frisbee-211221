@@ -19,6 +19,7 @@ export const MenuBar: FC<{
       flexDirection: horizon ? 'row' : 'column',
       minWidth: horizon ? undefined : width,
       maxWidth: horizon ? undefined : width,
+      paddingBottom: horizon ? undefined : theme.fib[8],
       borderRight: horizon ? undefined : theme.border(),
       borderBottom: horizon ? theme.border() : undefined,
       border: bordered ? theme.border() : undefined,
@@ -94,6 +95,7 @@ export const MenuBarShadow: FC<{
           display: 'flex',
           zIndex: 100,
           '& > *': {
+            transform: 'translateX(0)',
             animation: `${slideright} 0.15s linear`,
           },
         })

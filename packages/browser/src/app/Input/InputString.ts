@@ -5,7 +5,7 @@ import {theme} from '../../theme'
  *
  */
 export const InputString: FC<{
-  value?: string
+  value?: string | null
   valueSet?: (value: string) => void
   placeholder?: string
   type?: string
@@ -31,8 +31,9 @@ export const InputString: FC<{
     disabled,
     autoFocus: autofocus,
     onBlur: () => !disabled && blur?.(),
-    onChange: (event) => !disabled && valueSet?.(event.target.value),
-    onKeyDown: (event) => !disabled && event.key === 'Enter' && enter?.(),
+    onChange: (event: any) => !disabled && valueSet?.(event.target.value),
+    onKeyDown: (event: KeyboardEvent) =>
+      !disabled && event.key === 'Enter' && enter?.(),
     className: css({
       flexGrow: 1,
       width: '100%',

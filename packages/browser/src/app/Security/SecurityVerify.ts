@@ -1,4 +1,4 @@
-import {createElement as $, FC, useEffect} from 'react'
+import {createElement as $, FC, Fragment, useEffect} from 'react'
 import {$SecurityForgot, $SecurityVerify} from '../../endpoints/Security'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
@@ -18,7 +18,10 @@ import {useForm} from '../useForm'
 /**
  *
  */
-export const SecurityVerify: FC<{email?: string}> = ({email: _email}) => {
+export const SecurityVerify: FC<{
+  email?: string
+  status?: string
+}> = ({email: _email, status}) => {
   const auth = useAuth()
   const toaster = useToaster()
   const $send = useEndpoint($SecurityForgot)
@@ -40,7 +43,6 @@ export const SecurityVerify: FC<{email?: string}> = ({email: _email}) => {
           $(FormLabel, {label: 'Email'}),
           $(InputString, {
             value: form.data.email,
-            valueSet: form.link('email'),
             disabled: true,
           }),
         ]),
@@ -55,23 +57,27 @@ export const SecurityVerify: FC<{email?: string}> = ({email: _email}) => {
           }),
         ]),
       }),
-      $(FormColumn, {
-        children: addkeys([
-          $(FormRow, {
+      $(Fragment, {
+        children:
+          status === 'password' &&
+          $(FormColumn, {
             children: addkeys([
-              $(FormLabel, {label: 'Password'}),
-              $(InputString, {
-                value: form.data.newPassword,
-                valueSet: form.link('newPassword'),
-                type: 'password',
-                enter: submit,
+              $(FormRow, {
+                children: addkeys([
+                  $(FormLabel, {label: 'Password'}),
+                  $(InputString, {
+                    value: form.data.newPassword,
+                    valueSet: form.link('newPassword'),
+                    type: 'password',
+                    enter: submit,
+                  }),
+                ]),
+              }),
+              $(FormHelp, {
+                children: 'Add a password to your account.',
               }),
             ]),
           }),
-          $(FormHelp, {
-            children: 'Add a password to your account.',
-          }),
-        ]),
       }),
       $(FormBadge, {
         disabled: $verify.loading,

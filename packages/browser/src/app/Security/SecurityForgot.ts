@@ -35,7 +35,11 @@ export const SecurityForgot: FC<{email?: string}> = ({email: _email}) => {
         label: $send.loading ? 'Loading' : 'Submit',
         click: () =>
           $send.fetch(form.data.email).then(() => {
-            go.to(`/verify?email=${encodeURIComponent(form.data.email)}`)
+            const url =
+              '/verify?email=' +
+              encodeURIComponent(form.data.email) +
+              '&status=password'
+            go.to(url)
             toaster.notify('Please check your email inbox.')
           }),
       }),

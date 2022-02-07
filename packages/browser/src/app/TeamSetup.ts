@@ -24,7 +24,8 @@ import {useEndpoint} from './useEndpoint'
  */
 export const TeamSetup: FC<{
   close: () => void
-}> = ({close}) => {
+  teamSet: (team: TTeam) => void
+}> = ({close, teamSet}) => {
   const auth = useAuth()
   const toaster = useToaster()
   const $teamList = useEndpoint($TeamListOfSeason)
@@ -148,7 +149,12 @@ export const TeamSetup: FC<{
           $(TeamCreate, {
             seasonId: auth.current?.season.id,
             close: () => creatingSet(false),
-            done: (team) => auth.teamSet(team),
+            done: (i) => {
+              teamSet(i)
+              toaster.notify('Team Created.')
+              creatingSet(false)
+              close()
+            },
           }),
       }),
       $(Fragment, {

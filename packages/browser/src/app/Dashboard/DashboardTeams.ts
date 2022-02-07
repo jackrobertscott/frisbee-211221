@@ -171,21 +171,25 @@ export const _DashboardTeamsCreate: FC<{
       $(Form, {
         background: theme.bgMinor,
         children: addkeys([
-          $(FormRow, {
-            children: addkeys([
-              $(FormLabel, {label: 'Name'}),
-              $(InputString, {
-                value: form.data.name,
-                valueSet: form.link('name'),
-              }),
-            ]),
-          }),
           $(FormColumn, {
             children: addkeys([
-              $(FormLabel, {label: 'Color'}),
-              $(InputSimpleColor, {
-                value: form.data.color,
-                valueSet: form.link('color'),
+              $(FormRow, {
+                children: addkeys([
+                  $(FormLabel, {label: 'Name'}),
+                  $(InputString, {
+                    value: form.data.name,
+                    valueSet: form.link('name'),
+                  }),
+                ]),
+              }),
+              $(FormColumn, {
+                children: addkeys([
+                  $(FormLabel, {label: 'Color'}),
+                  $(InputSimpleColor, {
+                    value: form.data.color,
+                    valueSet: form.link('color'),
+                  }),
+                ]),
               }),
             ]),
           }),

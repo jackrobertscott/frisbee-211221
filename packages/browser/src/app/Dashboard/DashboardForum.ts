@@ -47,22 +47,14 @@ export const DashboardForum: FC = () => {
             children:
               posts === undefined
                 ? $(Spinner)
-                : posts.length
-                ? posts.map((post) => {
+                : !!posts.length &&
+                  posts.map((post) => {
                     return $(_NewsPost, {
                       key: post.id,
                       post,
                       user: users?.find((i) => i.id === post.userId),
                       click: () => viewIdSet(post.id),
                     })
-                  })
-                : $('div', {
-                    children: 'No Fixtures Yet',
-                    className: css({
-                      color: theme.fontMinor.string(),
-                      padding: theme.padify(theme.fib[4]),
-                      textAlign: 'center',
-                    }),
                   }),
           }),
         ]),

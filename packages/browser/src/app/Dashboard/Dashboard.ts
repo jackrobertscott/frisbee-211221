@@ -251,6 +251,7 @@ export const Dashboard: FC = () => {
           teamSetup &&
           $(TeamSetup, {
             close: () => teamSetupSet(false),
+            teamSet: auth.teamSet,
           }),
       }),
     ]),

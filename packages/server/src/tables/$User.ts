@@ -12,8 +12,5 @@ export const $User = db.table({
     id: () => random.generateId(),
     createdOn: () => new Date().toISOString(),
     updatedOn: () => new Date().toISOString(),
-    emailVerified: () => false,
-    emailCode: () => random.generateId(),
-    emailCodeCreatedOn: () => new Date().toISOString(),
   },
 })
