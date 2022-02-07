@@ -27,6 +27,7 @@ import {userEmails} from '../../utils/userEmails'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
+import {FormColumn} from '../Form/FormColumn'
 import {FormLabel} from '../Form/FormLabel'
 import {FormRow} from '../Form/FormRow'
 import {InputBoolean} from '../Input/InputBoolean'
@@ -419,12 +420,22 @@ export const _DashboardUsersView: FC<{
                   }),
                 ]),
               }),
-              $(FormRow, {
+              $(FormColumn, {
                 children: addkeys([
-                  $(FormLabel, {label: 'Email'}),
-                  $(InputString, {
-                    value: userEmails.primary(user) ?? '[unknown]',
-                    disabled: true,
+                  $(FormLabel, {label: 'Emails'}),
+                  $(Fragment, {
+                    children: !user.emails?.length
+                      ? $(InputString, {
+                          disabled: true,
+                          value: userEmails.primary(user) ?? '[unknown]',
+                        })
+                      : user.emails.map((i) => {
+                          return $(InputString, {
+                            key: i.value,
+                            disabled: true,
+                            value: i.value,
+                          })
+                        }),
                   }),
                 ]),
               }),
