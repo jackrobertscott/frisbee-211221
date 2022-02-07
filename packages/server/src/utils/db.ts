@@ -122,6 +122,19 @@ export const db = {
       /**
        *
        */
+      async updateBulk(tasks: Array<{query: Filter<V>; value: Partial<V>}>) {
+        const collection = await mongo.collection(options.key)
+        const operations = tasks.map((i) => ({
+          updateOne: {
+            filter: i.query as Filter<Document>,
+            update: {$set: i.value},
+          },
+        }))
+        if (operations.length) await collection.bulkWrite(operations)
+      },
+      /**
+       *
+       */
       async deleteOne(query: Filter<V>): Promise<number> {
         const collection = await mongo.collection(options.key)
         const result = await collection.deleteOne(query as Filter<Document>)

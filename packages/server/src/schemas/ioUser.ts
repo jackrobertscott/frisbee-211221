@@ -20,6 +20,7 @@ export const ioUser = io.object({
   id: io.string(),
   createdOn: io.date(),
   updatedOn: io.date(),
+  userMergedIds: io.optional(io.array(io.string())),
   admin: io.optional(io.boolean()),
   firstName: io.string(),
   lastName: io.string(),

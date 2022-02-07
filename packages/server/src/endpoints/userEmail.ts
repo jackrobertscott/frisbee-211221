@@ -23,19 +23,19 @@ export const userEmail = {
   /**
    *
    */
-  create(email: string, code?: string) {
+  create(email: string, primary: boolean = false, code?: string) {
     return {
       value: email,
       verified: false,
-      code: code ?? random.randomString(8),
+      code: code ?? random.randomString(8).toUpperCase(),
       createdOn: new Date().toISOString(),
-      primary: false,
+      primary,
     }
   },
   /**
    *
    */
-  async primary(user: TUser) {
+  primary(user: TUser) {
     if (!user.emails?.length) throw new Error('User is missing emails array.')
     return user.emails.find((i) => i.primary) ?? user.emails[0]
   },
@@ -105,7 +105,7 @@ export const userEmail = {
    *
    */
   async codeSend(email: string, firstName: string, subject: string) {
-    const code = random.randomString(8)
+    const code = random.randomString(8).toUpperCase()
     const codeSliced = `${code.slice(0, 4)}-${code.slice(4, 8)}`
     await mail.send({
       to: [email],
@@ -161,9 +161,16 @@ export const userEmail = {
   /**
    *
    */
+  isOld(user: TUser) {
+    return !user.emails?.length || !!user.email
+  },
+  /**
+   *
+   */
   async migrate(user: TUser) {
     const raw: any = await $User.getOne({id: user.id})
-    if (raw.emails?.length) throw new Error('User has already migrated.')
+    if (!userEmail.isOld(raw)) throw new Error('User has already migrated.')
+    if (raw.emails?.length) return $User.updateOne({id: user.id}, {email: null})
     if (!raw.email) throw new Error('User is missing legacy email.')
     const fallback = userEmail.create(raw.email)
     const data: TUserEmail = {

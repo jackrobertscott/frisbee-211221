@@ -117,10 +117,9 @@ export default new Map<string, RequestHandler>([
         const code = await userEmail.codeSend(email, firstName, 'Verify Email')
         const user = await $User.createOne({
           ...body,
-          email,
           firstName,
           termsAccepted,
-          emails: [userEmail.create(email, code)],
+          emails: [userEmail.create(email, true, code)],
         })
         const session = await gatekeeper.createUserSession(user, userAgent)
         return _createAuthPayload(user, session)
@@ -179,8 +178,7 @@ export default new Map<string, RequestHandler>([
     path: '/SecurityCurrent',
     handler: () => async (req) => {
       let [user, session] = await requireUser(req)
-      if (user.email && !user.emails?.length)
-        user = await userEmail.migrate(user)
+      if (userEmail.isOld(user)) user = await userEmail.migrate(user)
       return _createAuthPayload(user, session)
     },
   }),
@@ -221,8 +219,7 @@ export const _createAuthPayload = async (
   if (team) {
     season = await $Season.getOne({id: team.seasonId})
   } else {
-    const openSeasons = await $Season.getMany({signUpOpen: true})
-    if (openSeasons.length === 1) season = openSeasons[0]
+    season = await $Season.maybeOne({})
   }
   return {
     user,

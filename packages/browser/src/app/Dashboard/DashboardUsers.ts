@@ -23,6 +23,7 @@ import {addkeys} from '../../utils/addkeys'
 import {GENDER_OPTIONS} from '../../utils/constants'
 import {go} from '../../utils/go'
 import {objectify} from '../../utils/objectify'
+import {userEmails} from '../../utils/userEmails'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
@@ -153,8 +154,10 @@ export const DashboardUsers: FC = () => {
           current &&
           $(_DashboardUsersView, {
             user: current,
-            userSet: (i) =>
-              usersSet((x) => x?.map((z) => (z.id === i.id ? i : z))),
+            userSet: (i) => {
+              usersSet((x) => x?.map((z) => (z.id === i.id ? i : z)))
+              userList()
+            },
             close: () => currentIdSet(undefined),
           }),
       }),
@@ -420,7 +423,7 @@ export const _DashboardUsersView: FC<{
                 children: addkeys([
                   $(FormLabel, {label: 'Email'}),
                   $(InputString, {
-                    value: form.data.emails?.[0].value ?? form.data.email,
+                    value: userEmails.primary(user) ?? '[unknown]',
                     disabled: true,
                   }),
                 ]),
@@ -500,6 +503,10 @@ export const _DashboardUsersView: FC<{
           merge &&
           $(UserMerge, {
             user,
+            userSet: (i) => {
+              userSet(i)
+              mergeSet(false)
+            },
             close: () => mergeSet(false),
           }),
       }),

@@ -12,6 +12,11 @@ import {$Season} from '../tables/$Season'
 import {$Member} from '../tables/$Member'
 import mongo from '../utils/mongo'
 import {userEmail} from './userEmail'
+import {$Comment} from '../tables/$Comment'
+import {$Post} from '../tables/$Post'
+import {$Report} from '../tables/$Report'
+import {$Session} from '../tables/$Session'
+import {TUser} from '../schemas/ioUser'
 /**
  *
  */
@@ -198,15 +203,17 @@ export default new Map<string, RequestHandler>([
       gender: io.string(),
       termsAccepted: io.boolean(),
     }),
-    handler: (body) => async (req) => {
-      await requireUserAdmin(req)
-      if (await userEmail.maybeUser(body.email))
-        throw new Error(`User already exists with email "${body.email}".`)
-      return $User.createOne({
-        ...body,
-        emails: [userEmail.create(body.email)],
-      })
-    },
+    handler:
+      ({email, ...body}) =>
+      async (req) => {
+        await requireUserAdmin(req)
+        if (await userEmail.maybeUser(email))
+          throw new Error(`User already exists with email "${email}".`)
+        return $User.createOne({
+          ...body,
+          emails: [userEmail.create(email, true)],
+        })
+      },
   }),
   /**
    *
@@ -251,19 +258,95 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     path: '/UserMerge',
     payload: io.object({
-      userIdToMerge: io.string(),
-      userIdToDelete: io.string(),
+      user1Id: io.string(),
+      user2Id: io.string(),
     }),
-    handler: (body) => async (req) => {
-      await requireUserAdmin(req)
-      const [userMerge, userDelete] = await Promise.all([
-        $User.getOne({id: body.userIdToMerge}),
-        $User.getOne({id: body.userIdToDelete}),
-      ])
-      /**
-       * Todo...
-       */
-    },
+    handler:
+      ({user1Id, user2Id}) =>
+      async (req) => {
+        await requireUserAdmin(req)
+        let [user1, user2, u1Members, u2Members] = await Promise.all([
+          $User.getOne({id: user1Id}),
+          $User.getOne({id: user2Id}),
+          $Member.getMany({userId: user1Id}),
+          $Member.getMany({userId: user2Id}),
+        ])
+        await mongo.transaction(async () => {
+          if (userEmail.isOld(user1)) user1 = await userEmail.migrate(user1)
+          if (userEmail.isOld(user2)) user2 = await userEmail.migrate(user2)
+          // members
+          const taskMembers = u2Members.map(async (u2m) => {
+            const u1mOverlap = u1Members.find((u1m) => {
+              return u1m.seasonId === u2m.seasonId && u1m.teamId === u2m.teamId
+            })
+            if (u1mOverlap) {
+              if (u1mOverlap.pending && !u2m.pending) {
+                return Promise.all([
+                  $Member.deleteOne({id: u1mOverlap.id}),
+                  $Member.updateOne({id: u2m.id}, {userId: user1.id}),
+                ])
+              } else return $Member.deleteOne({id: u2m.id})
+            } else return $Member.updateOne({id: u2m.id}, {userId: user1.id})
+          })
+          await Promise.all(taskMembers)
+          // comments
+          const u2cs = await $Comment.getMany({userId: user2.id})
+          const u2csBulk = u2cs.map((u2c) => ({
+            query: {id: u2c.id},
+            value: {userId: user1.id},
+          }))
+          await $Comment.updateBulk(u2csBulk)
+          // posts
+          const u2ps = await $Post.getMany({userId: user2.id})
+          const u2psBulk = u2ps.map((u2p) => ({
+            query: {id: u2p.id},
+            value: {userId: user1.id},
+          }))
+          await $Post.updateBulk(u2psBulk)
+          // reports
+          const u2rs = await $Report.getMany({
+            $or: [
+              {userId: user2.id},
+              {mvpMale: user2.id},
+              {mvpFemale: user2.id},
+            ],
+          })
+          const u2rsBulk = u2rs
+            .map((u2r) => ({
+              query: {id: u2r.id},
+              value: {
+                userId: u2r.userId === user2.id ? user1.id : u2r.userId,
+                mvpMale: u2r.mvpMale === user2.id ? user1.id : u2r.mvpMale,
+                mvpFemale:
+                  u2r.mvpFemale === user2.id ? user1.id : u2r.mvpFemale,
+              },
+            }))
+            .map(({query, value}) => ({
+              query,
+              value:
+                value.mvpMale === value.mvpFemale
+                  ? {...value, mvpFemale: ''}
+                  : value,
+            }))
+          await $Report.updateBulk(u2rsBulk)
+          // sessions
+          const u2ss = await $Session.getMany({userId: user2.id})
+          const u2ssBulk = u2ss.map((u2s) => ({
+            query: {id: u2s.id},
+            value: {userId: user1.id},
+          }))
+          await $Session.updateBulk(u2ssBulk)
+          // users
+          const u1Emails = [...(user1.emails ?? []), ...(user2.emails ?? [])]
+          const u2MergedIds = [...(user1.userMergedIds ?? []), user2.id]
+          await $User.deleteOne({id: user2.id})
+          user1 = await $User.updateOne(
+            {id: user1.id},
+            {emails: u1Emails, userMergedIds: u2MergedIds}
+          )
+        })
+        return user1
+      },
   }),
   /**
    *
@@ -331,43 +414,40 @@ const _createUsersFromObjects = async (
     .map((i) => ({
       _team: i.team_name,
       _captain: i.type === 'team',
+      _email: i.email_address,
       firstName: i.first_name,
       lastName: i.last_name,
-      email: i.email_address,
       gender: i.gender as any,
       termsAccepted: false,
-      emails: [userEmail.create(i.email_address)],
+      emails: [userEmail.create(i.email_address, true)],
     }))
     .filter((i) => {
-      if (userCSVEmailList.includes(i.email)) return false
-      userCSVEmailList.push(i.email)
+      if (userCSVEmailList.includes(i._email)) return false
+      userCSVEmailList.push(i._email)
       return true
     })
-  const userDBList = await $User.getMany({
-    $or: [
-      {email: {$in: userCSVEmailList.map(regex.normalize)}},
-      {'emails.value': {$in: userCSVEmailList.map(regex.normalize)}},
-    ],
-  })
-  const userDBEmailList = userDBList
-    .flatMap((i) => [
-      i.email?.toLowerCase().trim(),
-      ...(i.emails ?? []).map((x) => x.value.toLowerCase().trim()),
-    ])
-    .filter((i) => i)
+  const loadDBUsers = () => {
+    const csvEmails = userCSVEmailList.map(regex.normalize)
+    return $User.getMany({
+      $or: [{email: {$in: csvEmails}}, {'emails.value': {$in: csvEmails}}],
+    })
+  }
+  let userDBList = await loadDBUsers()
+  const allUserEmails = (user: TUser) =>
+    [user.email, ...(user.emails ?? []).map((i) => i.value)]
+      .filter((x) => x?.trim())
+      .map((i) => i?.toLowerCase().trim()) as string[]
+  const userDBEmailList = userDBList.flatMap(allUserEmails)
   const userCSVNewList = userCSVList.filter((i) => {
-    return !userDBEmailList.includes(i.email.toLowerCase().trim())
+    return !userDBEmailList.includes(i._email.toLowerCase().trim())
   })
   if (userCSVNewList.length) await $User.createMany(userCSVNewList)
+  userDBList = await loadDBUsers()
   const teamDBList = await $Team.getMany({seasonId})
   const memberCSVList = userDBList
     .map((i) => {
-      const userDBEmails = [
-        i.email?.toLowerCase().trim(),
-        ...(i.emails ?? []).map((x) => x.value.toLowerCase().trim()),
-      ].filter((i) => i)
       const userCSV = userCSVList.find((x) => {
-        return userDBEmails.includes(x.email.toLowerCase().trim())
+        return allUserEmails(i).includes(x._email.toLowerCase().trim())
       })
       if (!userCSV) return undefined
       const userCSVTeamName = userCSV?._team.toLowerCase().trim()

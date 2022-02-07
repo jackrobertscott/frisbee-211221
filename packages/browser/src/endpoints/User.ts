@@ -142,6 +142,17 @@ export const $UserToggleAdmin = createEndpoint({
 /**
  *
  */
+export const $UserMerge = createEndpoint({
+  path: '/UserMerge',
+  payload: io.object({
+    user1Id: io.string(),
+    user2Id: io.string(),
+  }),
+  result: ioUser,
+})
+/**
+ *
+ */
 export const $UserImport = createEndpoint({
   path: '/UserImport',
   multipart: true,

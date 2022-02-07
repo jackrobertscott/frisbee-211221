@@ -65,7 +65,7 @@ export default new Map<string, RequestHandler>([
       gender: io.optional(io.string()),
     }),
     handler:
-      ({teamId, ...body}) =>
+      ({teamId, email, ...body}) =>
       async (req) => {
         const [userCurrent] = await requireUser(req)
         if (!userCurrent.admin) {
@@ -74,13 +74,13 @@ export default new Map<string, RequestHandler>([
             throw new Error('Failed: only the team captain can add members.')
         }
         const team = await $Team.getOne({id: teamId})
-        let user = await userEmail.maybeUser(body.email)
+        let user = await userEmail.maybeUser(email)
         if (!user) {
           let raw: any = body
           user = await $User.createOne({
             ...raw,
             termsAccepted: false,
-            emails: [userEmail.create(body.email)],
+            emails: [userEmail.create(email, true)],
           })
         }
         const member = await $Member.maybeOne({
