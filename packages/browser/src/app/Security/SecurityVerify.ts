@@ -34,7 +34,7 @@ export const SecurityVerify: FC<{
   })
   const submit = () => $verify.fetch(form.data).then(auth.login)
   useEffect(() => {
-    if (!_email) go.to('/status')
+    if (!_email) go.to('/')
   }, [_email])
   return $(Form, {
     children: addkeys([
@@ -95,7 +95,7 @@ export const SecurityVerify: FC<{
       $(Link, {
         font: theme.fontMinor,
         label: 'Try New Email',
-        href: '/status',
+        href: '/',
       }),
     ]),
   })

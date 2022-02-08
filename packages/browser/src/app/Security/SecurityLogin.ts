@@ -95,7 +95,7 @@ export const SecurityLogin: FC<{
       $(Link, {
         font: theme.fontMinor,
         label: 'Try New Email',
-        href: '/status',
+        href: '/',
       }),
     ]),
   })
