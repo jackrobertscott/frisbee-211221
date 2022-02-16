@@ -32,6 +32,7 @@ import {MenuBar, MenuBarOption, MenuBarShadow, MenuBarSpacer} from '../MenuBar'
 import {Router} from '../Router/Router'
 import {DashboardReports} from './DashboardReports'
 import {TeamSetup} from '../TeamSetup'
+import {DashboardPort} from './DashboardPort'
 /**
  *
  */
@@ -140,6 +141,11 @@ export const Dashboard: FC = () => {
                   path: '/reports',
                   label: 'Reports',
                   render: () => $(DashboardReports),
+                },
+                auth.isAdmin() && {
+                  path: '/port',
+                  label: 'Port',
+                  render: () => $(DashboardPort),
                 },
               ],
               render: (children, context) =>

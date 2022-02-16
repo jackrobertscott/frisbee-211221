@@ -150,10 +150,3 @@ export const $UserMerge = createEndpoint({
   }),
   result: ioUser,
 })
-/**
- *
- */
-export const $UserImport = createEndpoint({
-  path: '/UserImport',
-  multipart: true,
-})

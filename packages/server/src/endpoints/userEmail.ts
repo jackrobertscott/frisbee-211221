@@ -136,7 +136,6 @@ export const userEmail = {
       ...data,
       code,
       createdOn: new Date().toISOString(),
-      verified: false,
     })
     return $User.updateOne({id: user.id}, {emails})
   },

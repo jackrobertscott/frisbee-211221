@@ -8,15 +8,17 @@ import Season from './Season'
 import Security from './Security'
 import Team from './Team'
 import User from './User'
+import Port from './Port'
 /**
  *
  */
 export default new Map<string, RequestHandler>([
   ...Comment.entries(),
+  ...Fixture.entries(),
   ...Member.entries(),
+  ...Port.entries(),
   ...Post.entries(),
   ...Report.entries(),
-  ...Fixture.entries(),
   ...Season.entries(),
   ...Security.entries(),
   ...Team.entries(),
