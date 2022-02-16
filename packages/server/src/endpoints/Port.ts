@@ -266,9 +266,11 @@ const _csvify = (objects: any[]) => {
     let row = ''
     for (const key of headings) {
       let value = JSON.stringify(obj[key])
-      value = value !== undefined ? value.replace(/\"/g, '""') : ''
       if (typeof obj[key] === 'string') row += value + ','
-      else row += `"${value}"` + ','
+      else {
+        value = value !== undefined ? value.replace(/\"/g, '""') : ''
+        row += `"${value}"` + ','
+      }
     }
     rows.push(row)
   }
