@@ -12,11 +12,8 @@ import mongo from '../utils/mongo'
 import {userEmail} from './userEmail'
 import {TUser} from '../schemas/ioUser'
 import {mail} from '../utils/mail'
-import {$Comment} from '../tables/$Comment'
 import {$Fixture} from '../tables/$Fixture'
-import {$Post} from '../tables/$Post'
 import {$Report} from '../tables/$Report'
-import {$Session} from '../tables/$Session'
 /**
  *
  */
@@ -53,35 +50,26 @@ export default new Map<string, RequestHandler>([
     handler: () => async (req) => {
       const [user] = await requireUserAdmin(req)
       const all = await Promise.all([
-        $Comment.getMany({}),
         $Fixture.getMany({}),
         $Member.getMany({}),
-        $Post.getMany({}),
         $Report.getMany({}),
         $Season.getMany({}),
-        $Session.getMany({}),
         $Team.getMany({}),
         $User.getMany({}),
       ])
       const [
-        commentsCsv,
         fixturesCsv,
         membersCsv,
-        postsCsv,
         reportsCsv,
         seasonsCsv,
-        sessionsCsv,
         teamsCsv,
         usersCsv,
       ] = all.map((i) => _csvify(i))
       const zip = new AdmZip()
-      zip.addFile('exports/comments.csv', Buffer.from(commentsCsv, 'utf8'))
       zip.addFile('exports/fixtures.csv', Buffer.from(fixturesCsv, 'utf8'))
       zip.addFile('exports/members.csv', Buffer.from(membersCsv, 'utf8'))
-      zip.addFile('exports/posts.csv', Buffer.from(postsCsv, 'utf8'))
       zip.addFile('exports/reports.csv', Buffer.from(reportsCsv, 'utf8'))
       zip.addFile('exports/seasons.csv', Buffer.from(seasonsCsv, 'utf8'))
-      zip.addFile('exports/sessions.csv', Buffer.from(sessionsCsv, 'utf8'))
       zip.addFile('exports/teams.csv', Buffer.from(teamsCsv, 'utf8'))
       zip.addFile('exports/users.csv', Buffer.from(usersCsv, 'utf8'))
       const data = await blob.uploadBuffer({
