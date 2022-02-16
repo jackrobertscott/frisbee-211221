@@ -95,16 +95,17 @@ export default new Map<string, RequestHandler>([
       await mail.send({
         to: [email],
         subject: `Your Export Is Ready`,
-        html:
-          `Hello ${user.firstName},</br></br>` +
-          `Here is a link to your export:</br></br>` +
-          `<a href="${url}">${url}</a></br></br>` +
-          `The link above will <strong>expire</strong> soon.</br></br>` +
-          `Have a nice day.`
-            .split('\n')
-            .map((i) => i.trim())
-            .join('\n')
-            .trim(),
+        html: `
+          Hey ${user.firstName},<br/><br/>
+          Here is a link to your export:</br></br>
+          <a href="${url}">${url}</a></br></br>
+          The link above will <strong>expire</strong> soon.</br></br>
+          Have a nice day.
+        `
+          .split('\n')
+          .map((i) => i.trim())
+          .join('\n')
+          .trim(),
       })
       return {email}
     },
