@@ -72,7 +72,6 @@ export const Popup: FC<{
             y: data.bottom - window.innerHeight + theme.fib[5],
           }))
         if (data.right > window.innerWidth) {
-          console.log(data.right, window.innerWidth)
           adjustSet((i) => ({
             ...i,
             x: data.right - window.innerWidth + theme.fib[5],

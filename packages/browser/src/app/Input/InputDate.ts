@@ -75,7 +75,6 @@ const _InputDatePicker: FC<{
   viewingSet: (value: string) => void
 }> = ({dateCurrent, dateViewing, valueSet, viewingSet}) => {
   const startOfMonth = dateViewing.startOf('month')
-  console.log(dateViewing.year().toString())
   const today = dayjs()
   return $(Form, {
     width: theme.fib[12],
