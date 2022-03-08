@@ -47,28 +47,6 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/TeamGetOfSeason',
-    payload: io.object({
-      seasonId: io.string(),
-    }),
-    handler: (body) => async (req) => {
-      const [user] = await requireUser(req)
-      await $Season.getOne({id: body.seasonId})
-      const members = await $Member.getMany({
-        userId: user.id,
-        pending: false,
-      })
-      const memberTeamIds = members.map((i) => i.teamId)
-      return $Team.maybeOne({
-        seasonId: body.seasonId,
-        id: {$in: memberTeamIds},
-      })
-    },
-  }),
-  /**
-   *
-   */
-  createEndpoint({
     path: '/TeamCurrentCreate',
     payload: io.object({
       seasonId: io.string(),
@@ -90,7 +68,7 @@ export default new Map<string, RequestHandler>([
         captain: true,
         pending: false,
       })
-      await $User.updateOne({id: user.id}, {lastMemberId: member.id})
+      await $User.updateOne({id: user.id}, {lastSeasonId: season.id})
       return {
         team,
         member,
@@ -119,18 +97,6 @@ export default new Map<string, RequestHandler>([
           {...body, updatedOn: new Date().toISOString()}
         )
       },
-  }),
-  /**
-   *
-   */
-  createEndpoint({
-    path: '/TeamCurrentSwitch',
-    payload: io.string(),
-    handler: (teamId) => async (req) => {
-      const [user] = await requireUser(req)
-      const [_, member] = await requireTeam(user, teamId)
-      await $User.updateOne({id: user.id}, {lastMemberId: member.id})
-    },
   }),
   /**
    *

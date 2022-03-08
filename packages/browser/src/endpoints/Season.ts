@@ -41,3 +41,13 @@ export const $SeasonUpdate = createEndpoint({
   }),
   result: ioSeason,
 })
+/**
+ *
+ */
+export const $SeasonChange = createEndpoint({
+  path: '/SeasonChange',
+  payload: io.object({
+    seasonId: io.string(),
+  }),
+  result: ioSeason,
+})

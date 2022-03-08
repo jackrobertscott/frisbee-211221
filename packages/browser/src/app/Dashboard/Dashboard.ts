@@ -70,16 +70,18 @@ export const Dashboard: FC = () => {
             $(TopBar, {
               children: addkeys([
                 $(Fragment, {
-                  children:
-                    isSmall &&
-                    $(TopBarBadge, {
-                      icon: 'bars',
-                      click: () => openSet(true),
-                    }),
-                }),
-                $(TopBarBadge, {
-                  grow: true,
-                  label: auth.current?.season?.name ?? 'Dashboard',
+                  children: isSmall
+                    ? addkeys([
+                        $(TopBarBadge, {
+                          icon: 'bars',
+                          click: () => openSet(true),
+                        }),
+                        $(TopBarBadge, {grow: true}),
+                      ])
+                    : $(TopBarBadge, {
+                        grow: true,
+                        label: 'Marlow Street',
+                      }),
                 }),
                 $(Fragment, {
                   children:
@@ -273,6 +275,7 @@ const _DashboardSeasonBadge: FC = () => {
   const [creating, creatingSet] = useState(false)
   const $seasonList = useEndpoint($SeasonListOfUser)
   const seasonList = () => $seasonList.fetch().then(seasonsSet)
+  const seasonName = auth.current?.season?.name
   useEffect(() => {
     seasonList()
   }, [])
@@ -283,7 +286,8 @@ const _DashboardSeasonBadge: FC = () => {
         open,
         clickOutside: () => openSet(false),
         wrap: $(TopBarBadge, {
-          icon: 'sync-alt',
+          icon: seasonName ? undefined : 'sync-alt',
+          label: seasonName,
           tooltip: 'Seasons',
           click: () => openSet(true),
         }),

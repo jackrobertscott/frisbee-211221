@@ -2,7 +2,7 @@ import {createElement as $, FC, ReactNode, useEffect, useState} from 'react'
 import {$SecurityLogout, $SecurityCurrent} from '../../endpoints/Security'
 import {AuthContext, TAuth, TAuthPayload} from './AuthContext'
 import {useLocalState} from '../useLocalState'
-import {$TeamGetOfSeason} from '../../endpoints/Team'
+import {$SeasonChange} from '../../endpoints/Season'
 import {go} from '../../utils/go'
 /**
  *
@@ -56,9 +56,9 @@ export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
       seasonSet: (season) => {
         if (!current)
           throw new Error('Can not set season because user not logged in.')
-        $TeamGetOfSeason
+        $SeasonChange
           .fetch({seasonId: season.id}, current?.token)
-          .then((team) => currentSet({...current, season, team}))
+          .then(() => window.location.reload())
       },
       isAdmin: () => !!current?.user.admin,
     },

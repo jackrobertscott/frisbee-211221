@@ -31,7 +31,7 @@ export const ioUser = io.object({
   avatarUrl: io.optional(io.string().trim()),
   bio: io.optional(io.string().trim()),
   termsAccepted: io.boolean(),
-  lastMemberId: io.optional(io.string()),
+  lastSeasonId: io.optional(io.string()),
 })
 /**
  *

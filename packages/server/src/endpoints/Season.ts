@@ -7,6 +7,7 @@ import {regex} from '../utils/regex'
 import {requireUserAdmin} from './requireUserAdmin'
 import {$Member} from '../tables/$Member'
 import {$Team} from '../tables/$Team'
+import {$User} from '../tables/$User'
 /**
  *
  */
@@ -74,5 +75,20 @@ export default new Map<string, RequestHandler>([
           {...body, updatedOn: new Date().toISOString()}
         )
       },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/SeasonChange',
+    payload: io.object({
+      seasonId: io.string(),
+    }),
+    handler: (body) => async (req) => {
+      const [user] = await requireUser(req)
+      const season = await $Season.getOne({id: body.seasonId})
+      await $User.updateOne({id: user.id}, {lastSeasonId: season.id})
+      return season
+    },
   }),
 ])

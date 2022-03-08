@@ -1,4 +1,4 @@
-import {Document, Filter, WithId} from 'mongodb'
+import {Document, Filter, FindOptions, WithId} from 'mongodb'
 import {TioValue, TioAll} from 'torva'
 import {Simplify} from './types'
 import mongo from './mongo'
@@ -43,12 +43,16 @@ export const db = {
       /**
        *
        */
-      async maybeOne(query: Filter<V>): Promise<V | undefined> {
+      async maybeOne(
+        query: Filter<V>,
+        queryOptions?: TQueryOptions<V>
+      ): Promise<V | undefined> {
         const collection = await mongo.collection(options.key)
-        const result = (await collection.findOne(
-          query as Filter<Document>
-        )) as WithId<V>
-        return result ? this._clean(result) : undefined
+        const result = await collection.findOne(
+          query as Filter<Document>,
+          queryOptions as FindOptions
+        )
+        return result ? this._clean(result as WithId<V>) : undefined
       },
       /**
        *

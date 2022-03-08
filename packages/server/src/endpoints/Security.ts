@@ -15,6 +15,7 @@ import {TSession} from '../schemas/ioSession'
 import {TSeason} from '../schemas/ioSeason'
 import {$Season} from '../tables/$Season'
 import {userEmail} from './userEmail'
+import {TMember} from '../schemas/ioMember'
 /**
  *
  */
@@ -205,22 +206,23 @@ export const _createAuthPayload = async (
   session: TSession,
   team?: TTeam
 ) => {
-  if (!team) {
-    const members = await $Member.getMany({userId: user.id, pending: false})
-    let member = members.find((i) => i.id === user.lastMemberId)
-    member ??= members[0]
-    if (member) {
-      team = await $Team.maybeOne({id: member.teamId})
-      if (team && user.lastMemberId !== member.id)
-        await $User.updateOne({id: user.id}, {lastMemberId: member.id})
+  let season: TSeason | undefined
+  if (team) season = await $Season.getOne({id: team.seasonId})
+  else {
+    if (user.lastSeasonId)
+      season = await $Season.maybeOne({id: user.lastSeasonId})
+    season ??= await $Season.maybeOne({}, {sort: {createdOn: -1}})
+    if (season) {
+      let member = await $Member.maybeOne({
+        userId: user.id,
+        seasonId: season.id,
+        pending: false,
+      })
+      if (member) team = await $Team.getOne({id: member.teamId})
     }
   }
-  let season: TSeason | undefined
-  if (team) {
-    season = await $Season.getOne({id: team.seasonId})
-  } else {
-    season = await $Season.maybeOne({})
-  }
+  if (season && user.lastSeasonId !== season.id)
+    await $User.updateOne({id: user.id}, {lastSeasonId: season.id})
   return {
     user,
     session,
