@@ -32,7 +32,7 @@ export const DashboardPort: FC = () => {
   return $(Fragment, {
     children: addkeys([
       $(Form, {
-        background: theme.bgMinor,
+        background: theme.bgAdmin.lighten(5),
         children: addkeys([
           $(FormBadge, {
             label: 'Import TopScore CSV',
