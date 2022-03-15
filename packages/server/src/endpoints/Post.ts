@@ -4,8 +4,6 @@ import {$Post} from '../tables/$Post'
 import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
 import {regex} from '../utils/regex'
-import {requireUserAdmin} from './requireUserAdmin'
-import {$Season} from '../tables/$Season'
 import {mail} from '../utils/mail'
 import {$Member} from '../tables/$Member'
 import {$User} from '../tables/$User'
@@ -19,18 +17,17 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PostListOfSeason',
+    path: '/PostList',
     payload: io.object({
-      seasonId: io.string(),
       search: io.optional(io.string().emptyok()),
       limit: io.optional(io.number()),
     }),
     handler:
-      ({seasonId, search, limit}) =>
+      ({search, limit}) =>
       async (req) => {
         await requireUser(req)
         const posts = await $Post.getMany(
-          {seasonId, title: regex.from(search ?? '')},
+          {title: regex.from(search ?? '')},
           {limit, sort: {createdOn: -1}}
         )
         const users = await $User.getMany({
@@ -48,14 +45,13 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     path: '/PostCreate',
     payload: io.object({
-      seasonId: io.string(),
+      seasonId: io.optional(io.string()),
       title: io.string(),
       content: io.string(),
       sendEmail: io.optional(io.boolean()),
     }),
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)
-      await $Season.getOne({id: body.seasonId})
       body.content = purify.sanitize(body.content)
       const post = await $Post.createOne({
         ...body,

@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$PostListOfSeason} from '../../endpoints/Post'
+import {$PostList} from '../../endpoints/Post'
 import {TPost} from '../../schemas/ioPost'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
@@ -23,10 +23,10 @@ export const DashboardForum: FC = () => {
   const [creating, creatingSet] = useState(false)
   const [posts, postsSet] = useState<TPost[]>()
   const [users, usersSet] = useState<TUser[]>()
-  const $postList = useEndpoint($PostListOfSeason)
+  const $postList = useEndpoint($PostList)
   const postList = () =>
     auth.current?.season &&
-    $postList.fetch({seasonId: auth.current?.season.id}).then((i) => {
+    $postList.fetch({}).then((i) => {
       postsSet(i.posts)
       usersSet(i.users)
     })

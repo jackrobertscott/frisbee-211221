@@ -5,10 +5,9 @@ import {createEndpoint} from '../utils/endpoints'
 /**
  *
  */
-export const $PostListOfSeason = createEndpoint({
-  path: '/PostListOfSeason',
+export const $PostList = createEndpoint({
+  path: '/PostList',
   payload: io.object({
-    seasonId: io.string(),
     search: io.optional(io.string().emptyok()),
     limit: io.optional(io.number()),
   }),
@@ -23,7 +22,7 @@ export const $PostListOfSeason = createEndpoint({
 export const $PostCreate = createEndpoint({
   path: '/PostCreate',
   payload: io.object({
-    seasonId: io.string(),
+    seasonId: io.optional(io.string()),
     title: io.string(),
     content: io.string(),
     sendEmail: io.optional(io.boolean()),
