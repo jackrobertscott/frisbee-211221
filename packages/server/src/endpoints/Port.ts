@@ -120,6 +120,7 @@ const _createTeamsFromObjects = async (
       return true
     })
   const teamDBList = await $Team.getMany({
+    seasonId: seasonId,
     name: {$in: teamCSVNameList.map(regex.normalize)},
   })
   const teamDBNameList = teamDBList.map((i) => i.name.toLowerCase().trim())
