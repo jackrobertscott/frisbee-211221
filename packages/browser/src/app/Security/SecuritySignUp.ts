@@ -36,6 +36,11 @@ export const SecuritySignUp: FC<{
   })
   return $(Form, {
     children: addkeys([
+      $(Link, {
+        label: 'Already Signed Up? Go to Login',
+        font: theme.fontMinor,
+        href: '/login',
+      }),
       $(FormRow, {
         children: addkeys([
           $(FormLabel, {label: 'First Name'}),
