@@ -39,7 +39,7 @@ export const SecuritySignUp: FC<{
       $(Link, {
         label: 'Already Signed Up? Go to Login',
         font: theme.fontMinor,
-        href: '/login',
+        href: '/welcome',
       }),
       $(FormRow, {
         children: addkeys([
