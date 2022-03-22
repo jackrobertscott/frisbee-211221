@@ -15,7 +15,6 @@ import {TSession} from '../schemas/ioSession'
 import {TSeason} from '../schemas/ioSeason'
 import {$Season} from '../tables/$Season'
 import {userEmail} from './userEmail'
-import {TMember} from '../schemas/ioMember'
 /**
  *
  */
