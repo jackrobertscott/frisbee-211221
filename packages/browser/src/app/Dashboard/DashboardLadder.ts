@@ -7,7 +7,7 @@ import {TFixture} from '../../schemas/ioFixture'
 import {TTeam} from '../../schemas/ioTeam'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
-import {tallyChart} from '../../utils/tallyChart'
+import {tallyChart, TTallyChart} from '../../utils/tallyChart'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
@@ -41,56 +41,16 @@ export const DashboardLadder: FC = () => {
     $fixtureList.fetch({seasonId}).then(fixturesSet)
   }
   useEffect(() => reload(), [])
+  const numberDivisions = teams.reduce((team1, team2) => (team1?.division > team2?.division) ? team1 : team2, 0);
+  const divs = Array.from(Array(numberDivisions.division).keys(), x => x + 1);
   return $(Fragment, {
     children: addkeys([
       $(Form, {
         background: theme.bgMinor,
         children: addkeys([
-          $(Table, {
-            head: {
-              name: {label: 'Name', grow: 5},
-              games: {label: 'Games', grow: 1.2},
-              points: {label: 'Points', grow: 1.2},
-              wins: {label: 'Wins', grow: 1.2},
-              loses: {label: 'Loses', grow: 1.2},
-              draws: {label: 'Draws', grow: 1.2},
-              for: {label: 'For', grow: 1.2},
-              against: {label: 'Agnst', grow: 1.2},
-              ratio: {label: 'Ratio', grow: 1.2},
-              aveFor: {label: 'Av.For', grow: 1.2},
-              aveAgainst: {label: 'Av.Agt', grow: 1.2},
-            },
-            body: teams
-              .sort((a, b) => {
-                const pa = tally[a.id]?.points ?? 0
-                const pb = tally[b.id]?.points ?? 0
-                if (pa === pb) {
-                  const fa = tally[a.id]?.for ?? 0
-                  const fb = tally[b.id]?.for ?? 0
-                  return fa === fb ? 0 : fa < fb ? 1 : -1
-                }
-                return pa < pb ? 1 : -1
-              })
-              .map((i) => {
-                const results = tally[i.id]
-                return {
-                  key: i.id,
-                  data: {
-                    name: {value: i.name, color: i.color},
-                    games: {value: results?.games},
-                    points: {value: results?.points},
-                    wins: {value: results?.wins},
-                    loses: {value: results?.loses},
-                    draws: {value: results?.draws},
-                    for: {value: results?.for},
-                    against: {value: results?.against},
-                    ratio: {value: results?.ratio},
-                    aveFor: {value: results?.aveFor},
-                    aveAgainst: {value: results?.aveAgainst},
-                  },
-                }
-              }),
-          }),
+          divs.map((div) => (
+            (_LadderDivision({teams: teams.filter((t) => t.division === div),tally}))
+          )),
           $(Fragment, {
             children:
               !!fixtures?.length &&
@@ -273,3 +233,54 @@ const _LadderFixture: FC<{
     ]),
   })
 }
+/**
+*
+*/
+const _LadderDivision: FC<{
+  teams: TTeam[]
+  tally: Record<string, TTallyChart | undefined>
+}> = ({teams,tally}) => $(Table, {
+  head: {
+    name: {label: 'Name', grow: 5},
+    games: {label: 'Games', grow: 1.2},
+    points: {label: 'Points', grow: 1.2},
+    wins: {label: 'Wins', grow: 1.2},
+    loses: {label: 'Loses', grow: 1.2},
+    draws: {label: 'Draws', grow: 1.2},
+    for: {label: 'For', grow: 1.2},
+    against: {label: 'Agnst', grow: 1.2},
+    ratio: {label: 'Ratio', grow: 1.2},
+    aveFor: {label: 'Av.For', grow: 1.2},
+    aveAgainst: {label: 'Av.Agt', grow: 1.2},
+  },
+  body: teams
+    .sort((a, b) => {
+      const pa = tally[a.id]?.points ?? 0
+      const pb = tally[b.id]?.points ?? 0
+      if (pa === pb) {
+        const fa = tally[a.id]?.for ?? 0
+        const fb = tally[b.id]?.for ?? 0
+        return fa === fb ? 0 : fa < fb ? 1 : -1
+      }
+      return pa < pb ? 1 : -1
+    })
+    .map((i) => {
+      const results = tally[i.id]
+      return {
+        key: i.id,
+        data: {
+          name: {value: i.name, color: i.color},
+          games: {value: results?.games},
+          points: {value: results?.points},
+          wins: {value: results?.wins},
+          loses: {value: results?.loses},
+          draws: {value: results?.draws},
+          for: {value: results?.for},
+          against: {value: results?.against},
+          ratio: {value: results?.ratio},
+          aveFor: {value: results?.aveFor},
+          aveAgainst: {value: results?.aveAgainst},
+        },
+      }
+    }),
+});
