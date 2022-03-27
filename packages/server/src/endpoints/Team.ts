@@ -123,6 +123,7 @@ export default new Map<string, RequestHandler>([
       teamId: io.string(),
       name: io.string(),
       color: io.string(),
+      division: io.optional(io.number()),
     }),
     handler:
       ({teamId, ...body}) =>

@@ -9,6 +9,7 @@ export const ioTeam = io.object({
   seasonId: io.string(),
   name: io.string(),
   color: io.string(),
+  division: io.optional(io.number()),
 })
 /**
  *

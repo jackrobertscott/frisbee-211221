@@ -13,6 +13,7 @@ import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
 import {InputSimpleColor} from './Input/InputSimpleColor'
 import {InputString} from './Input/InputString'
+import {InputNumber} from './Input/InputNumber'
 import {Modal} from './Modal'
 import {Question} from './Question'
 import {MenuBar, MenuBarOption, MenuBarShadow, MenuBarSpacer} from './MenuBar'
@@ -158,7 +159,7 @@ export const _TeamViewAdminEdit: FC<{
   const form = useForm({
     ...team,
   })
-  const isDifferent = !objectify.compareKeys(team, form.data, ['name', 'color'])
+  const isDifferent = !objectify.compareKeys(team, form.data, ['name', 'color', 'division'])
   return $(Form, {
     background: theme.bgMinor,
     children: addkeys([
@@ -177,6 +178,15 @@ export const _TeamViewAdminEdit: FC<{
           $(InputSimpleColor, {
             value: form.data.color,
             valueSet: form.link('color'),
+          }),
+        ]),
+      }),
+      $(FormColumn, {
+        children: addkeys([
+          $(FormLabel, {label: 'Division'}),
+          $(InputNumber, {
+            value: form.data.division,
+            valueSet: form.link('division'),
           }),
         ]),
       }),
