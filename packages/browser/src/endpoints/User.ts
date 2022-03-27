@@ -150,3 +150,14 @@ export const $UserMerge = createEndpoint({
   }),
   result: ioUser,
 })
+/**
+ *
+ */
+export const $UserChangePassword = createEndpoint({
+  path: '/UserChangePassword',
+  payload: io.object({
+    userId: io.string(),
+    newPassword: io.string(),
+  }),
+  result: ioUser,
+})

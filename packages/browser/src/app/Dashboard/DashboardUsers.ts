@@ -2,6 +2,7 @@ import {css} from '@emotion/css'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {
+  $UserChangePassword,
   $UserCreate,
   $UserList,
   $UserToggleAdmin,
@@ -29,6 +30,7 @@ import {usePager} from '../Pager/usePager'
 import {Question} from '../Question'
 import {Spinner} from '../Spinner'
 import {Table} from '../Table'
+import {useToaster} from '../Toaster/useToaster'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
@@ -247,6 +249,7 @@ export const _DashboardUsersView: FC<{
   const $toggleAdmin = useEndpoint($UserToggleAdmin)
   const $userUpdate = useEndpoint($UserUpdate)
   const [merge, mergeSet] = useState(false)
+  const [changePass, changePassSet] = useState(false)
   const [adminify, adminifySet] = useState(false)
   const form = useForm({
     ...user,
@@ -325,6 +328,10 @@ export const _DashboardUsersView: FC<{
                         }),
                   }),
                 ]),
+              }),
+              $(FormBadge, {
+                label: 'Change Password',
+                click: () => changePassSet(true),
               }),
               $(FormRow, {
                 children: addkeys([
@@ -407,6 +414,72 @@ export const _DashboardUsersView: FC<{
             },
             close: () => mergeSet(false),
           }),
+      }),
+      $(Fragment, {
+        children:
+          changePass &&
+          $(_DashboardUsersViewChangePassword, {
+            user,
+            close: () => changePassSet(false),
+          }),
+      }),
+    ]),
+  })
+}
+/**
+ *
+ */
+/**
+ *
+ */
+export const _DashboardUsersViewChangePassword: FC<{
+  user: TUser
+  close: () => void
+}> = ({user, close}) => {
+  const $changePassword = useEndpoint($UserChangePassword)
+  const toaster = useToaster()
+  const form = useForm({
+    newPassword: '',
+  })
+  return $(Modal, {
+    width: theme.fib[12] + theme.fib[10],
+    children: addkeys([
+      $(TopBar, {
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: `${user.firstName} Password`,
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
+      }),
+      $(Form, {
+        background: theme.bgMinor,
+        children: addkeys([
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {label: 'New Password'}),
+              $(InputString, {
+                value: form.data.newPassword,
+                valueSet: form.link('newPassword'),
+              }),
+            ]),
+          }),
+          $(FormBadge, {
+            label: $changePassword.loading ? 'Loading' : 'Change Password',
+            click: () =>
+              $changePassword
+                .fetch({...form.data, userId: user.id})
+                .then((user) => {
+                  const message = `Successfully updated ${user.firstName}'s password.`
+                  toaster.notify(message)
+                  close()
+                }),
+          }),
+        ]),
       }),
     ]),
   })

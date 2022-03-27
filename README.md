@@ -26,13 +26,16 @@ Todos:
 - [x] Make joining a team optional.
 - [x] Allow one user to have multiple emails.
 - [x] Add a user merge function.
+- [x] Add data export feature.
+- [x] Allow user to verify email inside settings modal.
 - [ ] Allow a user to leave a team.
+- [ ] Allow user to join multiple teams.
+- [ ] Admin change (other) user password.
+- [ ] Add divisions to a season.
 - [ ] Add merch store.
 - [ ] Send game fixture emails with png.
 - [ ] Admin send custom emails.
 - [ ] Captain member management popup.
-- [ ] Add data export feature.
-- [ ] Allow user to verify email inside settings modal.
 - [ ] Request players tab.
 - [ ] Ability to contact admins.
 - [ ] Automated fixtures.

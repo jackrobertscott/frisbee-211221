@@ -344,4 +344,22 @@ export default new Map<string, RequestHandler>([
         return user1
       },
   }),
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/UserChangePassword',
+    payload: io.object({
+      userId: io.string(),
+      newPassword: io.string(),
+    }),
+    handler: (body) => async (req) => {
+      await requireUserAdmin(req)
+      const user = await $User.getOne({id: body.userId})
+      return $User.updateOne(
+        {id: user.id},
+        {password: await hash.encrypt(body.newPassword)}
+      )
+    },
+  }),
 ])
