@@ -43,7 +43,7 @@ export const Graph: FC<{
     const xMaxDots = dots ? Math.max(...dots.map((i) => i[0])) : 0
     const xMaxLine = line ? line.length : 0
     const xMaxBars = bars ? bars.length : 0
-    const xCount = Math.max(xMaxDots, xMaxLine, xMaxBars, 5) + 1
+    const xCount = Math.max(xMaxDots, xMaxLine, xMaxBars, 5) + 2
     const xLength = width - axis
     const xIncrement = xLength / xCount
     const xSmall = xIncrement <= 20
@@ -96,8 +96,8 @@ export const Graph: FC<{
       ctx.fillStyle = 'rgba(0, 0, 0, 1)'
       ctx.moveTo(axis, y)
       ctx.lineTo(width, y)
-      for (let i = 0; i < xCount; i++) {
-        const x = axis + Math.round(i * xIncrement)
+      for (let i = 0; i < xCount - 1; i++) {
+        const x = axis + Math.round((i + 1) * xIncrement)
         const bold = xSmall && i % 2 === 0
         ctx.moveTo(x, y)
         ctx.lineTo(x, bold ? y + 10 : y + 5)
@@ -114,7 +114,7 @@ export const Graph: FC<{
       ctx.beginPath()
       ctx.fillStyle = 'rgba(0, 0, 0, 1)'
       for (let i = 0; i < dots.length; i++) {
-        const x = axis + Math.round(dots[i][0] * xIncrement)
+        const x = axis + Math.round((dots[i][0] + 1) * xIncrement)
         const y = height - axis - Math.round(dots[i][1] * yIncrement)
         ctx.moveTo(x, y)
         ctx.arc(x, y, 3, 0, Math.PI * 2)
@@ -126,7 +126,7 @@ export const Graph: FC<{
       ctx.lineWidth = 2
       ctx.strokeStyle = 'rgba(0, 0, 0, 1)'
       for (let i = 0; i < line.length; i++) {
-        const x = axis + Math.round(i * xIncrement)
+        const x = axis + Math.round((i + 1) * xIncrement)
         const y = height - axis - Math.round(line[i] * yIncrement)
         if (i === 0) ctx.moveTo(x, y)
         else ctx.lineTo(x, y)
@@ -138,7 +138,7 @@ export const Graph: FC<{
       ctx.lineWidth = Math.round(xIncrement / 2)
       ctx.strokeStyle = 'rgba(0, 0, 0, 1)'
       for (let i = 0; i < bars.length; i++) {
-        const x = axis + Math.round(i * xIncrement)
+        const x = axis + Math.round((i + 1) * xIncrement)
         const y = height - axis - Math.round(bars[i] * yIncrement)
         ctx.moveTo(x, y)
         ctx.lineTo(x, height - axis)
