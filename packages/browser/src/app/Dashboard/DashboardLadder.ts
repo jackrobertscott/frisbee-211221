@@ -43,11 +43,13 @@ export const DashboardLadder: FC = () => {
   }
   useEffect(() => reload(), [])
   const teamsUndivided = teams.filter((i) => typeof i.division !== 'number')
-  const divisions = teams.reduce((all, next) => {
-    if (!next.division) return all
-    if (!all.includes(next.division)) all.push(next.division)
-    return all
-  }, [] as number[])
+  const divisions = teams
+    .reduce((all, next) => {
+      if (!next.division) return all
+      if (!all.includes(next.division)) all.push(next.division)
+      return all
+    }, [] as number[])
+    .sort((a, b) => a - b)
   return $(Fragment, {
     children: addkeys([
       $(Form, {
