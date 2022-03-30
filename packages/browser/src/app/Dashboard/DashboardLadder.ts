@@ -7,7 +7,7 @@ import {TFixture} from '../../schemas/ioFixture'
 import {TTeam} from '../../schemas/ioTeam'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
-import {tallyChart} from '../../utils/tallyChart'
+import {tallyChart, TTallyChart} from '../../utils/tallyChart'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
@@ -20,6 +20,7 @@ import {FormColumn} from '../Form/FormColumn'
 import {useMedia} from '../Media/useMedia'
 import {initials} from '../../utils/initials'
 import {Graph} from '../Graph'
+import {FormLabel} from '../Form/FormLabel'
 /**
  *
  */
@@ -41,54 +42,33 @@ export const DashboardLadder: FC = () => {
     $fixtureList.fetch({seasonId}).then(fixturesSet)
   }
   useEffect(() => reload(), [])
+  const teamsUndivided = teams.filter((i) => typeof i.division !== 'number')
+  const divisions = teams.reduce((all, next) => {
+    if (!next.division) return all
+    if (!all.includes(next.division)) all.push(next.division)
+    return all
+  }, [] as number[])
   return $(Fragment, {
     children: addkeys([
       $(Form, {
         background: theme.bgMinor,
         children: addkeys([
-          $(Table, {
-            head: {
-              name: {label: 'Name', grow: 5},
-              games: {label: 'Games', grow: 1.2},
-              points: {label: 'Points', grow: 1.2},
-              wins: {label: 'Wins', grow: 1.2},
-              loses: {label: 'Loses', grow: 1.2},
-              draws: {label: 'Draws', grow: 1.2},
-              for: {label: 'For', grow: 1.2},
-              against: {label: 'Agnst', grow: 1.2},
-              ratio: {label: 'Ratio', grow: 1.2},
-              aveFor: {label: 'Av.For', grow: 1.2},
-              aveAgainst: {label: 'Av.Agt', grow: 1.2},
-            },
-            body: teams
-              .sort((a, b) => {
-                const pa = tally[a.id]?.points ?? 0
-                const pb = tally[b.id]?.points ?? 0
-                if (pa === pb) {
-                  const fa = tally[a.id]?.for ?? 0
-                  const fb = tally[b.id]?.for ?? 0
-                  return fa === fb ? 0 : fa < fb ? 1 : -1
-                }
-                return pa < pb ? 1 : -1
+          $(Fragment, {
+            children: divisions.map((division) => {
+              return $(_LadderDivision, {
+                key: division.toString(),
+                label: `Division ${division}`,
+                teams: teams.filter((i) => i.division === division),
+                tally,
               })
-              .map((i) => {
-                const results = tally[i.id]
-                return {
-                  key: i.id,
-                  data: {
-                    name: {value: i.name, color: i.color},
-                    games: {value: results?.games},
-                    points: {value: results?.points},
-                    wins: {value: results?.wins},
-                    loses: {value: results?.loses},
-                    draws: {value: results?.draws},
-                    for: {value: results?.for},
-                    against: {value: results?.against},
-                    ratio: {value: results?.ratio},
-                    aveFor: {value: results?.aveFor},
-                    aveAgainst: {value: results?.aveAgainst},
-                  },
-                }
+            }),
+          }),
+          $(Fragment, {
+            children:
+              !!teamsUndivided.length &&
+              $(_LadderDivision, {
+                teams: teamsUndivided,
+                tally,
               }),
           }),
           $(Fragment, {
@@ -142,7 +122,7 @@ export const DashboardLadder: FC = () => {
                     .flat()
                     .filter((i) => typeof i === 'number') as number[]
                   const max = Math.max(0, ...all)
-                  const data = new Array(max + 1).fill(0)
+                  const data = new Array<number>(max + 1).fill(0)
                   for (let i = 0; i < data.length; i++)
                     data[i] = all.filter((x) => x === i).length
                   return data
@@ -270,6 +250,72 @@ const _LadderFixture: FC<{
               }),
           ]),
         }),
+    ]),
+  })
+}
+/**
+ *
+ */
+const _LadderDivision: FC<{
+  teams: TTeam[]
+  tally: Record<string, TTallyChart | undefined>
+  label?: string
+}> = ({teams, tally, label}) => {
+  return $(FormColumn, {
+    children: addkeys([
+      $(Fragment, {
+        children:
+          label &&
+          $(FormLabel, {
+            label,
+            background: theme.bgMinor,
+          }),
+      }),
+      $(Table, {
+        head: {
+          name: {label: 'Name', grow: 5},
+          games: {label: 'Games', grow: 1.2},
+          points: {label: 'Points', grow: 1.2},
+          wins: {label: 'Wins', grow: 1.2},
+          loses: {label: 'Loses', grow: 1.2},
+          draws: {label: 'Draws', grow: 1.2},
+          for: {label: 'For', grow: 1.2},
+          against: {label: 'Agnst', grow: 1.2},
+          ratio: {label: 'Ratio', grow: 1.2},
+          aveFor: {label: 'Av.For', grow: 1.2},
+          aveAgainst: {label: 'Av.Agt', grow: 1.2},
+        },
+        body: teams
+          .sort((a, b) => {
+            const pa = tally[a.id]?.points ?? 0
+            const pb = tally[b.id]?.points ?? 0
+            if (pa === pb) {
+              const fa = tally[a.id]?.for ?? 0
+              const fb = tally[b.id]?.for ?? 0
+              return fa === fb ? 0 : fa < fb ? 1 : -1
+            }
+            return pa < pb ? 1 : -1
+          })
+          .map((i) => {
+            const results = tally[i.id]
+            return {
+              key: i.id,
+              data: {
+                name: {value: i.name, color: i.color},
+                games: {value: results?.games},
+                points: {value: results?.points},
+                wins: {value: results?.wins},
+                loses: {value: results?.loses},
+                draws: {value: results?.draws},
+                for: {value: results?.for},
+                against: {value: results?.against},
+                ratio: {value: results?.ratio},
+                aveFor: {value: results?.aveFor},
+                aveAgainst: {value: results?.aveAgainst},
+              },
+            }
+          }),
+      }),
     ]),
   })
 }

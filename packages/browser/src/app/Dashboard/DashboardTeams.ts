@@ -84,7 +84,8 @@ export const DashboardTeams: FC = () => {
                     }),
                     $(Table, {
                       head: {
-                        name: {label: 'Name', grow: 1},
+                        name: {label: 'Name', grow: 2},
+                        division: {label: 'Division', grow: 1},
                         createdOn: {label: 'Created', grow: 1},
                         updatedOn: {label: 'Updated', grow: 1},
                       },
@@ -95,6 +96,9 @@ export const DashboardTeams: FC = () => {
                           name: {
                             value: team.name,
                             color: team.color,
+                          },
+                          division: {
+                            value: team.division,
                           },
                           createdOn: {
                             value: dayjs(team.createdOn).format('DD/MM/YYYY'),

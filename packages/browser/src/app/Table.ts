@@ -56,6 +56,9 @@ export const Table: TFCTable = ({head, body}) => {
                       ? hsla.digest(data?.color)
                       : undefined
                     const font = bg?.compliment()
+                    const badnum =
+                      typeof data.value === 'number' &&
+                      (isNaN(data.value) || Math.abs(data.value) === Infinity)
                     return $(_TableCell, {
                       key,
                       grow,
@@ -63,7 +66,7 @@ export const Table: TFCTable = ({head, body}) => {
                         data?.children ??
                         $(FormLabel, {
                           label:
-                            data?.value !== undefined
+                            data?.value !== undefined && !badnum
                               ? data.value.toString()
                               : '...',
                           background: bg
