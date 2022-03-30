@@ -89,25 +89,33 @@ export const DashboardTeams: FC = () => {
                         createdOn: {label: 'Created', grow: 1},
                         updatedOn: {label: 'Updated', grow: 1},
                       },
-                      body: teams.map((team) => ({
-                        key: team.id,
-                        click: () => currentIdSet(team.id),
-                        data: {
-                          name: {
-                            value: team.name,
-                            color: team.color,
+                      body: teams
+                        .sort(({division: a}, {division: b}) => {
+                          if (typeof a !== 'number' && typeof b !== 'number')
+                            return 0
+                          if (typeof a !== 'number') return 1
+                          if (typeof b !== 'number') return -1
+                          return a - b
+                        })
+                        .map((team) => ({
+                          key: team.id,
+                          click: () => currentIdSet(team.id),
+                          data: {
+                            name: {
+                              value: team.name,
+                              color: team.color,
+                            },
+                            division: {
+                              value: team.division,
+                            },
+                            createdOn: {
+                              value: dayjs(team.createdOn).format('DD/MM/YYYY'),
+                            },
+                            updatedOn: {
+                              value: dayjs(team.updatedOn).format('DD/MM/YYYY'),
+                            },
                           },
-                          division: {
-                            value: team.division,
-                          },
-                          createdOn: {
-                            value: dayjs(team.createdOn).format('DD/MM/YYYY'),
-                          },
-                          updatedOn: {
-                            value: dayjs(team.updatedOn).format('DD/MM/YYYY'),
-                          },
-                        },
-                      })),
+                        })),
                     }),
                     $(Pager, {
                       ...pager,
