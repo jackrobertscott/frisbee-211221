@@ -98,6 +98,30 @@ export const Dashboard: FC = () => {
                           }),
                     }),
                 }),
+                $(Fragment, {
+                  children:
+                    media.width >= theme.fib[13] &&
+                    $(Fragment, {
+                      children: $(TopBarBadge, {
+                        label: 'Policy & Rules',
+                        click: () => {
+                          window.open('https://drive.google.com/file/d/1A9ZQTAly2_rSdF6h710ZUYS0tXz8LQzg/view', '_blank')?.focus()
+                        }
+                      }),
+                    }),
+                }),
+                $(Fragment, {
+                  children:
+                    media.width >= theme.fib[13] &&
+                    $(Fragment, {
+                      children: $(TopBarBadge, {
+                        label: 'Injury & Insurance',
+                        click: () => {
+                          window.open('https://afda.com/claims-procedure', '_blank')?.focus()
+                        }
+                      }),
+                    }),
+                }),
                 $(_DashboardSeasonBadge),
                 $(TopBarBadge, {
                   icon: 'cog',
