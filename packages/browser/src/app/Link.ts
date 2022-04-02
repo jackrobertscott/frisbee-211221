@@ -8,15 +8,19 @@ import {THSLA} from '../utils/hsla'
 export const Link: FC<{
   label: string
   href?: string
+  external?: boolean
   font?: THSLA
   click?: () => void
-}> = ({label, href, font, click}) => {
+}> = ({label, href, external, font, click}) => {
   return $('a', {
     href,
     onClick: (event: MouseEvent) => {
       event.preventDefault()
       click?.()
-      if (href) go.to(href)
+      if (href) {
+        if (external) window.open(href, '_blank')
+        else go.to(href)
+      }
     },
     children: label,
     className: css({
@@ -26,6 +30,7 @@ export const Link: FC<{
       color: font?.string(),
       '&:hover': {
         opacity: 1,
+        color: font?.darken(25).string(),
       },
     }),
   })
