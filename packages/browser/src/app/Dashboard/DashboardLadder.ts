@@ -281,9 +281,9 @@ const _LadderDivision: FC<{
           wins: {label: 'Wins', grow: 1.2},
           loses: {label: 'Loses', grow: 1.2},
           draws: {label: 'Draws', grow: 1.2},
+          ratio: {label: 'Ratio', grow: 1.2},
           for: {label: 'For', grow: 1.2},
           against: {label: 'Agnst', grow: 1.2},
-          ratio: {label: 'Ratio', grow: 1.2},
           aveFor: {label: 'Av.For', grow: 1.2},
           aveAgainst: {label: 'Av.Agt', grow: 1.2},
         },
@@ -292,8 +292,8 @@ const _LadderDivision: FC<{
             const pa = tally[a.id]?.points ?? 0
             const pb = tally[b.id]?.points ?? 0
             if (pa === pb) {
-              const fa = tally[a.id]?.for ?? 0
-              const fb = tally[b.id]?.for ?? 0
+              const fa = tally[a.id]?.ratio ?? 0
+              const fb = tally[b.id]?.ratio ?? 0
               return fa === fb ? 0 : fa < fb ? 1 : -1
             }
             return pa < pb ? 1 : -1
@@ -309,9 +309,9 @@ const _LadderDivision: FC<{
                 wins: {value: results?.wins},
                 loses: {value: results?.loses},
                 draws: {value: results?.draws},
+                ratio: {value: results?.ratio},
                 for: {value: results?.for},
                 against: {value: results?.against},
-                ratio: {value: results?.ratio},
                 aveFor: {value: results?.aveFor},
                 aveAgainst: {value: results?.aveAgainst},
               },
