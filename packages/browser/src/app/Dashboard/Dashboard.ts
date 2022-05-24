@@ -191,7 +191,10 @@ export const Dashboard: FC = () => {
                                   return $(MenuBarOption, {
                                     key: route.path,
                                     label: route.label ?? '?',
-                                    click: () => go.to(route.path),
+                                    click: () => {
+                                      go.to(route.path)
+                                      if (open) openSet(false)
+                                    },
                                     active:
                                       route.path === context.current?.path,
                                   })

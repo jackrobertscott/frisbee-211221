@@ -104,7 +104,10 @@ export const TeamViewAdmin: FC<{
                           return $(MenuBarOption, {
                             key: i.path,
                             label: i.title,
-                            click: () => router.go(i.path),
+                            click: () => {
+                              router.go(i.path)
+                              if (open) openSet(false)
+                            },
                             active: i.path === router.current.path,
                           })
                         }),
