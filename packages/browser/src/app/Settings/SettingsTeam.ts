@@ -40,16 +40,7 @@ export const SettingsTeam: FC = () => {
       }),
       $(FormColumn, {
         children: addkeys([
-          $(FormLabel, {label: 'Color'}),
-          $(InputSimpleColor, {
-            value: form.data.color,
-            valueSet: form.link('color'),
-          }),
-        ]),
-      }),
-      $(FormColumn, {
-        children: addkeys([
-          $(FormBadge, {
+          $(FormLabel, {
             label: 'Public Contact Details',
             background: theme.bgMinor,
           }),
@@ -70,6 +61,15 @@ export const SettingsTeam: FC = () => {
                 valueSet: form.link('email'),
               }),
             ]),
+          }),
+        ]),
+      }),
+      $(FormColumn, {
+        children: addkeys([
+          $(FormLabel, {label: 'Color'}),
+          $(InputSimpleColor, {
+            value: form.data.color,
+            valueSet: form.link('color'),
           }),
         ]),
       }),

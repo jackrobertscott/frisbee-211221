@@ -56,6 +56,8 @@ export const $TeamCreate = createEndpoint({
     seasonId: io.string(),
     name: io.string(),
     color: io.string(),
+    phone: io.optional(io.string().emptyok()),
+    email: io.optional(io.string().emptyok()),
   }),
   result: ioTeam,
 })
@@ -68,6 +70,8 @@ export const $TeamUpdate = createEndpoint({
     teamId: io.string(),
     name: io.string(),
     color: io.string(),
+    phone: io.optional(io.string().emptyok()),
+    email: io.optional(io.string().emptyok()),
     division: io.optional(io.number()),
   }),
   result: ioTeam,

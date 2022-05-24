@@ -159,7 +159,13 @@ export const _TeamViewAdminEdit: FC<{
   const form = useForm({
     ...team,
   })
-  const isDifferent = !objectify.compareKeys(team, form.data, ['name', 'color', 'division'])
+  const isDifferent = !objectify.compareKeys(team, form.data, [
+    'name',
+    'color',
+    'phone',
+    'email',
+    'division',
+  ])
   return $(Form, {
     background: theme.bgMinor,
     children: addkeys([
@@ -174,10 +180,27 @@ export const _TeamViewAdminEdit: FC<{
       }),
       $(FormColumn, {
         children: addkeys([
-          $(FormLabel, {label: 'Color'}),
-          $(InputSimpleColor, {
-            value: form.data.color,
-            valueSet: form.link('color'),
+          $(FormLabel, {
+            label: 'Public Contact Details',
+            background: theme.bgMinor,
+          }),
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {label: 'Phone'}),
+              $(InputString, {
+                value: form.data.phone,
+                valueSet: form.link('phone'),
+              }),
+            ]),
+          }),
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {label: 'Email'}),
+              $(InputString, {
+                value: form.data.email,
+                valueSet: form.link('email'),
+              }),
+            ]),
           }),
         ]),
       }),
@@ -187,6 +210,15 @@ export const _TeamViewAdminEdit: FC<{
           $(InputNumber, {
             value: form.data.division,
             valueSet: form.link('division'),
+          }),
+        ]),
+      }),
+      $(FormColumn, {
+        children: addkeys([
+          $(FormLabel, {label: 'Color'}),
+          $(InputSimpleColor, {
+            value: form.data.color,
+            valueSet: form.link('color'),
           }),
         ]),
       }),

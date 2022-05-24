@@ -1,11 +1,13 @@
 import {createElement as $, FC} from 'react'
 import {$SecurityStatus} from '../../endpoints/Security'
+import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
 import {FormLabel} from '../Form/FormLabel'
 import {FormRow} from '../Form/FormRow'
 import {InputString} from '../Input/InputString'
+import {Link} from '../Link'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
 /**
@@ -42,6 +44,11 @@ export const SecurityStatus: FC<{
         disabled: $status.loading,
         label: $status.loading ? 'Loading' : 'Submit',
         click: submit,
+      }),
+      $(Link, {
+        font: theme.fontMinor,
+        label: 'Back To Home',
+        href: '/',
       }),
     ]),
   })

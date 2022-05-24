@@ -168,6 +168,10 @@ export const ReportCreate: FC<{
                               label: `${i.firstName} ${i.lastName}`,
                             })),
                           }),
+                          $(FormBadge, {
+                            icon: 'times',
+                            click: () => form.patch({mvpMale: undefined}),
+                          }),
                         ]),
                       }),
                       $(FormRow, {
@@ -180,6 +184,10 @@ export const ReportCreate: FC<{
                               key: i.id,
                               label: `${i.firstName} ${i.lastName}`,
                             })),
+                          }),
+                          $(FormBadge, {
+                            icon: 'times',
+                            click: () => form.patch({mvpFemale: undefined}),
                           }),
                         ]),
                       }),

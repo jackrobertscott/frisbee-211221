@@ -45,16 +45,15 @@ export const DashboardTeams: FC = () => {
     })
   const teamListDelay = useSling(500, teamList)
   useEffect(() => {
-    if (!auth.isAdmin()) go.to('/')
-    else teamList()
-  }, [auth.current, pager.data, seasonId])
+    teamList()
+  }, [pager.data, seasonId])
   useEffect(() => {
     if (teams !== undefined) teamListDelay()
   }, [search])
   return $(Fragment, {
     children: addkeys([
       $(Form, {
-        background: theme.bgAdmin.lighten(5),
+        background: theme.bgMinor,
         children: addkeys([
           $(Fragment, {
             children:
@@ -74,19 +73,24 @@ export const DashboardTeams: FC = () => {
                           valueSet: searchSet,
                           placeholder: 'Search',
                         }),
-                        $(FormBadge, {
-                          label: 'Create Team',
-                          background: theme.bgAdmin,
-                          click: () => creatingSet(true),
+                        $(Fragment, {
+                          children:
+                            auth.isAdmin() &&
+                            $(FormBadge, {
+                              label: 'Create Team',
+                              background: theme.bgAdmin,
+                              click: () => creatingSet(true),
+                            }),
                         }),
                       ]),
                     }),
                     $(Table, {
                       head: {
-                        name: {label: 'Name', grow: 2},
-                        division: {label: 'Division', grow: 1},
-                        createdOn: {label: 'Created', grow: 1},
-                        updatedOn: {label: 'Updated', grow: 1},
+                        name: {label: 'Name', grow: 3},
+                        division: {label: 'Div', grow: 1},
+                        phone: {label: 'Phone', grow: 2},
+                        email: {label: 'Email', grow: 3},
+                        createdOn: {label: 'Created', grow: 2},
                       },
                       body: teams
                         .sort(({division: a}, {division: b}) => {
@@ -104,14 +108,11 @@ export const DashboardTeams: FC = () => {
                               value: team.name,
                               color: team.color,
                             },
-                            division: {
-                              value: team.division,
-                            },
+                            division: {value: team.division},
+                            phone: {value: team.phone},
+                            email: {value: team.email},
                             createdOn: {
                               value: dayjs(team.createdOn).format('DD/MM/YYYY'),
-                            },
-                            updatedOn: {
-                              value: dayjs(team.updatedOn).format('DD/MM/YYYY'),
                             },
                           },
                         })),
@@ -139,13 +140,21 @@ export const DashboardTeams: FC = () => {
       $(Fragment, {
         children:
           current &&
-          $(TeamViewAdmin, {
-            team: current,
-            teamSet: (i) => {
-              if (i) teamsSet((x) => x?.map((z) => (z.id === i.id ? i : z)))
-              else teamList()
-            },
-            close: () => currentIdSet(undefined),
+          $(Fragment, {
+            children: auth.isAdmin()
+              ? $(TeamViewAdmin, {
+                  team: current,
+                  teamSet: (i) => {
+                    if (i)
+                      teamsSet((x) => x?.map((z) => (z.id === i.id ? i : z)))
+                    else teamList()
+                  },
+                  close: () => currentIdSet(undefined),
+                })
+              : $(_DashboardTeamsView, {
+                  team: current,
+                  close: () => currentIdSet(undefined),
+                }),
           }),
       }),
     ]),
@@ -154,7 +163,73 @@ export const DashboardTeams: FC = () => {
 /**
  *
  */
-export const _DashboardTeamsCreate: FC<{
+const _DashboardTeamsView: FC<{
+  team: TTeam
+  close: () => void
+}> = ({team, close}) => {
+  return $(Modal, {
+    close,
+    children: addkeys([
+      $(TopBar, {
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: 'Team',
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
+      }),
+      $(Form, {
+        background: theme.bgMinor,
+        children: addkeys([
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {label: 'Name'}),
+              $(FormLabel, {
+                grow: true,
+                label: team.name,
+              }),
+            ]),
+          }),
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {label: 'Phone'}),
+              $(FormLabel, {
+                grow: true,
+                label: team.phone ?? '...',
+              }),
+            ]),
+          }),
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {label: 'Email'}),
+              $(FormLabel, {
+                grow: true,
+                label: team.email ?? '...',
+              }),
+            ]),
+          }),
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {label: 'Division'}),
+              $(FormLabel, {
+                grow: true,
+                label: team.division?.toString(),
+              }),
+            ]),
+          }),
+        ]),
+      }),
+    ]),
+  })
+}
+/**
+ *
+ */
+const _DashboardTeamsCreate: FC<{
   teamSet: (team: TTeam) => void
   close: () => void
 }> = ({teamSet, close}) => {
@@ -162,6 +237,8 @@ export const _DashboardTeamsCreate: FC<{
   const $teamCreate = useEndpoint($TeamCreate)
   const form = useForm({
     name: '',
+    phone: '',
+    email: '',
     color: SIMPLE_COLORS[0].string(),
     seasonId: auth.season!.id,
   })
@@ -190,6 +267,32 @@ export const _DashboardTeamsCreate: FC<{
                   $(InputString, {
                     value: form.data.name,
                     valueSet: form.link('name'),
+                  }),
+                ]),
+              }),
+              $(FormColumn, {
+                children: addkeys([
+                  $(FormLabel, {
+                    label: 'Public Contact Details',
+                    background: theme.bgMinor,
+                  }),
+                  $(FormRow, {
+                    children: addkeys([
+                      $(FormLabel, {label: 'Phone'}),
+                      $(InputString, {
+                        value: form.data.phone,
+                        valueSet: form.link('phone'),
+                      }),
+                    ]),
+                  }),
+                  $(FormRow, {
+                    children: addkeys([
+                      $(FormLabel, {label: 'Email'}),
+                      $(InputString, {
+                        value: form.data.email,
+                        valueSet: form.link('email'),
+                      }),
+                    ]),
                   }),
                 ]),
               }),

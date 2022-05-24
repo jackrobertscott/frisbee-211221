@@ -108,6 +108,8 @@ export default new Map<string, RequestHandler>([
       seasonId: io.string(),
       name: io.string(),
       color: io.string(),
+      phone: io.optional(io.string().emptyok()),
+      email: io.optional(io.string().emptyok()),
     }),
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
@@ -124,6 +126,8 @@ export default new Map<string, RequestHandler>([
       teamId: io.string(),
       name: io.string(),
       color: io.string(),
+      phone: io.optional(io.string().emptyok()),
+      email: io.optional(io.string().emptyok()),
       division: io.optional(io.number()),
     }),
     handler:

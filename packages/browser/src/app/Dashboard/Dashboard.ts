@@ -144,7 +144,7 @@ export const Dashboard: FC = () => {
                     label: 'Forum',
                     render: () => $(DashboardForum),
                   },
-                  auth.isAdmin() && {
+                  {
                     path: '/teams',
                     label: 'Teams',
                     render: () => $(DashboardTeams),
