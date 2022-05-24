@@ -1,6 +1,6 @@
 import {io} from 'torva'
 import {ioPost} from '../schemas/ioPost'
-import {ioUser} from '../schemas/ioUser'
+import {ioUserPublic} from '../schemas/ioUser'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
@@ -13,7 +13,7 @@ export const $PostList = createEndpoint({
   }),
   result: io.object({
     posts: io.array(ioPost),
-    users: io.array(ioUser),
+    users: io.array(ioUserPublic),
   }),
 })
 /**

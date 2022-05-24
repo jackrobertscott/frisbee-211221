@@ -13,6 +13,7 @@ import {$Comment} from '../tables/$Comment'
 import {$Post} from '../tables/$Post'
 import {$Report} from '../tables/$Report'
 import {$Session} from '../tables/$Session'
+import {userPublic} from './userPublic'
 /**
  *
  */
@@ -184,7 +185,8 @@ export default new Map<string, RequestHandler>([
     }),
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
-      return $User.getMany({id: {$in: body.userIds}})
+      const users = await $User.getMany({id: {$in: body.userIds}})
+      return users.map(userPublic)
     },
   }),
   /**

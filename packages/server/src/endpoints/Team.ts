@@ -25,7 +25,6 @@ export default new Map<string, RequestHandler>([
       skip: io.optional(io.number()),
     }),
     handler: (body) => async (req) => {
-      await requireUser(req)
       await $Season.getOne({id: body.seasonId})
       const [count, teams] = await Promise.all([
         $Team.count({seasonId: body.seasonId}),

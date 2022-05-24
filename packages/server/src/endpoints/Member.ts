@@ -8,6 +8,7 @@ import {requireTeam} from './requireTeam'
 import {$User} from '../tables/$User'
 import {TMember} from '../schemas/ioMember'
 import {userEmail} from './userEmail'
+import {userPublic} from './userPublic'
 /**
  *
  */
@@ -49,7 +50,7 @@ export default new Map<string, RequestHandler>([
       return {
         current: memberCurrent,
         members,
-        users,
+        users: users.map(userPublic),
       }
     },
   }),

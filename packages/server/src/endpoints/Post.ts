@@ -9,6 +9,7 @@ import {$Member} from '../tables/$Member'
 import {$User} from '../tables/$User'
 import {purify} from '../utils/purify'
 import {userEmail} from './userEmail'
+import {userPublic} from './userPublic'
 /**
  *
  */
@@ -24,8 +25,7 @@ export default new Map<string, RequestHandler>([
     }),
     handler:
       ({search, limit}) =>
-      async (req) => {
-        await requireUser(req)
+      async () => {
         const posts = await $Post.getMany(
           {title: regex.from(search ?? '')},
           {limit, sort: {createdOn: -1}}
@@ -35,7 +35,7 @@ export default new Map<string, RequestHandler>([
         })
         return {
           posts,
-          users,
+          users: users.map(userPublic),
         }
       },
   }),

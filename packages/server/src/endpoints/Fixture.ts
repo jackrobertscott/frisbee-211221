@@ -24,8 +24,7 @@ export default new Map<string, RequestHandler>([
     }),
     handler:
       ({seasonId, limit}) =>
-      async (req) => {
-        await requireUser(req)
+      async () => {
         return $Fixture.getMany({seasonId}, {limit, sort: {createdOn: -1}})
       },
   }),
@@ -112,7 +111,6 @@ export default new Map<string, RequestHandler>([
     handler:
       ({fixtureId}) =>
       async (req, res) => {
-        await requireUser(req)
         const fixture = await $Fixture.getOne({id: fixtureId})
         const buffer = await _fixtureScreenshot(fixture.id)
         res.setHeader('Content-Type', 'image/png')

@@ -1,7 +1,7 @@
 import {io} from 'torva'
 import {ioMember} from '../schemas/ioMember'
 import {ioTeam} from '../schemas/ioTeam'
-import {ioUser} from '../schemas/ioUser'
+import {ioUserPublic} from '../schemas/ioUser'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
@@ -22,7 +22,7 @@ export const $MemberListOfTeam = createEndpoint({
   result: io.object({
     current: io.optional(ioMember),
     members: io.array(ioMember),
-    users: io.array(ioUser),
+    users: io.array(ioUserPublic),
   }),
 })
 /**

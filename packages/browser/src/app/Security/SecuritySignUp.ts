@@ -4,6 +4,7 @@ import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {GENDER_OPTIONS} from '../../utils/constants'
 import {go} from '../../utils/go'
+import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
 import {FormColumn} from '../Form/FormColumn'
@@ -24,6 +25,7 @@ export const SecuritySignUp: FC<{
   email?: string
   savedEmailSet: (email: string) => void
 }> = ({email: _email, savedEmailSet}) => {
+  const auth = useAuth()
   const toaster = useToaster()
   const $signUp = useEndpoint($SecuritySignUp)
   const form = useForm({
@@ -39,7 +41,7 @@ export const SecuritySignUp: FC<{
       $(Link, {
         label: 'Already Signed Up? Go to Login',
         font: theme.fontMinor,
-        href: '/welcome',
+        href: '/auth/welcome',
       }),
       $(FormRow, {
         children: addkeys([
@@ -113,20 +115,26 @@ export const SecuritySignUp: FC<{
         disabled: $signUp.loading,
         label: $signUp.loading ? 'Loading' : 'Submit',
         click: () =>
-          $signUp.fetch({...form.data, gender: form.data.gender!}).then(() => {
-            savedEmailSet(form.data.email)
-            const url =
-              '/verify?email=' +
-              encodeURIComponent(form.data.email) +
-              '&status=password'
-            go.to(url)
-            toaster.notify('Please check your email inbox.', 8000)
-          }),
+          $signUp
+            .fetch({
+              ...form.data,
+              gender: form.data.gender!,
+              seasonId: auth.season?.id,
+            })
+            .then(() => {
+              savedEmailSet(form.data.email)
+              const url =
+                '/verify?email=' +
+                encodeURIComponent(form.data.email) +
+                '&status=password'
+              toaster.notify('Please check your email inbox.', 8000)
+              go.to(url)
+            }),
       }),
       $(Link, {
         label: 'Login',
         font: theme.fontMinor,
-        href: '/login',
+        href: '/auth/login',
       }),
     ]),
   })

@@ -32,9 +32,10 @@ export const SecurityVerify: FC<{
     newPassword: '',
     userAgent: navigator.userAgent,
   })
-  const submit = () => $verify.fetch(form.data).then(auth.login)
+  const submit = () =>
+    $verify.fetch({...form.data, seasonId: auth.season?.id}).then(auth.login)
   useEffect(() => {
-    if (!_email) go.to('/')
+    if (!_email) go.to('/auth')
   }, [_email])
   return $(Form, {
     children: addkeys([
@@ -95,7 +96,7 @@ export const SecurityVerify: FC<{
       $(Link, {
         font: theme.fontMinor,
         label: 'Try New Email',
-        href: '/',
+        href: '/auth',
       }),
     ]),
   })

@@ -43,10 +43,9 @@ export const TeamSetup: FC<{
     membersOfUser &&
     teams?.find((i) => membersOfUser.findIndex((x) => x.teamId === i.id) >= 0)
   useEffect(() => {
-    if (auth.current?.season)
-      $teamList
-        .fetch({seasonId: auth.current.season.id, search})
-        .then((i) => teamsSet(i.teams))
+    $teamList
+      .fetch({seasonId: auth.season!.id, search})
+      .then((i) => teamsSet(i.teams))
     memberList()
   }, [])
   const normalize = (data: string) => data.toLowerCase().split(' ').join('')
@@ -145,9 +144,8 @@ export const TeamSetup: FC<{
       $(Fragment, {
         children:
           creating &&
-          auth.current?.season &&
           $(TeamCreate, {
-            seasonId: auth.current?.season.id,
+            seasonId: auth.season!.id,
             close: () => creatingSet(false),
             done: (i) => {
               teamSet(i)

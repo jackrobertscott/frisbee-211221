@@ -14,13 +14,6 @@ export const $SeasonList = createEndpoint({
 /**
  *
  */
-export const $SeasonListOfUser = createEndpoint({
-  path: '/SeasonListOfUser',
-  result: io.array(ioSeason),
-})
-/**
- *
- */
 export const $SeasonCreate = createEndpoint({
   path: '/SeasonCreate',
   payload: io.object({
@@ -38,16 +31,6 @@ export const $SeasonUpdate = createEndpoint({
     seasonId: io.string(),
     name: io.string(),
     signUpOpen: io.boolean(),
-  }),
-  result: ioSeason,
-})
-/**
- *
- */
-export const $SeasonChange = createEndpoint({
-  path: '/SeasonChange',
-  payload: io.object({
-    seasonId: io.string(),
   }),
   result: ioSeason,
 })

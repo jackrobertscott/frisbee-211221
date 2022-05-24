@@ -53,17 +53,16 @@ export const FixtureSetupForm: FC<{
     return index >= 0
   })
   useEffect(() => {
-    if (auth.current?.season)
-      $teamList.fetch({seasonId: auth.current.season.id}).then((i) => {
-        teamsSet(i.teams)
-        if (!form.data.games.length) {
-          form.patch({
-            games: new Array(Math.floor(i.teams.length / 2))
-              .fill(0)
-              .map(() => ({id: random.randomString()})),
-          })
-        }
-      })
+    $teamList.fetch({seasonId: auth.season!.id}).then((i) => {
+      teamsSet(i.teams)
+      if (!form.data.games.length) {
+        form.patch({
+          games: new Array(Math.floor(i.teams.length / 2))
+            .fill(0)
+            .map(() => ({id: random.randomString()})),
+        })
+      }
+    })
   }, [])
   return $(Modal, {
     width: theme.fib[14],

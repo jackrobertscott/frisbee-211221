@@ -6,19 +6,53 @@ import hash from '../utils/hash'
 import gatekeeper from '../utils/gatekeeper'
 import {$Session} from '../tables/$Session'
 import {getGoogleAccessToken, getGoogleUserInfo} from '../utils/google'
-import {requireUser} from './requireUser'
 import {TUser} from '../schemas/ioUser'
-import {TTeam} from '../schemas/ioTeam'
 import {$Member} from '../tables/$Member'
 import {$Team} from '../tables/$Team'
 import {TSession} from '../schemas/ioSession'
-import {TSeason} from '../schemas/ioSeason'
 import {$Season} from '../tables/$Season'
 import {userEmail} from './userEmail'
+import {TSeason} from '../schemas/ioSeason'
+import {TTeam} from '../schemas/ioTeam'
 /**
  *
  */
 export default new Map<string, RequestHandler>([
+  /**
+   *
+   */
+  createEndpoint({
+    path: '/SecurityCurrent',
+    payload: io.object({
+      seasonId: io.optional(io.string()),
+    }),
+    handler:
+      ({seasonId}) =>
+      async (req) => {
+        const auth = await gatekeeper.digestRequest(req)
+        let [user, session] =
+          auth && auth.userId && auth.sessionId
+            ? await Promise.all([
+                $User.maybeOne({id: auth.userId}),
+                $Session.maybeOne({id: auth.sessionId}),
+              ])
+            : []
+        if (user && userEmail.isOld(user)) user = await userEmail.migrate(user)
+        let season: TSeason | undefined
+        if (seasonId) season = await $Season.maybeOne({id: seasonId})
+        if (!season && user?.lastSeasonId)
+          season = await $Season.maybeOne({id: user.lastSeasonId})
+        season ??= await $Season.maybeOne({}, {sort: {createdOn: -1}})
+        if (!season) throw new Error()
+        return {
+          season,
+          auth:
+            user && session
+              ? await _addTeamOfSeason(user, session, season.id)
+              : undefined,
+        }
+      },
+  }),
   /**
    *
    */
@@ -54,12 +88,13 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     path: '/SecurityLogin',
     payload: io.object({
+      seasonId: io.optional(io.string()),
       email: io.string().email().trim(),
       password: io.string(),
       userAgent: io.optional(io.string()),
     }),
     handler:
-      ({email, password, userAgent}) =>
+      ({seasonId, email, password, userAgent}) =>
       async () => {
         const user = await userEmail.maybeUser(email)
         if (!user) throw new Error(`User with email ${email} does not exist.`)
@@ -68,7 +103,7 @@ export default new Map<string, RequestHandler>([
         if (!(await hash.compare(password, user.password)))
           throw new Error('Password is incorrect.')
         const session = await gatekeeper.createUserSession(user, userAgent)
-        return _createAuthPayload(user, session)
+        return _addTeamOfSeason(user, session, seasonId)
       },
   }),
   /**
@@ -77,11 +112,12 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     path: '/SecurityLoginGoogle',
     payload: io.object({
+      seasonId: io.optional(io.string()),
       code: io.string().trim(),
       userAgent: io.optional(io.string()),
     }),
     handler:
-      ({code, userAgent}) =>
+      ({seasonId, code, userAgent}) =>
       async () => {
         const {access_token} = await getGoogleAccessToken(code)
         const userInfo = await getGoogleUserInfo(access_token)
@@ -91,7 +127,7 @@ export default new Map<string, RequestHandler>([
           throw new Error(message)
         }
         const session = await gatekeeper.createUserSession(user, userAgent)
-        return _createAuthPayload(user, session)
+        return _addTeamOfSeason(user, session, seasonId)
       },
   }),
   /**
@@ -100,6 +136,7 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     path: '/SecuritySignUp',
     payload: io.object({
+      seasonId: io.optional(io.string()),
       email: io.string().email().trim(),
       firstName: io.string(),
       lastName: io.string(),
@@ -108,7 +145,7 @@ export default new Map<string, RequestHandler>([
       userAgent: io.optional(io.string()),
     }),
     handler:
-      ({userAgent, email, firstName, termsAccepted, ...body}) =>
+      ({seasonId, userAgent, email, firstName, termsAccepted, ...body}) =>
       async () => {
         if (!termsAccepted)
           throw new Error('Please accept our terms to create an account.')
@@ -122,7 +159,7 @@ export default new Map<string, RequestHandler>([
           emails: [userEmail.create(email, true, code)],
         })
         const session = await gatekeeper.createUserSession(user, userAgent)
-        return _createAuthPayload(user, session)
+        return _addTeamOfSeason(user, session, seasonId)
       },
   }),
   /**
@@ -143,13 +180,14 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     path: '/SecurityVerify',
     payload: io.object({
+      seasonId: io.optional(io.string()),
       email: io.string().email(),
       code: io.string(),
       newPassword: io.string().emptyok(),
       userAgent: io.optional(io.string()),
     }),
     handler:
-      ({email, code, newPassword, userAgent}) =>
+      ({seasonId, email, code, newPassword, userAgent}) =>
       async () => {
         let user = await userEmail.maybeUser(email)
         if (!user) throw new Error(`User with email ${email} does not exist.`)
@@ -168,19 +206,8 @@ export default new Map<string, RequestHandler>([
         }
         user = await userEmail.verify(user, email)
         const session = await gatekeeper.createUserSession(user, userAgent)
-        return _createAuthPayload(user, session)
+        return _addTeamOfSeason(user, session, seasonId)
       },
-  }),
-  /**
-   *
-   */
-  createEndpoint({
-    path: '/SecurityCurrent',
-    handler: () => async (req) => {
-      let [user, session] = await requireUser(req)
-      if (userEmail.isOld(user)) user = await userEmail.migrate(user)
-      return _createAuthPayload(user, session)
-    },
   }),
   /**
    *
@@ -189,43 +216,39 @@ export default new Map<string, RequestHandler>([
     path: '/SecurityLogout',
     handler: () => async (req) => {
       const auth = await gatekeeper.digestRequest(req)
-      const session = await $Session.getOne({id: auth.sessionId})
-      await $Session.updateOne(
-        {id: session.id},
-        {ended: true, endedOn: new Date().toISOString()}
-      )
+      if (auth) {
+        const session = await $Session.getOne({id: auth.sessionId})
+        await $Session.updateOne(
+          {id: session.id},
+          {ended: true, endedOn: new Date().toISOString()}
+        )
+      }
     },
   }),
 ])
 /**
  *
  */
-export const _createAuthPayload = async (
+export const _addTeamOfSeason = async (
   user: TUser,
   session: TSession,
-  team?: TTeam
+  seasonId?: string
 ) => {
-  let season: TSeason | undefined
-  if (team) season = await $Season.getOne({id: team.seasonId})
-  else {
-    if (user.lastSeasonId)
-      season = await $Season.maybeOne({id: user.lastSeasonId})
-    season ??= await $Season.maybeOne({}, {sort: {createdOn: -1}})
-    if (season) {
-      let member = await $Member.maybeOne({
-        userId: user.id,
-        seasonId: season.id,
-        pending: false,
-      })
-      if (member) team = await $Team.getOne({id: member.teamId})
-    }
+  let team: TTeam | undefined
+  if (seasonId) {
+    const season = await $Season.getOne({id: seasonId})
+    const member = await $Member.maybeOne({
+      userId: user.id,
+      seasonId: seasonId,
+      pending: false,
+    })
+    team = member ? await $Team.getOne({id: member.teamId}) : undefined
+    if (user.lastSeasonId !== season.id)
+      await $User.updateOne({id: user.id}, {lastSeasonId: season.id})
   }
-  if (season && user.lastSeasonId !== season.id)
-    await $User.updateOne({id: user.id}, {lastSeasonId: season.id})
   return {
     user,
     session,
-    season,
     team,
   }
 }

@@ -36,7 +36,7 @@ export const SecurityForgot: FC<{email?: string}> = ({email: _email}) => {
         click: () =>
           $send.fetch(form.data.email).then(() => {
             const url =
-              '/verify?email=' +
+              '/auth/verify?email=' +
               encodeURIComponent(form.data.email) +
               '&status=password'
             go.to(url)
@@ -46,7 +46,7 @@ export const SecurityForgot: FC<{email?: string}> = ({email: _email}) => {
       $(Link, {
         label: 'Login',
         font: theme.fontMinor,
-        href: '/login',
+        href: '/auth/login',
       }),
     ]),
   })

@@ -8,7 +8,7 @@ import {
 } from '../endpoints/Member'
 import {TMember} from '../schemas/ioMember'
 import {TTeam} from '../schemas/ioTeam'
-import {TUser} from '../schemas/ioUser'
+import {TUserPublic} from '../schemas/ioUser'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {GENDER_OPTIONS} from '../utils/constants'
@@ -37,8 +37,11 @@ export const TeamMembersView: FC<{team: TTeam}> = ({team}) => {
   const $memberRemove = useEndpoint($MemberRemove)
   const $memberRespond = useEndpoint($MemberAcceptOrDecline)
   const $memberPromote = useEndpoint($MemberSetCaptain)
-  const [state, stateSet] =
-    useState<{current?: TMember; members: TMember[]; users: TUser[]}>()
+  const [state, stateSet] = useState<{
+    current?: TMember
+    members: TMember[]
+    users: TUserPublic[]
+  }>()
   const [creating, creatingSet] = useState(false)
   const [pendingId, pendingIdSet] = useState<string>()
   const [removeId, removeIdSet] = useState<string>()

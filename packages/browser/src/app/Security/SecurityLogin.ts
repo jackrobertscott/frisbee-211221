@@ -3,6 +3,7 @@ import {createElement as $, FC} from 'react'
 import {$SecurityLogin} from '../../endpoints/Security'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
+import {go} from '../../utils/go'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
@@ -27,9 +28,10 @@ export const SecurityLogin: FC<{
     userAgent: navigator.userAgent,
   })
   const submit = () =>
-    $login.fetch(form.data).then((data) => {
+    $login.fetch({...form.data, seasonId: auth.season?.id}).then((data) => {
       savedEmailSet(form.data.email)
       auth.login(data)
+      go.to('/')
     })
   return $(Form, {
     children: addkeys([
@@ -78,13 +80,13 @@ export const SecurityLogin: FC<{
           $(Link, {
             font: theme.fontMinor,
             label: 'Create Account',
-            href: '/sign-up',
+            href: '/auth/sign-up',
           }),
           $(Link, {
             font: theme.fontMinor,
             label: 'Forgot Password?',
             href: (() => {
-              let url = '/forgot-password'
+              let url = '/auth/forgot-password'
               if (form.data.email)
                 url += `?email=${encodeURIComponent(form.data.email)}`
               return url
@@ -95,7 +97,7 @@ export const SecurityLogin: FC<{
       $(Link, {
         font: theme.fontMinor,
         label: 'Try New Email',
-        href: '/',
+        href: '/auth',
       }),
     ]),
   })

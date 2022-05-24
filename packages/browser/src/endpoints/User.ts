@@ -1,5 +1,5 @@
 import {io} from 'torva'
-import {ioUser} from '../schemas/ioUser'
+import {ioUser, ioUserPublic} from '../schemas/ioUser'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
@@ -99,7 +99,7 @@ export const $UserListManyById = createEndpoint({
   payload: io.object({
     userIds: io.array(io.string()),
   }),
-  result: io.array(ioUser),
+  result: io.array(ioUserPublic),
 })
 /**
  *

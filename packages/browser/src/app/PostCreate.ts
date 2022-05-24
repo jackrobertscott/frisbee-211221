@@ -92,9 +92,8 @@ export const PostCreate: FC<{
             disabled: $postCreate.loading,
             label: $postCreate.loading ? 'Loading' : 'Submit',
             click: () =>
-              auth.current?.season &&
               $postCreate
-                .fetch({...form.data, seasonId: auth.current.season.id})
+                .fetch({...form.data, seasonId: auth.season!.id})
                 .then(done),
           }),
         ]),

@@ -37,9 +37,8 @@ export const DashboardTeams: FC = () => {
   const [creating, creatingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
   const current = currentId && teams?.find((i) => i.id === currentId)
-  const seasonId = auth.current?.season?.id
+  const seasonId = auth.season!.id
   const teamList = () =>
-    seasonId &&
     $teamList.fetch({...pager.data, seasonId, search}).then((i) => {
       teamsSet(i.teams)
       pager.totalSet(i.count)
@@ -164,7 +163,7 @@ export const _DashboardTeamsCreate: FC<{
   const form = useForm({
     name: '',
     color: SIMPLE_COLORS[0].string(),
-    seasonId: auth.current?.season?.id!,
+    seasonId: auth.season!.id,
   })
   return $(Modal, {
     children: addkeys([

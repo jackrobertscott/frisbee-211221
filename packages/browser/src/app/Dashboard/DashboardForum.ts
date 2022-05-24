@@ -13,7 +13,7 @@ import {PostView} from '../PostView'
 import {FormBadge} from '../Form/FormBadge'
 import {Spinner} from '../Spinner'
 import {useMedia} from '../Media/useMedia'
-import {TUser} from '../../schemas/ioUser'
+import {TUserPublic} from '../../schemas/ioUser'
 /**
  *
  */
@@ -22,10 +22,9 @@ export const DashboardForum: FC = () => {
   const [viewId, viewIdSet] = useState<string>()
   const [creating, creatingSet] = useState(false)
   const [posts, postsSet] = useState<TPost[]>()
-  const [users, usersSet] = useState<TUser[]>()
+  const [users, usersSet] = useState<TUserPublic[]>()
   const $postList = useEndpoint($PostList)
   const postList = () =>
-    auth.current?.season &&
     $postList.fetch({}).then((i) => {
       postsSet(i.posts)
       usersSet(i.users)
@@ -39,9 +38,13 @@ export const DashboardForum: FC = () => {
       $(Form, {
         background: theme.bgMinor,
         children: addkeys([
-          $(FormBadge, {
-            label: 'Write A Post...',
-            click: () => creatingSet(true),
+          $(Fragment, {
+            children:
+              auth.current &&
+              $(FormBadge, {
+                label: 'Write A Post...',
+                click: () => creatingSet(true),
+              }),
           }),
           $(Fragment, {
             children:
@@ -88,7 +91,7 @@ export const DashboardForum: FC = () => {
  */
 const _NewsPost: FC<{
   post: TPost
-  user?: TUser
+  user?: TUserPublic
   click: () => void
 }> = ({post, user, click}) => {
   const media = useMedia()

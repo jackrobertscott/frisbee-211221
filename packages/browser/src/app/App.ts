@@ -5,11 +5,12 @@ import {useAuth} from './Auth/useAuth'
 import {Center} from './Center'
 import {Dashboard} from './Dashboard/Dashboard'
 import {SeasonSetup} from './SeasonSetup'
-import {Security} from './Security/Security'
 import {Spinner} from './Spinner'
 import {useReload} from './useReload'
 import {useRouter} from './Router/useRouter'
 import {FixtureView} from './FixtureView'
+import {Router} from './Router/Router'
+import {Security} from './Security/Security'
 /**
  *
  */
@@ -39,9 +40,22 @@ export const App: FC = () => {
 const _AppGuard: FC = () => {
   const auth = useAuth()
   if (!auth.loaded) return $(_AppLoading)
-  if (!auth.current) return $(Security)
-  if (!auth.current.season) return $(SeasonSetup)
-  return $(Dashboard)
+  if (!auth.season && !auth.current) return $(Security)
+  return $(Router, {
+    fallback: '/',
+    routes: [
+      !auth.current && {
+        path: '/auth',
+        render: () => $(Security),
+      },
+      {
+        path: '/',
+        render: () => {
+          return auth.season ? $(Dashboard) : $(SeasonSetup)
+        },
+      },
+    ],
+  })
 }
 /**
  *

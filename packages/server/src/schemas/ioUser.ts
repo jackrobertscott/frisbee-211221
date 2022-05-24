@@ -37,3 +37,19 @@ export const ioUser = io.object({
  *
  */
 export type TUser = TioValue<typeof ioUser>
+/**
+ *
+ */
+export const ioUserPublic = io.object({
+  id: io.string(),
+  createdOn: io.date(),
+  updatedOn: io.date(),
+  firstName: io.string(),
+  lastName: io.string(),
+  gender: io.string(),
+  avatarUrl: io.optional(io.string().trim()),
+})
+/**
+ *
+ */
+export type TUserPublic = TioValue<typeof ioUserPublic>

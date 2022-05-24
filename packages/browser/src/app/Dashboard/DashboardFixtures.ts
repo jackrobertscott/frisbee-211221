@@ -41,8 +41,7 @@ export const DashboardFixtures: FC = () => {
   const [editing, editingSet] = useState<TFixture>()
   const [openfxs, openfxsSet] = useLocalState<string[]>('frisbee.fixtures', [])
   const reload = () => {
-    if (!auth.current?.season) return
-    const seasonId = auth.current.season.id
+    const seasonId = auth.season!.id
     $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))
     $fixtureList.fetch({seasonId}).then((i) => {
       if (fixtures === undefined && i[0] && !openfxs.includes(i[0].id))
@@ -111,13 +110,12 @@ export const DashboardFixtures: FC = () => {
             loading: $fixtureCreate.loading,
             close: () => creatingSet(false),
             done: (data) =>
-              auth.current?.season &&
               $fixtureCreate
                 .fetch({
                   ...data,
                   date: data.date!,
                   games: data.games as TFixture['games'],
-                  seasonId: auth.current.season.id,
+                  seasonId: auth.season!.id,
                 })
                 .then(() => {
                   reload()

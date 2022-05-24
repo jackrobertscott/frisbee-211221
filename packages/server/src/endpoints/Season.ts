@@ -2,12 +2,8 @@ import {RequestHandler} from 'micro'
 import {io} from 'torva'
 import {$Season} from '../tables/$Season'
 import {createEndpoint} from '../utils/endpoints'
-import {requireUser} from './requireUser'
 import {regex} from '../utils/regex'
 import {requireUserAdmin} from './requireUserAdmin'
-import {$Member} from '../tables/$Member'
-import {$Team} from '../tables/$Team'
-import {$User} from '../tables/$User'
 /**
  *
  */
@@ -20,26 +16,8 @@ export default new Map<string, RequestHandler>([
     payload: io.object({
       search: io.optional(io.string().emptyok()),
     }),
-    handler: (body) => async (req) => {
-      await requireUser(req)
+    handler: (body) => async () => {
       return $Season.getMany({name: regex.from(body.search ?? '')})
-    },
-  }),
-  /**
-   *
-   */
-  createEndpoint({
-    path: '/SeasonListOfUser',
-    handler: () => async (req) => {
-      const [user] = await requireUser(req)
-      if (user.admin) return $Season.getMany({})
-      const members = await $Member.getMany({userId: user.id, pending: false})
-      const memberTeamIds = members.map((i) => i.teamId)
-      const teams = await $Team.getMany({id: {$in: memberTeamIds}})
-      const teamSeasonIds = teams.map((i) => i.seasonId)
-      return $Season.getMany({
-        $or: [{signUpOpen: true}, {id: {$in: teamSeasonIds}}],
-      })
     },
   }),
   /**
@@ -75,20 +53,5 @@ export default new Map<string, RequestHandler>([
           {...body, updatedOn: new Date().toISOString()}
         )
       },
-  }),
-  /**
-   *
-   */
-  createEndpoint({
-    path: '/SeasonChange',
-    payload: io.object({
-      seasonId: io.string(),
-    }),
-    handler: (body) => async (req) => {
-      const [user] = await requireUser(req)
-      const season = await $Season.getOne({id: body.seasonId})
-      await $User.updateOne({id: user.id}, {lastSeasonId: season.id})
-      return season
-    },
   }),
 ])

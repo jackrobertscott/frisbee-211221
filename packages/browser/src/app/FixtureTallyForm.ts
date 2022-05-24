@@ -49,10 +49,9 @@ export const FixtureTallyForm: FC<{
   const form = useForm<TFixtureForm>(fixture)
   const isSmall = media.width < theme.fib[14]
   useEffect(() => {
-    if (auth.current?.season)
-      $teamList.fetch({seasonId: auth.current.season.id}).then((i) => {
-        teamsSet(i.teams)
-      })
+    $teamList.fetch({seasonId: auth.season!.id}).then((i) => {
+      teamsSet(i.teams)
+    })
   }, [])
   useEffect(() => {
     $reportList.fetch({fixtureId: fixture.id}).then(reportsSet)

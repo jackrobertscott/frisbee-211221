@@ -35,8 +35,10 @@ export const Security: FC = () => {
     children: $(Center, {
       children: addkeys([
         $('div', {
+          onClick: () => go.to('/'),
           className: css({
             display: 'flex',
+            cursor: 'pointer',
             justifyContent: 'center',
             marginBottom: theme.fib[6],
             marginRight: theme.fib[4],
@@ -88,6 +90,7 @@ export const Security: FC = () => {
             },
           }),
           children: $(Router, {
+            prefix: '/auth',
             fallback: '/welcome',
             routes: [
               {
@@ -99,12 +102,13 @@ export const Security: FC = () => {
                     email: savedEmail,
                     statusSet: (data) => {
                       statusSet(data)
-                      if (data.status === 'good') go.to('/login')
-                      else if (data.status === 'unknown') go.to('/sign-up')
+                      if (data.status === 'good') go.to('/auth/login')
+                      else if (data.status === 'unknown') go.to('/auth/sign-up')
                       else {
                         const url =
-                          `/verify?email=${encodeURIComponent(data.email)}` +
-                          `&status=${encodeURIComponent(data.status)}`
+                          `/auth/verify?email=${encodeURIComponent(
+                            data.email
+                          )}` + `&status=${encodeURIComponent(data.status)}`
                         go.to(url)
                       }
                     },

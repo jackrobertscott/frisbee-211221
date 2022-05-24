@@ -43,7 +43,7 @@ export const MenuBarOption: FC<{
   const bg = active ? theme.bg : background ?? theme.bgMinor
   return $('div', {
     onClick: click,
-    children: active ? `- ${label} -` : label,
+    children: label,
     className: css({
       userSelect: 'none',
       padding: theme.padify(theme.fib[4]),

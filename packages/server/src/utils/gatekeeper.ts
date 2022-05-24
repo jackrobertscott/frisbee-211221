@@ -31,14 +31,10 @@ export default {
    */
   async digestRequest(req: IncomingMessage) {
     const header = req.headers.authorization
-    if (!header || header === 'undefined')
-      throw new Error('Auth token missing from request.')
+    if (!header || header === 'undefined') return undefined
     const data: any = jwt.decode(header)
     const done = ioJWT.validate(data)
-    if (!done.ok) {
-      console.log(done.error)
-      throw new Error('Auth token is invalid.')
-    }
+    if (!done.ok) throw done.error
     return done.value
   },
 }

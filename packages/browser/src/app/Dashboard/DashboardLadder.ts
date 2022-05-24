@@ -36,8 +36,7 @@ export const DashboardLadder: FC = () => {
   const [openrnds, openrndsSet] = useState<string[]>([])
   const tally = tallyChart(fixtures ?? [])
   const reload = () => {
-    if (!auth.current?.season) return
-    const seasonId = auth.current.season.id
+    const seasonId = auth.season!.id
     $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))
     $fixtureList.fetch({seasonId}).then(fixturesSet)
   }

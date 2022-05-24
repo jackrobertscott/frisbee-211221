@@ -2,7 +2,7 @@ import {io} from 'torva'
 import {ioFixture} from '../schemas/ioFixture'
 import {ioReport} from '../schemas/ioReport'
 import {ioTeam} from '../schemas/ioTeam'
-import {ioUser} from '../schemas/ioUser'
+import {ioUserPublic} from '../schemas/ioUser'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
@@ -40,7 +40,7 @@ export const $ReportGetFixtureAgainst = createEndpoint({
   }),
   result: io.object({
     teamAgainst: ioTeam,
-    users: io.array(ioUser),
+    users: io.array(ioUserPublic),
   }),
 })
 /**

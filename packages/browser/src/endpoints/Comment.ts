@@ -1,6 +1,6 @@
 import {io} from 'torva'
 import {ioComment} from '../schemas/ioComment'
-import {ioUser} from '../schemas/ioUser'
+import {ioUserPublic} from '../schemas/ioUser'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
@@ -13,7 +13,7 @@ export const $CommentListOfPost = createEndpoint({
   }),
   result: io.object({
     comments: io.array(ioComment),
-    users: io.array(ioUser),
+    users: io.array(ioUserPublic),
   }),
 })
 /**

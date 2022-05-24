@@ -2,41 +2,45 @@ import {createElement as $, FC, ReactNode, useEffect, useState} from 'react'
 import {$SecurityLogout, $SecurityCurrent} from '../../endpoints/Security'
 import {AuthContext, TAuth, TAuthPayload} from './AuthContext'
 import {useLocalState} from '../useLocalState'
-import {$SeasonChange} from '../../endpoints/Season'
 import {go} from '../../utils/go'
+import {TSeason} from '../../schemas/ioSeason'
 /**
  *
  */
 export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
   const [loaded, loadedSet] = useState(false)
+  const [season, seasonSet] = useLocalState<TSeason | undefined>('season')
   const [current, currentSet] = useLocalState<TAuth | undefined>('auth')
-  const mapAuthState = (payload: TAuthPayload): TAuth => ({
+  const digestAuthPayload = (payload: TAuthPayload): TAuth => ({
     ...payload,
     token: payload.session.token,
     created: payload.session.createdOn,
     userId: payload.user.id,
   })
   useEffect(() => {
-    if (current) {
-      $SecurityCurrent
-        .fetch(undefined, current.token)
-        .then((data) => currentSet(mapAuthState(data)))
-        .catch(() => currentSet(undefined))
-        .finally(() => loadedSet(true))
-    } else {
-      loadedSet(true)
-    }
+    $SecurityCurrent
+      .fetch({seasonId: season?.id}, current?.token)
+      .then((data) => {
+        seasonSet(data.season)
+        if (data.auth) currentSet(digestAuthPayload(data.auth))
+      })
+      .catch(() => {
+        seasonSet(undefined)
+        currentSet(undefined)
+      })
+      .finally(() => loadedSet(true))
   }, [])
   return $(AuthContext.Provider, {
     children,
     value: {
       loaded,
+      season,
       current,
-      login: (data) => currentSet(mapAuthState(data)),
+      login: (data) => currentSet(digestAuthPayload(data)),
       logout: () => {
         currentSet(undefined)
         $SecurityLogout.fetch(undefined, current?.token)
-        go.to('/')
+        window.location.href = '/'
       },
       userSet: (user) => {
         if (!current)
@@ -49,16 +53,13 @@ export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
         if (!current)
           throw new Error('Can not set team because user not logged in.')
         if (team === undefined) return currentSet({...current, team})
-        if (current.season?.id !== team.seasonId)
+        if (season?.id !== team.seasonId)
           throw new Error('Team does not match current season.')
         currentSet({...current, team})
       },
-      seasonSet: (season) => {
-        if (!current)
-          throw new Error('Can not set season because user not logged in.')
-        $SeasonChange
-          .fetch({seasonId: season.id}, current?.token)
-          .then(() => window.location.reload())
+      seasonSet: (data) => {
+        seasonSet(data)
+        setTimeout(() => window.location.reload())
       },
       isAdmin: () => !!current?.user.admin,
     },

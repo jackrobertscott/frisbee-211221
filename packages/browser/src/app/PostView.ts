@@ -23,7 +23,7 @@ import {
   $CommentListOfPost,
 } from '../endpoints/Comment'
 import {TComment} from '../schemas/ioComment'
-import {TUser} from '../schemas/ioUser'
+import {TUserPublic} from '../schemas/ioUser'
 import {Popup} from './Popup'
 import {FormBadge} from './Form/FormBadge'
 import {FormMenu} from './Form/FormMenu'
@@ -36,19 +36,20 @@ import {Spinner} from './Spinner'
 import {Link} from './Link'
 import {FormRow} from './Form/FormRow'
 import {HTML} from './HTML'
+import {go} from '../utils/go'
 /**
  *
  */
 export const PostView: FC<{
   post: TPost
-  user?: TUser
+  user?: TUserPublic
   close: () => void
   reload: () => void
 }> = ({post, user, close, reload}) => {
   const auth = useAuth()
   const [{comments, users}, stateSet] = useState<{
     comments?: TComment[]
-    users?: TUser[]
+    users?: TUserPublic[]
   }>({})
   const [editing, editingSet] = useState(false)
   const [deleting, deletingSet] = useState(false)
@@ -57,6 +58,7 @@ export const PostView: FC<{
   const $postDelete = useEndpoint($PostDelete)
   const commentList = () => $commentList.fetch({postId: post.id}).then(stateSet)
   const form = useForm({content: ''})
+  const commentsRoot = comments?.filter((i) => !i.commentParentId)
   useEffect(() => {
     commentList()
   }, [])
@@ -151,49 +153,64 @@ export const PostView: FC<{
                   },
                 }),
                 children: addkeys([
-                  $(FormColumn, {
-                    children: addkeys([
-                      $(InputTextarea, {
-                        value: form.data.content,
-                        valueSet: form.link('content'),
-                        placeholder: 'Write comment...',
-                        rows: 3,
-                      }),
-                      $(FormBadge, {
-                        disabled: $commentCreate.loading,
-                        label: $commentCreate.loading ? 'Loading' : 'Post',
-                        click: () =>
-                          $commentCreate
-                            .fetch({...form.data, postId: post.id})
-                            .then(() => commentList())
-                            .then(() => form.reset()),
-                      }),
-                    ]),
-                  }),
-                  comments === undefined
-                    ? $(Spinner)
-                    : $(Fragment, {
-                        children: comments
-                          .filter((i) => !i.commentParentId)
-                          .map((comment) => {
-                            const user = users?.find((i) => {
-                              return i.id === comment.userId
-                            })
-                            return $(_PostViewComment, {
-                              key: comment.id,
-                              post,
-                              comment,
-                              user,
-                              reload: () => commentList(),
-                              replies: comments
-                                .filter((i) => i.commentParentId === comment.id)
-                                .map((i) => ({
-                                  comment: i,
-                                  user: users?.find((x) => x.id === i.userId),
-                                })),
-                            })
+                  $(Fragment, {
+                    children:
+                      auth.current &&
+                      $(FormColumn, {
+                        children: addkeys([
+                          $(InputTextarea, {
+                            value: form.data.content,
+                            valueSet: form.link('content'),
+                            placeholder: 'Write comment...',
+                            rows: 3,
                           }),
+                          $(FormBadge, {
+                            disabled: $commentCreate.loading,
+                            label: $commentCreate.loading ? 'Loading' : 'Post',
+                            click: () =>
+                              $commentCreate
+                                .fetch({...form.data, postId: post.id})
+                                .then(() => commentList())
+                                .then(() => form.reset()),
+                          }),
+                        ]),
                       }),
+                  }),
+                  $(Fragment, {
+                    children:
+                      comments === undefined || commentsRoot === undefined
+                        ? $(Spinner)
+                        : commentsRoot.length
+                        ? $(Fragment, {
+                            children: commentsRoot.map((comment) => {
+                              const user = users?.find((i) => {
+                                return i.id === comment.userId
+                              })
+                              return $(_PostViewComment, {
+                                key: comment.id,
+                                post,
+                                comment,
+                                user,
+                                reload: () => commentList(),
+                                replies: comments
+                                  .filter((i) => {
+                                    return i.commentParentId === comment.id
+                                  })
+                                  .map((i) => ({
+                                    comment: i,
+                                    user: users?.find((x) => {
+                                      return x.id === i.userId
+                                    }),
+                                  })),
+                              })
+                            }),
+                          })
+                        : !auth.current &&
+                          $(FormBadge, {
+                            label: 'Sign In To Comment',
+                            click: () => go.to('/auth'),
+                          }),
+                  }),
                 ]),
               }),
             ]),
@@ -238,8 +255,8 @@ export const PostView: FC<{
 const _PostViewComment: FC<{
   post: TPost
   comment: TComment
-  replies?: Array<{comment: TComment; user?: TUser}>
-  user?: TUser
+  replies?: Array<{comment: TComment; user?: TUserPublic}>
+  user?: TUserPublic
   reload: () => void
 }> = ({post, comment, replies, user, reload}) => {
   const [replying, replyingSet] = useState(false)
@@ -383,7 +400,7 @@ const _PostViewComment: FC<{
  */
 const _PostViewCommentContent: FC<{
   comment: TComment
-  user?: TUser
+  user?: TUserPublic
   action?: ReactNode
   options: Array<{
     label: string

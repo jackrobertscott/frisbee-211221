@@ -13,7 +13,6 @@ export interface TAuth {
   userId: string
   session: TSession
   user: TUser
-  season?: TSeason
   team?: TTeam
 }
 /**
@@ -22,7 +21,6 @@ export interface TAuth {
 export interface TAuthPayload {
   session: TSession
   user: TUser
-  season?: TSeason
   team?: TTeam
 }
 /**
@@ -30,6 +28,7 @@ export interface TAuthPayload {
  */
 export interface TAuthContext {
   loaded: boolean
+  season?: TSeason
   current?: TAuth
   login: (data: TAuthPayload) => void
   logout: () => void

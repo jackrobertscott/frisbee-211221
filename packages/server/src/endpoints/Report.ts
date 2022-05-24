@@ -10,6 +10,7 @@ import {$Team} from '../tables/$Team'
 import {$Member} from '../tables/$Member'
 import {$User} from '../tables/$User'
 import {TTeam} from '../schemas/ioTeam'
+import {userPublic} from './userPublic'
 /**
  *
  */
@@ -94,7 +95,7 @@ export default new Map<string, RequestHandler>([
         })
         return {
           teamAgainst,
-          users,
+          users: users.map(userPublic),
         }
       },
   }),

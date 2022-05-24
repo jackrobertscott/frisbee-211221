@@ -49,9 +49,8 @@ export const DashboardPort: FC = () => {
       $(Fragment, {
         children:
           importing &&
-          auth.current?.season &&
           $(_DashboardImport, {
-            season: auth.current.season,
+            season: auth.season!,
             done: () => {
               toaster.notify('Import finished.')
               importingSet(false)

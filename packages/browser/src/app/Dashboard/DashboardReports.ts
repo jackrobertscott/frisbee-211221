@@ -13,7 +13,7 @@ import {$UserListManyById} from '../../endpoints/User'
 import {TFixture} from '../../schemas/ioFixture'
 import {TReport} from '../../schemas/ioReport'
 import {TTeam} from '../../schemas/ioTeam'
-import {TUser} from '../../schemas/ioUser'
+import {TUserPublic} from '../../schemas/ioUser'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {SPIRIT_OPTIONS} from '../../utils/constants'
@@ -57,9 +57,8 @@ export const DashboardReports: FC = () => {
   const [deleting, deletingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
   const current = currentId && _reports?.find((i) => i.id === currentId)
-  const seasonId = auth.current?.season?.id
+  const seasonId = auth.season!.id
   const reportList = () =>
-    seasonId &&
     $reportList.fetch({seasonId}).then((i) => {
       reportsSet(i.reports)
       fixturesSet(i.fixtures)
@@ -266,7 +265,7 @@ const _DashboardReportsForm: FC<{
 }> = ({title, teams, fixtures, loading, options, data, dataSet, close}) => {
   const toaster = useToaster()
   const $fixtureAgainst = useEndpoint($ReportGetFixtureAgainst)
-  const [against, againstSet] = useState<{team: TTeam; users: TUser[]}>()
+  const [against, againstSet] = useState<{team: TTeam; users: TUserPublic[]}>()
   const form = useForm({
     teamId: undefined as undefined | string,
     fixtureId: undefined as undefined | string,
@@ -474,7 +473,7 @@ const _DashboardReportsMVP: FC<{
       .sort((a, b) => b.votes - a.votes)
       .slice(0, limit)
   }
-  const [users, usersSet] = useState<TUser[]>()
+  const [users, usersSet] = useState<TUserPublic[]>()
   const [usersAndVotes, usersAndVotesSet] = useState(calculate)
   const $userList = useEndpoint($UserListManyById)
   useEffect(() => {

@@ -18,22 +18,22 @@ interface TRouterRenderContext {
  *
  */
 export const Router: FC<{
+  prefix?: string
   fallback: TRoute['path']
   routes: Array<TRoute | false>
   render?: (children: ReactNode, context: TRouterRenderContext) => ReactNode
-}> = ({fallback, routes: _routes, render}) => {
-  const mountedRef = useMountedRef()
+}> = ({prefix, fallback, routes: _routes, render}) => {
   const router = useRouter()
+  const mountedRef = useMountedRef()
   const location = router.location
   if (!location) throw new Error('Router context is not setup.')
   const routes = _routes.filter(Boolean) as TRoute[]
   if (routes.length < 1) throw new Error('Router must have at least one route.')
-  /**
-   *
-   */
+  // ...
   const _getCurrent = () => {
     for (const route of routes) {
-      const i = _parseRoute(route.path, route.exact)
+      const routePath = `${prefix ?? ''}${route.path}`
+      const i = _parseRoute(routePath, route.exact)
       if (!i.ok) continue
       return {
         current: route,
@@ -41,23 +41,20 @@ export const Router: FC<{
         params: i.params,
       }
     }
-    if (location.pathname !== fallback) router.go(fallback)
+    const routeFallback = `${prefix ?? ''}${fallback}`
+    if (location.pathname !== routeFallback) {
+      router.go(routeFallback)
+    }
   }
-  /**
-   *
-   */
+  // ...
   const [state, stateSet] = useState(() => _getCurrent())
-  /**
-   *
-   */
+  // ...
   useEffect(() => {
     if (!mountedRef.current) return
     if (!state || state?.pathname !== location?.pathname)
       stateSet(() => _getCurrent())
   }, [location, routes.map((i) => i.path).join()])
-  /**
-   *
-   */
+  // ...
   if (state?.current) {
     const children = state.current.render(state.params)
     return $(RouterProvider, {
@@ -83,7 +80,7 @@ const _parseRoute = (
   exact?: boolean
 ): {ok: false} | {ok: true; params: TRouteParams} => {
   const keys: Key[] = []
-  const regex = pathToRegexp(path, keys, {end: exact})
+  const regex = pathToRegexp(path, keys, {end: exact ?? false})
   const result = regex.exec(location.pathname)
   if (result === null) return {ok: false}
   const values = result.slice(1)

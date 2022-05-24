@@ -5,7 +5,6 @@ import {$ReportCreate, $ReportGetFixtureAgainst} from '../endpoints/Report'
 import {$FixtureListOfSeason} from '../endpoints/Fixture'
 import {TFixture} from '../schemas/ioFixture'
 import {TTeam} from '../schemas/ioTeam'
-import {TUser} from '../schemas/ioUser'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {useAuth} from './Auth/useAuth'
@@ -28,6 +27,7 @@ import {useMedia} from './Media/useMedia'
 import {initials} from '../utils/initials'
 import {useToaster} from './Toaster/useToaster'
 import {SPIRIT_OPTIONS} from '../utils/constants'
+import {TUserPublic} from '../schemas/ioUser'
 /**
  *
  */
@@ -40,7 +40,7 @@ export const ReportCreate: FC<{
   const toaster = useToaster()
   const isSmall = media.width < theme.fib[12]
   const [fixtures, fixturesSet] = useState<TFixture[]>()
-  const [against, againstSet] = useState<{team: TTeam; users: TUser[]}>()
+  const [against, againstSet] = useState<{team: TTeam; users: TUserPublic[]}>()
   const $fixtureList = useEndpoint($FixtureListOfSeason)
   const $fixtureAgainst = useEndpoint($ReportGetFixtureAgainst)
   const $create = useEndpoint($ReportCreate)
@@ -55,8 +55,7 @@ export const ReportCreate: FC<{
     spiritComment: '',
   })
   useEffect(() => {
-    if (auth.current?.season)
-      $fixtureList.fetch({seasonId: auth.current?.season.id}).then(fixturesSet)
+    $fixtureList.fetch({seasonId: auth.season!.id}).then(fixturesSet)
   }, [])
   useEffect(() => {
     if (form.data.fixtureId && auth.current?.team) {

@@ -1,6 +1,5 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$SeasonListOfUser} from '../../endpoints/Season'
 import {TSeason} from '../../schemas/ioSeason'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
@@ -34,6 +33,7 @@ import {DashboardReports} from './DashboardReports'
 import {TeamSetup} from '../TeamSetup'
 import {DashboardPort} from './DashboardPort'
 import {Link} from '../Link'
+import {$SeasonList} from '../../endpoints/Season'
 /**
  *
  */
@@ -89,38 +89,46 @@ export const Dashboard: FC = () => {
                     children:
                       media.width >= theme.fib[13] &&
                       $(Fragment, {
-                        children: auth.current?.team
-                          ? $(TopBarBadge, {
-                              label: auth.current?.team.name,
-                              background: hsla.digest(auth.current?.team.color),
-                            })
+                        children: auth.current
+                          ? auth.current.team
+                            ? $(TopBarBadge, {
+                                label: auth.current.team.name,
+                                background: hsla.digest(
+                                  auth.current.team.color
+                                ),
+                              })
+                            : $(TopBarBadge, {
+                                label: 'Join A Team',
+                                click: () => teamSetupSet(true),
+                              })
                           : $(TopBarBadge, {
-                              label: 'Join A Team',
-                              click: () => teamSetupSet(true),
+                              label: 'Login / Sign Up',
+                              click: () => go.to('/auth/welcome'),
                             }),
                       }),
                   }),
                   $(_DashboardSeasonBadge),
-                  $(TopBarBadge, {
-                    icon: 'cog',
-                    tooltip: 'Settings',
-                    click: () => settingsSet(true),
-                  }),
-                  $(TopBarBadge, {
-                    icon: 'power-off',
-                    tooltip: 'Logout',
-                    click: () => logoutSet(true),
+                  $(Fragment, {
+                    children:
+                      auth.current &&
+                      addkeys([
+                        $(TopBarBadge, {
+                          icon: 'cog',
+                          tooltip: 'Settings',
+                          click: () => settingsSet(true),
+                        }),
+                        $(TopBarBadge, {
+                          icon: 'power-off',
+                          tooltip: 'Logout',
+                          click: () => logoutSet(true),
+                        }),
+                      ]),
                   }),
                 ]),
               }),
               $(Router, {
-                fallback: '/forum',
+                fallback: '/fixtures',
                 routes: [
-                  {
-                    path: '/forum',
-                    label: 'Forum',
-                    render: () => $(DashboardForum),
-                  },
                   {
                     path: '/fixtures',
                     label: 'Fixtures',
@@ -130,6 +138,11 @@ export const Dashboard: FC = () => {
                     path: '/ladder',
                     label: 'Ladder',
                     render: () => $(DashboardLadder),
+                  },
+                  {
+                    path: '/forum',
+                    label: 'Forum',
+                    render: () => $(DashboardForum),
                   },
                   auth.isAdmin() && {
                     path: '/teams',
@@ -188,17 +201,29 @@ export const Dashboard: FC = () => {
                                 children: !isSmall && $(MenuBarSpacer),
                               }),
                               $(Fragment, {
-                                children:
-                                  auth.current?.team &&
-                                  $(MenuBarOption, {
-                                    label: 'Submit Score Report',
-                                    click: () => {
-                                      reportingSet(true)
-                                      openSet(false)
-                                    },
-                                    background: theme.bgHighlight,
-                                    font: theme.bgHighlight.compliment(),
-                                  }),
+                                children: $(MenuBarOption, {
+                                  label: 'Submit Score Report',
+                                  font: theme.bgHighlight.compliment(),
+                                  background: theme.bgHighlight,
+                                  click: () => {
+                                    if (auth.current) {
+                                      if (auth.current.team) {
+                                        reportingSet(true)
+                                        openSet(false)
+                                      } else {
+                                        const message =
+                                          'Please join a team to submit a score report.'
+                                        toaster.notify(message)
+                                        teamSetupSet(true)
+                                      }
+                                    } else {
+                                      const message =
+                                        'Please sign in to submit a score report.'
+                                      toaster.notify(message)
+                                      go.to('/auth')
+                                    }
+                                  },
+                                }),
                               }),
                               $(Fragment, {
                                 children: isSmall && $(MenuBarSpacer),
@@ -272,7 +297,13 @@ export const Dashboard: FC = () => {
             close: () => logoutSet(false),
             options: [
               {label: 'Cancel', click: () => logoutSet(false)},
-              {label: 'Logout', click: () => auth.logout()},
+              {
+                label: 'Logout',
+                click: () => {
+                  auth.logout()
+                  logoutSet(false)
+                },
+              },
             ],
           }),
       }),
@@ -313,9 +344,8 @@ const _DashboardSeasonBadge: FC = () => {
   const [open, openSet] = useState(false)
   const [seasons, seasonsSet] = useState<TSeason[]>([])
   const [creating, creatingSet] = useState(false)
-  const $seasonList = useEndpoint($SeasonListOfUser)
-  const seasonList = () => $seasonList.fetch().then(seasonsSet)
-  const seasonName = auth.current?.season?.name
+  const $seasonList = useEndpoint($SeasonList)
+  const seasonList = () => $seasonList.fetch({}).then(seasonsSet)
   useEffect(() => {
     seasonList()
   }, [])
@@ -326,9 +356,8 @@ const _DashboardSeasonBadge: FC = () => {
         open,
         clickOutside: () => openSet(false),
         wrap: $(TopBarBadge, {
-          icon: seasonName ? undefined : 'sync-alt',
-          label: seasonName,
           tooltip: 'Seasons',
+          label: auth.season!.name,
           click: () => openSet(true),
         }),
         popup: $(Form, {
