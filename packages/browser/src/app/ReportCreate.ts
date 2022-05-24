@@ -232,7 +232,10 @@ export const ReportCreate: FC<{
                     disabled: $create.loading,
                     label: $create.loading ? 'Loading' : 'Submit',
                     click: () => {
-                      if (form.data.mvpMale === form.data.mvpFemale) {
+                      if (
+                        form.data.mvpMale &&
+                        form.data.mvpMale === form.data.mvpFemale
+                      ) {
                         const message =
                           'The male and female MVP can not be the same person.'
                         return toaster.error(message)
