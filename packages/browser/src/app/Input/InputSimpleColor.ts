@@ -30,7 +30,7 @@ export const InputSimpleColor: FC<{
         key: backgroundString,
         onClick: () => !disabled && valueSet?.(backgroundString),
         className: css({
-          width: `${(100 / 18) * 2}%`,
+          width: 40,
           height: 40,
           flexGrow: 1,
           display: 'flex',

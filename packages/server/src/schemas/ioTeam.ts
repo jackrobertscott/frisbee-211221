@@ -10,6 +10,8 @@ export const ioTeam = io.object({
   name: io.string(),
   color: io.string(),
   division: io.optional(io.number()),
+  phone: io.optional(io.string().emptyok()),
+  email: io.optional(io.string().emptyok()),
 })
 /**
  *

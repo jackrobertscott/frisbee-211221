@@ -42,6 +42,8 @@ export const $TeamCurrentUpdate = createEndpoint({
     teamId: io.string(),
     name: io.string(),
     color: io.string(),
+    phone: io.optional(io.string().emptyok()),
+    email: io.optional(io.string().emptyok()),
   }),
   result: ioTeam,
 })

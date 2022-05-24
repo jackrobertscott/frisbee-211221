@@ -1,5 +1,6 @@
 import {createElement as $, FC} from 'react'
 import {$TeamCurrentUpdate} from '../../endpoints/Team'
+import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
@@ -22,6 +23,8 @@ export const SettingsTeam: FC = () => {
   const form = useForm({
     name: '',
     color: '',
+    phone: '',
+    email: '',
     ...auth.current?.team,
   })
   return $(Form, {
@@ -41,6 +44,32 @@ export const SettingsTeam: FC = () => {
           $(InputSimpleColor, {
             value: form.data.color,
             valueSet: form.link('color'),
+          }),
+        ]),
+      }),
+      $(FormColumn, {
+        children: addkeys([
+          $(FormBadge, {
+            label: 'Public Contact Details',
+            background: theme.bgMinor,
+          }),
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {label: 'Phone'}),
+              $(InputString, {
+                value: form.data.phone,
+                valueSet: form.link('phone'),
+              }),
+            ]),
+          }),
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {label: 'Email'}),
+              $(InputString, {
+                value: form.data.email,
+                valueSet: form.link('email'),
+              }),
+            ]),
           }),
         ]),
       }),
