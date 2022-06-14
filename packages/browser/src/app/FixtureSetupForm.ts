@@ -13,6 +13,7 @@ import {FormBadge} from './Form/FormBadge'
 import {FormColumn} from './Form/FormColumn'
 import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
+import {InputBoolean} from './Input/InputBoolean'
 import {InputDate} from './Input/InputDate'
 import {InputSelect} from './Input/InputSelect'
 import {InputString} from './Input/InputString'
@@ -27,6 +28,7 @@ interface TFixtureForm {
   title: string
   date?: string
   games: Partial<TFixture['games'][number]>[]
+  grading: boolean
 }
 /**
  *
@@ -44,6 +46,7 @@ export const FixtureSetupForm: FC<{
     title: '',
     date: undefined,
     games: [],
+    grading: false,
     ..._round,
   })
   const teamsChosen = spreadify(teams).filter((i) => {
@@ -195,6 +198,25 @@ export const FixtureSetupForm: FC<{
                   }),
                 ]),
               }),
+          }),
+          $(FormColumn, {
+            children: addkeys([
+              $(FormRow, {
+                children: addkeys([
+                  $(FormLabel, {label: 'Is Grading'}),
+                  $(InputBoolean, {
+                    value: form.data.grading,
+                    valueSet: form.link('grading'),
+                  }),
+                ]),
+              }),
+              $(FormLabel, {
+                font: theme.fontMinor,
+                background: theme.bgMinor,
+                label:
+                  'The results of this fixture will not be included in the ladder.',
+              }),
+            ]),
           }),
           $(FormBadge, {
             disabled: loading,

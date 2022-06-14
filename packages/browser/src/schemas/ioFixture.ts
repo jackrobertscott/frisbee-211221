@@ -23,6 +23,7 @@ export const ioFixture = io.object({
   title: io.string(),
   date: io.date(),
   games: io.array(ioFixtureGame),
+  grading: io.optional(io.boolean()),
 })
 /**
  *

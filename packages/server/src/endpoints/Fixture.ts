@@ -54,6 +54,7 @@ export default new Map<string, RequestHandler>([
       title: io.string(),
       date: io.date(),
       games: io.array(ioFixtureGame),
+      grading: io.optional(io.boolean()),
     }),
     handler: (body) => async (req) => {
       const [user] = await requireUserAdmin(req)
@@ -74,6 +75,7 @@ export default new Map<string, RequestHandler>([
       title: io.string(),
       date: io.date(),
       games: io.array(ioFixtureGame),
+      grading: io.optional(io.boolean()),
     }),
     handler:
       ({fixtureId, ...body}) =>

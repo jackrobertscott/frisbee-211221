@@ -36,6 +36,7 @@ export const $FixtureCreate = createEndpoint({
     title: io.string(),
     date: io.date(),
     games: io.array(ioFixtureGame),
+    grading: io.optional(io.boolean()),
   }),
   result: ioFixture,
 })
@@ -49,6 +50,7 @@ export const $FixtureUpdate = createEndpoint({
     title: io.string(),
     date: io.date(),
     games: io.array(ioFixtureGame),
+    grading: io.optional(io.boolean()),
   }),
   result: ioFixture,
 })

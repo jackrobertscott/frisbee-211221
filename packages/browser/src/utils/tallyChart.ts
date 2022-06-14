@@ -38,6 +38,7 @@ const emptyChart = (teamId: string): TTallyChart => ({
 export const tallyChart = (fixtures: TFixture[]) => {
   const tally: Record<string, TTallyChart | undefined> = {}
   for (const fixture of fixtures) {
+    if (fixture.grading) continue
     for (const game of fixture.games) {
       if (!isNumber(game.team1Score) || !isNumber(game.team2Score)) continue
       const t1Tally = tally[game.team1Id] ?? emptyChart(game.team1Id)
