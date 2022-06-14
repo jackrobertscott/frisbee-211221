@@ -44,6 +44,7 @@ export const FormBadge: FC<TFormBadge> = ({
     className: css(
       {
         display: 'flex',
+        overflow: 'hidden',
         textAlign: 'center',
         justifyContent: 'center',
         flexGrow: grow ? 1 : undefined,
