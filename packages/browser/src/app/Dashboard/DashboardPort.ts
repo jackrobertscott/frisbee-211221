@@ -98,7 +98,7 @@ export const _DashboardImport: FC<{
       $('input', {
         ref,
         type: 'file',
-        accept: '.csv',
+        accept: ['.csv'],
         className: css({
           display: 'none',
         }),
