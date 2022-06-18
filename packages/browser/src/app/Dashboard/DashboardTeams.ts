@@ -77,6 +77,7 @@ export const DashboardTeams: FC = () => {
                           children:
                             auth.isAdmin() &&
                             $(FormBadge, {
+                              noshrink: true,
                               label: 'Create Team',
                               background: theme.bgAdmin,
                               click: () => creatingSet(true),

@@ -85,6 +85,7 @@ export const DashboardUsers: FC = () => {
                       }),
                     }),
                     $(FormBadge, {
+                      noshrink: true,
                       label: 'Create User',
                       background: theme.bgAdmin,
                       click: () => creatingSet(true),

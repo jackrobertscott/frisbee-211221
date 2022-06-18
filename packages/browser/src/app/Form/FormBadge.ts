@@ -18,6 +18,7 @@ export interface TFormBadge {
   background?: THSLA
   padding?: number
   grow?: boolean
+  noshrink?: boolean
   select?: 'auto' | 'text' | 'none' | 'contain' | 'all'
   style?: CSSObject
 }
@@ -35,6 +36,7 @@ export const FormBadge: FC<TFormBadge> = ({
   background: _background,
   padding,
   grow,
+  noshrink,
   select,
   style,
 }) => {
@@ -48,6 +50,7 @@ export const FormBadge: FC<TFormBadge> = ({
         textAlign: 'center',
         justifyContent: 'center',
         flexGrow: grow ? 1 : undefined,
+        flexShrink: noshrink ? 0 : undefined,
         userSelect: select ?? 'none',
         whiteSpace: 'nowrap',
         border: theme.border(),
