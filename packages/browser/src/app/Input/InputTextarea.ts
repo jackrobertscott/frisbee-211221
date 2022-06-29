@@ -33,8 +33,9 @@ export const InputTextarea: FC<{
     onKeyDown: (event: KeyboardEvent) =>
       !disabled && event.key === 'Enter' && enter?.(),
     className: css({
-      width: '100%',
       flexGrow: 1,
+      flexBasis: 0,
+      width: '100%',
       border: theme.border(),
       padding: theme.padify(theme.fib[4]),
       background: disabled ? theme.bgDisabled.string() : theme.bg.string(),
