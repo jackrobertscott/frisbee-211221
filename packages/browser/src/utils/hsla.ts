@@ -37,15 +37,9 @@ export const hsla = {
         return this.darken(15).string()
       },
       compliment() {
-        let adj = Math.abs(240 - this.h)
-        adj = Math.abs(adj) <= 60 ? adj : -Math.abs(60 - this.h) - 1
-        adj =
-          adj >= 0 && adj <= 60
-            ? (60 - adj) / 6
-            : adj <= 0 && adj >= -61
-            ? -((61 + adj) / 6) - 1
-            : 0
-        return this.l - adj <= 55 ? hsla.create(0, 0, 100) : undefined
+        return this.l + (this.h >= 210 ? -10 : 10) <= 55
+          ? hsla.create(0, 0, 100)
+          : hsla.create(0, 0, 0)
       },
     }
   },
