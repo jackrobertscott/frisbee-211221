@@ -209,6 +209,7 @@ const _DashboardFixturesView: FC<{
             ]),
           }),
           $(FormBadge, {
+            noshrink: true,
             background: theme.bgMinor,
             icon: $fixtureSnapshot.loading ? 'spinner' : 'download',
             label: $fixtureSnapshot.loading ? 'Loading' : 'Download',
