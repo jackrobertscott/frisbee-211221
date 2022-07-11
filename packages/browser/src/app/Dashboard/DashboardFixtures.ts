@@ -170,11 +170,14 @@ const _DashboardFixturesView: FC<{
             className: css({
               flexGrow: 1,
               display: 'flex',
-              justifyContent: 'space-between',
               userSelect: 'none',
+              justifyContent: 'space-between',
               border: theme.border(),
               background: theme.bgMinor.string(),
               padding: theme.padify(theme.fib[4]),
+              [theme.ltMedia(theme.fib[14])]: {
+                flexDirection: 'column',
+              },
               '&:hover': {
                 background: theme.bgMinor.hover(),
               },
