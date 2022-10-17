@@ -105,6 +105,7 @@ export const DashboardReports: FC = () => {
                     against: {label: 'Against', grow: 3},
                     spirit: {label: 'Spirit', grow: 2},
                     mvps: {label: 'MVPs', grow: 1},
+                    comment: {label: 'Comment', grow: 1.5},
                     createdOn: {label: 'Created', grow: 2},
                   },
                   body: reports.map((report) => {
@@ -138,6 +139,14 @@ export const DashboardReports: FC = () => {
                               report.mvpFemale && report.mvpMale
                                 ? 'check'
                                 : 'times',
+                          }),
+                        },
+                        comment: {
+                          children: $(FormLabel, {
+                            multiple: 0.9,
+                            icon: report.spiritComment.trim()
+                              ? 'check'
+                              : 'times',
                           }),
                         },
                         createdOn: {

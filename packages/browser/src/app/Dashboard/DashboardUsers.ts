@@ -356,6 +356,16 @@ export const _DashboardUsersView: FC<{
               }),
               $(FormRow, {
                 children: addkeys([
+                  $(FormLabel, {label: 'Id'}),
+                  $(FormLabel, {
+                    label: user.id,
+                    background: theme.bgDisabled,
+                    grow: true,
+                  }),
+                ]),
+              }),
+              $(FormRow, {
+                children: addkeys([
                   $(FormLabel, {label: 'Admin'}),
                   $(FormLabel, {
                     label: user.admin ? 'Yes' : 'No',
