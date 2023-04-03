@@ -473,7 +473,7 @@ const _DashboardReportsForm: FC<{
 const _DashboardReportsMVP: FC<{
   reports: TReport[]
 }> = ({reports}) => {
-  const calculate = () => {
+  const calcMvp = () => {
     const tally = reports.reduce((all, {mvpMale, mvpFemale}) => {
       if (mvpMale) all[mvpMale] = (all[mvpMale] ?? 0) + 1
       if (mvpFemale) all[mvpFemale] = (all[mvpFemale] ?? 0) + 1
@@ -485,10 +485,10 @@ const _DashboardReportsMVP: FC<{
       .filter(a => a.votes > 0)
   }
   const [users, usersSet] = useState<TUserPublic[]>()
-  const [usersAndVotes, usersAndVotesSet] = useState(calculate)
+  const [usersAndVotes, usersAndVotesSet] = useState(calcMvp)
   const $userList = useEndpoint($UserListManyById)
   useEffect(() => {
-    usersAndVotesSet(calculate)
+    usersAndVotesSet(calcMvp)
   }, [reports])
   useEffect(() => {
     if (usersAndVotes.length)
