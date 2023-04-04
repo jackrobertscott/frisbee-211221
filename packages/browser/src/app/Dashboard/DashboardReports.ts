@@ -475,51 +475,96 @@ const _DashboardReportsMVP: FC<{
 }> = ({reports}) => {
   const calcMvp = () => {
     const tally = reports.reduce((all, {mvpMale, mvpFemale}) => {
-      if (mvpMale) all[mvpMale] = (all[mvpMale] ?? 0) + 1
-      if (mvpFemale) all[mvpFemale] = (all[mvpFemale] ?? 0) + 1
+      if (mvpMale) {
+        all[mvpMale] ??= [0, 0]
+        all[mvpMale][0] = all[mvpMale][0] + 1
+      }
+      if (mvpFemale) {
+        all[mvpFemale] ??= [0, 0]
+        all[mvpFemale][1] = all[mvpFemale][1] + 1
+      }
       return all
-    }, {} as Record<string, number>)
+    }, {} as Record<string, number[]>)
     return Object.keys(tally)
-      .map((i) => ({userId: i, votes: tally[i]}))
+      .map((i) => ({
+        userId: i,
+        votes: tally[i][0] + tally[i][1],
+        gender: tally[i][0] > tally[i][1] ? 0 : 1,
+      }))
       .sort((a, b) => b.votes - a.votes)
-      .filter(a => a.votes > 0)
+      .filter((a) => a.votes > 0)
   }
   const [users, usersSet] = useState<TUserPublic[]>()
-  const [usersAndVotes, usersAndVotesSet] = useState(calcMvp)
+  const [userIdsAndVotes, usersAndVotesSet] = useState(calcMvp)
   const $userList = useEndpoint($UserListManyById)
   useEffect(() => {
     usersAndVotesSet(calcMvp)
   }, [reports])
   useEffect(() => {
-    if (usersAndVotes.length)
+    if (userIdsAndVotes.length)
       $userList
-        .fetch({userIds: usersAndVotes.map((i) => i.userId)})
+        .fetch({userIds: userIdsAndVotes.map((i) => i.userId)})
         .then(usersSet)
-  }, [usersAndVotes.map((i) => i.userId).join()])
-  return $(FormColumn, {
-    grow: true,
+  }, [userIdsAndVotes.map((i) => i.userId).join()])
+  const usersAndVotes = userIdsAndVotes.map((i) => ({
+    ...i,
+    user: users?.find((j) => j.id === i.userId),
+  }))
+  return $('div', {
+    className: css({
+      flexGrow: 1,
+      '& > *:not(:last-child)': {marginBottom: theme.fib[5]},
+    }),
     children: addkeys([
-      $(FormBadge, {
-        label: 'MVP Scores',
-        background: theme.bgMinor,
-      }),
-      $(Table, {
-        head: {
-          user: {label: 'User', grow: 2},
-          votes: {label: 'Votes', grow: 1},
-        },
-        body: usersAndVotes.map(({userId, votes}) => {
-          const user = users?.find((i) => i.id === userId)
-          return {
-            key: userId,
-            data: {
-              user: {
-                value: user ? `${user.firstName} ${user.lastName}` : userId,
-              },
-              votes: {value: votes},
+      $(FormColumn, {
+        children: addkeys([
+          $(FormBadge, {
+            label: 'Male MVP Votes',
+            background: theme.bgMinor,
+          }),
+          $(Table, {
+            head: {
+              user: {label: 'User', grow: 2},
+              votes: {label: 'Votes', grow: 1},
             },
-          }
-        }),
+            body: usersAndVotes
+              .filter((i) => i.gender === 0)
+              .map(({user, userId, votes}) => {
+                const label = user
+                  ? `${user.firstName} ${user.lastName}`
+                  : userId
+                return {
+                  key: userId,
+                  data: {user: {value: label}, votes: {value: votes}},
+                }
+              }),
+          }),
+        ]),
+      }),
+      $(FormColumn, {
+        children: addkeys([
+          $(FormBadge, {
+            label: 'Female MVP Votes',
+            background: theme.bgMinor,
+          }),
+          $(Table, {
+            head: {
+              user: {label: 'User', grow: 2},
+              votes: {label: 'Votes', grow: 1},
+            },
+            body: usersAndVotes
+              .filter((i) => i.gender === 1)
+              .map(({user, userId, votes}) => {
+                const label = user
+                  ? `${user.firstName} ${user.lastName}`
+                  : userId
+                return {
+                  key: userId,
+                  data: {user: {value: label}, votes: {value: votes}},
+                }
+              }),
+          }),
+        ]),
       }),
     ]),
   })
