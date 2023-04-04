@@ -1,6 +1,6 @@
-import config from '../config'
 import {json, RequestHandler} from 'micro'
 import {TioAll, TioValue} from 'torva'
+import config from '../config'
 /**
  *
  */
@@ -22,9 +22,10 @@ export const createEndpoint = <P extends TioAll>({
     async (req, res) => {
       if (!unsafe && req.headers.origin !== config.urlClient)
         throw new Error('Request origin not valid.')
-      const body: {payload?: any} = multipart ? {} : await json(req)
+      const body: any = multipart ? {} : await json(req)
       let result: any
       if (payload) {
+        if (!('payload' in body)) throw new Error('Body missing payload.')
         const data = payload.validate(body.payload)
         if (!data.ok) {
           console.log(data)

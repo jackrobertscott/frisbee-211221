@@ -7,6 +7,7 @@ export const radio = {
    *
    */
   async send(path: string, payload?: any, token?: string) {
+    if (!config.urlServer) throw new Error('Server url not set in config.')
     return fetch(`${config.urlServer}${path}`, {
       method: 'POST',
       body: JSON.stringify({

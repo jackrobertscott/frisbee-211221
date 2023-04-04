@@ -1,4 +1,5 @@
 import {RequestHandler} from 'micro'
+import config from '../config'
 /**
  *
  */
@@ -9,7 +10,7 @@ export interface ICorsOptions {
 /**
  *
  */
-export default (options: ICorsOptions = {}) => {
+export default (options: ICorsOptions = {origin: config.urlClient}) => {
   /**
    *
    */

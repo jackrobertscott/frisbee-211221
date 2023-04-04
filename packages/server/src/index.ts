@@ -1,9 +1,10 @@
-import micro, {RequestHandler} from 'micro'
-import cors from './utils/cors'
-import capture from './utils/capture'
-import prerequest from './utils/prerequest'
+import http from 'http'
+import {RequestHandler, serve as microServe} from 'micro'
 import config from './config'
 import endpoints from './endpoints'
+import capture from './utils/capture'
+import cors from './utils/cors'
+import prerequest from './utils/prerequest'
 /**
  *
  */
@@ -14,11 +15,15 @@ const handler: RequestHandler = async (req, res) => {
     return (await endpoints.get(req.url)!(req, res)) ?? null
   throw new Error(`Url ${req.url} is not supported.`)
 }
-const $ = cors({
-  origin: config.urlClient,
-})(capture.handle(prerequest(handler)))
-micro($).listen(config.port, () => {
-  console.log(`1️⃣  Server: http://localhost:${config.port}`)
-  console.log(`2️⃣  Environment: ${config.env}`)
-  console.log(`3️⃣  Debug: ${config.debug ? 'on' : 'off'}`)
+/**
+ *
+ */
+const server = new http.Server(
+  microServe(cors()(capture.handle(prerequest(handler))))
+)
+/**
+ *
+ */
+server.listen(config.port, () => {
+  console.log(`Listening: http://localhost:${config.port}`)
 })

@@ -1,7 +1,7 @@
 import {Document, Filter, FindOptions, WithId} from 'mongodb'
-import {TioValue, TioAll} from 'torva'
-import {Simplify} from './types'
+import {TioAll, TioValue} from 'torva'
 import mongo from './mongo'
+import {Simplify} from './types'
 /**
  *
  */
@@ -52,7 +52,7 @@ export const db = {
           query as Filter<Document>,
           queryOptions as FindOptions
         )
-        return result ? this._clean(result as WithId<V>) : undefined
+        return result ? this._clean(result as any) : undefined
       },
       /**
        *
@@ -78,7 +78,7 @@ export const db = {
           chain = chain.sort(i[0], i[1])
         }
         const result = await chain.toArray()
-        return result.map((i) => this._clean(i as WithId<V>))
+        return result.map((i) => this._clean(i as any))
       },
       /**
        *
@@ -91,7 +91,7 @@ export const db = {
         if (!i.ok) throw i.error
         const collection = await mongo.collection(options.key)
         const result = await collection.insertOne(i.value)
-        return this.getOne({_id: result.insertedId})
+        return this.getOne({_id: result.insertedId} as any)
       },
       /**
        *
