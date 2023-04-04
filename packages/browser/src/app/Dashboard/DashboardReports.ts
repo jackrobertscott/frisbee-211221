@@ -166,20 +166,12 @@ export const DashboardReports: FC = () => {
                     teams !== undefined &&
                     $('div', {
                       className: css({
-                        display: 'flex',
                         borderTop: `${theme.borderWidth}px dashed ${hsla
                           .create(0, 0, 0, 0.25)
                           .string()}`,
                         paddingTop: theme.fib[5],
                         '& > *:not(:last-child)': {
-                          marginRight: theme.fib[5],
-                        },
-                        [theme.ltMedia(theme.fib[14])]: {
-                          flexDirection: 'column',
-                          '& > *:not(:last-child)': {
-                            marginBottom: theme.fib[5],
-                            marginRight: 0,
-                          },
+                          marginBottom: theme.fib[5],
                         },
                       }),
                       children: addkeys([
@@ -513,10 +505,19 @@ const _DashboardReportsMVP: FC<{
   return $('div', {
     className: css({
       flexGrow: 1,
-      '& > *:not(:last-child)': {marginBottom: theme.fib[5]},
+      display: 'flex',
+      '& > *:not(:last-child)': {marginRight: theme.fib[5]},
+      [theme.ltMedia(theme.fib[14])]: {
+        flexDirection: 'column',
+        '& > *:not(:last-child)': {
+          marginBottom: theme.fib[5],
+          marginRight: 0,
+        },
+      },
     }),
     children: addkeys([
       $(FormColumn, {
+        grow: true,
         children: addkeys([
           $(FormBadge, {
             label: 'Male MVP Votes',
@@ -542,6 +543,7 @@ const _DashboardReportsMVP: FC<{
         ]),
       }),
       $(FormColumn, {
+        grow: true,
         children: addkeys([
           $(FormBadge, {
             label: 'Female MVP Votes',
