@@ -1,14 +1,13 @@
-import puppeteer from 'puppeteer'
 import {RequestHandler} from 'micro'
+import puppeteer from 'puppeteer'
 import {io} from 'torva'
 import config from '../config'
-import {$Fixture} from '../tables/$Fixture'
-import {createEndpoint} from '../utils/endpoints'
-import {requireUser} from './requireUser'
-import {requireUserAdmin} from './requireUserAdmin'
-import {$Season} from '../tables/$Season'
 import {ioFixtureGame} from '../schemas/ioFixture'
+import {$Fixture} from '../tables/$Fixture'
+import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
+import {createEndpoint} from '../utils/endpoints'
+import {requireUserAdmin} from './requireUserAdmin'
 /**
  *
  */
@@ -124,7 +123,10 @@ export default new Map<string, RequestHandler>([
  *
  */
 const _fixtureScreenshot = async (fixtureId: string) => {
-  const browser = await puppeteer.launch()
+  const browser = await puppeteer.launch({
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    args: ['--no-sandbox'],
+  })
   const page = await browser.newPage()
   await page.setViewport({width: 987, height: 987})
   await page.goto(`${config.urlClient}/?fixtureId=${fixtureId}`, {
