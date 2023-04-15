@@ -57,27 +57,10 @@ export const Dashboard: FC = () => {
         children: addkeys([
           $('div', {
             className: css({
-              position: 'relative',
-              marginRight: 'auto',
-              marginLeft: theme.fib[6],
-              marginBottom: -theme.fib[5],
-            }),
-            children: $('img', {
-              src: faceofwillPng,
-              className: css({
-                height: theme.fib[9],
-                rotate: '-15deg',
-              }),
-            }),
-          }),
-          $('div', {
-            className: css({
               display: 'flex',
               flexDirection: 'column',
               maxWidth: '100%',
               width: theme.fib[14] + theme.fib[10],
-              border: theme.border(),
-              background: theme.bg.string(),
               [theme.ltMedia(bpSmall)]: {
                 flexGrow: 1,
                 overflowY: 'auto',
@@ -85,25 +68,47 @@ export const Dashboard: FC = () => {
               },
             }),
             children: addkeys([
-              $(TopBar, {
-                children: addkeys([
-                  $(Fragment, {
-                    children: isSmall
-                      ? addkeys([
-                          $(TopBarBadge, {
-                            icon: 'bars',
-                            click: () => openSet(true),
-                          }),
-                          $(TopBarBadge, {grow: true}),
-                        ])
-                      : $(TopBarBadge, {
-                          grow: true,
-                          label: 'Marlow Street',
-                        }),
+              $('div', {
+                className: css({
+                  position: 'relative',
+                  marginRight: 'auto',
+                  marginLeft: theme.fib[6],
+                  marginBottom: -theme.fib[5],
+                  marginTop: -theme.fib[3],
+                }),
+                children: $('img', {
+                  src: faceofwillPng,
+                  className: css({
+                    height: theme.fib[9],
+                    rotate: '-15deg',
                   }),
-                  $(Fragment, {
-                    children:
-                      media.width >= theme.fib[13] &&
+                }),
+              }),
+              $('div', {
+                className: css({
+                  flexGrow: 1,
+                  flexDirection: 'column',
+                  display: 'flex',
+                  border: theme.border(),
+                  background: theme.bg.string(),
+                }),
+                children: addkeys([
+                  $(TopBar, {
+                    children: addkeys([
+                      $(Fragment, {
+                        children: isSmall
+                          ? addkeys([
+                              $(TopBarBadge, {
+                                icon: 'bars',
+                                click: () => openSet(true),
+                              }),
+                              $(TopBarBadge, {grow: true}),
+                            ])
+                          : $(TopBarBadge, {
+                              grow: true,
+                              label: 'Marlow Street',
+                            }),
+                      }),
                       $(Fragment, {
                         children: auth.current
                           ? auth.current.team
@@ -122,171 +127,172 @@ export const Dashboard: FC = () => {
                               click: () => go.to('/auth/welcome'),
                             }),
                       }),
+                      $(_DashboardSeasonBadge),
+                      $(Fragment, {
+                        children:
+                          auth.current &&
+                          addkeys([
+                            $(TopBarBadge, {
+                              icon: 'cog',
+                              tooltip: 'Settings',
+                              click: () => settingsSet(true),
+                            }),
+                            $(TopBarBadge, {
+                              icon: 'power-off',
+                              tooltip: 'Logout',
+                              click: () => logoutSet(true),
+                            }),
+                          ]),
+                      }),
+                    ]),
                   }),
-                  $(_DashboardSeasonBadge),
-                  $(Fragment, {
-                    children:
-                      auth.current &&
+                  $(Router, {
+                    fallback: '/fixtures',
+                    routes: [
+                      {
+                        path: '/fixtures',
+                        label: 'Fixtures',
+                        render: () => $(DashboardFixtures),
+                      },
+                      {
+                        path: '/ladder',
+                        label: 'Ladder',
+                        render: () => $(DashboardLadder),
+                      },
+                      {
+                        path: '/forum',
+                        label: 'Forum',
+                        render: () => $(DashboardForum),
+                      },
+                      {
+                        path: '/teams',
+                        label: 'Teams',
+                        render: () => $(DashboardTeams),
+                      },
+                      auth.isAdmin() && {
+                        path: '/users',
+                        label: 'Users',
+                        render: () => $(DashboardUsers),
+                      },
+                      auth.isAdmin() && {
+                        path: '/reports',
+                        label: 'Reports',
+                        render: () => $(DashboardReports),
+                      },
+                      auth.isAdmin() && {
+                        path: '/port',
+                        label: 'Port',
+                        render: () => $(DashboardPort),
+                      },
+                    ],
+                    render: (children, context) =>
                       addkeys([
-                        $(TopBarBadge, {
-                          icon: 'cog',
-                          tooltip: 'Settings',
-                          click: () => settingsSet(true),
+                        $(Fragment, {
+                          children:
+                            (open || !isSmall) &&
+                            $(MenuBarShadow, {
+                              click: () => openSet(false),
+                              deactivated: !isSmall,
+                              children: $(MenuBar, {
+                                horizon: !isSmall,
+                                bordered: isSmall,
+                                children: addkeys([
+                                  $(Fragment, {
+                                    children:
+                                      isSmall &&
+                                      $(MenuBarOption, {
+                                        label: 'Menu',
+                                        background: theme.bg,
+                                        font: theme.font,
+                                      }),
+                                  }),
+                                  $(Fragment, {
+                                    children: context.routes.map((route) => {
+                                      return $(MenuBarOption, {
+                                        key: route.path,
+                                        label: route.label ?? '?',
+                                        click: () => {
+                                          go.to(route.path)
+                                          if (open) openSet(false)
+                                        },
+                                        active:
+                                          route.path === context.current?.path,
+                                      })
+                                    }),
+                                  }),
+                                  $(Fragment, {
+                                    children: !isSmall && $(MenuBarSpacer),
+                                  }),
+                                  $(Fragment, {
+                                    children: $(MenuBarOption, {
+                                      label: 'Submit Score Report',
+                                      font: theme.bgHighlight.compliment(),
+                                      background: theme.bgHighlight,
+                                      click: () => {
+                                        if (auth.current) {
+                                          if (auth.current.team) {
+                                            reportingSet(true)
+                                            openSet(false)
+                                          } else {
+                                            const message =
+                                              'Please join a team to submit a score report.'
+                                            toaster.notify(message)
+                                            teamSetupSet(true)
+                                          }
+                                        } else {
+                                          const message =
+                                            'Please sign in to submit a score report.'
+                                          toaster.notify(message)
+                                          go.to('/auth')
+                                        }
+                                      },
+                                    }),
+                                  }),
+                                  $(Fragment, {
+                                    children: isSmall && $(MenuBarSpacer),
+                                  }),
+                                ]),
+                              }),
+                            }),
                         }),
-                        $(TopBarBadge, {
-                          icon: 'power-off',
-                          tooltip: 'Logout',
-                          click: () => logoutSet(true),
+                        $('div', {
+                          className: css({
+                            display: 'flex',
+                            flexDirection: 'column',
+                            flexGrow: 1,
+                            [theme.ltMedia(bpSmall)]: {
+                              overflow: 'auto',
+                            },
+                            '& > *': {
+                              animation: `150ms linear ${fadein}`,
+                            },
+                          }),
+                          children: addkeys([
+                            $(Fragment, {children}),
+                            $(Fragment, {
+                              children:
+                                media.width < bpSmall &&
+                                $('div', {
+                                  children: $(_DashboardFooter),
+                                  className: css({
+                                    width: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center',
+                                    padding: theme.fib[6],
+                                    background: theme.bgDisabled.string(),
+                                    borderTop: theme.border(),
+                                    '& > *:not(:last-child)': {
+                                      marginBottom: theme.fib[5],
+                                    },
+                                  }),
+                                }),
+                            }),
+                          ]),
                         }),
                       ]),
                   }),
                 ]),
-              }),
-              $(Router, {
-                fallback: '/fixtures',
-                routes: [
-                  {
-                    path: '/fixtures',
-                    label: 'Fixtures',
-                    render: () => $(DashboardFixtures),
-                  },
-                  {
-                    path: '/ladder',
-                    label: 'Ladder',
-                    render: () => $(DashboardLadder),
-                  },
-                  {
-                    path: '/forum',
-                    label: 'Forum',
-                    render: () => $(DashboardForum),
-                  },
-                  {
-                    path: '/teams',
-                    label: 'Teams',
-                    render: () => $(DashboardTeams),
-                  },
-                  auth.isAdmin() && {
-                    path: '/users',
-                    label: 'Users',
-                    render: () => $(DashboardUsers),
-                  },
-                  auth.isAdmin() && {
-                    path: '/reports',
-                    label: 'Reports',
-                    render: () => $(DashboardReports),
-                  },
-                  auth.isAdmin() && {
-                    path: '/port',
-                    label: 'Port',
-                    render: () => $(DashboardPort),
-                  },
-                ],
-                render: (children, context) =>
-                  addkeys([
-                    $(Fragment, {
-                      children:
-                        (open || !isSmall) &&
-                        $(MenuBarShadow, {
-                          click: () => openSet(false),
-                          deactivated: !isSmall,
-                          children: $(MenuBar, {
-                            horizon: !isSmall,
-                            bordered: isSmall,
-                            children: addkeys([
-                              $(Fragment, {
-                                children:
-                                  isSmall &&
-                                  $(MenuBarOption, {
-                                    label: 'Menu',
-                                    background: theme.bg,
-                                    font: theme.font,
-                                  }),
-                              }),
-                              $(Fragment, {
-                                children: context.routes.map((route) => {
-                                  return $(MenuBarOption, {
-                                    key: route.path,
-                                    label: route.label ?? '?',
-                                    click: () => {
-                                      go.to(route.path)
-                                      if (open) openSet(false)
-                                    },
-                                    active:
-                                      route.path === context.current?.path,
-                                  })
-                                }),
-                              }),
-                              $(Fragment, {
-                                children: !isSmall && $(MenuBarSpacer),
-                              }),
-                              $(Fragment, {
-                                children: $(MenuBarOption, {
-                                  label: 'Submit Score Report',
-                                  font: theme.bgHighlight.compliment(),
-                                  background: theme.bgHighlight,
-                                  click: () => {
-                                    if (auth.current) {
-                                      if (auth.current.team) {
-                                        reportingSet(true)
-                                        openSet(false)
-                                      } else {
-                                        const message =
-                                          'Please join a team to submit a score report.'
-                                        toaster.notify(message)
-                                        teamSetupSet(true)
-                                      }
-                                    } else {
-                                      const message =
-                                        'Please sign in to submit a score report.'
-                                      toaster.notify(message)
-                                      go.to('/auth')
-                                    }
-                                  },
-                                }),
-                              }),
-                              $(Fragment, {
-                                children: isSmall && $(MenuBarSpacer),
-                              }),
-                            ]),
-                          }),
-                        }),
-                    }),
-                    $('div', {
-                      children: addkeys([
-                        $(Fragment, {children}),
-                        $(Fragment, {
-                          children:
-                            media.width < bpSmall &&
-                            $('div', {
-                              children: $(_DashboardFooter),
-                              className: css({
-                                width: '100%',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'center',
-                                padding: theme.fib[6],
-                                background: theme.bgDisabled.string(),
-                                borderTop: theme.border(),
-                                '& > *:not(:last-child)': {
-                                  marginBottom: theme.fib[5],
-                                },
-                              }),
-                            }),
-                        }),
-                      ]),
-                      className: css({
-                        flexGrow: 1,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        [theme.ltMedia(bpSmall)]: {
-                          overflow: 'auto',
-                        },
-                        '& > *': {
-                          animation: `150ms linear ${fadein}`,
-                        },
-                      }),
-                    }),
-                  ]),
               }),
             ]),
           }),
