@@ -1,39 +1,40 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
+import faceofwillPng from '../../assets/faceofwill.png'
+import {$SeasonList} from '../../endpoints/Season'
 import {TSeason} from '../../schemas/ioSeason'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
+import {hsla} from '../../utils/hsla'
+import {fadein} from '../../utils/keyframes'
 import {spreadify} from '../../utils/spreadify'
 import {useAuth} from '../Auth/useAuth'
 import {Center} from '../Center'
 import {Form} from '../Form/Form'
+import {FormBadge} from '../Form/FormBadge'
+import {FormMenu} from '../Form/FormMenu'
+import {Link} from '../Link'
+import {useMedia} from '../Media/useMedia'
+import {MenuBar, MenuBarOption, MenuBarShadow, MenuBarSpacer} from '../MenuBar'
 import {Modal} from '../Modal'
 import {Popup} from '../Popup'
 import {Question} from '../Question'
 import {ReportCreate} from '../ReportCreate'
+import {Router} from '../Router/Router'
 import {SeasonCreate} from '../SeasonCreate'
 import {Settings} from '../Settings/Settings'
+import {TeamSetup} from '../TeamSetup'
 import {useToaster} from '../Toaster/useToaster'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
-import {FormMenu} from '../Form/FormMenu'
-import {FormBadge} from '../Form/FormBadge'
-import {hsla} from '../../utils/hsla'
-import {fadein} from '../../utils/keyframes'
+import {DashboardFixtures} from './DashboardFixtures'
 import {DashboardForum} from './DashboardForum'
 import {DashboardLadder} from './DashboardLadder'
-import {DashboardFixtures} from './DashboardFixtures'
+import {DashboardPort} from './DashboardPort'
+import {DashboardReports} from './DashboardReports'
 import {DashboardTeams} from './DashboardTeams'
 import {DashboardUsers} from './DashboardUsers'
-import {useMedia} from '../Media/useMedia'
-import {MenuBar, MenuBarOption, MenuBarShadow, MenuBarSpacer} from '../MenuBar'
-import {Router} from '../Router/Router'
-import {DashboardReports} from './DashboardReports'
-import {TeamSetup} from '../TeamSetup'
-import {DashboardPort} from './DashboardPort'
-import {Link} from '../Link'
-import {$SeasonList} from '../../endpoints/Season'
 /**
  *
  */
@@ -54,6 +55,21 @@ export const Dashboard: FC = () => {
         padding: isSmall ? 0 : theme.fib[6],
         breakpoint: bpSmall,
         children: addkeys([
+          $('div', {
+            className: css({
+              position: 'relative',
+              marginRight: 'auto',
+              marginLeft: theme.fib[6],
+              marginBottom: -theme.fib[5],
+            }),
+            children: $('img', {
+              src: faceofwillPng,
+              className: css({
+                height: theme.fib[9],
+                rotate: '-15deg',
+              }),
+            }),
+          }),
           $('div', {
             className: css({
               display: 'flex',
