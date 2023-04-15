@@ -12,20 +12,20 @@ import {TFixture} from '../../schemas/ioFixture'
 import {TTeam} from '../../schemas/ioTeam'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
+import {download} from '../../utils/download'
+import {initials} from '../../utils/initials'
 import {useAuth} from '../Auth/useAuth'
+import {FixtureSetupForm} from '../FixtureSetupForm'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
+import {FormColumn} from '../Form/FormColumn'
+import {FormRow} from '../Form/FormRow'
 import {Icon} from '../Icon'
-import {FixtureSetupForm} from '../FixtureSetupForm'
+import {useMedia} from '../Media/useMedia'
 import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useEndpoint} from '../useEndpoint'
 import {useLocalState} from '../useLocalState'
-import {FormColumn} from '../Form/FormColumn'
-import {useMedia} from '../Media/useMedia'
-import {initials} from '../../utils/initials'
-import {FormRow} from '../Form/FormRow'
-import {download} from '../../utils/download'
 /**
  *
  */
@@ -214,8 +214,8 @@ const _DashboardFixturesView: FC<{
           $(FormBadge, {
             noshrink: true,
             background: theme.bgMinor,
-            icon: $fixtureSnapshot.loading ? 'spinner' : 'download',
-            label: $fixtureSnapshot.loading ? 'Loading' : 'Download',
+            icon: $fixtureSnapshot.loading ? 'spinner' : 'camera',
+            label: $fixtureSnapshot.loading ? 'Loading' : 'Save Screenshot',
             click: () =>
               !$fixtureSnapshot.loading &&
               $fixtureSnapshot.fetch({fixtureId: fixture.id}).then((blob) => {

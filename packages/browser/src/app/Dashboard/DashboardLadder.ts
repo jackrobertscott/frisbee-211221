@@ -274,7 +274,7 @@ const _LadderDivision: FC<{
       }),
       $(Table, {
         head: {
-          name: {label: 'Name', grow: 4},
+          name: {label: 'Name', grow: 5},
           games: {label: 'Games', grow: 1.35},
           points: {label: 'Points', grow: 1.2},
           wins: {label: 'Wins', grow: 1.05},
