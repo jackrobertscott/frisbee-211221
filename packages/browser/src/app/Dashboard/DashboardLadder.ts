@@ -7,20 +7,20 @@ import {TFixture} from '../../schemas/ioFixture'
 import {TTeam} from '../../schemas/ioTeam'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
-import {tallyChart, TTallyChart} from '../../utils/tallyChart'
+import {initials} from '../../utils/initials'
+import {TTallyChart, tallyChart} from '../../utils/tallyChart'
 import {useAuth} from '../Auth/useAuth'
+import {FixtureTallyForm} from '../FixtureTallyForm'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
+import {FormColumn} from '../Form/FormColumn'
+import {FormLabel} from '../Form/FormLabel'
+import {Graph} from '../Graph'
 import {Icon} from '../Icon'
-import {FixtureTallyForm} from '../FixtureTallyForm'
+import {useMedia} from '../Media/useMedia'
 import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useEndpoint} from '../useEndpoint'
-import {FormColumn} from '../Form/FormColumn'
-import {useMedia} from '../Media/useMedia'
-import {initials} from '../../utils/initials'
-import {Graph} from '../Graph'
-import {FormLabel} from '../Form/FormLabel'
 /**
  *
  */
@@ -274,17 +274,17 @@ const _LadderDivision: FC<{
       }),
       $(Table, {
         head: {
-          name: {label: 'Name', grow: 5},
-          games: {label: 'Games', grow: 1.2},
+          name: {label: 'Name', grow: 4},
+          games: {label: 'Games', grow: 1.35},
           points: {label: 'Points', grow: 1.2},
-          wins: {label: 'Wins', grow: 1.2},
-          loses: {label: 'Loses', grow: 1.2},
+          wins: {label: 'Wins', grow: 1.05},
+          loses: {label: 'Loses', grow: 1.15},
           draws: {label: 'Draws', grow: 1.2},
-          ratio: {label: 'Ratio', grow: 1.2},
-          for: {label: 'For', grow: 1.2},
-          against: {label: 'Agnst', grow: 1.2},
+          ratio: {label: 'Ratio', grow: 1.05},
+          for: {label: 'For', grow: 1},
+          against: {label: 'Agnst', grow: 1.15},
           aveFor: {label: 'Av.For', grow: 1.2},
-          aveAgainst: {label: 'Av.Agt', grow: 1.2},
+          aveAgainst: {label: 'Av.Agt', grow: 1.25},
         },
         body: teams
           .sort((a, b) => {
