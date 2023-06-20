@@ -498,10 +498,18 @@ const _DashboardReportsMVP: FC<{
         .fetch({userIds: userIdsAndVotes.map((i) => i.userId)})
         .then(usersSet)
   }, [userIdsAndVotes.map((i) => i.userId).join()])
-  const usersAndVotes = userIdsAndVotes.map((i) => ({
-    ...i,
-    user: users?.find((j) => j.id === i.userId),
-  }))
+  const usersAndVotes = userIdsAndVotes.map(({userId, votes, gender}) => {
+    const user = users?.find((j) => j.id === userId)
+    return {
+      key: userId,
+      gender:
+        user?.gender === 'male' ? 0 : user?.gender === 'female' ? 1 : gender,
+      data: {
+        user: {value: user ? `${user.firstName} ${user.lastName}` : userId},
+        votes: {value: votes},
+      },
+    }
+  })
   return $('div', {
     className: css({
       flexGrow: 1,
@@ -528,17 +536,7 @@ const _DashboardReportsMVP: FC<{
               user: {label: 'User', grow: 2},
               votes: {label: 'Votes', grow: 1},
             },
-            body: usersAndVotes
-              .filter((i) => i.gender === 0)
-              .map(({user, userId, votes}) => {
-                const label = user
-                  ? `${user.firstName} ${user.lastName}`
-                  : userId
-                return {
-                  key: userId,
-                  data: {user: {value: label}, votes: {value: votes}},
-                }
-              }),
+            body: usersAndVotes.filter((i) => i.gender === 0),
           }),
         ]),
       }),
@@ -554,17 +552,7 @@ const _DashboardReportsMVP: FC<{
               user: {label: 'User', grow: 2},
               votes: {label: 'Votes', grow: 1},
             },
-            body: usersAndVotes
-              .filter((i) => i.gender === 1)
-              .map(({user, userId, votes}) => {
-                const label = user
-                  ? `${user.firstName} ${user.lastName}`
-                  : userId
-                return {
-                  key: userId,
-                  data: {user: {value: label}, votes: {value: votes}},
-                }
-              }),
+            body: usersAndVotes.filter((i) => i.gender === 1),
           }),
         ]),
       }),
