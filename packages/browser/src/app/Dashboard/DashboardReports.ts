@@ -498,18 +498,24 @@ const _DashboardReportsMVP: FC<{
         .fetch({userIds: userIdsAndVotes.map((i) => i.userId)})
         .then(usersSet)
   }, [userIdsAndVotes.map((i) => i.userId).join()])
-  const usersAndVotes = userIdsAndVotes.map(({userId, votes, gender}) => {
-    const user = users?.find((j) => j.id === userId)
-    return {
-      key: userId,
-      gender:
-        user?.gender === 'male' ? 0 : user?.gender === 'female' ? 1 : gender,
-      data: {
-        user: {value: user ? `${user.firstName} ${user.lastName}` : userId},
-        votes: {value: votes},
-      },
-    }
-  })
+  const usersAndVotes = userIdsAndVotes
+    .map(({userId, votes, gender}) => {
+      const user = users?.find((j) => j.id === userId)
+      return {
+        key: userId,
+        gender:
+          user?.gender === 'male' ? 0 : user?.gender === 'female' ? 1 : gender,
+        data: {
+          user: {value: user ? `${user.firstName} ${user.lastName}` : userId},
+          votes: {value: votes},
+        },
+      }
+    })
+    .sort((a, b) => {
+      const diff = b.data.votes.value - a.data.votes.value
+      if (diff !== 0) return diff
+      return a.data.user.value.localeCompare(b.data.user.value)
+    })
   return $('div', {
     className: css({
       flexGrow: 1,
