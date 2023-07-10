@@ -33,6 +33,7 @@ import {DashboardForum} from './DashboardForum'
 import {DashboardLadder} from './DashboardLadder'
 import {DashboardPort} from './DashboardPort'
 import {DashboardReports} from './DashboardReports'
+import {DashboardShop} from './DashboardShop'
 import {DashboardTeams} from './DashboardTeams'
 import {DashboardUsers} from './DashboardUsers'
 /**
@@ -160,6 +161,11 @@ export const Dashboard: FC = () => {
                         render: () => $(DashboardLadder),
                       },
                       {
+                        path: '/shop',
+                        label: 'Shop',
+                        render: () => $(DashboardShop),
+                      },
+                      {
                         path: '/forum',
                         label: 'Forum',
                         render: () => $(DashboardForum),
@@ -275,10 +281,10 @@ export const Dashboard: FC = () => {
                                 $('div', {
                                   children: $(_DashboardFooter),
                                   className: css({
+                                    flexGrow: 1,
                                     width: '100%',
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    justifyContent: 'center',
                                     padding: theme.fib[6],
                                     background: theme.bgDisabled.string(),
                                     borderTop: theme.border(),
