@@ -29,11 +29,9 @@ import {useToaster} from '../Toaster/useToaster'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {DashboardFixtures} from './DashboardFixtures'
-import {DashboardForum} from './DashboardForum'
 import {DashboardLadder} from './DashboardLadder'
 import {DashboardPort} from './DashboardPort'
 import {DashboardReports} from './DashboardReports'
-import {DashboardShop} from './DashboardShop'
 import {DashboardTeams} from './DashboardTeams'
 import {DashboardUsers} from './DashboardUsers'
 /**
@@ -160,16 +158,11 @@ export const Dashboard: FC = () => {
                         label: 'Ladder',
                         render: () => $(DashboardLadder),
                       },
-                      {
-                        path: '/shop',
-                        label: 'Shop',
-                        render: () => $(DashboardShop),
-                      },
-                      {
-                        path: '/forum',
-                        label: 'Forum',
-                        render: () => $(DashboardForum),
-                      },
+                      // {
+                      //   path: '/forum',
+                      //   label: 'Forum',
+                      //   render: () => $(DashboardForum),
+                      // },
                       {
                         path: '/teams',
                         label: 'Teams',
@@ -225,6 +218,12 @@ export const Dashboard: FC = () => {
                                           route.path === context.current?.path,
                                       })
                                     }),
+                                  }),
+                                  $(MenuBarOption, {
+                                    label: 'Shop',
+                                    click: () =>
+                                      (window.location.href =
+                                        'https://marlow-street-ultimate.square.site/s/shop?fbclid=IwAR21rulDg_KiLtXACWJmW1bm08W0xoVqRHLie3L12-bg0_0Rtqu8ObB2LDs'),
                                   }),
                                   $(Fragment, {
                                     children: !isSmall && $(MenuBarSpacer),
