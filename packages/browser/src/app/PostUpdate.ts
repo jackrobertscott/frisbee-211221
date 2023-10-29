@@ -1,6 +1,6 @@
 import {createElement as $, FC} from 'react'
-import {TPost} from '../../../shared/src/schemas/ioPost'
 import {$PostUpdate} from '../endpoints/Post'
+import {TPost} from '../schemas/ioPost'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {Form} from './Form/Form'

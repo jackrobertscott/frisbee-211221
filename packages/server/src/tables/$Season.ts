@@ -1,4 +1,4 @@
-import {ioSeason} from '../../../shared/src/schemas/ioSeason'
+import {ioSeason} from '../schemas/ioSeason'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
 /**

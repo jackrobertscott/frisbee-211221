@@ -1,6 +1,6 @@
 import {RequestHandler} from 'micro'
 import {io} from 'torva'
-import {TMember} from '../../../shared/src/schemas/ioMember'
+import {TMember} from '../schemas/ioMember'
 import {$Member} from '../tables/$Member'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'

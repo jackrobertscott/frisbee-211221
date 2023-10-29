@@ -1,4 +1,4 @@
-import {ioFixture} from '../../../shared/src/schemas/ioFixture'
+import {ioFixture} from '../schemas/ioFixture'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
 /**

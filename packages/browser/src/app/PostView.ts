@@ -8,15 +8,15 @@ import {
   useEffect,
   useState,
 } from 'react'
-import {TComment} from '../../../shared/src/schemas/ioComment'
-import {TPost} from '../../../shared/src/schemas/ioPost'
-import {TUserPublic} from '../../../shared/src/schemas/ioUser'
 import {
   $CommentCreate,
   $CommentDelete,
   $CommentListOfPost,
 } from '../endpoints/Comment'
 import {$PostDelete} from '../endpoints/Post'
+import {TComment} from '../schemas/ioComment'
+import {TPost} from '../schemas/ioPost'
+import {TUserPublic} from '../schemas/ioUser'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {go} from '../utils/go'

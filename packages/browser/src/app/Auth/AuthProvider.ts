@@ -1,6 +1,6 @@
 import {createElement as $, FC, ReactNode, useEffect, useState} from 'react'
-import {TSeason} from '../../../../shared/src/schemas/ioSeason'
 import {$SecurityCurrent, $SecurityLogout} from '../../endpoints/Security'
+import {TSeason} from '../../schemas/ioSeason'
 import {useLocalState} from '../useLocalState'
 import {AuthContext, TAuth, TAuthPayload} from './AuthContext'
 /**

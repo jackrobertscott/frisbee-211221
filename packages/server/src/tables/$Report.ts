@@ -1,4 +1,4 @@
-import {ioReport} from '../../../shared/src/schemas/ioReport'
+import {ioReport} from '../schemas/ioReport'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
 /**

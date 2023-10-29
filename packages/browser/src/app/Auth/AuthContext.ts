@@ -1,8 +1,8 @@
 import {createContext} from 'react'
-import {TSeason} from '../../../../shared/src/schemas/ioSeason'
-import {TSession} from '../../../../shared/src/schemas/ioSession'
-import {TTeam} from '../../../../shared/src/schemas/ioTeam'
-import {TUser} from '../../../../shared/src/schemas/ioUser'
+import {TSeason} from '../../schemas/ioSeason'
+import {TSession} from '../../schemas/ioSession'
+import {TTeam} from '../../schemas/ioTeam'
+import {TUser} from '../../schemas/ioUser'
 import {contextNoop} from '../../utils/context'
 /**
  *

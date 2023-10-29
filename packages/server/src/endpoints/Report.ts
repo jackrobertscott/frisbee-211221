@@ -1,6 +1,6 @@
 import {RequestHandler} from 'micro'
 import {io} from 'torva'
-import {TTeam} from '../../../shared/src/schemas/ioTeam'
+import {TTeam} from '../schemas/ioTeam'
 import {$Fixture} from '../tables/$Fixture'
 import {$Member} from '../tables/$Member'
 import {$Report} from '../tables/$Report'

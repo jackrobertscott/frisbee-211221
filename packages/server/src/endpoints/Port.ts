@@ -1,6 +1,6 @@
 import AdmZip from 'adm-zip'
 import {RequestHandler} from 'micro'
-import {TUser} from '../../../shared/src/schemas/ioUser'
+import {TUser} from '../schemas/ioUser'
 import {$Fixture} from '../tables/$Fixture'
 import {$Member} from '../tables/$Member'
 import {$Report} from '../tables/$Report'

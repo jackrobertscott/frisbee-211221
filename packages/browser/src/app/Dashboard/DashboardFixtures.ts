@@ -1,8 +1,6 @@
 import {css} from '@emotion/css'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {TFixture} from '../../../../shared/src/schemas/ioFixture'
-import {TTeam} from '../../../../shared/src/schemas/ioTeam'
 import {
   $FixtureCreate,
   $FixtureListOfSeason,
@@ -10,6 +8,8 @@ import {
   $FixtureUpdate,
 } from '../../endpoints/Fixture'
 import {$TeamListOfSeason} from '../../endpoints/Team'
+import {TFixture} from '../../schemas/ioFixture'
+import {TTeam} from '../../schemas/ioTeam'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {download} from '../../utils/download'

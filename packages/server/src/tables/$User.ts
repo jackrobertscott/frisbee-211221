@@ -1,4 +1,4 @@
-import {ioUser} from '../../../shared/src/schemas/ioUser'
+import {ioUser} from '../schemas/ioUser'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
 /**

@@ -1,8 +1,7 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {TSeason} from '../../../../shared/src/schemas/ioSeason'
-import faceofwillPng from '../../assets/faceofwill.png'
 import {$SeasonList} from '../../endpoints/Season'
+import {TSeason} from '../../schemas/ioSeason'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
@@ -67,22 +66,22 @@ export const Dashboard: FC = () => {
               },
             }),
             children: addkeys([
-              $('div', {
-                className: css({
-                  position: 'relative',
-                  marginRight: 'auto',
-                  marginLeft: theme.fib[6],
-                  marginBottom: -theme.fib[5],
-                  marginTop: -theme.fib[3],
-                }),
-                children: $('img', {
-                  src: faceofwillPng,
-                  className: css({
-                    height: theme.fib[9],
-                    rotate: '-15deg',
-                  }),
-                }),
-              }),
+              // $('div', {
+              //   className: css({
+              //     position: 'relative',
+              //     marginRight: 'auto',
+              //     marginLeft: theme.fib[6],
+              //     marginBottom: -theme.fib[5],
+              //     marginTop: -theme.fib[3],
+              //   }),
+              //   children: $('img', {
+              //     src: faceofwillPng,
+              //     className: css({
+              //       height: theme.fib[9],
+              //       rotate: '-15deg',
+              //     }),
+              //   }),
+              // }),
               $('div', {
                 className: css({
                   flexGrow: 1,

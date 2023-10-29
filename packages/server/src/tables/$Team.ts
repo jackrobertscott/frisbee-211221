@@ -1,4 +1,4 @@
-import {ioTeam} from '../../../shared/src/schemas/ioTeam'
+import {ioTeam} from '../schemas/ioTeam'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
 /**

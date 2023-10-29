@@ -1,5 +1,4 @@
 import {createElement as $, FC, Fragment, useState} from 'react'
-import {TUser} from '../../../../shared/src/schemas/ioUser'
 import {
   $UserCurrentEmailAdd,
   $UserCurrentEmailCodeResend,
@@ -8,6 +7,7 @@ import {
   $UserCurrentEmailVerify,
   $UserCurrentUpdate,
 } from '../../endpoints/User'
+import {TUser} from '../../schemas/ioUser'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {GENDER_OPTIONS} from '../../utils/constants'

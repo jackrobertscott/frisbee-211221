@@ -1,4 +1,4 @@
-import {TUser} from '../../../shared/src/schemas/ioUser'
+import {TUser} from '../schemas/ioUser'
 
 /**
  *

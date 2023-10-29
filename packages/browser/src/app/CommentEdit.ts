@@ -1,6 +1,6 @@
 import {createElement as $, FC} from 'react'
-import {TComment} from '../../../shared/src/schemas/ioComment'
 import {$CommentUpdate} from '../endpoints/Comment'
+import {TComment} from '../schemas/ioComment'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {Form} from './Form/Form'

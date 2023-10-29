@@ -1,8 +1,8 @@
 import {io} from 'torva'
-import {ioFixture} from '../../../shared/src/schemas/ioFixture'
-import {ioReport} from '../../../shared/src/schemas/ioReport'
-import {ioTeam} from '../../../shared/src/schemas/ioTeam'
-import {ioUserPublic} from '../../../shared/src/schemas/ioUser'
+import {ioFixture} from '../schemas/ioFixture'
+import {ioReport} from '../schemas/ioReport'
+import {ioTeam} from '../schemas/ioTeam'
+import {ioUserPublic} from '../schemas/ioUser'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *

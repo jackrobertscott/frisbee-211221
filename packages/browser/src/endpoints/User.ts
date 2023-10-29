@@ -1,5 +1,5 @@
 import {io} from 'torva'
-import {ioUser, ioUserPublic} from '../../../shared/src/schemas/ioUser'
+import {ioUser, ioUserPublic} from '../schemas/ioUser'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *

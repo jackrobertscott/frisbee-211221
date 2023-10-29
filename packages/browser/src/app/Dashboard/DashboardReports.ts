@@ -1,10 +1,6 @@
 import {css} from '@emotion/css'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {TFixture} from '../../../../shared/src/schemas/ioFixture'
-import {TReport} from '../../../../shared/src/schemas/ioReport'
-import {TTeam} from '../../../../shared/src/schemas/ioTeam'
-import {TUserPublic} from '../../../../shared/src/schemas/ioUser'
 import {
   $ReportCreate,
   $ReportDelete,
@@ -14,6 +10,10 @@ import {
 } from '../../endpoints/Report'
 import {$TeamListOfSeason} from '../../endpoints/Team'
 import {$UserListManyById} from '../../endpoints/User'
+import {TFixture} from '../../schemas/ioFixture'
+import {TReport} from '../../schemas/ioReport'
+import {TTeam} from '../../schemas/ioTeam'
+import {TUserPublic} from '../../schemas/ioUser'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {SPIRIT_OPTIONS} from '../../utils/constants'
