@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import {TUser, TUserEmail} from '../schemas/ioUser'
+import {TUser, TUserEmail} from '../../../shared/src/schemas/ioUser'
 import {$User} from '../tables/$User'
 import {mail} from '../utils/mail'
 import {random} from '../utils/random'

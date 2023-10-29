@@ -31,7 +31,7 @@
     "mongodb": "^4.2.2",
     "puppeteer": "^13.1.1",
     "stripe": "^8.194.0",
-    "torva": "^0.3.6"
+    "torva": "^0.4.0"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.4.34",

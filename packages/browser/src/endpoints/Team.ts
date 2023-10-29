@@ -1,6 +1,6 @@
 import {io} from 'torva'
-import {ioMember} from '../schemas/ioMember'
-import {ioTeam} from '../schemas/ioTeam'
+import {ioMember} from '../../../shared/src/schemas/ioMember'
+import {ioTeam} from '../../../shared/src/schemas/ioTeam'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *

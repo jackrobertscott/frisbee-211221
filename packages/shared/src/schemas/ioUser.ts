@@ -1,4 +1,4 @@
-import {io, TioValue} from 'torva'
+import {io, TypeIoValue} from 'torva'
 /**
  *
  */
@@ -12,7 +12,7 @@ export const ioUserEmail = io.object({
 /**
  *
  */
-export type TUserEmail = TioValue<typeof ioUserEmail>
+export type TUserEmail = TypeIoValue<typeof ioUserEmail>
 /**
  *
  */
@@ -36,7 +36,7 @@ export const ioUser = io.object({
 /**
  *
  */
-export type TUser = TioValue<typeof ioUser>
+export type TUser = TypeIoValue<typeof ioUser>
 /**
  *
  */
@@ -52,4 +52,4 @@ export const ioUserPublic = io.object({
 /**
  *
  */
-export type TUserPublic = TioValue<typeof ioUserPublic>
+export type TUserPublic = TypeIoValue<typeof ioUserPublic>

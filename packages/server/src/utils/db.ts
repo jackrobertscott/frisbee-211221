@@ -1,5 +1,5 @@
 import {Document, Filter, FindOptions, WithId} from 'mongodb'
-import {TioAll, TioValue} from 'torva'
+import {TypeIoAll, TypeIoValue} from 'torva'
 import mongo from './mongo'
 import {Simplify} from './types'
 /**
@@ -17,13 +17,13 @@ export const db = {
   /**
    *
    */
-  table<T extends TioAll, P extends Partial<TioValue<T>>>(options: {
+  table<T extends TypeIoAll, P extends Partial<TypeIoValue<T>>>(options: {
     key: string
     index: string[]
     schema: T
     defaults?: {[K in keyof P]?: () => P[K]}
   }) {
-    type V = TioValue<T>
+    type V = TypeIoValue<T>
     return {
       /**
        *

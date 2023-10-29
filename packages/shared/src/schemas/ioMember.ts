@@ -1,4 +1,4 @@
-import {io, TioValue} from 'torva'
+import {io, TypeIoValue} from 'torva'
 /**
  *
  */
@@ -15,4 +15,4 @@ export const ioMember = io.object({
 /**
  *
  */
-export type TMember = TioValue<typeof ioMember>
+export type TMember = TypeIoValue<typeof ioMember>

@@ -1,26 +1,26 @@
-import {TioAll, TioValue} from 'torva'
+import {TypeIoAll, TypeIoValue} from 'torva'
 import {radio} from './radio'
 /**
  *
  */
 export interface TEndpoint<
-  I extends TioAll,
-  O extends TioAll,
+  I extends TypeIoAll,
+  O extends TypeIoAll,
   M extends boolean
 > {
   readonly IN?: I
   readonly OUT?: O
   fetch(
-    payload?: M extends true ? FormData : TioValue<I>,
+    payload?: M extends true ? FormData : TypeIoValue<I>,
     token?: string
-  ): Promise<TioValue<O>>
+  ): Promise<TypeIoValue<O>>
 }
 /**
  *
  */
 export const createEndpoint = <
-  I extends TioAll,
-  O extends TioAll,
+  I extends TypeIoAll,
+  O extends TypeIoAll,
   M extends boolean
 >(options: {
   path: string

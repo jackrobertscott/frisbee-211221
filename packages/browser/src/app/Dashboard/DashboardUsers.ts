@@ -1,6 +1,7 @@
 import {css} from '@emotion/css'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
+import {TUser} from '../../../../shared/src/schemas/ioUser'
 import {
   $UserChangePassword,
   $UserCreate,
@@ -8,7 +9,6 @@ import {
   $UserToggleAdmin,
   $UserUpdate,
 } from '../../endpoints/User'
-import {TUser} from '../../schemas/ioUser'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {GENDER_OPTIONS} from '../../utils/constants'
@@ -32,9 +32,9 @@ import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useToaster} from '../Toaster/useToaster'
 import {TopBar, TopBarBadge} from '../TopBar'
+import {UserMerge} from '../UserMerge'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
-import {UserMerge} from '../UserMerge'
 import {useSling} from '../useThrottle'
 /**
  *

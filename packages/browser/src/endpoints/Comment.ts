@@ -1,6 +1,6 @@
 import {io} from 'torva'
-import {ioComment} from '../schemas/ioComment'
-import {ioUserPublic} from '../schemas/ioUser'
+import {ioComment} from '../../../shared/src/schemas/ioComment'
+import {ioUserPublic} from '../../../shared/src/schemas/ioUser'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *

@@ -1,16 +1,16 @@
 import {useMemo, useRef, useState} from 'react'
-import {TioAll, TioValue} from 'torva'
+import {TypeIoAll, TypeIoValue} from 'torva'
 import {TEndpoint} from '../utils/endpoints'
 import {throttle} from '../utils/throttle'
 import {useAuth} from './Auth/useAuth'
-import {useMountedRef} from './useMountedRef'
 import {useToaster} from './Toaster/useToaster'
+import {useMountedRef} from './useMountedRef'
 /**
  *
  */
 export const useEndpoint = <
-  I extends TioAll,
-  O extends TioAll,
+  I extends TypeIoAll,
+  O extends TypeIoAll,
   M extends boolean,
   E extends TEndpoint<I, O, M>
 >(
@@ -21,8 +21,8 @@ export const useEndpoint = <
   const toaster = useToaster()
   const mounted = useMountedRef()
   const [loading, loadingSet] = useState(false)
-  type P = M extends true ? FormData : TioValue<NonNullable<E['IN']>>
-  type R = TioValue<NonNullable<E['OUT']>>
+  type P = M extends true ? FormData : TypeIoValue<NonNullable<E['IN']>>
+  type R = TypeIoValue<NonNullable<E['OUT']>>
   const cbNext = async (payload?: P) =>
     endpoint.fetch(payload, auth.current?.token)
   const cbRef = useRef(cbNext)

@@ -1,6 +1,6 @@
+import {ioTeam} from '../../../shared/src/schemas/ioTeam'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-import {ioTeam} from '../schemas/ioTeam'
 /**
  *
  */

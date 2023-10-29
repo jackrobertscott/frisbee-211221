@@ -1,4 +1,4 @@
-import {TUser, TUserPublic} from '../schemas/ioUser'
+import {TUser, TUserPublic} from '../../../shared/src/schemas/ioUser'
 import {objectify} from '../utils/objectify'
 /**
  *

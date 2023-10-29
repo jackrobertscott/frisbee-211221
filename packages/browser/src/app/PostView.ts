@@ -1,5 +1,5 @@
-import dayjs from 'dayjs'
 import {css} from '@emotion/css'
+import dayjs from 'dayjs'
 import {
   createElement as $,
   FC,
@@ -8,35 +8,35 @@ import {
   useEffect,
   useState,
 } from 'react'
-import {TPost} from '../schemas/ioPost'
-import {theme} from '../theme'
-import {addkeys} from '../utils/addkeys'
-import {Modal} from './Modal'
-import {TopBar, TopBarBadge} from './TopBar'
-import {InputTextarea} from './Input/InputTextarea'
-import {useForm} from './useForm'
-import {FormColumn} from './Form/FormColumn'
-import {useEndpoint} from './useEndpoint'
+import {TComment} from '../../../shared/src/schemas/ioComment'
+import {TPost} from '../../../shared/src/schemas/ioPost'
+import {TUserPublic} from '../../../shared/src/schemas/ioUser'
 import {
   $CommentCreate,
   $CommentDelete,
   $CommentListOfPost,
 } from '../endpoints/Comment'
-import {TComment} from '../schemas/ioComment'
-import {TUserPublic} from '../schemas/ioUser'
-import {Popup} from './Popup'
-import {FormBadge} from './Form/FormBadge'
-import {FormMenu} from './Form/FormMenu'
-import {useAuth} from './Auth/useAuth'
-import {Question} from './Question'
-import {CommentEdit} from './CommentEdit'
-import {PostUpdate} from './PostUpdate'
 import {$PostDelete} from '../endpoints/Post'
-import {Spinner} from './Spinner'
-import {Link} from './Link'
+import {theme} from '../theme'
+import {addkeys} from '../utils/addkeys'
+import {go} from '../utils/go'
+import {useAuth} from './Auth/useAuth'
+import {CommentEdit} from './CommentEdit'
+import {FormBadge} from './Form/FormBadge'
+import {FormColumn} from './Form/FormColumn'
+import {FormMenu} from './Form/FormMenu'
 import {FormRow} from './Form/FormRow'
 import {HTML} from './HTML'
-import {go} from '../utils/go'
+import {InputTextarea} from './Input/InputTextarea'
+import {Link} from './Link'
+import {Modal} from './Modal'
+import {Popup} from './Popup'
+import {PostUpdate} from './PostUpdate'
+import {Question} from './Question'
+import {Spinner} from './Spinner'
+import {TopBar, TopBarBadge} from './TopBar'
+import {useEndpoint} from './useEndpoint'
+import {useForm} from './useForm'
 /**
  *
  */

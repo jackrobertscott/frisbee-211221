@@ -1,4 +1,4 @@
-import {TFixture} from '../schemas/ioFixture'
+import {TFixture} from '../../../shared/src/schemas/ioFixture'
 import {isNumber} from './coerce'
 /**
  *

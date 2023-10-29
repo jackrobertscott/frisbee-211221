@@ -1,10 +1,10 @@
 import {json, RequestHandler} from 'micro'
-import {TioAll, TioValue} from 'torva'
+import {TypeIoAll, TypeIoValue} from 'torva'
 import config from '../config'
 /**
  *
  */
-export const createEndpoint = <P extends TioAll>({
+export const createEndpoint = <P extends TypeIoAll>({
   path,
   payload,
   unsafe,
@@ -15,7 +15,7 @@ export const createEndpoint = <P extends TioAll>({
   payload?: P
   unsafe?: boolean
   multipart?: boolean
-  handler: (body: TioValue<P>) => RequestHandler
+  handler: (body: TypeIoValue<P>) => RequestHandler
 }): [string, RequestHandler] => {
   return [
     path,

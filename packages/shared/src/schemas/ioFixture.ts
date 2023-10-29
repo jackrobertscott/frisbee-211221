@@ -1,4 +1,4 @@
-import {io, TioValue} from 'torva'
+import {io, TypeIoValue} from 'torva'
 /**
  *
  */
@@ -28,4 +28,4 @@ export const ioFixture = io.object({
 /**
  *
  */
-export type TFixture = TioValue<typeof ioFixture>
+export type TFixture = TypeIoValue<typeof ioFixture>

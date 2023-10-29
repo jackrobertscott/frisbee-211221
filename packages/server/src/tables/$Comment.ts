@@ -1,6 +1,6 @@
+import {ioComment} from '../../../shared/src/schemas/ioComment'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-import {ioComment} from '../schemas/ioComment'
 /**
  *
  */

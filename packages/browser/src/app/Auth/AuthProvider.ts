@@ -1,9 +1,8 @@
 import {createElement as $, FC, ReactNode, useEffect, useState} from 'react'
-import {$SecurityLogout, $SecurityCurrent} from '../../endpoints/Security'
-import {AuthContext, TAuth, TAuthPayload} from './AuthContext'
+import {TSeason} from '../../../../shared/src/schemas/ioSeason'
+import {$SecurityCurrent, $SecurityLogout} from '../../endpoints/Security'
 import {useLocalState} from '../useLocalState'
-import {go} from '../../utils/go'
-import {TSeason} from '../../schemas/ioSeason'
+import {AuthContext, TAuth, TAuthPayload} from './AuthContext'
 /**
  *
  */

@@ -1,6 +1,6 @@
 import {io} from 'torva'
-import {ioPost} from '../schemas/ioPost'
-import {ioUserPublic} from '../schemas/ioUser'
+import {ioPost} from '../../../shared/src/schemas/ioPost'
+import {ioUserPublic} from '../../../shared/src/schemas/ioUser'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
