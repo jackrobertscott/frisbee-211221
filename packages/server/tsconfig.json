@@ -7,7 +7,7 @@
     "forceConsistentCasingInFileNames": true,
     "module": "CommonJS",
     "target": "ES2017",
-    "rootDir": "src",
+    "baseUrl": ".",
     "outDir": "dist",
   },
   "include": ["src/**/*.ts", "../shared/src/**/*.ts"],
