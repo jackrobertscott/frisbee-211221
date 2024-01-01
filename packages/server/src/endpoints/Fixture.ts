@@ -25,7 +25,7 @@ export default new Map<string, RequestHandler>([
     handler:
       ({seasonId, limit}) =>
       async () => {
-        return $Fixture.getMany({seasonId}, {limit, sort: {createdOn: -1}})
+        return $Fixture.getMany({seasonId}, {limit, sort: {date: 1}})
       },
   }),
   /**
@@ -140,12 +140,12 @@ export default new Map<string, RequestHandler>([
       const [user] = await requireUserAdmin(req)
       const season = await $Season.getOne({id: body.seasonId})
       const teams = await $Team.getMany({seasonId: season.id})
-      const teamsUndivided = teams.filter((i) => typeof i.division !== 'number')
-      if (teamsUndivided.length)
+      const teamsInvalid = teams.filter((i) => typeof i.division !== 'number')
+      if (teamsInvalid.length)
         throw new Error('Every team needs a division number')
       if (body.slots.length * 2 < teams.length - 1)
         throw new Error('Not enough slots have been added')
-      // const divisions = teams
+      // const uniqueDivs = teams
       //   .reduce((all, next) => {
       //     if (!next.division) return all
       //     if (!all.includes(next.division)) all.push(next.division)
@@ -153,7 +153,8 @@ export default new Map<string, RequestHandler>([
       //   }, [] as number[])
       //   .sort((a, b) => a - b)
       type TPartialFixture = Omit<TFixture, 'id' | 'createdOn' | 'updatedOn'>
-      const fixtures: TPartialFixture[] = []
+      const newFixtures: TPartialFixture[] = []
+      const cache = new Map<string, string[]>()
       for (let r = 0; r < body.roundCount; r++) {
         const gameDate = new Date(body.startingDate)
         gameDate.setDate(gameDate.getDate() + r * 7)
@@ -165,29 +166,26 @@ export default new Map<string, RequestHandler>([
           games: [],
           grading: false,
         }
-        fixtures.push(fixture)
-        const teamsOfRoundSuffled = [...teams].sort(() => Math.random() - 0.5)
-        const cachedMatchups = new Map<string, string[]>()
+        newFixtures.push(fixture)
+        const teamsShuffled = [...teams].sort(() => Math.random() - 0.5)
         for (let s = 0; s < body.slots.length; s++) {
           const slot = body.slots[s]
-          const team1 = teamsOfRoundSuffled.find((i) => {
+          const team1 = teamsShuffled.find((t) => {
             return !fixture.games.some((g) => {
-              return g.team1Id === i.id || g.team2Id === i.id
+              return g.team1Id === t.id || g.team2Id === t.id
             })
           })
           if (!team1) throw new Error('Something really bad happened...')
-          const teamsOfSameDivShuf = teamsOfRoundSuffled.filter(
-            (j) => j.division === team1.division
-          )
-          // 1) in same div
-          // 2) not played in fixture yet
-          // 3) played all other teams in division before repeating matchups
-          const team2 = teamsOfSameDivShuf.find((i) => {
+          const teamsInDivShuffled = teamsShuffled.filter((t) => {
+            return t.division === team1.division
+          })
+          const teams1AlreadyPlayed = cache.get(team1.id) ?? []
+          const team2 = teamsInDivShuffled.find((t) => {
             return (
-              team1.id !== i.id &&
-              !(cachedMatchups.get(i.id) ?? []).includes(team1.id) &&
+              team1.id !== t.id &&
+              !teams1AlreadyPlayed.includes(t.id) &&
               !fixture.games.some((g) => {
-                return g.team1Id === i.id || g.team2Id === i.id
+                return g.team1Id === t.id || g.team2Id === t.id
               })
             )
           })
@@ -200,24 +198,28 @@ export default new Map<string, RequestHandler>([
             time: slot.time,
           }
           fixture.games.push(game)
-          let cachedTeam1 = [...(cachedMatchups.get(team1.id) ?? []), team2.id]
-          if (cachedTeam1.length === teamsOfSameDivShuf.length - 1)
-            cachedTeam1 = []
-          cachedMatchups.set(team1.id, cachedTeam1)
-          let cachedTeam2 = [...(cachedMatchups.get(team2.id) ?? []), team1.id]
-          if (cachedTeam2.length === teamsOfSameDivShuf.length - 1)
-            cachedTeam2 = []
-          cachedMatchups.set(team2.id, cachedTeam2)
+          cache.set(team1.id, (cache.get(team1.id) ?? []).concat(team2.id))
+          cache.set(team2.id, (cache.get(team2.id) ?? []).concat(team1.id))
         }
-      }
-      fixtures.forEach((fixture) => {
-        console.log('---', fixture.title, '---')
-        fixture.games.forEach((game) => {
-          const team1 = teams.find((i) => i.id === game.team1Id)!
-          const team2 = teams.find((i) => i.id === game.team2Id)!
-          console.log(team1.name, team2.name, game.time, game.place)
+        teams.forEach((team) => {
+          const teamsInDiv = teams.filter((t) => t.division === team.division)
+          if (cache.get(team.id)!.length >= teamsInDiv.length - 1) {
+            cache.set(team.id, [])
+          }
         })
-      })
+      }
+      // newFixtures.forEach((fixture, i) => {
+      //   if (i % 3 === 0) console.log('****** Cache Reset *****')
+      //   console.log('---', fixture.title, '---')
+      //   fixture.games.forEach((game) => {
+      //     const team1 = teams.find((i) => i.id === game.team1Id)!
+      //     const team2 = teams.find((i) => i.id === game.team2Id)!
+      //     console.log(team1.name, team2.name, game.time, game.place)
+      //   })
+      // })
+      await Promise.all(
+        newFixtures.map((fixture) => $Fixture.createOne(fixture))
+      )
     },
   }),
 ])
