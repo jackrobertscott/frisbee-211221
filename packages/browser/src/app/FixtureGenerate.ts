@@ -150,9 +150,8 @@ export const FixtureGenerate: FC<{
                 return toaster.error('Please enter a valid number of rounds')
               if (!startingDate)
                 return toaster.error('Please enter a valid starting date')
-              $generate
-                .fetch({startingDate, roundCount, slots, seasonId})
-                .then(() => done())
+              $generate.fetch({startingDate, roundCount, slots, seasonId})
+              // .then(() => done())
             },
           }),
         ]),

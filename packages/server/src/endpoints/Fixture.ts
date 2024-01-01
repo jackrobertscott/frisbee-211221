@@ -141,17 +141,17 @@ export default new Map<string, RequestHandler>([
       const season = await $Season.getOne({id: body.seasonId})
       const teams = await $Team.getMany({seasonId: season.id})
       const teamsUndivided = teams.filter((i) => typeof i.division !== 'number')
-      if (!teamsUndivided.length)
+      if (teamsUndivided.length)
         throw new Error('Every team needs a division number')
       if (body.slots.length * 2 < teams.length - 1)
         throw new Error('Not enough slots have been added')
-      const divisions = teams
-        .reduce((all, next) => {
-          if (!next.division) return all
-          if (!all.includes(next.division)) all.push(next.division)
-          return all
-        }, [] as number[])
-        .sort((a, b) => a - b)
+      // const divisions = teams
+      //   .reduce((all, next) => {
+      //     if (!next.division) return all
+      //     if (!all.includes(next.division)) all.push(next.division)
+      //     return all
+      //   }, [] as number[])
+      //   .sort((a, b) => a - b)
       type TPartialFixture = Omit<TFixture, 'id' | 'createdOn' | 'updatedOn'>
       const fixtures: TPartialFixture[] = []
       for (let r = 0; r < body.roundCount; r++) {
@@ -165,7 +165,9 @@ export default new Map<string, RequestHandler>([
           games: [],
           grading: false,
         }
+        fixtures.push(fixture)
         const teamsOfRoundSuffled = [...teams].sort(() => Math.random() - 0.5)
+        const cachedMatchups = new Map<string, string[]>()
         for (let s = 0; s < body.slots.length; s++) {
           const slot = body.slots[s]
           const team1 = teamsOfRoundSuffled.find((i) => {
@@ -173,17 +175,23 @@ export default new Map<string, RequestHandler>([
               return g.team1Id === i.id || g.team2Id === i.id
             })
           })
-          // requirements: 1) in same div, 2) not played in fixture yet, 3) played all other teams in division before repeating matchups
-          const team2 = teamsOfRoundSuffled.find((i) => {
+          if (!team1) throw new Error('Something really bad happened...')
+          const teamsOfSameDivShuf = teamsOfRoundSuffled.filter(
+            (j) => j.division === team1.division
+          )
+          // 1) in same div
+          // 2) not played in fixture yet
+          // 3) played all other teams in division before repeating matchups
+          const team2 = teamsOfSameDivShuf.find((i) => {
             return (
-              i.division === team1?.division &&
+              team1.id !== i.id &&
+              !(cachedMatchups.get(i.id) ?? []).includes(team1.id) &&
               !fixture.games.some((g) => {
                 return g.team1Id === i.id || g.team2Id === i.id
               })
             )
           })
-          if (!team1 || !team2)
-            throw new Error('Something really bad happened...')
+          if (!team2) throw new Error('Something really bad happened...')
           const game = {
             id: random.randomString(),
             team1Id: team1.id,
@@ -192,8 +200,24 @@ export default new Map<string, RequestHandler>([
             time: slot.time,
           }
           fixture.games.push(game)
+          let cachedTeam1 = [...(cachedMatchups.get(team1.id) ?? []), team2.id]
+          if (cachedTeam1.length === teamsOfSameDivShuf.length - 1)
+            cachedTeam1 = []
+          cachedMatchups.set(team1.id, cachedTeam1)
+          let cachedTeam2 = [...(cachedMatchups.get(team2.id) ?? []), team1.id]
+          if (cachedTeam2.length === teamsOfSameDivShuf.length - 1)
+            cachedTeam2 = []
+          cachedMatchups.set(team2.id, cachedTeam2)
         }
       }
+      fixtures.forEach((fixture) => {
+        console.log('---', fixture.title, '---')
+        fixture.games.forEach((game) => {
+          const team1 = teams.find((i) => i.id === game.team1Id)!
+          const team2 = teams.find((i) => i.id === game.team2Id)!
+          console.log(team1.name, team2.name, game.time, game.place)
+        })
+      })
     },
   }),
 ])
