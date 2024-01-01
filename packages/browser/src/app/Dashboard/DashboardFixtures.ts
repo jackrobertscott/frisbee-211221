@@ -15,6 +15,7 @@ import {addkeys} from '../../utils/addkeys'
 import {download} from '../../utils/download'
 import {initials} from '../../utils/initials'
 import {useAuth} from '../Auth/useAuth'
+import {FixtureGenerate} from '../FixtureGenerate'
 import {FixtureSetupForm} from '../FixtureSetupForm'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
@@ -39,6 +40,7 @@ export const DashboardFixtures: FC = () => {
   const [fixtures, fixturesSet] = useState<TFixture[]>()
   const [creating, creatingSet] = useState(false)
   const [editing, editingSet] = useState<TFixture>()
+  const [generating, generatingSet] = useState(false)
   const [openfxs, openfxsSet] = useLocalState<string[]>('frisbee.fixtures', [])
   const reload = () => {
     const seasonId = auth.season!.id
@@ -56,13 +58,20 @@ export const DashboardFixtures: FC = () => {
         background: theme.bgMinor,
         children: addkeys([
           $(Fragment, {
-            children:
+            children: addkeys([
               auth.isAdmin() &&
-              $(FormBadge, {
-                label: 'Add Fixture',
-                background: theme.bgAdmin,
-                click: () => creatingSet(true),
-              }),
+                $(FormBadge, {
+                  label: 'Generate Many Fixtures',
+                  background: theme.bgAdmin,
+                  click: () => generatingSet(true),
+                }),
+              auth.isAdmin() &&
+                $(FormBadge, {
+                  label: 'Add Fixture',
+                  background: theme.bgAdmin,
+                  click: () => creatingSet(true),
+                }),
+            ]),
           }),
           $(Fragment, {
             children:
@@ -142,6 +151,19 @@ export const DashboardFixtures: FC = () => {
                   reload()
                   editingSet(undefined)
                 }),
+          }),
+      }),
+      $(Fragment, {
+        children:
+          auth.season &&
+          generating &&
+          $(FixtureGenerate, {
+            seasonId: auth.season.id,
+            close: () => generatingSet(false),
+            done: () => {
+              reload()
+              generatingSet(false)
+            },
           }),
       }),
     ]),

@@ -72,3 +72,21 @@ export const $FixtureSnapshot = createEndpoint({
     fixtureId: io.string(),
   }),
 })
+/**
+ *
+ */
+export const $FixtureGenerate = createEndpoint({
+  path: '/FixtureGenerate',
+  payload: io.object({
+    seasonId: io.string(),
+    startingDate: io.date(),
+    roundCount: io.number(),
+    slots: io.array(
+      io.object({
+        id: io.string(),
+        time: io.string(),
+        place: io.string(),
+      })
+    ),
+  }),
+})
