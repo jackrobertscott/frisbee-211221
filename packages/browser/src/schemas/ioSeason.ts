@@ -8,6 +8,14 @@ export const ioSeason = io.object({
   updatedOn: io.date(),
   name: io.string(),
   signUpOpen: io.boolean(),
+  finalResults: io.optional(
+    io.array(
+      io.object({
+        teamId: io.string(),
+        position: io.optional(io.null(io.number())),
+      })
+    )
+  ),
 })
 /**
  *

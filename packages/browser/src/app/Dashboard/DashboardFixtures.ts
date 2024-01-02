@@ -57,16 +57,21 @@ export const DashboardFixtures: FC = () => {
       $(Form, {
         background: theme.bgMinor,
         children: addkeys([
-          $(Fragment, {
+          $(FormRow, {
+            grow: true,
             children: addkeys([
               auth.isAdmin() &&
                 $(FormBadge, {
-                  label: 'Generate Many Fixtures',
+                  grow: true,
+                  icon: 'magic',
+                  label: 'Magic Generate',
                   background: theme.bgAdmin,
                   click: () => generatingSet(true),
                 }),
               auth.isAdmin() &&
                 $(FormBadge, {
+                  grow: true,
+                  icon: 'plus',
                   label: 'Add Fixture',
                   background: theme.bgAdmin,
                   click: () => creatingSet(true),

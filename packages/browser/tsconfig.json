@@ -15,8 +15,7 @@
     "module": "ESNext",
     "target": "ESNext",
     "jsx": "react-jsx",
-    "outDir": "dist",
-    "baseUrl": "."
+    "outDir": "dist"
   },
   "include": ["src/**/*.ts", "../shared/src/**/*.ts"],
   "exclude": ["src/**/*.test.*", "src/**/*.spec.*"]

@@ -2,8 +2,10 @@ import {css} from '@emotion/css'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {$FixtureListOfSeason, $FixtureUpdate} from '../../endpoints/Fixture'
+import {$SeasonUpdate} from '../../endpoints/Season'
 import {$TeamListOfSeason} from '../../endpoints/Team'
 import {TFixture} from '../../schemas/ioFixture'
+import {TSeason} from '../../schemas/ioSeason'
 import {TTeam} from '../../schemas/ioTeam'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
@@ -15,11 +17,15 @@ import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
 import {FormColumn} from '../Form/FormColumn'
 import {FormLabel} from '../Form/FormLabel'
+import {FormRow} from '../Form/FormRow'
 import {Graph} from '../Graph'
 import {Icon} from '../Icon'
+import {InputNumber} from '../Input/InputNumber'
 import {useMedia} from '../Media/useMedia'
+import {Modal} from '../Modal'
 import {Spinner} from '../Spinner'
 import {Table} from '../Table'
+import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 /**
  *
@@ -34,6 +40,7 @@ export const DashboardLadder: FC = () => {
   const [fixtures, fixturesSet] = useState<TFixture[]>()
   const [editing, editingSet] = useState<TFixture>()
   const [openrnds, openrndsSet] = useState<string[]>([])
+  const [addingFinal, addingFinalSet] = useState(false)
   const tally = tallyChart(fixtures ?? [])
   const reload = () => {
     const seasonId = auth.season!.id
@@ -41,6 +48,9 @@ export const DashboardLadder: FC = () => {
     $fixtureList.fetch({seasonId}).then(fixturesSet)
   }
   useEffect(() => reload(), [])
+  const finalResultsAndTeam = auth.season?.finalResults
+    ?.filter((i) => i.position !== undefined)
+    .map((i) => [i, teams.find((t) => t.id === i.teamId)] as const)
   const teamsUndivided = teams.filter((i) => typeof i.division !== 'number')
   const divisions = teams
     .reduce((all, next) => {
@@ -55,10 +65,59 @@ export const DashboardLadder: FC = () => {
         background: theme.bgMinor,
         children: addkeys([
           $(Fragment, {
+            children:
+              auth.isAdmin() &&
+              $(FormBadge, {
+                grow: true,
+                label: 'Edit Final Results',
+                background: theme.bgAdmin,
+                click: () => addingFinalSet(true),
+              }),
+          }),
+          $(Fragment, {
+            children:
+              !!finalResultsAndTeam?.length &&
+              divisions.map((division) => {
+                const resultsOfDiv = finalResultsAndTeam
+                  .filter(([i]) => i.position !== undefined)
+                  .filter(([_, t]) => t?.division === division)
+                  .sort((a, b) => a[0].position! - b[0].position!)
+                if (resultsOfDiv.length === 0) return null
+                return $(FormColumn, {
+                  key: division.toString(),
+                  children: addkeys([
+                    $(FormBadge, {
+                      label: 'Final Results of Div ' + division,
+                      background: theme.bgMinor,
+                    }),
+                    $(Table, {
+                      head: {
+                        position: {label: 'Position', grow: 1},
+                        team: {label: 'Team', grow: 3},
+                      },
+                      body: resultsOfDiv.map(([fr, t]) => {
+                        return {
+                          key: fr.teamId,
+                          data: {
+                            position: {value: fr.position!},
+                            team: {
+                              icon: fr.position === 1 ? 'trophy' : undefined,
+                              value: t?.name ?? 'Unknown',
+                              color: t?.color,
+                            },
+                          },
+                        }
+                      }),
+                    }),
+                  ]),
+                })
+              }),
+          }),
+          $(Fragment, {
             children: divisions.map((division) => {
               return $(_LadderDivision, {
                 key: division.toString(),
-                label: `Division ${division}`,
+                label: `Div ${division}`,
                 teams: teams.filter((i) => i.division === division),
                 tally,
               })
@@ -131,6 +190,21 @@ export const DashboardLadder: FC = () => {
               }),
           }),
         ]),
+      }),
+      $(Fragment, {
+        children:
+          auth.season &&
+          addingFinal &&
+          $(FinalResultsForm, {
+            teams,
+            divisions,
+            season: auth.season,
+            close: () => addingFinalSet(false),
+            done: (season) => {
+              auth.seasonSet(season)
+              addingFinalSet(false)
+            },
+          }),
       }),
       $(Fragment, {
         children:
@@ -269,6 +343,7 @@ const _LadderDivision: FC<{
           label &&
           $(FormLabel, {
             label,
+            icon: 'flag',
             background: theme.bgMinor,
           }),
       }),
@@ -316,6 +391,95 @@ const _LadderDivision: FC<{
               },
             }
           }),
+      }),
+    ]),
+  })
+}
+/**
+ *
+ */
+export const FinalResultsForm: FC<{
+  teams: TTeam[]
+  divisions: number[]
+  season: TSeason
+  close: () => void
+  done: (season: TSeason) => void
+}> = ({teams, divisions, season, close, done}) => {
+  const $updateSeason = useEndpoint($SeasonUpdate)
+  const [finalResults, setFinalResults] = useState<
+    NonNullable<TSeason['finalResults']>
+  >(season.finalResults ?? [])
+  return $(Modal, {
+    width: theme.fib[12],
+    children: addkeys([
+      $(TopBar, {
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: 'Add Final Results',
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
+      }),
+      $(Form, {
+        background: theme.bgMinor,
+        children: addkeys([
+          $(Fragment, {
+            children: divisions.map((division) => {
+              const teamsOfDiv = teams.filter((i) => i.division === division)
+              return $(FormColumn, {
+                key: division.toString(),
+                children: addkeys([
+                  $(FormLabel, {
+                    label: 'Division ' + division,
+                  }),
+                  $(Fragment, {
+                    children: teamsOfDiv.map((team) => {
+                      return $(FormRow, {
+                        key: team.id,
+                        children: addkeys([
+                          $(InputNumber, {
+                            width: theme.fib[8],
+                            value:
+                              finalResults?.find((i) => i.teamId === team.id)
+                                ?.position ?? undefined,
+                            valueSet: (position) =>
+                              setFinalResults((frs) =>
+                                frs.some((fr) => fr.teamId === team.id)
+                                  ? frs.map((fr) => {
+                                      return fr.teamId === team.id
+                                        ? {...fr, position}
+                                        : fr
+                                    })
+                                  : frs.concat({teamId: team.id, position})
+                              ),
+                          }),
+                          $(FormLabel, {
+                            label: team.name,
+                            background: team.color,
+                            grow: true,
+                          }),
+                        ]),
+                      })
+                    }),
+                  }),
+                ]),
+              })
+            }),
+          }),
+          $(FormBadge, {
+            label: $updateSeason.loading ? 'Loading' : 'Submit',
+            disabled: $updateSeason.loading,
+            click: () => {
+              $updateSeason
+                .fetch({...season, seasonId: season.id, finalResults})
+                .then(done)
+            },
+          }),
+        ]),
       }),
     ]),
   })

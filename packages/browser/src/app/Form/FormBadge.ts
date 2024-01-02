@@ -15,7 +15,7 @@ export interface TFormBadge {
   click?: (event: MouseEvent) => void
   disabled?: boolean
   font?: THSLA
-  background?: THSLA
+  background?: THSLA | string
   padding?: number
   grow?: boolean
   noshrink?: boolean
@@ -56,14 +56,17 @@ export const FormBadge: FC<TFormBadge> = ({
         border: theme.border(),
         padding: theme.padify(padding ?? theme.fib[4]),
         color: font ? font.string() : undefined,
-        background: background.string(),
+        background:
+          typeof background === 'string' ? background : background.string(),
         '&:hover': !disabled &&
           click && {
-            background: background.hover(),
+            background:
+              typeof background === 'string' ? background : background.hover(),
           },
         '&:active': !disabled &&
           click && {
-            background: background.press(),
+            background:
+              typeof background === 'string' ? background : background.press(),
           },
         '& > *:not(:last-child)': {
           marginRight: theme.fib[3],

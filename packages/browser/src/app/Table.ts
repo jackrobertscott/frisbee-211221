@@ -14,7 +14,10 @@ type TFCTable<T extends string = any> = FC<{
   body: Array<{
     key: string
     click?: () => void
-    data: Record<T, {children?: ReactNode; value?: ReactText; color?: string}>
+    data: Record<
+      T,
+      {children?: ReactNode; value?: ReactText; color?: string; icon?: string}
+    >
   }>
 }>
 /**
@@ -74,6 +77,7 @@ export const Table: TFCTable = ({head, body}) => {
                             : hsla.create(0, 0, 0, 0),
                           font: data ? font : font?.merge({a: 0.5}),
                           select: !entry.click ? 'text' : undefined,
+                          icon: data.icon,
                           grow: true,
                         }),
                     })

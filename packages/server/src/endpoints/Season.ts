@@ -43,6 +43,14 @@ export default new Map<string, RequestHandler>([
       seasonId: io.string(),
       name: io.string(),
       signUpOpen: io.boolean(),
+      finalResults: io.optional(
+        io.array(
+          io.object({
+            teamId: io.string(),
+            position: io.optional(io.null(io.number())),
+          })
+        )
+      ),
     }),
     handler:
       ({seasonId, ...body}) =>

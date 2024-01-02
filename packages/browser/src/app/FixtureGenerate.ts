@@ -12,7 +12,6 @@ import {InputDate} from './Input/InputDate'
 import {InputNumber} from './Input/InputNumber'
 import {InputString} from './Input/InputString'
 import {Modal} from './Modal'
-import {Poster} from './Poster'
 import {useToaster} from './Toaster/useToaster'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
@@ -74,11 +73,6 @@ export const FixtureGenerate: FC<{
       $(Form, {
         background: theme.bgMinor,
         children: addkeys([
-          $(Poster, {
-            title: "Don't Forget",
-            description:
-              'Make sure the DIVISION numbers have been correctly added to the teams',
-          }),
           $(FormRow, {
             children: addkeys([
               $(FormLabel, {label: 'Number of Rounds'}),

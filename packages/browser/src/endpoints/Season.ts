@@ -31,6 +31,14 @@ export const $SeasonUpdate = createEndpoint({
     seasonId: io.string(),
     name: io.string(),
     signUpOpen: io.boolean(),
+    finalResults: io.optional(
+      io.array(
+        io.object({
+          teamId: io.string(),
+          position: io.optional(io.null(io.number())),
+        })
+      )
+    ),
   }),
   result: ioSeason,
 })
