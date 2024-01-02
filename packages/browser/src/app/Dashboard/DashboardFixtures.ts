@@ -57,10 +57,10 @@ export const DashboardFixtures: FC = () => {
       $(Form, {
         background: theme.bgMinor,
         children: addkeys([
-          $(FormRow, {
-            grow: true,
-            children: addkeys([
-              auth.isAdmin() &&
+          auth.isAdmin() &&
+            $(FormRow, {
+              grow: true,
+              children: addkeys([
                 $(FormBadge, {
                   grow: true,
                   icon: 'magic',
@@ -68,7 +68,6 @@ export const DashboardFixtures: FC = () => {
                   background: theme.bgAdmin,
                   click: () => generatingSet(true),
                 }),
-              auth.isAdmin() &&
                 $(FormBadge, {
                   grow: true,
                   icon: 'plus',
@@ -76,8 +75,8 @@ export const DashboardFixtures: FC = () => {
                   background: theme.bgAdmin,
                   click: () => creatingSet(true),
                 }),
-            ]),
-          }),
+              ]),
+            }),
           $(Fragment, {
             children:
               fixtures === undefined || teams === undefined
