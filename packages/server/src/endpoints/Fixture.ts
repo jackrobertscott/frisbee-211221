@@ -175,7 +175,16 @@ export default new Map<string, RequestHandler>([
               return g.team1Id === t.id || g.team2Id === t.id
             })
           })
-          if (!team1) throw new Error('Something really bad happened...')
+          if (!team1) {
+            console.log('team 2')
+            console.log(r)
+            console.log(s)
+            console.log(slots)
+            console.log(newFixtures)
+            console.log(teamsShuffled)
+            
+            throw new Error('Something really bad happened...')
+          }
           const teamsInDivShuffled = teamsShuffled.filter((t) => {
             return t.division === team1.division
           })
@@ -189,7 +198,16 @@ export default new Map<string, RequestHandler>([
               })
             )
           })
-          if (!team2) throw new Error('Something really bad happened...')
+          if (!team2) {
+            console.log('team 2')
+            console.log(r)
+            console.log(s)
+            console.log(slots)
+            console.log(newFixtures)
+            console.log(teamsShuffled)
+
+            throw new Error('Something really bad happened...')
+          }
           const game = {
             id: random.randomString(),
             team1Id: team1.id,
