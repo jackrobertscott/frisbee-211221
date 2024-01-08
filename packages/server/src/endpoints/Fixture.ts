@@ -220,8 +220,8 @@ function getRoundRobinPairings(teams: string[], round: number): string[][] {
   }
   // Calculate the total number of matchups in a full cycle
   const totalRounds = teams.length - 1
-  const currentCycle = Math.floor((round - 1) / totalRounds)
-  const currentRoundInCycle = (round - 1) % totalRounds
+  const currentCycle = Math.floor(round / totalRounds)
+  const currentRoundInCycle = round % totalRounds
   // Adjust teams array for the current round in the cycle
   let adjustedTeams = [...teams]
   const fixedPosition = adjustedTeams.shift() // Remove the first team to keep it fixed
