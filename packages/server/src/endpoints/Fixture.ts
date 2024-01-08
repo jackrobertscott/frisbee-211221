@@ -145,13 +145,6 @@ export default new Map<string, RequestHandler>([
         throw new Error('Every team needs a division number')
       if (body.slots.length * 2 < teams.length - 1)
         throw new Error('Not enough slots have been added')
-      // const uniqueDivs = teams
-      //   .reduce((all, next) => {
-      //     if (!next.division) return all
-      //     if (!all.includes(next.division)) all.push(next.division)
-      //     return all
-      //   }, [] as number[])
-      //   .sort((a, b) => a - b)
       type TPartialFixture = Omit<TFixture, 'id' | 'createdOn' | 'updatedOn'>
       const newFixtures: TPartialFixture[] = []
       const cache = new Map<string, string[]>()
@@ -171,19 +164,16 @@ export default new Map<string, RequestHandler>([
         for (let s = 0; s < body.slots.length; s++) {
           const slot = body.slots[s]
           const team1 = teamsShuffled.find((t) => {
-            return !fixture.games.some((g) => {
-              return g.team1Id === t.id || g.team2Id === t.id
-            })
+            return !fixture.games.some(
+              (g) => g.team1Id === t.id || g.team2Id === t.id
+            )
           })
           if (!team1) {
-            console.log('team 2')
-            console.log(r)
-            console.log(s)
-            console.log(slots)
-            console.log(newFixtures)
-            console.log(teamsShuffled)
-            
-            throw new Error('Something really bad happened...')
+            console.log('Team 1 Failure')
+            console.log(`Round: ${r + 1}/${body.roundCount}`)
+            console.log(`Slot: ${s + 1}/${body.slots.length} (${slot.time})`)
+            console.log(teamsShuffled.map((i) => `${i.name} (D${i.division})`))
+            throw new Error('Failed to get team 1')
           }
           const teamsInDivShuffled = teamsShuffled.filter((t) => {
             return t.division === team1.division
@@ -192,21 +182,19 @@ export default new Map<string, RequestHandler>([
           const team2 = teamsInDivShuffled.find((t) => {
             return (
               team1.id !== t.id &&
-              !teams1AlreadyPlayed.includes(t.id) &&
-              !fixture.games.some((g) => {
-                return g.team1Id === t.id || g.team2Id === t.id
-              })
+              !fixture.games.some(
+                (g) => g.team1Id === t.id || g.team2Id === t.id
+              ) &&
+              !teams1AlreadyPlayed.includes(t.id)
             )
           })
           if (!team2) {
-            console.log('team 2')
-            console.log(r)
-            console.log(s)
-            console.log(slots)
-            console.log(newFixtures)
-            console.log(teamsShuffled)
-
-            throw new Error('Something really bad happened...')
+            console.log('Team 2 Failure')
+            console.log(`Round: ${r + 1}/${body.roundCount}`)
+            console.log(`Slot: ${s + 1}/${body.slots.length} (${slot.time})`)
+            console.log(teamsShuffled.map((i) => `${i.name} (D${i.division})`))
+            console.log(team1.id + ':', teams1AlreadyPlayed.join(','))
+            throw new Error('Failed to get team 2')
           }
           const game = {
             id: random.randomString(),
@@ -226,15 +214,6 @@ export default new Map<string, RequestHandler>([
           }
         })
       }
-      // newFixtures.forEach((fixture, i) => {
-      //   if (i % 3 === 0) console.log('****** Cache Reset *****')
-      //   console.log('---', fixture.title, '---')
-      //   fixture.games.forEach((game) => {
-      //     const team1 = teams.find((i) => i.id === game.team1Id)!
-      //     const team2 = teams.find((i) => i.id === game.team2Id)!
-      //     console.log(team1.name, team2.name, game.time, game.place)
-      //   })
-      // })
       await Promise.all(
         newFixtures.map((fixture) => $Fixture.createOne(fixture))
       )
