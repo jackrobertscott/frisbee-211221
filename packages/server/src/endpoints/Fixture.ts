@@ -165,21 +165,20 @@ export default new Map<string, RequestHandler>([
           grading: false,
         }
         newFixtures.push(fixture)
+        let slotIndex = 0
         divisions.forEach((divisionTeams) => {
           let roundPairings = getRoundRobinPairings(divisionTeams, r)
           roundPairings = shuffleArray(roundPairings)
-          roundPairings.forEach((pair, index) => {
-            if (pair.length === 2) {
-              const slot = body.slots[index % body.slots.length]
-              const game = {
-                id: random.randomString(),
-                team1Id: pair[0],
-                team2Id: pair[1],
-                place: slot.place,
-                time: slot.time,
-              }
-              fixture.games.push(game)
+          roundPairings.forEach((pair) => {
+            const slot = body.slots[slotIndex++]
+            const game = {
+              id: random.randomString(),
+              team1Id: pair[0],
+              team2Id: pair[1],
+              place: slot.place,
+              time: slot.time,
             }
+            fixture.games.push(game)
           })
         })
       }
@@ -216,15 +215,33 @@ const _fixtureScreenshot = async (fixtureId: string) => {
  *
  */
 function getRoundRobinPairings(teams: string[], round: number): string[][] {
-  if (teams.length % 2 !== 0)
-    throw new Error('Each division must have an even number of teams')
-  const pairings: string[][] = []
-  const numRounds = teams.length - 1
-  const adjustedRound = round % numRounds
-  for (let i = 0; i < teams.length / 2; i++) {
-    const team1 = teams[(adjustedRound + i) % teams.length]
-    const team2 = teams[(adjustedRound + teams.length - i - 1) % teams.length]
-    pairings.push([team1, team2])
+  if (teams.length % 2 !== 0) {
+    throw new Error('Number of teams must be even')
+  }
+  // Calculate the total number of matchups in a full cycle
+  const totalRounds = teams.length - 1
+  const currentCycle = Math.floor((round - 1) / totalRounds)
+  const currentRoundInCycle = (round - 1) % totalRounds
+  // Adjust teams array for the current round in the cycle
+  let adjustedTeams = [...teams]
+  const fixedPosition = adjustedTeams.shift() // Remove the first team to keep it fixed
+  // Rotate the remaining teams currentRoundInCycle times
+  for (let i = 0; i < currentRoundInCycle; i++) {
+    adjustedTeams.push(adjustedTeams.shift()!)
+  }
+  // Re-add the fixed team
+  adjustedTeams = [fixedPosition!, ...adjustedTeams]
+  // Create pairings for the round
+  let pairings: string[][] = []
+  for (let i = 0; i < adjustedTeams.length / 2; i++) {
+    // Adjust pairings based on the current cycle to avoid repeat matchups
+    let homeTeam = adjustedTeams[i]
+    let awayTeam = adjustedTeams[adjustedTeams.length - 1 - i]
+    if (currentCycle % 2 === 1) {
+      // Swap home and away teams every alternate cycle
+      ;[homeTeam, awayTeam] = [awayTeam, homeTeam]
+    }
+    pairings.push([homeTeam, awayTeam])
   }
   return pairings
 }
