@@ -147,7 +147,12 @@ export default new Map<string, RequestHandler>([
         throw new Error('Not enough slots have been added')
       type TPartialFixture = Omit<TFixture, 'id' | 'createdOn' | 'updatedOn'>
       const newFixtures: TPartialFixture[] = []
-      const cache = new Map<string, string[]>()
+      const divisions = new Map<number, string[]>()
+      teams.forEach((team) => {
+        const divisionTeams = divisions.get(team.division!) ?? []
+        divisionTeams.push(team.id)
+        divisions.set(team.division!, divisionTeams)
+      })
       for (let r = 0; r < body.roundCount; r++) {
         const gameDate = new Date(body.startingDate)
         gameDate.setDate(gameDate.getDate() + r * 7)
@@ -160,58 +165,22 @@ export default new Map<string, RequestHandler>([
           grading: false,
         }
         newFixtures.push(fixture)
-        const teamsShuffled = [...teams].sort(() => Math.random() - 0.5)
-        for (let s = 0; s < body.slots.length; s++) {
-          const slot = body.slots[s]
-          const team1 = teamsShuffled.find((t) => {
-            return !fixture.games.some(
-              (g) => g.team1Id === t.id || g.team2Id === t.id
-            )
+        divisions.forEach((divisionTeams) => {
+          let roundPairings = getRoundRobinPairings(divisionTeams, r)
+          roundPairings = shuffleArray(roundPairings)
+          roundPairings.forEach((pair, index) => {
+            if (pair.length === 2) {
+              const slot = body.slots[index % body.slots.length]
+              const game = {
+                id: random.randomString(),
+                team1Id: pair[0],
+                team2Id: pair[1],
+                place: slot.place,
+                time: slot.time,
+              }
+              fixture.games.push(game)
+            }
           })
-          if (!team1) {
-            console.log('Team 1 Failure')
-            console.log(`Round: ${r + 1}/${body.roundCount}`)
-            console.log(`Slot: ${s + 1}/${body.slots.length} (${slot.time})`)
-            console.log(teamsShuffled.map((i) => `${i.name} (D${i.division})`))
-            throw new Error('Failed to get team 1')
-          }
-          const teamsInDivShuffled = teamsShuffled.filter((t) => {
-            return t.division === team1.division
-          })
-          const teams1AlreadyPlayed = cache.get(team1.id) ?? []
-          const team2 = teamsInDivShuffled.find((t) => {
-            return (
-              team1.id !== t.id &&
-              !fixture.games.some(
-                (g) => g.team1Id === t.id || g.team2Id === t.id
-              ) &&
-              !teams1AlreadyPlayed.includes(t.id)
-            )
-          })
-          if (!team2) {
-            console.log('Team 2 Failure')
-            console.log(`Round: ${r + 1}/${body.roundCount}`)
-            console.log(`Slot: ${s + 1}/${body.slots.length} (${slot.time})`)
-            console.log(teamsShuffled.map((i) => `${i.name} (D${i.division})`))
-            console.log(team1.id + ':', teams1AlreadyPlayed.join(','))
-            throw new Error('Failed to get team 2')
-          }
-          const game = {
-            id: random.randomString(),
-            team1Id: team1.id,
-            team2Id: team2.id,
-            place: slot.place,
-            time: slot.time,
-          }
-          fixture.games.push(game)
-          cache.set(team1.id, (cache.get(team1.id) ?? []).concat(team2.id))
-          cache.set(team2.id, (cache.get(team2.id) ?? []).concat(team1.id))
-        }
-        teams.forEach((team) => {
-          const teamsInDiv = teams.filter((t) => t.division === team.division)
-          if (cache.get(team.id)!.length >= teamsInDiv.length - 1) {
-            cache.set(team.id, [])
-          }
         })
       }
       await Promise.all(
@@ -242,4 +211,30 @@ const _fixtureScreenshot = async (fixtureId: string) => {
   })
   await browser.close()
   return screenshot as Buffer
+}
+/**
+ *
+ */
+function getRoundRobinPairings(teams: string[], round: number): string[][] {
+  if (teams.length % 2 !== 0)
+    throw new Error('Each division must have an even number of teams')
+  const pairings: string[][] = []
+  const numRounds = teams.length - 1
+  const adjustedRound = round % numRounds
+  for (let i = 0; i < teams.length / 2; i++) {
+    const team1 = teams[(adjustedRound + i) % teams.length]
+    const team2 = teams[(adjustedRound + teams.length - i - 1) % teams.length]
+    pairings.push([team1, team2])
+  }
+  return pairings
+}
+/**
+ *
+ */
+function shuffleArray(array: any[]): any[] {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[array[i], array[j]] = [array[j], array[i]]
+  }
+  return array
 }
