@@ -1,12 +1,7 @@
 import {css} from '@emotion/css'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {
-  $FixtureCreate,
-  $FixtureListOfSeason,
-  $FixtureSnapshot,
-  $FixtureUpdate,
-} from '../../endpoints/Fixture'
+import {$FixtureListOfSeason, $FixtureSnapshot} from '../../endpoints/Fixture'
 import {$TeamListOfSeason} from '../../endpoints/Team'
 import {TFixture} from '../../schemas/ioFixture'
 import {TTeam} from '../../schemas/ioTeam'
@@ -32,8 +27,6 @@ import {useLocalState} from '../useLocalState'
  */
 export const DashboardFixtures: FC = () => {
   const auth = useAuth()
-  const $fixtureCreate = useEndpoint($FixtureCreate)
-  const $fixtureUpdate = useEndpoint($FixtureUpdate)
   const $teamList = useEndpoint($TeamListOfSeason)
   const $fixtureList = useEndpoint($FixtureListOfSeason)
   const [teams, teamsSet] = useState<TTeam[]>()
@@ -120,20 +113,11 @@ export const DashboardFixtures: FC = () => {
         children:
           creating &&
           $(FixtureSetupForm, {
-            loading: $fixtureCreate.loading,
             close: () => creatingSet(false),
-            done: (data) =>
-              $fixtureCreate
-                .fetch({
-                  ...data,
-                  date: data.date!,
-                  games: data.games as TFixture['games'],
-                  seasonId: auth.season!.id,
-                })
-                .then(() => {
-                  reload()
-                  creatingSet(false)
-                }),
+            done: () => {
+              reload()
+              creatingSet(false)
+            },
           }),
       }),
       $(Fragment, {
@@ -141,20 +125,11 @@ export const DashboardFixtures: FC = () => {
           editing &&
           $(FixtureSetupForm, {
             fixture: editing,
-            loading: $fixtureUpdate.loading,
             close: () => editingSet(undefined),
-            done: (data) =>
-              $fixtureUpdate
-                .fetch({
-                  ...data,
-                  date: data.date!,
-                  games: data.games as TFixture['games'],
-                  fixtureId: editing.id,
-                })
-                .then(() => {
-                  reload()
-                  editingSet(undefined)
-                }),
+            done: () => {
+              reload()
+              editingSet(undefined)
+            },
           }),
       }),
       $(Fragment, {
