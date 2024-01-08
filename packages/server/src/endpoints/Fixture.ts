@@ -153,6 +153,9 @@ export default new Map<string, RequestHandler>([
         divisionTeams.push(team.id)
         divisions.set(team.division!, divisionTeams)
       })
+      divisions.forEach((divisionTeams, division) => {
+        divisions.set(division, shuffleArray(divisionTeams))
+      })
       for (let r = 0; r < body.roundCount; r++) {
         const gameDate = new Date(body.startingDate)
         gameDate.setDate(gameDate.getDate() + r * 7)
