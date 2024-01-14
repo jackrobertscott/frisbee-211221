@@ -265,7 +265,7 @@ const _DashboardReportsForm: FC<{
   close: () => void
 }> = ({title, teams, fixtures, loading, options, data, dataSet, close}) => {
   const toaster = useToaster()
-  const $fixtureAgainst = useEndpoint($ReportGetFixtureAgainst)
+  const $fixturesAgainst = useEndpoint($ReportGetFixtureAgainst)
   const [against, againstSet] = useState<{team: TTeam; users: TUserPublic[]}>()
   const form = useForm({
     teamId: undefined as undefined | string,
@@ -280,9 +280,10 @@ const _DashboardReportsForm: FC<{
   })
   useEffect(() => {
     if (form.data.fixtureId && form.data.teamId) {
-      $fixtureAgainst
+      $fixturesAgainst
         .fetch({fixtureId: form.data.fixtureId, teamId: form.data.teamId})
-        .then(({teamAgainst, users}) => againstSet({team: teamAgainst, users}))
+        .then(res => res.map(({teamAgainst, users}) => againstSet({team: teamAgainst, users})))
+        // this is a bit silly
     }
   }, [form.data.fixtureId, form.data.teamId])
   return $(Fragment, {

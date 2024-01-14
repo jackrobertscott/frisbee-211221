@@ -38,10 +38,10 @@ export const $ReportGetFixtureAgainst = createEndpoint({
     teamId: io.string(),
     fixtureId: io.string(),
   }),
-  result: io.object({
+  result: io.array(io.object({
     teamAgainst: ioTeam,
     users: io.array(ioUserPublic),
-  }),
+  })),
 })
 /**
  *

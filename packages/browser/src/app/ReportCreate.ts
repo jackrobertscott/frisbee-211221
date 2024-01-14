@@ -31,6 +31,10 @@ import {useForm} from './useForm'
 /**
  *
  */
+interface OppositionList {
+  team: TTeam;
+  users: TUserPublic[];
+}
 export const ReportCreate: FC<{
   close: () => void
   done: () => void
@@ -41,8 +45,9 @@ export const ReportCreate: FC<{
   const isSmall = media.width < theme.fib[12]
   const [fixtures, fixturesSet] = useState<TFixture[]>()
   const [against, againstSet] = useState<{team: TTeam; users: TUserPublic[]}>()
+  const oppositionList: OppositionList[] = [];
   const $fixtureList = useEndpoint($FixtureListOfSeason)
-  const $fixtureAgainst = useEndpoint($ReportGetFixtureAgainst)
+  const $fixturesAgainst = useEndpoint($ReportGetFixtureAgainst)
   const $create = useEndpoint($ReportCreate)
   const form = useForm({
     teamId: auth.current?.team?.id,
@@ -59,9 +64,12 @@ export const ReportCreate: FC<{
   }, [])
   useEffect(() => {
     if (form.data.fixtureId && auth.current?.team) {
-      $fixtureAgainst
+      $fixturesAgainst
         .fetch({fixtureId: form.data.fixtureId, teamId: auth.current?.team.id})
-        .then(({teamAgainst, users}) => againstSet({team: teamAgainst, users}))
+        .then((res) => res.map(({teamAgainst, users}) => {
+          oppositionList.push({team: teamAgainst, users: users})
+        }))
+      againstSet({team: oppositionList[0].team, users: oppositionList[0].users})
     }
   }, [form.data.fixtureId])
   return $(Modal, {
@@ -122,13 +130,26 @@ export const ReportCreate: FC<{
                         $(FormBadge, {
                           label: 'vs',
                         }),
-                        $(FormBadge, {
-                          grow: true,
-                          label: isSmall
-                            ? initials(against.team.name)
-                            : against.team.name,
-                          background: hsla.digest(against.team.color),
-                          font: hsla.digest(against.team.color).compliment(),
+                        $(FormRow, {
+                          children: addkeys([
+                            $(FormLabel, {label: 'Against Team:'}),
+                            $(InputSelect, {
+                              value: against.team.name,
+                              valueSet: x => againstSet(oppositionList.find(opposition => opposition.team.name === x)),
+                              options: oppositionList.map(againstTeam => ({
+                                key: againstTeam.team.id,
+                                label: againstTeam.team.name
+                              }))
+                            }),
+                            $(FormBadge, {
+                              grow: true,
+                              label: isSmall
+                                ? initials(against.team.name)
+                                : against.team.name,
+                              background: hsla.digest(against.team.color),
+                              font: hsla.digest(against.team.color).compliment(),
+                            }),
+                          ])
                         }),
                       ]),
                     }),

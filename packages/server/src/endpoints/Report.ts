@@ -69,34 +69,29 @@ export default new Map<string, RequestHandler>([
         if (user.admin) team = await $Team.getOne({id: teamId})
         else [team] = await requireTeam(user, teamId)
         const fixture = await $Fixture.getOne({id: fixtureId})
-        let teamAgainstId: string | undefined
+        let teamAgainstIds: string[] = []
         for (const game of fixture.games) {
           if (game.team1Id === team.id) {
-            teamAgainstId = game.team2Id
-            break
+            teamAgainstIds.push(game.team2Id)
           }
           if (game.team2Id === team.id) {
-            teamAgainstId = game.team1Id
-            break
+            teamAgainstIds.push(game.team1Id)
           }
         }
-        if (!teamAgainstId) {
+        if (teamAgainstIds.length === 0) {
           const message =
             'Failed to find the opposition team. Your team is may not be playing in this fixture.'
           throw new Error(message)
         }
-        const teamAgainst = await $Team.getOne({id: teamAgainstId})
-        const members = await $Member.getMany({
-          teamId: teamAgainst.id,
+        const teamsAgainst = teamAgainstIds.map(async id => (await $Team.getOne({id: id})))
+        const membersLists = teamsAgainst.map(async team => ({ teamId: (await team).id, members: await $Member.getMany({
+          teamId: (await team).id,
           pending: false,
-        })
-        const users = await $User.getMany({
-          id: {$in: members.map((i) => i.userId)},
-        })
-        return {
-          teamAgainst,
-          users: users.map(userPublic),
-        }
+        })}))
+        const usersList = membersLists.map(async teamMembers => ({teamAgainst: team, users: await $User.getMany({
+          id: {$in: (await teamMembers).members.map(i => i.userId)}
+        })}))
+        return usersList.map(async result => ({teamAgainst: (await result).teamAgainst, users: (await result).users.map(userPublic)}))
       },
   }),
   /**
