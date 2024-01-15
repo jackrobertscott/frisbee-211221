@@ -56,6 +56,44 @@ export const FixtureTallyForm: FC<{
   useEffect(() => {
     $reportList.fetch({fixtureId: fixture.id}).then(reportsSet)
   }, [fixture.id])
+  useEffect(() => {
+    if (teams?.length && reports?.length) {
+      form.patch({
+        games: form.data.games.map((game) => {
+          const forTeam1Report = reports.find(
+            (i) => i.teamId === game.team1Id && i.teamAgainstId === game.team2Id
+          )
+          const forTeam2Report = reports.find(
+            (i) => i.teamId === game.team2Id && i.teamAgainstId === game.team1Id
+          )
+          let team1Score: number | undefined = undefined
+          let team2Score: number | undefined = undefined
+          if (forTeam1Report) {
+            if (forTeam2Report) {
+              team1Score = Math.round(
+                (forTeam1Report.scoreFor + forTeam2Report.scoreAgainst) / 2
+              )
+              team2Score = Math.round(
+                (forTeam1Report.scoreAgainst + forTeam2Report.scoreFor) / 2
+              )
+            } else {
+              team1Score = forTeam1Report.scoreFor
+              team2Score = forTeam1Report.scoreAgainst
+            }
+          } else if (forTeam2Report) {
+            team1Score = forTeam2Report.scoreAgainst
+            team2Score = forTeam2Report.scoreFor
+          }
+          return {
+            ...game,
+            // don't overwrite if already set
+            team1Score: game.team1Score || team1Score,
+            team2Score: game.team2Score || team2Score,
+          }
+        }),
+      })
+    }
+  }, [teams, reports])
   return $(Modal, {
     width: theme.fib[14] + theme.fib[12] + theme.fib[6] * 2,
     children: addkeys([
