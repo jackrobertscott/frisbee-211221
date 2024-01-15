@@ -21,6 +21,7 @@ export interface TFormBadge {
   noshrink?: boolean
   select?: 'auto' | 'text' | 'none' | 'contain' | 'all'
   style?: CSSObject
+  wrap?: boolean
 }
 /**
  *
@@ -39,6 +40,7 @@ export const FormBadge: FC<TFormBadge> = ({
   noshrink,
   select,
   style,
+  wrap,
 }) => {
   const background = disabled ? theme.bgDisabled : _background || theme.bg
   return $('div', {
@@ -52,7 +54,7 @@ export const FormBadge: FC<TFormBadge> = ({
         flexGrow: grow ? 1 : undefined,
         flexShrink: noshrink ? 0 : undefined,
         userSelect: select ?? 'none',
-        whiteSpace: 'nowrap',
+        whiteSpace: wrap ? undefined : 'nowrap',
         border: theme.border(),
         padding: theme.padify(padding ?? theme.fib[4]),
         color: font ? font.string() : undefined,

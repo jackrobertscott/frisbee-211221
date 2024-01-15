@@ -38,10 +38,12 @@ export const $ReportGetFixtureAgainst = createEndpoint({
     teamId: io.string(),
     fixtureId: io.string(),
   }),
-  result: io.object({
-    teamAgainst: ioTeam,
-    users: io.array(ioUserPublic),
-  }),
+  result: io.array(
+    io.object({
+      team: ioTeam,
+      users: io.array(ioUserPublic),
+    })
+  ),
 })
 /**
  *
@@ -50,6 +52,7 @@ export const $ReportCreate = createEndpoint({
   path: '/ReportCreate',
   payload: io.object({
     teamId: io.string(),
+    againstTeamId: io.string(),
     fixtureId: io.string(),
     scoreFor: io.number(),
     scoreAgainst: io.number(),

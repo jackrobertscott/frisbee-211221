@@ -3,7 +3,7 @@ import {objectify} from '../utils/objectify'
 /**
  *
  */
-export const userPublic = (user: TUser): TUserPublic => {
+export const selectPublicUserFields = (user: TUser): TUserPublic => {
   return objectify.pick(user, [
     'id',
     'createdOn',

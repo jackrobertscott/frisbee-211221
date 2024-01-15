@@ -8,7 +8,7 @@ import {createEndpoint} from '../utils/endpoints'
 import {requireTeam} from './requireTeam'
 import {requireUser} from './requireUser'
 import {userEmail} from './userEmail'
-import {userPublic} from './userPublic'
+import {selectPublicUserFields} from './userPublic'
 /**
  *
  */
@@ -50,7 +50,7 @@ export default new Map<string, RequestHandler>([
       return {
         current: memberCurrent,
         members,
-        users: users.map(userPublic),
+        users: users.map(selectPublicUserFields),
       }
     },
   }),

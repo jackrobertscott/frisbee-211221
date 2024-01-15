@@ -1,19 +1,19 @@
 import {RequestHandler} from 'micro'
 import {io} from 'torva'
-import {createEndpoint} from '../utils/endpoints'
-import {requireUser} from './requireUser'
-import {$User} from '../tables/$User'
-import hash from '../utils/hash'
-import {requireUserAdmin} from './requireUserAdmin'
-import {regex} from '../utils/regex'
-import {$Member} from '../tables/$Member'
-import mongo from '../utils/mongo'
-import {userEmail} from './userEmail'
 import {$Comment} from '../tables/$Comment'
+import {$Member} from '../tables/$Member'
 import {$Post} from '../tables/$Post'
 import {$Report} from '../tables/$Report'
 import {$Session} from '../tables/$Session'
-import {userPublic} from './userPublic'
+import {$User} from '../tables/$User'
+import {createEndpoint} from '../utils/endpoints'
+import hash from '../utils/hash'
+import mongo from '../utils/mongo'
+import {regex} from '../utils/regex'
+import {requireUser} from './requireUser'
+import {requireUserAdmin} from './requireUserAdmin'
+import {userEmail} from './userEmail'
+import {selectPublicUserFields} from './userPublic'
 /**
  *
  */
@@ -186,7 +186,7 @@ export default new Map<string, RequestHandler>([
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
       const users = await $User.getMany({id: {$in: body.userIds}})
-      return users.map(userPublic)
+      return users.map(selectPublicUserFields)
     },
   }),
   /**

@@ -5,7 +5,7 @@ import {$Post} from '../tables/$Post'
 import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
-import {userPublic} from './userPublic'
+import {selectPublicUserFields} from './userPublic'
 /**
  *
  */
@@ -28,7 +28,7 @@ export default new Map<string, RequestHandler>([
         )
         const userIds = [...new Set(comments.map((i) => i.userId))]
         const users = await $User.getMany({id: {$in: userIds}})
-        return {comments, users: users.map(userPublic)}
+        return {comments, users: users.map(selectPublicUserFields)}
       },
   }),
   /**

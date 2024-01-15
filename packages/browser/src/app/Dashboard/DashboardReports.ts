@@ -103,10 +103,9 @@ export const DashboardReports: FC = () => {
                     fixture: {label: 'Fixture', grow: 2},
                     by: {label: 'By', grow: 3},
                     against: {label: 'Against', grow: 3},
-                    spirit: {label: 'Spirit', grow: 2},
-                    mvps: {label: 'MVPs', grow: 1},
-                    comment: {label: 'Comment', grow: 1.5},
-                    createdOn: {label: 'Created', grow: 2},
+                    spirit: {label: 'Spirit', grow: 1.5},
+                    mvps: {label: 'MVPs', grow: 1.5},
+                    comment: {label: 'Comment', grow: 4},
                   },
                   body: reports.map((report) => {
                     const fixture = fixtures?.find((i) => {
@@ -143,10 +142,8 @@ export const DashboardReports: FC = () => {
                         },
                         comment: {
                           children: $(FormLabel, {
-                            multiple: 0.9,
-                            icon: report.spiritComment.trim()
-                              ? 'check'
-                              : 'times',
+                            label: report.spiritComment.trim() || '...',
+                            wrap: true,
                           }),
                         },
                         createdOn: {
@@ -266,9 +263,11 @@ const _DashboardReportsForm: FC<{
 }> = ({title, teams, fixtures, loading, options, data, dataSet, close}) => {
   const toaster = useToaster()
   const $fixtureAgainst = useEndpoint($ReportGetFixtureAgainst)
-  const [against, againstSet] = useState<{team: TTeam; users: TUserPublic[]}>()
+  const [againstOptions, againstOptionsSet] =
+    useState<Array<{team: TTeam; users: TUserPublic[]}>>()
   const form = useForm({
     teamId: undefined as undefined | string,
+    againstTeamId: undefined as undefined | string,
     fixtureId: undefined as undefined | string,
     scoreFor: undefined as undefined | number,
     scoreAgainst: undefined as undefined | number,
@@ -282,9 +281,19 @@ const _DashboardReportsForm: FC<{
     if (form.data.fixtureId && form.data.teamId) {
       $fixtureAgainst
         .fetch({fixtureId: form.data.fixtureId, teamId: form.data.teamId})
-        .then(({teamAgainst, users}) => againstSet({team: teamAgainst, users}))
+        .then((againstTeams) => {
+          againstOptionsSet(againstTeams)
+          if (againstTeams.length === 1) {
+            form.patch({againstTeamId: againstTeams[0].team.id})
+          } else if (data?.teamAgainstId) {
+            form.patch({againstTeamId: data.teamAgainstId})
+          }
+        })
     }
   }, [form.data.fixtureId, form.data.teamId])
+  const chosenAgainst = againstOptions?.find(
+    (i) => i.team.id === form.data.againstTeamId
+  )
   return $(Fragment, {
     children: addkeys([
       $(Modal, {
@@ -330,6 +339,7 @@ const _DashboardReportsForm: FC<{
                 children: addkeys([
                   $(FormLabel, {label: 'For'}),
                   $(InputSelect, {
+                    disabled: !!data?.teamId,
                     value: form.data.teamId,
                     valueSet: form.link('teamId'),
                     options: teams.map((i) => ({
@@ -342,23 +352,27 @@ const _DashboardReportsForm: FC<{
               }),
               $(Fragment, {
                 children:
-                  !against &&
+                  !againstOptions &&
                   form.data.teamId &&
                   form.data.fixtureId &&
                   $(Spinner),
               }),
               $(Fragment, {
                 children:
-                  against &&
+                  againstOptions &&
                   addkeys([
                     $(FormRow, {
                       children: addkeys([
                         $(FormLabel, {label: 'Against'}),
-                        $(FormLabel, {
-                          grow: true,
-                          label: against.team.name,
-                          font: hsla.digest(against.team.color).compliment(),
-                          background: hsla.digest(against.team.color),
+                        $(InputSelect, {
+                          disabled: !!data?.teamAgainstId,
+                          value: form.data.againstTeamId,
+                          valueSet: form.link('againstTeamId'),
+                          options: againstOptions.map((i) => ({
+                            key: i.team.id,
+                            label: i.team.name,
+                            color: i.team.color,
+                          })),
                         }),
                       ]),
                     }),
@@ -384,35 +398,48 @@ const _DashboardReportsForm: FC<{
                         }),
                       ]),
                     }),
-                    $(FormColumn, {
-                      children: addkeys([
-                        $(FormRow, {
+                    $(Fragment, {
+                      children:
+                        chosenAgainst &&
+                        $(FormColumn, {
                           children: addkeys([
-                            $(FormLabel, {label: 'MVP Male'}),
-                            $(InputSelect, {
-                              value: form.data.mvpMale,
-                              valueSet: form.link('mvpMale'),
-                              options: against.users.map((i) => ({
-                                key: i.id,
-                                label: `${i.firstName} ${i.lastName}`,
-                              })),
+                            $(FormRow, {
+                              children: addkeys([
+                                $(FormLabel, {label: 'MVP Male'}),
+                                $(InputSelect, {
+                                  value: form.data.mvpMale,
+                                  valueSet: form.link('mvpMale'),
+                                  options: chosenAgainst.users.map((i) => ({
+                                    key: i.id,
+                                    label: `${i.firstName} ${i.lastName}`,
+                                  })),
+                                }),
+                                $(FormBadge, {
+                                  icon: 'times',
+                                  click: () => form.patch({mvpMale: undefined}),
+                                }),
+                              ]),
+                            }),
+                            $(FormRow, {
+                              children: addkeys([
+                                $(FormLabel, {label: 'MVP Female'}),
+                                $(InputSelect, {
+                                  value: form.data.mvpFemale,
+                                  valueSet: form.link('mvpFemale'),
+                                  options: chosenAgainst.users.map((i) => ({
+                                    key: i.id,
+                                    label: `${i.firstName} ${i.lastName}`,
+                                  })),
+                                }),
+                                $(FormBadge, {
+                                  icon: 'times',
+                                  click: () =>
+                                    form.patch({mvpFemale: undefined}),
+                                }),
+                              ]),
                             }),
                           ]),
                         }),
-                        $(FormRow, {
-                          children: addkeys([
-                            $(FormLabel, {label: 'MVP Female'}),
-                            $(InputSelect, {
-                              value: form.data.mvpFemale,
-                              valueSet: form.link('mvpFemale'),
-                              options: against.users.map((i) => ({
-                                key: i.id,
-                                label: `${i.firstName} ${i.lastName}`,
-                              })),
-                            }),
-                          ]),
-                        }),
-                      ]),
                     }),
                     $(FormColumn, {
                       children: addkeys([

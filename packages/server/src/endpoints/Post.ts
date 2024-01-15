@@ -1,15 +1,15 @@
 import {RequestHandler} from 'micro'
 import {io} from 'torva'
-import {$Post} from '../tables/$Post'
-import {createEndpoint} from '../utils/endpoints'
-import {requireUser} from './requireUser'
-import {regex} from '../utils/regex'
-import {mail} from '../utils/mail'
 import {$Member} from '../tables/$Member'
+import {$Post} from '../tables/$Post'
 import {$User} from '../tables/$User'
+import {createEndpoint} from '../utils/endpoints'
+import {mail} from '../utils/mail'
 import {purify} from '../utils/purify'
+import {regex} from '../utils/regex'
+import {requireUser} from './requireUser'
 import {userEmail} from './userEmail'
-import {userPublic} from './userPublic'
+import {selectPublicUserFields} from './userPublic'
 /**
  *
  */
@@ -35,7 +35,7 @@ export default new Map<string, RequestHandler>([
         })
         return {
           posts,
-          users: users.map(userPublic),
+          users: users.map(selectPublicUserFields),
         }
       },
   }),

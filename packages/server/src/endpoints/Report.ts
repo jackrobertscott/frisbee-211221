@@ -10,7 +10,6 @@ import {createEndpoint} from '../utils/endpoints'
 import {requireTeam} from './requireTeam'
 import {requireUser} from './requireUser'
 import {requireUserAdmin} from './requireUserAdmin'
-import {userPublic} from './userPublic'
 /**
  *
  */
@@ -69,34 +68,34 @@ export default new Map<string, RequestHandler>([
         if (user.admin) team = await $Team.getOne({id: teamId})
         else [team] = await requireTeam(user, teamId)
         const fixture = await $Fixture.getOne({id: fixtureId})
-        let teamAgainstId: string | undefined
+        let againstTeamIds: string[] = []
         for (const game of fixture.games) {
           if (game.team1Id === team.id) {
-            teamAgainstId = game.team2Id
-            break
-          }
-          if (game.team2Id === team.id) {
-            teamAgainstId = game.team1Id
-            break
+            againstTeamIds.push(game.team2Id)
+          } else if (game.team2Id === team.id) {
+            againstTeamIds.push(game.team1Id)
           }
         }
-        if (!teamAgainstId) {
+        if (!againstTeamIds.length) {
           const message =
             'Failed to find the opposition team. Your team is may not be playing in this fixture.'
           throw new Error(message)
         }
-        const teamAgainst = await $Team.getOne({id: teamAgainstId})
-        const members = await $Member.getMany({
-          teamId: teamAgainst.id,
-          pending: false,
-        })
-        const users = await $User.getMany({
-          id: {$in: members.map((i) => i.userId)},
-        })
-        return {
-          teamAgainst,
-          users: users.map(userPublic),
-        }
+        return Promise.all(
+          againstTeamIds.map(async (id) => {
+            const againstTeam = await $Team.getOne({id})
+            const againstMembers = await $Member.getMany({
+              teamId: againstTeam.id,
+            })
+            const againstUsers = await $User.getMany({
+              id: {$in: againstMembers.map((i) => i.userId)},
+            })
+            return {
+              team: againstTeam,
+              users: againstUsers,
+            }
+          })
+        )
       },
   }),
   /**
@@ -106,6 +105,7 @@ export default new Map<string, RequestHandler>([
     path: '/ReportCreate',
     payload: io.object({
       teamId: io.string(),
+      againstTeamId: io.string(),
       fixtureId: io.string(),
       scoreFor: io.number(),
       scoreAgainst: io.number(),
@@ -120,27 +120,32 @@ export default new Map<string, RequestHandler>([
       if (user.admin) team = await $Team.getOne({id: body.teamId})
       else [team] = await requireTeam(user, body.teamId)
       const fixture = await $Fixture.getOne({id: body.fixtureId})
-      if (await $Report.count({fixtureId: fixture.id, teamId: team.id})) {
+      const teamAgainst = await $Team.getOne({id: body.againstTeamId})
+      if (
+        await $Report.count({
+          fixtureId: fixture.id,
+          teamId: team.id,
+          teamAgainstId: teamAgainst.id,
+        })
+      ) {
         const message = `Report already submitted by ${team.name} for ${fixture.title}.`
         throw new Error(message)
       }
-      let teamAgainstId: string | undefined
+      let matchupIsValid = false
       for (const game of fixture.games) {
-        if (game.team1Id === team.id) {
-          teamAgainstId = game.team2Id
-          break
-        }
-        if (game.team2Id === team.id) {
-          teamAgainstId = game.team1Id
+        if (
+          (game.team1Id === team.id && game.team2Id === teamAgainst.id) ||
+          (game.team2Id === team.id && game.team1Id === teamAgainst.id)
+        ) {
+          matchupIsValid = true
           break
         }
       }
-      if (!teamAgainstId) {
+      if (!matchupIsValid) {
         const message =
           'Failed to find the opposition team. Your team is may not be playing in this fixture.'
         throw new Error(message)
       }
-      const teamAgainst = await $Team.getOne({id: teamAgainstId})
       return $Report.createOne({
         ...body,
         userId: user.id,

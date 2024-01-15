@@ -40,12 +40,14 @@ export const ReportCreate: FC<{
   const toaster = useToaster()
   const isSmall = media.width < theme.fib[12]
   const [fixtures, fixturesSet] = useState<TFixture[]>()
-  const [against, againstSet] = useState<{team: TTeam; users: TUserPublic[]}>()
+  const [againstOptions, againstOptionsSet] =
+    useState<Array<{team: TTeam; users: TUserPublic[]}>>()
   const $fixtureList = useEndpoint($FixtureListOfSeason)
   const $fixtureAgainst = useEndpoint($ReportGetFixtureAgainst)
   const $create = useEndpoint($ReportCreate)
   const form = useForm({
     teamId: auth.current?.team?.id,
+    againstTeamId: undefined as undefined | string,
     fixtureId: undefined as undefined | string,
     scoreFor: undefined as undefined | number,
     scoreAgainst: undefined as undefined | number,
@@ -61,9 +63,24 @@ export const ReportCreate: FC<{
     if (form.data.fixtureId && auth.current?.team) {
       $fixtureAgainst
         .fetch({fixtureId: form.data.fixtureId, teamId: auth.current?.team.id})
-        .then(({teamAgainst, users}) => againstSet({team: teamAgainst, users}))
+        .then((againstOptions) => againstOptionsSet(againstOptions))
     }
   }, [form.data.fixtureId])
+  useEffect(() => {
+    if (form.data.fixtureId && form.data.teamId) {
+      $fixtureAgainst
+        .fetch({fixtureId: form.data.fixtureId, teamId: form.data.teamId})
+        .then((againstTeams) => {
+          againstOptionsSet(againstTeams)
+          if (againstTeams.length === 1) {
+            form.patch({againstTeamId: againstTeams[0].team.id})
+          }
+        })
+    }
+  }, [form.data.fixtureId, form.data.teamId])
+  const chosenAgainst = againstOptions?.find(
+    (i) => i.team.id === form.data.againstTeamId
+  )
   return $(Modal, {
     width: 610,
     children: addkeys([
@@ -100,7 +117,7 @@ export const ReportCreate: FC<{
           $(Fragment, {
             children: !form.data.fixtureId
               ? null
-              : !auth.current?.team || !against?.users
+              : !auth.current?.team || !againstOptions
               ? $(Spinner)
               : addkeys([
                   $('div', {
@@ -122,13 +139,14 @@ export const ReportCreate: FC<{
                         $(FormBadge, {
                           label: 'vs',
                         }),
-                        $(FormBadge, {
-                          grow: true,
-                          label: isSmall
-                            ? initials(against.team.name)
-                            : against.team.name,
-                          background: hsla.digest(against.team.color),
-                          font: hsla.digest(against.team.color).compliment(),
+                        $(InputSelect, {
+                          value: form.data.againstTeamId,
+                          valueSet: form.link('againstTeamId'),
+                          options: againstOptions.map((i) => ({
+                            key: i.team.id,
+                            label: i.team.name,
+                            color: i.team.color,
+                          })),
                         }),
                       ]),
                     }),
@@ -155,46 +173,50 @@ export const ReportCreate: FC<{
                       }),
                     ]),
                   }),
-                  $(FormColumn, {
-                    children: addkeys([
-                      $(FormRow, {
+                  $(Fragment, {
+                    children:
+                      chosenAgainst &&
+                      $(FormColumn, {
                         children: addkeys([
-                          $(FormLabel, {label: 'MVP Male'}),
-                          $(InputSelect, {
-                            value: form.data.mvpMale,
-                            valueSet: form.link('mvpMale'),
-                            options: against.users.map((i) => ({
-                              key: i.id,
-                              label: `${i.firstName} ${i.lastName}`,
-                            })),
+                          $(FormRow, {
+                            children: addkeys([
+                              $(FormLabel, {label: 'MVP Male'}),
+                              $(InputSelect, {
+                                value: form.data.mvpMale,
+                                valueSet: form.link('mvpMale'),
+                                options: chosenAgainst.users.map((i) => ({
+                                  key: i.id,
+                                  label: `${i.firstName} ${i.lastName}`,
+                                })),
+                              }),
+                              $(FormBadge, {
+                                icon: 'times',
+                                click: () => form.patch({mvpMale: undefined}),
+                              }),
+                            ]),
                           }),
-                          $(FormBadge, {
-                            icon: 'times',
-                            click: () => form.patch({mvpMale: undefined}),
+                          $(FormRow, {
+                            children: addkeys([
+                              $(FormLabel, {label: 'MVP Female'}),
+                              $(InputSelect, {
+                                value: form.data.mvpFemale,
+                                valueSet: form.link('mvpFemale'),
+                                options: chosenAgainst.users.map((i) => ({
+                                  key: i.id,
+                                  label: `${i.firstName} ${i.lastName}`,
+                                })),
+                              }),
+                              $(FormBadge, {
+                                icon: 'times',
+                                click: () => form.patch({mvpFemale: undefined}),
+                              }),
+                            ]),
+                          }),
+                          $(FormHelp, {
+                            children: `If you can't find the player you are looking for, please put their name in the spirit score comment section.`,
                           }),
                         ]),
                       }),
-                      $(FormRow, {
-                        children: addkeys([
-                          $(FormLabel, {label: 'MVP Female'}),
-                          $(InputSelect, {
-                            value: form.data.mvpFemale,
-                            valueSet: form.link('mvpFemale'),
-                            options: against.users.map((i) => ({
-                              key: i.id,
-                              label: `${i.firstName} ${i.lastName}`,
-                            })),
-                          }),
-                          $(FormBadge, {
-                            icon: 'times',
-                            click: () => form.patch({mvpFemale: undefined}),
-                          }),
-                        ]),
-                      }),
-                      $(FormHelp, {
-                        children: `If you can't find the player you are looking for, please put their name in the spirit score comment section.`,
-                      }),
-                    ]),
                   }),
                   $(FormColumn, {
                     children: addkeys([
