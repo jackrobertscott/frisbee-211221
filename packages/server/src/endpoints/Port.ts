@@ -48,6 +48,7 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     path: '/PortExport',
     handler: () => async (req) => {
+      throw new Error('Please ask admin (Jack) to enable export feature')
       const [user] = await requireUserAdmin(req)
       const all = await Promise.all([
         $Fixture.getMany({}),
