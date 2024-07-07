@@ -107,19 +107,18 @@ const _createTeamsFromObjects = async (
   objects: Record<string, string>[],
   seasonId: string
 ) => {
-  const teamCSVNameList = [] as string[]
-  let teamCSVList = objects
-    .filter((i) => i.type === 'team')
-    .map((i) => ({
-      seasonId: seasonId,
-      name: i.team_name,
-      color: 'hsla(0, 0%, 100%, 1)',
-    }))
-    .filter((i) => {
-      if (teamCSVNameList.includes(i.name)) return false
-      teamCSVNameList.push(i.name)
-      return true
-    })
+  const teamCSVMap = new Map(
+    objects.map((i) => [
+      i.team_name,
+      {
+        seasonId: seasonId,
+        name: i.team_name,
+        color: 'hsla(0, 0%, 100%, 1)',
+      },
+    ])
+  )
+  const teamCSVList = [...teamCSVMap.values()]
+  const teamCSVNameList = [...teamCSVMap.keys()]
   const teamDBList = await $Team.getMany({
     seasonId: seasonId,
     name: {$in: teamCSVNameList.map(regex.normalize)},
