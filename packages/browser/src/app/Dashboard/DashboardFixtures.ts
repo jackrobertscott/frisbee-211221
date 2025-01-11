@@ -239,29 +239,34 @@ const _DashboardFixturesView: FC<{
                   time: {label: 'Time', grow: isSmall ? 3 : 2},
                   place: {label: 'Place', grow: isSmall ? 3 : 2},
                 },
-                body: fixture.games.map((game) => {
-                  const team1 = teams.find((i) => i.id === game.team1Id)
-                  const team2 = teams.find((i) => i.id === game.team2Id)
-                  return {
-                    key: game.id,
-                    data: {
-                      one: {
-                        value: isSmall
-                          ? initials(team1?.name)
-                          : team1?.name ?? '[unknown]',
-                        color: team1?.color,
+                body: fixture.games
+                  .sort((a, b) => {
+                    if (a.time !== b.time) return a.time.localeCompare(b.time)
+                    return a.place.localeCompare(b.place)
+                  })
+                  .map((game) => {
+                    const team1 = teams.find((i) => i.id === game.team1Id)
+                    const team2 = teams.find((i) => i.id === game.team2Id)
+                    return {
+                      key: game.id,
+                      data: {
+                        one: {
+                          value: isSmall
+                            ? initials(team1?.name)
+                            : team1?.name ?? '[unknown]',
+                          color: team1?.color,
+                        },
+                        two: {
+                          value: isSmall
+                            ? initials(team2?.name)
+                            : team2?.name ?? '[unknown]',
+                          color: team2?.color,
+                        },
+                        time: {value: game.time},
+                        place: {value: game.place},
                       },
-                      two: {
-                        value: isSmall
-                          ? initials(team2?.name)
-                          : team2?.name ?? '[unknown]',
-                        color: team2?.color,
-                      },
-                      time: {value: game.time},
-                      place: {value: game.place},
-                    },
-                  }
-                }),
+                    }
+                  }),
               }),
               $(Fragment, {
                 children:
