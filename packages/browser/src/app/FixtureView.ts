@@ -60,7 +60,10 @@ export const FixtureView: FC<{
             place: {label: 'Place', grow: 2},
           },
           body: fixture.games
-            .sort((a, b) => a.time.localeCompare(b.time))
+            .sort((a, b) => {
+              if (a.time !== b.time) return a.time.localeCompare(b.time)
+              return a.place.localeCompare(b.place)
+            })
             .map((game) => {
               const team1 = teams.find((i) => i.id === game.team1Id)
               const team2 = teams.find((i) => i.id === game.team2Id)
