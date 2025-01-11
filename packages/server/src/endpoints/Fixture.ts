@@ -195,11 +195,11 @@ export default new Map<string, RequestHandler>([
  *
  */
 const _fixtureScreenshot = async (fixtureId: string) => {
+  const browser = await puppeteer.launch({
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    args: ['--no-sandbox'],
+  })
   try {
-    const browser = await puppeteer.launch({
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-      args: ['--no-sandbox'],
-    })
     const page = await browser.newPage()
     await page.setViewport({width: 987, height: 987})
     await page.goto(`${config.urlClient}/?fixtureId=${fixtureId}`, {
