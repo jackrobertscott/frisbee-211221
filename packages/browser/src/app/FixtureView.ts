@@ -59,25 +59,27 @@ export const FixtureView: FC<{
             time: {label: 'Time', grow: 2},
             place: {label: 'Place', grow: 2},
           },
-          body: fixture.games.map((game) => {
-            const team1 = teams.find((i) => i.id === game.team1Id)
-            const team2 = teams.find((i) => i.id === game.team2Id)
-            return {
-              key: game.id,
-              data: {
-                one: {
-                  value: team1?.name ?? '[unknown]',
-                  color: team1?.color,
+          body: fixture.games
+            .sort((a, b) => a.time.localeCompare(b.time))
+            .map((game) => {
+              const team1 = teams.find((i) => i.id === game.team1Id)
+              const team2 = teams.find((i) => i.id === game.team2Id)
+              return {
+                key: game.id,
+                data: {
+                  one: {
+                    value: team1?.name ?? '[unknown]',
+                    color: team1?.color,
+                  },
+                  two: {
+                    value: team2?.name ?? '[unknown]',
+                    color: team2?.color,
+                  },
+                  time: {value: game.time},
+                  place: {value: game.place},
                 },
-                two: {
-                  value: team2?.name ?? '[unknown]',
-                  color: team2?.color,
-                },
-                time: {value: game.time},
-                place: {value: game.place},
-              },
-            }
-          }),
+              }
+            }),
         }),
       ]),
     }),
