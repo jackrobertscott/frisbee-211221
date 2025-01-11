@@ -202,11 +202,13 @@ const _fixtureScreenshot = async (fixtureId: string) => {
   try {
     const page = await browser.newPage()
     await page.setViewport({width: 987, height: 987})
-    await page.goto(`${config.urlClient}/?fixtureId=${fixtureId}`, {
-      waitUntil: 'networkidle0',
+    const url = `${config.urlClient}/?fixtureId=${fixtureId}`
+    console.log('Loading URL', url)
+    await page.goto(url, {
+      waitUntil: ['networkidle0', 'networkidle2'],
     })
     await page.emulateTimezone('Australia/Perth')
-    await page.evaluateHandle('document.fonts.ready')
+    // await page.evaluateHandle('document.fonts.ready')
     const $clip = await page.waitForSelector('#clip')
     if (!$clip) throw new Error('Could not find #clip element')
     const box = await $clip.boundingBox()
