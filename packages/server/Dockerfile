@@ -1,7 +1,8 @@
 FROM node:16-alpine AS builder
 WORKDIR /app
 COPY . .
-RUN yarn install --frozen-lockfile
+# RUN yarn install --frozen-lockfile
+RUN yarn install
 RUN yarn build
 
 FROM node:16-alpine AS final
@@ -13,6 +14,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/.env.example .
 COPY package.json .
 COPY yarn.lock .
-RUN yarn install --frozen-lockfile --production
+# RUN yarn install --frozen-lockfile --production
+RUN yarn install --production
 EXPOSE 8080
 CMD ["yarn", "start"]

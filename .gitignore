@@ -29,6 +29,7 @@ report.*.json
 
 # lock file
 package-lock.json
+yarn.lock
 
 # documentation
 .docz
