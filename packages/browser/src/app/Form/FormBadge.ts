@@ -1,9 +1,10 @@
-import {css, CSSObject} from '@emotion/css'
+import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {THSLA} from '../../utils/hsla'
 import {Icon} from '../Icon'
+import {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 /**
  *
  */

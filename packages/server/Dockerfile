@@ -13,7 +13,7 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/.env.example .
 COPY package.json .
-COPY yarn.lock .
+# COPY yarn.lock .
 # RUN yarn install --frozen-lockfile --production
 RUN yarn install --production
 EXPOSE 8080

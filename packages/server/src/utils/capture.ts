@@ -1,8 +1,8 @@
 import * as Sentry from '@sentry/node'
-import {StatusCodes, getReasonPhrase} from 'http-status-codes'
-import {IncomingMessage} from 'http'
-import {send, RequestHandler} from 'micro'
 import {sentenceCase} from 'change-case'
+import {IncomingMessage} from 'http'
+import {StatusCodes, getReasonPhrase} from 'http-status-codes'
+import {RequestHandler, send} from 'micro'
 import config from '../config'
 /**
  *
@@ -71,10 +71,10 @@ export default {
    *
    */
   scope(req: any) {
-    Sentry.configureScope((scope: Sentry.Scope) => {
-      scope.addEventProcessor(async (event: Sentry.Event) => {
-        return Sentry.Handlers.parseRequest(event, req)
-      })
-    })
+    // Sentry.configureScope((scope: Sentry.Scope) => {
+    //   scope.addEventProcessor(async (event: Sentry.Event) => {
+    //     return Sentry.Handlers.parseRequest(event, req)
+    //   })
+    // })
   },
 }

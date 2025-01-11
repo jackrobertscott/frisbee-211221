@@ -1,4 +1,4 @@
-import {css, CSSObject} from '@emotion/css'
+import {css} from '@emotion/css'
 import {
   createElement as $,
   FC,
@@ -10,9 +10,10 @@ import {
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {hsla} from '../utils/hsla'
+import {Portal} from './Portal'
 import {StackProvider} from './Stack/StackProvider'
 import {useStack} from './Stack/useStack'
-import {Portal} from './Portal'
+import {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 /**
  *
  */
