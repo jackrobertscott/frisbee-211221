@@ -1,6 +1,6 @@
-import path from 'path'
-import * as dotenvSafe from 'dotenv-safe'
 import * as dotenv from 'dotenv'
+import * as dotenvSafe from 'dotenv-safe'
+import path from 'path'
 /**
  *
  */
@@ -42,7 +42,7 @@ const config: {
   googleClientSecret?: string
 } = {
   env: env.NODE_ENV || 'development',
-  prod: env.NODE_ENV === 'production',
+  prod: !env.URL_CLIENT?.startsWith('http://localhost'),
   debug: true,
   port: +env.PORT,
   appName: env.APP_NAME,
