@@ -195,24 +195,32 @@ export default new Map<string, RequestHandler>([
  *
  */
 const _fixtureScreenshot = async (fixtureId: string) => {
-  const browser = await puppeteer.launch({
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-    args: ['--no-sandbox'],
-  })
-  const page = await browser.newPage()
-  await page.setViewport({width: 987, height: 987})
-  await page.goto(`${config.urlClient}/?fixtureId=${fixtureId}`, {
-    waitUntil: 'networkidle0',
-  })
-  await page.emulateTimezone('Australia/Perth')
-  await page.evaluateHandle('document.fonts.ready')
-  const $clip = await page.$('#clip')
-  const box = await $clip?.boundingBox()
-  const screenshot = await page.screenshot({
-    clip: box ? {x: 0, y: 0, width: box.width, height: box.height} : undefined,
-  })
-  await browser.close()
-  return screenshot as Buffer
+  try {
+    const browser = await puppeteer.launch({
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+      args: ['--no-sandbox'],
+    })
+    const page = await browser.newPage()
+    await page.setViewport({width: 987, height: 987})
+    await page.goto(`${config.urlClient}/?fixtureId=${fixtureId}`, {
+      waitUntil: 'networkidle0',
+    })
+    await page.emulateTimezone('Australia/Perth')
+    await page.evaluateHandle('document.fonts.ready')
+    const $clip = await page.waitForSelector('#clip')
+    if (!$clip) throw new Error('Could not find #clip element')
+    const box = await $clip.boundingBox()
+    if (!box) throw new Error('Could not get bounding box')
+    const screenshot = await page.screenshot({
+      clip: {x: 0, y: 0, width: box.width, height: box.height},
+    })
+    return screenshot as Buffer
+  } catch (e) {
+    console.log(e)
+    throw e
+  } finally {
+    await browser.close()
+  }
 }
 /**
  *
