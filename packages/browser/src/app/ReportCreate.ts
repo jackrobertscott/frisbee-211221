@@ -81,6 +81,7 @@ export const ReportCreate: FC<{
   const chosenAgainst = againstOptions?.find(
     (i) => i.team.id === form.data.againstTeamId
   )
+  const shuffledUsers = shuffleArray(chosenAgainst?.users ?? [])
   return $(Modal, {
     width: 610,
     children: addkeys([
@@ -184,7 +185,7 @@ export const ReportCreate: FC<{
                               $(InputSelect, {
                                 value: form.data.mvpMale,
                                 valueSet: form.link('mvpMale'),
-                                options: chosenAgainst.users.map((i) => ({
+                                options: shuffledUsers.map((i) => ({
                                   key: i.id,
                                   label: `${i.firstName} ${i.lastName}`,
                                 })),
@@ -201,7 +202,7 @@ export const ReportCreate: FC<{
                               $(InputSelect, {
                                 value: form.data.mvpFemale,
                                 valueSet: form.link('mvpFemale'),
-                                options: chosenAgainst.users.map((i) => ({
+                                options: shuffledUsers.map((i) => ({
                                   key: i.id,
                                   label: `${i.firstName} ${i.lastName}`,
                                 })),
@@ -271,4 +272,12 @@ export const ReportCreate: FC<{
       }),
     ]),
   })
+}
+
+function shuffleArray(array: any[]): any[] {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[array[i], array[j]] = [array[j], array[i]]
+  }
+  return array
 }
