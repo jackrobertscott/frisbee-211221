@@ -1,5 +1,6 @@
 import {RequestHandler} from 'micro'
 import puppeteer from 'puppeteer'
+import {attachCorsToResponse} from 'src/utils/cors'
 import {io} from 'torva'
 import config from '../config'
 import {TFixture, ioFixtureGame} from '../schemas/ioFixture'
@@ -115,6 +116,7 @@ export default new Map<string, RequestHandler>([
       async (req, res) => {
         const fixture = await $Fixture.getOne({id: fixtureId})
         const buffer = await _fixtureScreenshot(fixture.id)
+        attachCorsToResponse(res)
         res.setHeader('Content-Type', 'image/png')
         res.end(buffer)
       },
@@ -208,7 +210,7 @@ const _fixtureScreenshot = async (fixtureId: string) => {
       waitUntil: ['networkidle0', 'networkidle2'],
     })
     await page.emulateTimezone('Australia/Perth')
-    // await page.evaluateHandle('document.fonts.ready')
+    await page.evaluateHandle('document.fonts.ready')
     const $clip = await page.waitForSelector('#clip')
     if (!$clip) throw new Error('Could not find #clip element')
     const box = await $clip.boundingBox()
