@@ -31,7 +31,7 @@ export const hsla = {
         )
       },
       hover() {
-        return this.darken(10).string()
+        return this.darken(5).string()
       },
       press() {
         return this.darken(15).string()

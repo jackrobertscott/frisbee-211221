@@ -1,16 +1,16 @@
-import backgroundSVG from '../assets/noise.svg'
 import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
+// import noiseUrl from '../assets/noise.png'
 import {useAuth} from './Auth/useAuth'
 import {Center} from './Center'
 import {Dashboard} from './Dashboard/Dashboard'
-import {SeasonSetup} from './SeasonSetup'
-import {Spinner} from './Spinner'
-import {useReload} from './useReload'
-import {useRouter} from './Router/useRouter'
 import {FixtureView} from './FixtureView'
 import {Router} from './Router/Router'
+import {useRouter} from './Router/useRouter'
+import {SeasonSetup} from './SeasonSetup'
 import {Security} from './Security/Security'
+import {Spinner} from './Spinner'
+import {useReload} from './useReload'
 /**
  *
  */
@@ -27,10 +27,10 @@ export const App: FC = () => {
     className: css({
       width: '100%',
       height: '100%',
-      backgroundImage: `url(${backgroundSVG})`,
-      backgroundPosition: 'center',
-      backgroundRepeat: 'repeat',
-      backgroundSize: 50,
+      // backgroundImage: `url(${noiseUrl})`,
+      // backgroundPosition: 'center',
+      // backgroundRepeat: 'repeat',
+      // backgroundSize: 25,
     }),
   })
 }

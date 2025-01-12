@@ -390,6 +390,7 @@ const _DashboardSeasonBadge: FC = () => {
           click: () => openSet(true),
         }),
         popup: $(Form, {
+          background: theme.bgMinor,
           width: theme.fib[11],
           children: addkeys([
             $('div', {
