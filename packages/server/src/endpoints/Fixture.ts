@@ -6,7 +6,6 @@ import {TFixture, ioFixtureGame} from '../schemas/ioFixture'
 import {$Fixture} from '../tables/$Fixture'
 import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
-import {attachCorsToResponse} from '../utils/cors'
 import {createEndpoint} from '../utils/endpoints'
 import {random} from '../utils/random'
 import {requireUserAdmin} from './requireUserAdmin'
@@ -116,7 +115,8 @@ export default new Map<string, RequestHandler>([
       async (req, res) => {
         const fixture = await $Fixture.getOne({id: fixtureId})
         const buffer = await _fixtureScreenshot(fixture.id)
-        attachCorsToResponse(res)
+        // this method fails if you do not have enough server memory
+        // for example, it will fail on a "$5" DigitalOcean droplet
         res.setHeader('Content-Type', 'image/png')
         res.end(buffer)
       },
@@ -205,7 +205,6 @@ const _fixtureScreenshot = async (fixtureId: string) => {
     const page = await browser.newPage()
     await page.setViewport({width: 987, height: 987})
     const url = `${config.urlClient}/?fixtureId=${fixtureId}`
-    console.log('Loading URL', url)
     await page.goto(url, {
       waitUntil: ['networkidle0', 'networkidle2'],
     })

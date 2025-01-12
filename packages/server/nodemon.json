@@ -1,6 +1,8 @@
 {
-  "watch": ["src"],
-  "exec": "yarn serve",
+  "watch": [
+    "src"
+  ],
+  "exec": "npm run serve",
   "ext": "ts,tsx,gql",
   "ignore": [
     "**/*.test.*",
