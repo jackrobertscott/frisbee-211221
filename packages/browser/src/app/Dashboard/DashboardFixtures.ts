@@ -7,7 +7,6 @@ import {TFixture} from '../../schemas/ioFixture'
 import {TTeam} from '../../schemas/ioTeam'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
-import {download} from '../../utils/download'
 import {initials} from '../../utils/initials'
 import {useAuth} from '../Auth/useAuth'
 import {FixtureGenerate} from '../FixtureGenerate'
@@ -212,19 +211,19 @@ const _DashboardFixturesView: FC<{
               }),
             ]),
           }),
-          $(FormBadge, {
-            noshrink: true,
-            background: theme.bgMinor,
-            icon: $fixtureSnapshot.loading ? 'spinner' : 'camera',
-            label: $fixtureSnapshot.loading ? 'Loading' : 'Save Screenshot',
-            click: () =>
-              !$fixtureSnapshot.loading &&
-              $fixtureSnapshot.fetch({fixtureId: fixture.id}).then((blob) => {
-                if (blob.type !== 'image/png')
-                  throw new Error('Failed: only png images are supported.')
-                download.blob(blob, `${fixture.title}.png`)
-              }),
-          }),
+          // $(FormBadge, {
+          //   noshrink: true,
+          //   background: theme.bgMinor,
+          //   icon: $fixtureSnapshot.loading ? 'spinner' : 'camera',
+          //   label: $fixtureSnapshot.loading ? 'Loading' : 'Save Screenshot',
+          //   click: () =>
+          //     !$fixtureSnapshot.loading &&
+          //     $fixtureSnapshot.fetch({fixtureId: fixture.id}).then((blob) => {
+          //       if (blob.type !== 'image/png')
+          //         throw new Error('Failed: only png images are supported.')
+          //       download.blob(blob, `${fixture.title}.png`)
+          //     }),
+          // }),
         ]),
       }),
       $(Fragment, {
