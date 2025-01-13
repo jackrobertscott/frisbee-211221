@@ -21,6 +21,7 @@ import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useEndpoint} from '../useEndpoint'
 import {useLocalState} from '../useLocalState'
+import {download} from '../../utils/download'
 /**
  *
  */
@@ -211,19 +212,19 @@ const _DashboardFixturesView: FC<{
               }),
             ]),
           }),
-          // $(FormBadge, {
-          //   noshrink: true,
-          //   background: theme.bgMinor,
-          //   icon: $fixtureSnapshot.loading ? 'spinner' : 'camera',
-          //   label: $fixtureSnapshot.loading ? 'Loading' : 'Save Screenshot',
-          //   click: () =>
-          //     !$fixtureSnapshot.loading &&
-          //     $fixtureSnapshot.fetch({fixtureId: fixture.id}).then((blob) => {
-          //       if (blob.type !== 'image/png')
-          //         throw new Error('Failed: only png images are supported.')
-          //       download.blob(blob, `${fixture.title}.png`)
-          //     }),
-          // }),
+          $(FormBadge, {
+            noshrink: true,
+            background: theme.bgMinor,
+            icon: $fixtureSnapshot.loading ? 'spinner' : 'camera',
+            label: $fixtureSnapshot.loading ? 'Loading' : 'Save Screenshot',
+            click: () =>
+              !$fixtureSnapshot.loading &&
+              $fixtureSnapshot.fetch({fixtureId: fixture.id}).then((blob) => {
+                if (blob.type !== 'image/png')
+                  throw new Error('Failed: only png images are supported.')
+                download.blob(blob, `${fixture.title}.png`)
+              }),
+          }),
         ]),
       }),
       $(Fragment, {

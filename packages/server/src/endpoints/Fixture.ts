@@ -197,9 +197,18 @@ export default new Map<string, RequestHandler>([
  *
  */
 const _fixtureScreenshot = async (fixtureId: string) => {
+  // warning: default puppeteer (without args) will not work without >=2 cpu cores
   const browser = await puppeteer.launch({
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-    args: ['--no-sandbox'],
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      // following args help run in a low-memory and cpu environment
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--disable-software-rasterizer',
+    ],
   })
   try {
     const page = await browser.newPage()
