@@ -33,7 +33,10 @@ export const SecurityVerify: FC<{
     userAgent: navigator.userAgent,
   })
   const submit = () =>
-    $verify.fetch({...form.data, seasonId: auth.season?.id}).then(auth.login)
+    $verify.fetch({...form.data, seasonId: auth.season?.id}).then((data) => {
+      auth.login(data)
+      go.to('/')
+    })
   useEffect(() => {
     if (!_email) go.to('/auth')
   }, [_email])
