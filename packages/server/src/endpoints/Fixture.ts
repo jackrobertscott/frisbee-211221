@@ -113,12 +113,19 @@ export default new Map<string, RequestHandler>([
     handler:
       ({fixtureId}) =>
       async (req, res) => {
-        const fixture = await $Fixture.getOne({id: fixtureId})
-        const buffer = await _fixtureScreenshot(fixture.id)
-        // this method fails if you do not have enough server memory
-        // for example, it will fail on a "$5" DigitalOcean droplet
-        res.setHeader('Content-Type', 'image/png')
-        res.end(buffer)
+        let buffer: Buffer | null
+        try {
+          const fixture = await $Fixture.getOne({id: fixtureId})
+          buffer = await _fixtureScreenshot(fixture.id)
+          // this method fails if you do not have enough server memory
+          // for example, it will fail on a "$5" DigitalOcean droplet
+          res.setHeader('Content-Type', 'image/png')
+          res.end(buffer)
+        } catch (e) {
+          throw e
+        } finally {
+          buffer = null
+        }
       },
   }),
   /**
