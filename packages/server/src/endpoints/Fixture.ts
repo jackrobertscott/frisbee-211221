@@ -197,41 +197,59 @@ export default new Map<string, RequestHandler>([
  *
  */
 const _fixtureScreenshot = async (fixtureId: string) => {
+  let browser = null
+  let page = null
+  let $clip = null
+
   // warning: default puppeteer (without args) will not work without >=2 cpu cores
-  const browser = await puppeteer.launch({
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-    headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      // following args help run in a low-memory and cpu environment
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--disable-software-rasterizer',
-    ],
-  })
   try {
-    const page = await browser.newPage()
+    browser = await puppeteer.launch({
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        // following args help run in a low-memory and cpu environment
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-software-rasterizer',
+      ],
+    })
+
+    page = await browser.newPage()
     await page.setViewport({width: 987, height: 987})
     const url = `${config.urlClient}/?fixtureId=${fixtureId}`
     await page.goto(url, {
       waitUntil: ['networkidle0', 'networkidle2'],
     })
+
     await page.emulateTimezone('Australia/Perth')
     await page.evaluateHandle('document.fonts.ready')
-    const $clip = await page.waitForSelector('#clip')
+
+    $clip = await page.waitForSelector('#clip')
     if (!$clip) throw new Error('Could not find #clip element')
+
     const box = await $clip.boundingBox()
     if (!box) throw new Error('Could not get bounding box')
+
     const screenshot = await page.screenshot({
       clip: {x: 0, y: 0, width: box.width, height: box.height},
     })
+
     return screenshot as Buffer
   } catch (e) {
     console.log(e)
     throw e
   } finally {
-    await browser.close()
+    if ($clip) {
+      await $clip.dispose()
+    }
+    if (page) {
+      await page.close()
+    }
+    if (browser) {
+      await browser.close()
+    }
   }
 }
 /**
