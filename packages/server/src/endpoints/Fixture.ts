@@ -1,5 +1,5 @@
 import {RequestHandler} from 'micro'
-import puppeteer, {Browser} from 'puppeteer'
+import puppeteer from 'puppeteer'
 import {io} from 'torva'
 import config from '../config'
 import {TFixture, ioFixtureGame} from '../schemas/ioFixture'
@@ -203,39 +203,25 @@ export default new Map<string, RequestHandler>([
 /**
  *
  */
-let __browser__: Browser
-async function getBrowser() {
-  try {
-    if (!__browser__ || !__browser__.connected) {
-      if (__browser__) {
-        await __browser__.close()
-      }
-      __browser__ = await puppeteer.launch({
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          // following args help run in a low-memory and cpu environment
-          '--disable-dev-shm-usage',
-          '--disable-gpu',
-          '--disable-software-rasterizer',
-        ],
-      })
-    }
-    return __browser__
-  } catch (error) {
-    console.error('Browser creation failed:', error)
-    throw error
-  }
-}
 const _fixtureScreenshot = async (fixtureId: string) => {
-  const browser = await getBrowser()
+  let browser = null
   let page = null
   let $clip = null
 
   // warning: default puppeteer (without args) will not work without >=2 cpu cores
   try {
+    browser = await puppeteer.launch({
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        // following args help run in a low-memory and cpu environment
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-software-rasterizer',
+      ],
+    })
     page = await browser.newPage()
     await page.setViewport({width: 987, height: 987})
     const url = `${config.urlClient}/?fixtureId=${fixtureId}`
