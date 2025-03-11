@@ -86,14 +86,15 @@ export const MissingReportsModal: FC<{
                       label: `${round.title} - ${dayjs(round.date).format(
                         'MMM D'
                       )}`,
-                      background: theme.bgMinor,
-                      icon: 'calendar',
+                      background: theme.bg,
+                      // icon: 'calendar',
                     }),
                     ...round.missingTeams.map((team) => {
                       return $(FormBadge, {
                         key: team.id,
                         label: team.name,
-                        background: team.color,
+                        // background: team.color,
+                        background: theme.bgMinor,
                         grow: true,
                       })
                     }),
