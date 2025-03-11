@@ -160,6 +160,41 @@ export const FixtureTallyForm: FC<{
                               value: game.team1Score,
                               valueSet: (team1Score) => gamePatch({team1Score}),
                               placeholder: `Score...`,
+                              backgroundColor: (() => {
+                                const forTeam1Report = reports?.find(
+                                  (i) =>
+                                    i.teamId === game.team1Id &&
+                                    i.teamAgainstId === game.team2Id
+                                )
+                                const forTeam2Report = reports?.find(
+                                  (i) =>
+                                    i.teamId === game.team2Id &&
+                                    i.teamAgainstId === game.team1Id
+                                )
+
+                                let reportedScore: number | undefined =
+                                  undefined
+
+                                if (forTeam1Report) {
+                                  if (forTeam2Report) {
+                                    reportedScore = Math.round(
+                                      (forTeam1Report.scoreFor +
+                                        forTeam2Report.scoreAgainst) /
+                                        2
+                                    )
+                                  } else {
+                                    reportedScore = forTeam1Report.scoreFor
+                                  }
+                                } else if (forTeam2Report) {
+                                  reportedScore = forTeam2Report.scoreAgainst
+                                }
+
+                                return game.team1Score !== undefined &&
+                                  reportedScore !== undefined &&
+                                  game.team1Score !== reportedScore
+                                  ? hsla.create(60, 100, 80).string()
+                                  : undefined
+                              })(),
                             }),
                             $(FormLabel, {
                               grow: true,
@@ -175,6 +210,41 @@ export const FixtureTallyForm: FC<{
                               value: game.team2Score,
                               valueSet: (team2Score) => gamePatch({team2Score}),
                               placeholder: `Score...`,
+                              backgroundColor: (() => {
+                                const forTeam1Report = reports?.find(
+                                  (i) =>
+                                    i.teamId === game.team1Id &&
+                                    i.teamAgainstId === game.team2Id
+                                )
+                                const forTeam2Report = reports?.find(
+                                  (i) =>
+                                    i.teamId === game.team2Id &&
+                                    i.teamAgainstId === game.team1Id
+                                )
+
+                                let reportedScore: number | undefined =
+                                  undefined
+
+                                if (forTeam2Report) {
+                                  if (forTeam1Report) {
+                                    reportedScore = Math.round(
+                                      (forTeam2Report.scoreFor +
+                                        forTeam1Report.scoreAgainst) /
+                                        2
+                                    )
+                                  } else {
+                                    reportedScore = forTeam2Report.scoreFor
+                                  }
+                                } else if (forTeam1Report) {
+                                  reportedScore = forTeam1Report.scoreAgainst
+                                }
+
+                                return game.team2Score !== undefined &&
+                                  reportedScore !== undefined &&
+                                  game.team2Score !== reportedScore
+                                  ? hsla.create(60, 100, 80).string()
+                                  : undefined
+                              })(),
                             }),
                           ].map((child) => {
                             return $('div', {
