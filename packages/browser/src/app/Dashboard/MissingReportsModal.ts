@@ -83,18 +83,16 @@ export const MissingReportsModal: FC<{
                   key: round.fixtureId,
                   children: addkeys([
                     $(FormBadge, {
-                      label: `${round.title} (${dayjs(round.date).format(
-                        'D MMM YYYY'
-                      )})`,
+                      label: `${round.title} - ${dayjs(round.date).format(
+                        'MMM D'
+                      )}`,
                       background: theme.bgMinor,
                       icon: 'calendar',
                     }),
                     ...round.missingTeams.map((team) => {
                       return $(FormBadge, {
                         key: team.id,
-                        label: team.againstName
-                          ? `${team.name} vs ${team.againstName}`
-                          : team.name,
+                        label: team.name,
                         background: team.color,
                         grow: true,
                       })
