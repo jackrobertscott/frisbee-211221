@@ -264,6 +264,73 @@ export const FixtureTallyForm: FC<{
                       background: theme.bg,
                       font: theme.fontMinor,
                     }),
+                teams?.length &&
+                  $('div', {
+                    children: 'Missing Reports',
+                    className: css({
+                      margin: `${theme.fib[6]}px 0 ${
+                        theme.fib[5] - theme.fontInset
+                      }px`,
+                    }),
+                  }),
+                teams?.length &&
+                  (() => {
+                    // Get all team pairs from games
+                    const teamPairs = form.data.games.map((game) => ({
+                      team1Id: game.team1Id,
+                      team2Id: game.team2Id,
+                    }))
+
+                    // Find teams that haven't submitted reports
+                    const missingReports = teamPairs.flatMap((pair) => {
+                      const team1 = teams.find((t) => t.id === pair.team1Id)
+                      const team2 = teams.find((t) => t.id === pair.team2Id)
+
+                      const team1Reported = reports.some(
+                        (r) =>
+                          r.teamId === pair.team1Id &&
+                          r.teamAgainstId === pair.team2Id
+                      )
+
+                      const team2Reported = reports.some(
+                        (r) =>
+                          r.teamId === pair.team2Id &&
+                          r.teamAgainstId === pair.team1Id
+                      )
+
+                      const missing = []
+                      if (!team1Reported && team1) missing.push(team1)
+                      if (!team2Reported && team2) missing.push(team2)
+
+                      return missing
+                    })
+
+                    return missingReports.length
+                      ? $(Table, {
+                          head: {
+                            team: {label: 'Team', grow: 2},
+                            status: {label: 'Status', grow: 1},
+                          },
+                          body: missingReports.map((team) => ({
+                            key: team.id,
+                            data: {
+                              team: {
+                                value: team.name,
+                                color: team.color,
+                              },
+                              status: {
+                                value: 'Missing',
+                                // color: hsla.create(0, 70, 70, 1).string(), // Red color for missing - convert to string
+                              },
+                            },
+                          })),
+                        })
+                      : $(FormBadge, {
+                          label: 'All teams have submitted reports',
+                          background: hsla.create(120, 70, 50, 0.2), // Light green background
+                          font: hsla.create(120, 70, 30, 1), // Darker green text
+                        })
+                  })(),
               ]),
             }),
         ]),
