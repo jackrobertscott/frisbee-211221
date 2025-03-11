@@ -27,6 +27,8 @@ import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
+import {MissingReportsModal} from './MissingReportsModal'
+
 /**
  *
  */
@@ -41,6 +43,7 @@ export const DashboardLadder: FC = () => {
   const [editing, editingSet] = useState<TFixture>()
   const [openrnds, openrndsSet] = useState<string[]>([])
   const [addingFinal, addingFinalSet] = useState(false)
+  const [showingMissingReports, showingMissingReportsSet] = useState(false)
   const tally = tallyChart(fixtures ?? [])
   const reload = () => {
     const seasonId = auth.season!.id
@@ -67,11 +70,27 @@ export const DashboardLadder: FC = () => {
           $(Fragment, {
             children:
               auth.isAdmin() &&
-              $(FormBadge, {
-                grow: true,
-                label: 'Edit Final Results',
-                background: theme.bgAdmin,
-                click: () => addingFinalSet(true),
+              $('div', {
+                className: css({
+                  display: 'flex',
+                  '& > *:not(:last-child)': {
+                    marginRight: theme.fib[5],
+                  },
+                }),
+                children: addkeys([
+                  $(FormBadge, {
+                    grow: true,
+                    label: 'Edit Final Results',
+                    background: theme.bgAdmin,
+                    click: () => addingFinalSet(true),
+                  }),
+                  $(FormBadge, {
+                    grow: true,
+                    label: 'Missing Reports',
+                    background: theme.bgAdmin,
+                    click: () => showingMissingReportsSet(true),
+                  }),
+                ]),
               }),
           }),
           $(Fragment, {
@@ -223,6 +242,15 @@ export const DashboardLadder: FC = () => {
                   reload()
                   editingSet(undefined)
                 }),
+          }),
+      }),
+      $(Fragment, {
+        children:
+          showingMissingReports &&
+          auth.season &&
+          $(MissingReportsModal, {
+            seasonId: auth.season.id,
+            close: () => showingMissingReportsSet(false),
           }),
       }),
     ]),

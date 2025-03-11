@@ -88,3 +88,28 @@ export const $ReportDelete = createEndpoint({
     reportId: io.string(),
   }),
 })
+/**
+ *
+ */
+export const $ReportMissingList = createEndpoint({
+  path: '/ReportMissingList',
+  payload: io.object({
+    seasonId: io.string(),
+  }),
+  result: io.array(
+    io.object({
+      title: io.string(),
+      fixtureId: io.string(),
+      date: io.date(),
+      missingTeams: io.array(
+        io.object({
+          id: io.string(),
+          name: io.string(),
+          color: io.optional(io.string()),
+          againstId: io.optional(io.string()),
+          againstName: io.optional(io.string()),
+        })
+      ),
+    })
+  ),
+})
