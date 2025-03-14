@@ -7,6 +7,7 @@ import {TFixture} from '../../schemas/ioFixture'
 import {TTeam} from '../../schemas/ioTeam'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
+import {download} from '../../utils/download'
 import {initials} from '../../utils/initials'
 import {useAuth} from '../Auth/useAuth'
 import {FixtureGenerate} from '../FixtureGenerate'
@@ -21,7 +22,6 @@ import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useEndpoint} from '../useEndpoint'
 import {useLocalState} from '../useLocalState'
-import {download} from '../../utils/download'
 /**
  *
  */
@@ -51,8 +51,13 @@ export const DashboardFixtures: FC = () => {
         background: theme.bgMinor,
         children: addkeys([
           auth.isAdmin() &&
-            $(FormRow, {
-              grow: true,
+            $('div', {
+              className: css({
+                display: 'flex',
+                '& > *:not(:last-child)': {
+                  marginRight: theme.fib[5],
+                },
+              }),
               children: addkeys([
                 $(FormBadge, {
                   grow: true,
