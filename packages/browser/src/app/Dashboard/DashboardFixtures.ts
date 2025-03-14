@@ -10,6 +10,7 @@ import {addkeys} from '../../utils/addkeys'
 import {download} from '../../utils/download'
 import {initials} from '../../utils/initials'
 import {useAuth} from '../Auth/useAuth'
+import {FixtureAdjustForm} from '../FixtureAdjustForm'
 import {FixtureGenerate} from '../FixtureGenerate'
 import {FixtureSetupForm} from '../FixtureSetupForm'
 import {Form} from '../Form/Form'
@@ -34,6 +35,7 @@ export const DashboardFixtures: FC = () => {
   const [creating, creatingSet] = useState(false)
   const [editing, editingSet] = useState<TFixture>()
   const [generating, generatingSet] = useState(false)
+  const [adjusting, adjustingSet] = useState(false)
   const [openfxs, openfxsSet] = useLocalState<string[]>('frisbee.fixtures', [])
   const reload = () => {
     const seasonId = auth.season!.id
@@ -72,6 +74,13 @@ export const DashboardFixtures: FC = () => {
                   label: 'Add Fixture',
                   background: theme.bgAdmin,
                   click: () => creatingSet(true),
+                }),
+                $(FormBadge, {
+                  grow: true,
+                  icon: 'clock',
+                  label: 'Adjust Multiple Fixtures',
+                  background: theme.bgAdmin,
+                  click: () => adjustingSet(true),
                 }),
               ]),
             }),
@@ -147,6 +156,21 @@ export const DashboardFixtures: FC = () => {
             done: () => {
               reload()
               generatingSet(false)
+            },
+          }),
+      }),
+      $(Fragment, {
+        children:
+          auth.season &&
+          fixtures &&
+          adjusting &&
+          $(FixtureAdjustForm, {
+            fixtures,
+            seasonId: auth.season.id,
+            close: () => adjustingSet(false),
+            done: () => {
+              reload()
+              adjustingSet(false)
             },
           }),
       }),

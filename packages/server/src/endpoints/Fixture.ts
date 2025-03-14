@@ -132,6 +132,73 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
+    path: '/FixtureAdjustMultiple',
+    payload: io.object({
+      seasonId: io.string(),
+      referenceFixtureId: io.string(),
+      amount: io.number(),
+      unit: io.string(),
+      direction: io.string(),
+    }),
+    handler:
+      ({seasonId, referenceFixtureId, amount, unit, direction}) =>
+      async (req) => {
+        await requireUserAdmin(req)
+
+        // Get the reference fixture to determine the date threshold
+        const referenceFixture = await $Fixture.getOne({id: referenceFixtureId})
+        const referenceDate = new Date(referenceFixture.date)
+
+        // Get all fixtures after the reference fixture date
+        const fixtures = await $Fixture.getMany(
+          {
+            seasonId,
+            date: {$gte: referenceDate.toISOString()},
+          },
+          {sort: {date: 1}}
+        )
+
+        // Apply the direction to the amount
+        const adjustmentAmount = direction === 'backward' ? -amount : amount
+
+        // Update each fixture with proper date calculations
+        await Promise.all(
+          fixtures.map((fixture) => {
+            const currentDate = new Date(fixture.date)
+            let newDate: Date
+
+            // Handle different time units properly
+            if (unit === 'month') {
+              // Properly handle month adjustments
+              newDate = new Date(currentDate)
+              newDate.setMonth(currentDate.getMonth() + adjustmentAmount)
+            } else if (unit === 'week') {
+              // Week adjustment (7 days)
+              newDate = new Date(currentDate)
+              newDate.setDate(currentDate.getDate() + adjustmentAmount * 7)
+            } else {
+              // Default to days
+              newDate = new Date(currentDate)
+              newDate.setDate(currentDate.getDate() + adjustmentAmount)
+            }
+
+            return $Fixture.updateOne(
+              {id: fixture.id},
+              {
+                date: newDate.toISOString(),
+                updatedOn: new Date().toISOString(),
+              }
+            )
+          })
+        )
+
+        return {count: fixtures.length}
+      },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
     path: '/FixtureGenerate',
     payload: io.object({
       seasonId: io.string(),

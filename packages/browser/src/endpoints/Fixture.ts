@@ -75,6 +75,22 @@ export const $FixtureSnapshot = createEndpoint({
 /**
  *
  */
+export const $FixtureAdjustMultiple = createEndpoint({
+  path: '/FixtureAdjustMultiple',
+  payload: io.object({
+    seasonId: io.string(),
+    referenceFixtureId: io.string(),
+    amount: io.number(),
+    unit: io.string(),
+    direction: io.string(),
+  }),
+  result: io.object({
+    count: io.number(),
+  }),
+})
+/**
+ *
+ */
 export const $FixtureGenerate = createEndpoint({
   path: '/FixtureGenerate',
   payload: io.object({
