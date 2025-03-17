@@ -58,6 +58,13 @@ export const DashboardFixtures: FC = () => {
                 display: 'flex',
                 '& > *:not(:last-child)': {
                   marginRight: theme.fib[5],
+                  [theme.ltMedia(theme.fib[14])]: {
+                    marginRight: 0,
+                    marginBottom: theme.fib[5],
+                  },
+                },
+                [theme.ltMedia(theme.fib[14])]: {
+                  flexDirection: 'column',
                 },
               }),
               children: addkeys([
