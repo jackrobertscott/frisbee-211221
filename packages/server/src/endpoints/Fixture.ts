@@ -244,21 +244,28 @@ export default new Map<string, RequestHandler>([
           grading: false,
         }
         newFixtures.push(fixture)
-        let slotIndex = 0
+
+        // Gather all the game pairings from all divisions
+        let allPairings: Array<string[]> = []
         divisions.forEach((divisionTeams) => {
           let roundPairings = getRoundRobinPairings(divisionTeams, r)
-          roundPairings = shuffleArray(roundPairings)
-          roundPairings.forEach((pair) => {
-            const slot = body.slots[slotIndex++]
-            const game = {
-              id: random.randomString(),
-              team1Id: pair[0],
-              team2Id: pair[1],
-              place: slot.place,
-              time: slot.time,
-            }
-            fixture.games.push(game)
-          })
+          allPairings = allPairings.concat(roundPairings)
+        })
+
+        // Randomize the order of all pairings
+        allPairings = shuffleArray(allPairings)
+
+        // Assign slots to pairings in the randomized order
+        allPairings.forEach((pair, index) => {
+          const slot = body.slots[index % body.slots.length]
+          const game = {
+            id: random.randomString(),
+            team1Id: pair[0],
+            team2Id: pair[1],
+            place: slot.place,
+            time: slot.time,
+          }
+          fixture.games.push(game)
         })
       }
       await Promise.all(
