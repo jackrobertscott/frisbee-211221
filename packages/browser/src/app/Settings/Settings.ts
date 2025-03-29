@@ -1,17 +1,18 @@
+import {SettingsSeason} from '@browser/app/Settings/SettingsSeason'
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useState} from 'react'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
-import {Modal} from '../Modal'
+import {useAuth} from '../Auth/useAuth'
+import {useMedia} from '../Media/useMedia'
 import {MenuBar, MenuBarOption, MenuBarShadow, MenuBarSpacer} from '../MenuBar'
+import {Modal} from '../Modal'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useLocalRouter} from '../useLocalRouter'
 import {SettingsAccount} from './SettingsAccount'
 import {SettingsMembers} from './SettingsMembers'
 import {SettingsPassword} from './SettingsPassword'
 import {SettingsTeam} from './SettingsTeam'
-import {useMedia} from '../Media/useMedia'
-import {useAuth} from '../Auth/useAuth'
 /**
  *
  */
@@ -41,6 +42,11 @@ export const Settings: FC<{close: () => void}> = ({close}) => {
       path: '/members',
       title: 'Members',
       render: () => $(SettingsMembers),
+    },
+    !!auth.isAdmin() && {
+      path: '/season',
+      title: 'Season',
+      render: () => $(SettingsSeason),
     },
   ])
   return $(Modal, {

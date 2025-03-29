@@ -12,7 +12,7 @@
 
     // Import/Export
     "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "Node",
     "moduleDetection": "force",
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
@@ -22,7 +22,7 @@
     // Type Checking
     "strict": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    // "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
     // Paths

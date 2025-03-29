@@ -15,6 +15,7 @@ export const SeasonCreateDef = {
   payload: io.object({
     name: io.string(),
     signUpOpen: io.boolean(),
+    useOfficialScoring: io.optional(io.boolean()),
   }),
   result: ioSeason,
 } satisfies TEndpointDef

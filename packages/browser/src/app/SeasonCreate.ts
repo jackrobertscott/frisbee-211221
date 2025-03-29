@@ -1,3 +1,4 @@
+import {InputSelect} from '@browser/app/Input/InputSelect'
 import {css} from '@emotion/css'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {createElement as $, FC} from 'react'
@@ -24,6 +25,7 @@ export const SeasonCreate: FC<{
   const form = useForm({
     name: '',
     signUpOpen: false,
+    scoringSystem: 'simple',
   })
   return $(Form, {
     background: theme.bgAdmin,
@@ -44,6 +46,27 @@ export const SeasonCreate: FC<{
           }),
         ]),
       }),
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {
+            label: 'Scoring System',
+          }),
+          $(InputSelect, {
+            value: form.data.scoringSystem,
+            valueSet: form.link('scoringSystem'),
+            options: [
+              {
+                key: 'simple',
+                label: 'Simple Scoring\n1 MVP per gender, 4 spirit points',
+              },
+              {
+                key: 'official',
+                label: 'Official Scoring\n2 MVP per gender, 20 spirit points',
+              },
+            ],
+          }),
+        ]),
+      }),
       $(FormColumn, {
         children: addkeys([
           $(FormRow, {
@@ -56,15 +79,22 @@ export const SeasonCreate: FC<{
             ]),
           }),
           $(FormHelp, {
-            children:
-              'Teams may be registered in the season while this is active.',
+            children: 'Teams and players can sign up while this is active.',
           }),
         ]),
       }),
       $(FormBadge, {
         disabled: $seasonCreate.loading,
         label: $seasonCreate.loading ? 'Loading' : 'Create',
-        click: () => $seasonCreate.fetch(form.data).then(seasonSet),
+        click: () => {
+          const {scoringSystem, ...fd} = form.data
+          $seasonCreate
+            .fetch({
+              ...fd,
+              useOfficialScoring: scoringSystem === 'official',
+            })
+            .then(seasonSet)
+        },
       }),
     ]),
   })

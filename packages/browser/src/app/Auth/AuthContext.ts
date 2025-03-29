@@ -34,7 +34,7 @@ export interface TAuthContext {
   logout: () => void
   userSet: (user: TUser) => void
   teamSet: (team?: TTeam) => void
-  seasonSet: (season: TSeason) => void
+  seasonSet: (season: TSeason, noReload?: boolean) => void
   isAdmin: () => boolean
 }
 /**

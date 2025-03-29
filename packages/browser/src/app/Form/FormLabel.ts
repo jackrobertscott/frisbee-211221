@@ -7,6 +7,7 @@ export const FormLabel: FC<TFormBadge> = ({...props}) => {
   return $(FormBadge, {
     ...props,
     style: {
+      flexShrink: 0,
       textAlign: 'left',
       justifyContent: 'flex-start',
       ...props.style,

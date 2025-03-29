@@ -1,4 +1,8 @@
-import {SeasonCreateDef, SeasonListDef, SeasonUpdateDef} from '@shared/endpoints/SeasonDef'
+import {
+  SeasonCreateDef,
+  SeasonListDef,
+  SeasonUpdateDef,
+} from '@shared/endpoints/SeasonDef'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *

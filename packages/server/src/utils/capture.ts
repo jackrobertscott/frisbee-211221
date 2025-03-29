@@ -70,7 +70,7 @@ export default {
   /**
    *
    */
-  scope(req: any) {
+  scope() {
     // Sentry.configureScope((scope: Sentry.Scope) => {
     //   scope.addEventProcessor(async (event: Sentry.Event) => {
     //     return Sentry.Handlers.parseRequest(event, req)
