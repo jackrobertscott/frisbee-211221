@@ -413,7 +413,7 @@ const _DashboardSeasonBadge: FC = () => {
                   creatingSet(true)
                   openSet(false)
                 },
-                background: theme.bgAdmin,
+                background: theme.bgAdminButton,
               }),
           ]),
         }),

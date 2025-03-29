@@ -78,7 +78,7 @@ export const DashboardTeams: FC = () => {
                             $(FormBadge, {
                               noshrink: true,
                               label: 'Create Team',
-                              background: theme.bgAdmin,
+                              background: theme.bgAdminButton,
                               click: () => creatingSet(true),
                             }),
                         }),

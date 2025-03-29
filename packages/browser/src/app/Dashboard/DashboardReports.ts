@@ -77,7 +77,7 @@ export const DashboardReports: FC = () => {
   return $(Fragment, {
     children: addkeys([
       $(Form, {
-        background: theme.bgAdmin.lighten(5),
+        background: theme.bgAdmin,
         children:
           reports === undefined
             ? $(Spinner)
@@ -93,7 +93,7 @@ export const DashboardReports: FC = () => {
                     $(FormBadge, {
                       grow: true,
                       label: 'Create Report',
-                      background: theme.bgAdmin,
+                      background: theme.bgAdminButton,
                       click: () => creatingSet(true),
                     }),
                   ]),

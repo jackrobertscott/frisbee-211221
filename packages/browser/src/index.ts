@@ -15,6 +15,7 @@ import {theme} from './theme'
 
 injectGlobal({
   body: {
+    fontFamily: theme.fontFamily,
     backgroundColor: theme.bgRoot.string(),
     color: theme.font.string(),
   },

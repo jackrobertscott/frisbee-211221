@@ -81,13 +81,13 @@ export const DashboardLadder: FC = () => {
                   $(FormBadge, {
                     grow: true,
                     label: 'Edit Final Results',
-                    background: theme.bgAdmin,
+                    background: theme.bgAdminButton,
                     click: () => addingFinalSet(true),
                   }),
                   $(FormBadge, {
                     grow: true,
-                    label: 'Missing Reports',
-                    background: theme.bgAdmin,
+                    label: 'View Missing Reports',
+                    background: theme.bgAdminButton,
                     click: () => showingMissingReportsSet(true),
                   }),
                 ]),
@@ -348,7 +348,7 @@ const _LadderFixture: FC<{
             isAdmin &&
               $(FormBadge, {
                 label: 'Edit Fixture Results',
-                background: theme.bgAdmin,
+                background: theme.bgAdminButton,
                 click: () => editingSet(fixture),
               }),
           ]),

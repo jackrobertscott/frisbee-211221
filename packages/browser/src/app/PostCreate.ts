@@ -77,7 +77,7 @@ export const PostCreate: FC<{
               $(FormRow, {
                 children: addkeys([
                   $(FormLabel, {
-                    background: theme.bgAdmin,
+                    background: theme.bgAdminButton,
                     label: 'Email To Captains',
                   }),
                   $(InputBoolean, {

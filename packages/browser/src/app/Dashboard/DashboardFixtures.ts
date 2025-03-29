@@ -7,7 +7,6 @@ import {TFixture} from '../../schemas/ioFixture'
 import {TTeam} from '../../schemas/ioTeam'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
-import {download} from '../../utils/download'
 import {initials} from '../../utils/initials'
 import {useAuth} from '../Auth/useAuth'
 import {FixtureAdjustForm} from '../FixtureAdjustForm'
@@ -72,21 +71,21 @@ export const DashboardFixtures: FC = () => {
                   grow: true,
                   icon: 'magic',
                   label: 'Magic Generate',
-                  background: theme.bgAdmin,
+                  background: theme.bgAdminButton,
                   click: () => generatingSet(true),
                 }),
                 $(FormBadge, {
                   grow: true,
                   icon: 'plus',
                   label: 'Add Fixture',
-                  background: theme.bgAdmin,
+                  background: theme.bgAdminButton,
                   click: () => creatingSet(true),
                 }),
                 $(FormBadge, {
                   grow: true,
                   icon: 'clock',
                   label: 'Adjust Multiple Fixtures',
-                  background: theme.bgAdmin,
+                  background: theme.bgAdminButton,
                   click: () => adjustingSet(true),
                 }),
               ]),
@@ -248,17 +247,28 @@ const _DashboardFixturesView: FC<{
               }),
             ]),
           }),
-          $(FormBadge, {
-            noshrink: true,
-            background: theme.bgMinor,
-            icon: $fixtureSnapshot.loading ? 'spinner' : 'camera',
-            label: $fixtureSnapshot.loading ? 'Loading' : 'Save Screenshot',
-            click: () =>
-              !$fixtureSnapshot.loading &&
-              $fixtureSnapshot.fetch({fixtureId: fixture.id}).then((blob) => {
-                if (blob.type !== 'image/png')
-                  throw new Error('Failed: only png images are supported.')
-                download.blob(blob, `${fixture.title}.png`)
+          // $(FormBadge, {
+          //   noshrink: true,
+          //   background: theme.bgMinor,
+          //   icon: $fixtureSnapshot.loading ? 'spinner' : 'camera',
+          //   label: $fixtureSnapshot.loading ? 'Loading' : 'Save Screenshot',
+          //   click: () =>
+          //     !$fixtureSnapshot.loading &&
+          //     $fixtureSnapshot.fetch({fixtureId: fixture.id}).then((blob) => {
+          //       if (blob.type !== 'image/png')
+          //         throw new Error('Failed: only png images are supported.')
+          //       download.blob(blob, `${fixture.title}.png`)
+          //     }),
+          // }),
+          $(Fragment, {
+            children:
+              isAdmin &&
+              $(FormBadge, {
+                icon: 'edit',
+                label: 'Edit',
+                noshrink: true,
+                background: theme.bgAdminButton,
+                click: () => editingSet(fixture),
               }),
           }),
         ]),
@@ -266,54 +276,41 @@ const _DashboardFixturesView: FC<{
       $(Fragment, {
         children:
           open &&
-          $(FormColumn, {
-            children: addkeys([
-              $(Table, {
-                head: {
-                  one: {label: 'Team 1', grow: isSmall ? 2 : 3},
-                  two: {label: 'Team 2', grow: isSmall ? 2 : 3},
-                  time: {label: 'Time', grow: isSmall ? 3 : 2},
-                  place: {label: 'Place', grow: isSmall ? 3 : 2},
-                },
-                body: fixture.games
-                  .sort((a, b) => {
-                    if (a.time !== b.time) return a.time.localeCompare(b.time)
-                    return a.place.localeCompare(b.place)
-                  })
-                  .map((game) => {
-                    const team1 = teams.find((i) => i.id === game.team1Id)
-                    const team2 = teams.find((i) => i.id === game.team2Id)
-                    return {
-                      key: game.id,
-                      data: {
-                        one: {
-                          value: isSmall
-                            ? initials(team1?.name)
-                            : team1?.name ?? '[unknown]',
-                          color: team1?.color,
-                        },
-                        two: {
-                          value: isSmall
-                            ? initials(team2?.name)
-                            : team2?.name ?? '[unknown]',
-                          color: team2?.color,
-                        },
-                        time: {value: game.time},
-                        place: {value: game.place},
-                      },
-                    }
-                  }),
+          $(Table, {
+            head: {
+              one: {label: 'Team 1', grow: isSmall ? 2 : 3},
+              two: {label: 'Team 2', grow: isSmall ? 2 : 3},
+              time: {label: 'Time', grow: isSmall ? 3 : 2},
+              place: {label: 'Place', grow: isSmall ? 3 : 2},
+            },
+            body: fixture.games
+              .sort((a, b) => {
+                if (a.time !== b.time) return a.time.localeCompare(b.time)
+                return a.place.localeCompare(b.place)
+              })
+              .map((game) => {
+                const team1 = teams.find((i) => i.id === game.team1Id)
+                const team2 = teams.find((i) => i.id === game.team2Id)
+                return {
+                  key: game.id,
+                  data: {
+                    one: {
+                      value: isSmall
+                        ? initials(team1?.name)
+                        : team1?.name ?? '[unknown]',
+                      color: team1?.color,
+                    },
+                    two: {
+                      value: isSmall
+                        ? initials(team2?.name)
+                        : team2?.name ?? '[unknown]',
+                      color: team2?.color,
+                    },
+                    time: {value: game.time},
+                    place: {value: game.place},
+                  },
+                }
               }),
-              $(Fragment, {
-                children:
-                  isAdmin &&
-                  $(FormBadge, {
-                    label: 'Edit Fixture',
-                    background: theme.bgAdmin,
-                    click: () => editingSet(fixture),
-                  }),
-              }),
-            ]),
           }),
       }),
     ]),

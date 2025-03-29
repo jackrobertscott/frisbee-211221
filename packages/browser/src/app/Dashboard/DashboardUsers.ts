@@ -64,7 +64,7 @@ export const DashboardUsers: FC = () => {
   return $(Fragment, {
     children: addkeys([
       $(Form, {
-        background: theme.bgAdmin.lighten(5),
+        background: theme.bgAdmin,
         children:
           users === undefined
             ? $(Spinner)
@@ -87,7 +87,7 @@ export const DashboardUsers: FC = () => {
                     $(FormBadge, {
                       noshrink: true,
                       label: 'Create User',
-                      background: theme.bgAdmin,
+                      background: theme.bgAdminButton,
                       click: () => creatingSet(true),
                     }),
                   ]),
@@ -373,7 +373,7 @@ export const _DashboardUsersView: FC<{
                   }),
                   $(FormBadge, {
                     label: user.admin ? 'Remove From Admins' : 'Set As Admin',
-                    background: theme.bgAdmin,
+                    background: theme.bgAdminButton,
                     click: () => adminifySet(true),
                   }),
                 ]),

@@ -47,7 +47,7 @@ export const Graph: FC<{
     const xLength = width - axis
     const xIncrement = xLength / xCount
     const xSmall = xIncrement <= 20
-    ctx.font = '14px IBM Plex Mono, monospace'
+    ctx.font = '14px ' + theme.fontFamily
     {
       // y axis
       const x = axis

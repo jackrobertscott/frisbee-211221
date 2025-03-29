@@ -32,7 +32,7 @@ export const DashboardPort: FC = () => {
   return $(Fragment, {
     children: addkeys([
       $(Form, {
-        background: theme.bgAdmin.lighten(5),
+        background: theme.bgAdmin,
         children: $('div', {
           className: css({
             display: 'flex',
@@ -52,14 +52,14 @@ export const DashboardPort: FC = () => {
               grow: true,
               icon: 'download',
               label: 'Import CSV',
-              background: theme.bgAdmin,
+              background: theme.bgAdminButton,
               click: () => importingSet(true),
             }),
             $(FormBadge, {
               grow: true,
               icon: 'upload',
               label: 'Export CSV',
-              background: theme.bgAdmin,
+              background: theme.bgAdminButton,
               click: () => exportingSet(true),
             }),
           ]),
