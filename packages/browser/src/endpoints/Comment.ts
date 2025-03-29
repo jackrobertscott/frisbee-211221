@@ -1,50 +1,23 @@
-import {ioComment} from '@shared/schemas/ioComment'
-import {ioUserPublic} from '@shared/schemas/ioUser'
-import {io} from 'torva'
+import {
+  CommentCreateDef,
+  CommentDeleteDef,
+  CommentListOfPostDef,
+  CommentUpdateDef,
+} from '@shared/endpoints/CommentDef'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
  */
-export const $CommentListOfPost = createEndpoint({
-  path: '/CommentListOfPost',
-  payload: io.object({
-    postId: io.string(),
-    limit: io.optional(io.number()),
-  }),
-  result: io.object({
-    comments: io.array(ioComment),
-    users: io.array(ioUserPublic),
-  }),
-})
+export const $CommentListOfPost = createEndpoint(CommentListOfPostDef)
 /**
  *
  */
-export const $CommentCreate = createEndpoint({
-  path: '/CommentCreate',
-  payload: io.object({
-    postId: io.string(),
-    content: io.string(),
-    commentParentId: io.optional(io.string()),
-  }),
-  result: ioComment,
-})
+export const $CommentCreate = createEndpoint(CommentCreateDef)
 /**
  *
  */
-export const $CommentUpdate = createEndpoint({
-  path: '/CommentUpdate',
-  payload: io.object({
-    commentId: io.string(),
-    content: io.string(),
-  }),
-  result: ioComment,
-})
+export const $CommentUpdate = createEndpoint(CommentUpdateDef)
 /**
  *
  */
-export const $CommentDelete = createEndpoint({
-  path: '/CommentDelete',
-  payload: io.object({
-    commentId: io.string(),
-  }),
-})
+export const $CommentDelete = createEndpoint(CommentDeleteDef)
