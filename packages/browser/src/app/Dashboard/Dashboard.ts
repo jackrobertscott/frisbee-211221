@@ -1,7 +1,7 @@
 import {css} from '@emotion/css'
+import {TSeason} from '@shared/schemas/ioSeason'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {$SeasonList} from '../../endpoints/Season'
-import {TSeason} from '../../schemas/ioSeason'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'

@@ -1,6 +1,6 @@
+import {TPost} from '@shared/schemas/ioPost'
 import {createElement as $, FC, Fragment} from 'react'
 import {$PostCreate} from '../endpoints/Post'
-import {TPost} from '../schemas/ioPost'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {useAuth} from './Auth/useAuth'

@@ -1,22 +1,39 @@
 {
   "compilerOptions": {
-    "strict": true,
-    "noEmit": true,
-    "allowJs": false,
-    "skipLibCheck": false,
-    "esModuleInterop": false,
-    "isolatedModules": true,
-    "resolveJsonModule": true,
-    "useDefineForClassFields": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "moduleResolution": "Node",
-    "module": "ESNext",
+    // Input
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "target": "ESNext",
     "jsx": "react-jsx",
-    "outDir": "dist"
+
+    // Output
+    "noEmit": true,
+    "sourceMap": true,
+    "declaration": true,
+    "outDir": "dist",
+
+    // Import/Export
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "moduleDetection": "force",
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+
+    // Type Checking
+    "strict": true,
+    "allowJs": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // Paths
+    "baseUrl": "..",
+    "paths": {
+      "@browser/*": ["browser/src/*"],
+      "@shared/*": ["shared/src/*"]
+    }
   },
-  "include": ["src/**/*.ts", "../shared/src/**/*.ts"],
-  "exclude": ["src/**/*.test.*", "src/**/*.spec.*"]
+  "include": ["src", "../shared/src"],
+  "exclude": ["node_modules"]
 }

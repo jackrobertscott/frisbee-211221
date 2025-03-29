@@ -1,6 +1,6 @@
+import {TFixture} from '@shared/schemas/ioFixture'
 import {createElement as $, FC, useState} from 'react'
 import {$FixtureAdjustMultiple} from '../endpoints/Fixture'
-import {TFixture} from '../schemas/ioFixture'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {Form} from './Form/Form'

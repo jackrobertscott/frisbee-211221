@@ -1,4 +1,5 @@
 import {css} from '@emotion/css'
+import {TSeason} from '@shared/schemas/ioSeason'
 import {
   createElement as $,
   ChangeEvent,
@@ -8,7 +9,6 @@ import {
   useState,
 } from 'react'
 import {$PortExport, $PortImport} from '../../endpoints/Port'
-import {TSeason} from '../../schemas/ioSeason'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {useAuth} from '../Auth/useAuth'

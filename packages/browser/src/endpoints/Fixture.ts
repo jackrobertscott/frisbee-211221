@@ -1,6 +1,6 @@
+import {ioFixture, ioFixtureGame} from '@shared/schemas/ioFixture'
+import {ioTeam} from '@shared/schemas/ioTeam'
 import {io} from 'torva'
-import {ioFixture, ioFixtureGame} from '../schemas/ioFixture'
-import {ioTeam} from '../schemas/ioTeam'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *

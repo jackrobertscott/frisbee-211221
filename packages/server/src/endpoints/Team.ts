@@ -1,13 +1,13 @@
 import {RequestHandler} from 'micro'
 import {io} from 'torva'
 import {$Member} from '../tables/$Member'
-import {$Team} from '../tables/$Team'
-import {createEndpoint} from '../utils/endpoints'
-import {requireUser} from './requireUser'
-import {requireTeam} from './requireTeam'
-import {$User} from '../tables/$User'
-import {regex} from '../utils/regex'
 import {$Season} from '../tables/$Season'
+import {$Team} from '../tables/$Team'
+import {$User} from '../tables/$User'
+import {createEndpoint} from '../utils/endpoints'
+import {regex} from '../utils/regex'
+import {requireTeam} from './requireTeam'
+import {requireUser} from './requireUser'
 import {requireUserAdmin} from './requireUserAdmin'
 /**
  *
@@ -91,8 +91,8 @@ export default new Map<string, RequestHandler>([
       async (req) => {
         const [user] = await requireUser(req)
         const [team, member] = await requireTeam(user, teamId)
-        if (!member.captain)
-          throw new Error('Failed: only the team captain can update the team.')
+        if (member.pending)
+          throw new Error('Pending members cannot update team information.')
         return $Team.updateOne(
           {id: team.id},
           {...body, updatedOn: new Date().toISOString()}

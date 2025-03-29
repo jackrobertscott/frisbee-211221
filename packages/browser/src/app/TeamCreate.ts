@@ -1,6 +1,6 @@
+import {TTeam} from '@shared/schemas/ioTeam'
 import {createElement as $, FC} from 'react'
 import {$TeamCurrentCreate} from '../endpoints/Team'
-import {TTeam} from '../schemas/ioTeam'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {SIMPLE_COLORS} from '../utils/colors'

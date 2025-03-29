@@ -1,4 +1,5 @@
 import {css} from '@emotion/css'
+import {TUser} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {
@@ -8,7 +9,6 @@ import {
   $UserToggleAdmin,
   $UserUpdate,
 } from '../../endpoints/User'
-import {TUser} from '../../schemas/ioUser'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {GENDER_OPTIONS} from '../../utils/constants'

@@ -1,5 +1,5 @@
+import {ioSeason} from '@shared/schemas/ioSeason'
 import {io} from 'torva'
-import {ioSeason} from '../schemas/ioSeason'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
