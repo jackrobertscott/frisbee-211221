@@ -1,16 +1,16 @@
-import dayjs from 'dayjs'
 import {css} from '@emotion/css'
+import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {theme} from '../../theme'
+import {addkeys} from '../../utils/addkeys'
+import {DATETIME_DAYS, DATETIME_MONTHS, DATETIME_YEARS} from '../../utils/dates'
+import {hsla} from '../../utils/hsla'
+import {Form} from '../Form/Form'
+import {FormColumn} from '../Form/FormColumn'
+import {FormRow} from '../Form/FormRow'
 import {Popup} from '../Popup'
 import {Spinner} from '../Spinner'
-import {Form} from '../Form/Form'
-import {addkeys} from '../../utils/addkeys'
-import {FormRow} from '../Form/FormRow'
 import {InputSelect} from './InputSelect'
-import {DATETIME_DAYS, DATETIME_MONTHS, DATETIME_YEARS} from '../../utils/dates'
-import {FormColumn} from '../Form/FormColumn'
-import {hsla} from '../../utils/hsla'
 /**
  *
  */
@@ -146,7 +146,6 @@ const _InputDatePicker: FC<{
                     className: css({
                       flexGrow: 1,
                       flexBasis: 0,
-                      cursor: 'pointer',
                       textAlign: 'center',
                       border: theme.border(),
                       padding: theme.padify(theme.fib[4]),

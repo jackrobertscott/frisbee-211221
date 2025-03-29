@@ -5,7 +5,6 @@ import {TSeason} from '../../schemas/ioSeason'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
-import {hsla} from '../../utils/hsla'
 import {fadein} from '../../utils/keyframes'
 import {spreadify} from '../../utils/spreadify'
 import {useAuth} from '../Auth/useAuth'
@@ -112,9 +111,7 @@ export const Dashboard: FC = () => {
                           ? auth.current.team
                             ? $(TopBarBadge, {
                                 label: auth.current.team.name,
-                                background: hsla.digest(
-                                  auth.current.team.color
-                                ),
+                                // background: hsla.digest(auth.current.team.color),
                               })
                             : $(TopBarBadge, {
                                 label: 'Join A Team',

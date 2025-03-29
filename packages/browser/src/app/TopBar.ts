@@ -78,7 +78,7 @@ const _TopBarBadgeTooltip: FC<{
           whiteSpace: 'nowrap',
           border: theme.border(),
           color: hsla.string(0, 0, 100),
-          background: hsla.string(0, 0, 20),
+          background: hsla.string(0, 0, 0),
           padding: theme.padify(theme.fib[4]),
           marginRight: -theme.borderWidth,
         }).concat(' tooltip'),

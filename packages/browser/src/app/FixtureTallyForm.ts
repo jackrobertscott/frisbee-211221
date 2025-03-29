@@ -192,7 +192,7 @@ export const FixtureTallyForm: FC<{
                                 return game.team1Score !== undefined &&
                                   reportedScore !== undefined &&
                                   game.team1Score !== reportedScore
-                                  ? hsla.create(60, 100, 80).string()
+                                  ? theme.bgHighlight.string()
                                   : undefined
                               })(),
                             }),
@@ -242,7 +242,7 @@ export const FixtureTallyForm: FC<{
                                 return game.team2Score !== undefined &&
                                   reportedScore !== undefined &&
                                   game.team2Score !== reportedScore
-                                  ? hsla.create(60, 100, 80).string()
+                                  ? theme.bgHighlight.string()
                                   : undefined
                               })(),
                             }),
@@ -265,8 +265,9 @@ export const FixtureTallyForm: FC<{
               }),
               $('div', {
                 children: $(FormBadge, {
+                  icon: 'save',
                   disabled: loading,
-                  label: loading ? 'Loading' : 'Submit',
+                  label: loading ? 'Loading' : 'Save',
                   click: () => done(form.data),
                 }),
               }),

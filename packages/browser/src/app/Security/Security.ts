@@ -1,19 +1,19 @@
-import marlowPng from '../../assets/marlowstreet.png'
 import {css} from '@emotion/css'
 import {createElement as $, FC, useState} from 'react'
+import marlowPng from '../../assets/marlowstreet.png'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
-import {SecurityLogin} from './SecurityLogin'
-import {SecurityForgot} from './SecurityForgot'
-import {SecuritySignUp} from './SecuritySignUp'
-import {useLocalState} from '../useLocalState'
-import {Center} from '../Center'
-import {SecurityStatus, TSecurityStatus} from './SecurityStatus'
-import {hsla} from '../../utils/hsla'
 import {go} from '../../utils/go'
-import {SecurityVerify} from './SecurityVerify'
+import {hsla} from '../../utils/hsla'
+import {Center} from '../Center'
 import {Router} from '../Router/Router'
 import {useRouter} from '../Router/useRouter'
+import {useLocalState} from '../useLocalState'
+import {SecurityForgot} from './SecurityForgot'
+import {SecurityLogin} from './SecurityLogin'
+import {SecuritySignUp} from './SecuritySignUp'
+import {SecurityStatus, TSecurityStatus} from './SecurityStatus'
+import {SecurityVerify} from './SecurityVerify'
 /**
  *
  */
@@ -38,7 +38,6 @@ export const Security: FC = () => {
           onClick: () => go.to('/'),
           className: css({
             display: 'flex',
-            cursor: 'pointer',
             justifyContent: 'center',
             marginBottom: theme.fib[6],
             marginRight: theme.fib[4],

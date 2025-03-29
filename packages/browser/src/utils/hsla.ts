@@ -1,3 +1,5 @@
+import {theme} from '../theme'
+
 export const hsla = {
   /**
    *
@@ -38,8 +40,8 @@ export const hsla = {
       },
       compliment() {
         return this.l + (this.h >= 210 ? -10 : 10) <= 55
-          ? hsla.create(0, 0, 100)
-          : hsla.create(0, 0, 0)
+          ? theme.fontComplement
+          : theme.font
       },
     }
   },

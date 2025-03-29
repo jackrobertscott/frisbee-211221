@@ -6,7 +6,7 @@ html {
   font-weight: 500;
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
-  background: hsl(0, 0%, 80%);
+  background: hsl(0, 0%, 0%);
   color: hsl(0, 0%, 0%);
 }
 body {

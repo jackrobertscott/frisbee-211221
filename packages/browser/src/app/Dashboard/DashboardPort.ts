@@ -33,18 +33,37 @@ export const DashboardPort: FC = () => {
     children: addkeys([
       $(Form, {
         background: theme.bgAdmin.lighten(5),
-        children: addkeys([
-          $(FormBadge, {
-            label: 'Import TopScore CSV',
-            background: theme.bgAdmin,
-            click: () => importingSet(true),
+        children: $('div', {
+          className: css({
+            display: 'flex',
+            '& > *:not(:last-child)': {
+              marginRight: theme.fib[5],
+              [theme.ltMedia(theme.fib[14])]: {
+                marginRight: 0,
+                marginBottom: theme.fib[5],
+              },
+            },
+            [theme.ltMedia(theme.fib[14])]: {
+              flexDirection: 'column',
+            },
           }),
-          $(FormBadge, {
-            label: 'Export CSV',
-            background: theme.bgAdmin,
-            click: () => exportingSet(true),
-          }),
-        ]),
+          children: addkeys([
+            $(FormBadge, {
+              grow: true,
+              icon: 'download',
+              label: 'Import CSV',
+              background: theme.bgAdmin,
+              click: () => importingSet(true),
+            }),
+            $(FormBadge, {
+              grow: true,
+              icon: 'upload',
+              label: 'Export CSV',
+              background: theme.bgAdmin,
+              click: () => exportingSet(true),
+            }),
+          ]),
+        }),
       }),
       $(Fragment, {
         children:

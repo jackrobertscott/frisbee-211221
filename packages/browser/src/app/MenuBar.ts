@@ -34,6 +34,7 @@ export const MenuBar: FC<{
  *
  */
 export const MenuBarOption: FC<{
+  icon?: string
   label: string
   click?: () => void
   active?: boolean

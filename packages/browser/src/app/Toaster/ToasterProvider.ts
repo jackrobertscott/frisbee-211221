@@ -1,12 +1,12 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC, ReactNode, useState} from 'react'
-import {ToasterContext, TToaster} from './ToasterContext'
+import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
+import {hsla} from '../../utils/hsla'
 import {fadedown} from '../../utils/keyframes'
 import {random} from '../../utils/random'
-import {hsla} from '../../utils/hsla'
-import {theme} from '../../theme'
 import {Icon} from '../Icon'
+import {ToasterContext, TToaster} from './ToasterContext'
 /**
  *
  */
@@ -98,7 +98,6 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
               $('div', {
                 onClick: toast.remove,
                 className: css({
-                  cursor: 'pointer',
                   transition: '150ms',
                   padding: theme.padify(8),
                   borderLeft: theme.border(),
