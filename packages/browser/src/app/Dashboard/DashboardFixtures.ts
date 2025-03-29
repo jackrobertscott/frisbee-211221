@@ -3,7 +3,7 @@ import {TFixture} from '@shared/schemas/ioFixture'
 import {TTeam} from '@shared/schemas/ioTeam'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$FixtureListOfSeason, $FixtureSnapshot} from '../../endpoints/Fixture'
+import {$FixtureListOfSeason} from '../../endpoints/Fixture'
 import {$TeamListOfSeason} from '../../endpoints/Team'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
@@ -196,7 +196,7 @@ const _DashboardFixturesView: FC<{
 }> = ({fixture, teams, open, isAdmin, toggle, editingSet}) => {
   const media = useMedia()
   const isSmall = media.width < theme.fib[13]
-  const $fixtureSnapshot = useEndpoint($FixtureSnapshot)
+  // const $fixtureSnapshot = useEndpoint($FixtureSnapshot)
   return $(FormColumn, {
     children: addkeys([
       $(FormRow, {

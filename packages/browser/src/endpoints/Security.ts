@@ -1,4 +1,13 @@
-import {ioAuthPayload, SecurityCurrentDef, SecurityForgotDef, SecurityLoginDef, SecurityLoginGoogleDef, SecurityLogoutDef, SecuritySignUpDef, SecurityStatusDef, SecurityVerifyDef} from '@shared/endpoints/SecurityDef'
+import {
+  SecurityCurrentDef,
+  SecurityForgotDef,
+  SecurityLoginDef,
+  SecurityLoginGoogleDef,
+  SecurityLogoutDef,
+  SecuritySignUpDef,
+  SecurityStatusDef,
+  SecurityVerifyDef,
+} from '@shared/endpoints/SecurityDef'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
