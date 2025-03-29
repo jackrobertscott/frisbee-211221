@@ -13,7 +13,7 @@
 
     // Import/Export
     "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "Node",
     "moduleDetection": "force",
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,

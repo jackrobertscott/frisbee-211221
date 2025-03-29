@@ -1,6 +1,6 @@
+import {ReportCreateDef, ReportDeleteDef, ReportGetFixtureAgainstDef, ReportListOfFixtureDef, ReportListOfSeasonDef, ReportMissingListDef, ReportUpdateDef} from '@shared/endpoints/ReportDef'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {RequestHandler} from 'micro'
-import {io} from 'torva'
 import {$Fixture} from '../tables/$Fixture'
 import {$Member} from '../tables/$Member'
 import {$Report} from '../tables/$Report'
@@ -18,11 +18,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/ReportListOfFixture',
-    payload: io.object({
-      fixtureId: io.string(),
-      limit: io.optional(io.number()),
-    }),
+    ...ReportListOfFixtureDef,
     handler:
       ({fixtureId, limit}) =>
       async (req) => {
@@ -34,10 +30,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/ReportListOfSeason',
-    payload: io.object({
-      seasonId: io.string(),
-    }),
+    ...ReportListOfSeasonDef,
     handler:
       ({seasonId}) =>
       async (req) => {
@@ -55,11 +48,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/ReportGetFixtureAgainst',
-    payload: io.object({
-      teamId: io.string(),
-      fixtureId: io.string(),
-    }),
+    ...ReportGetFixtureAgainstDef,
     handler:
       ({teamId, fixtureId}) =>
       async (req) => {
@@ -102,18 +91,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/ReportCreate',
-    payload: io.object({
-      teamId: io.string(),
-      againstTeamId: io.string(),
-      fixtureId: io.string(),
-      scoreFor: io.number(),
-      scoreAgainst: io.number(),
-      mvpMale: io.optional(io.string()),
-      mvpFemale: io.optional(io.string()),
-      spirit: io.number(),
-      spiritComment: io.string().emptyok(),
-    }),
+    ...ReportCreateDef,
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)
       let team: TTeam
@@ -157,16 +135,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/ReportUpdate',
-    payload: io.object({
-      reportId: io.string(),
-      scoreFor: io.number(),
-      scoreAgainst: io.number(),
-      mvpMale: io.optional(io.string()),
-      mvpFemale: io.optional(io.string()),
-      spirit: io.number(),
-      spiritComment: io.string().emptyok(),
-    }),
+    ...ReportUpdateDef,
     handler:
       ({reportId, ...body}) =>
       async (req) => {
@@ -184,10 +153,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/ReportDelete',
-    payload: io.object({
-      reportId: io.string(),
-    }),
+    ...ReportDeleteDef,
     handler:
       ({reportId}) =>
       async (req) => {
@@ -199,10 +165,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/ReportMissingList',
-    payload: io.object({
-      seasonId: io.string(),
-    }),
+    ...ReportMissingListDef,
     handler:
       ({seasonId}) =>
       async (req) => {
