@@ -1,6 +1,6 @@
+import {MemberAcceptOrDeclineDef, MemberCreateDef, MemberDeleteDef, MemberListOfTeamDef, MemberListOfUserDef, MemberRemoveDef, MemberRequestCreateDef, MemberSetCaptainDef} from '@shared/endpoints/MemberDef'
 import {TMember} from '@shared/schemas/ioMember'
 import {RequestHandler} from 'micro'
-import {io} from 'torva'
 import {$Member} from '../tables/$Member'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
@@ -17,7 +17,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/MemberListOfUser',
+    ...MemberListOfUserDef,
     handler: () => async (req) => {
       const [user] = await requireUser(req)
       // pending and non-pending
@@ -35,8 +35,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/MemberListOfTeam',
-    payload: io.string(),
+    ...MemberListOfTeamDef,
     handler: (teamId) => async (req) => {
       const [user] = await requireUser(req)
       let memberCurrent: TMember | undefined
@@ -58,8 +57,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/MemberDelete',
-    payload: io.string(),
+    ...MemberDeleteDef,
     handler: (teamId) => async (req) => {
       const [user] = await requireUser(req)
       let memberCurrent: TMember | undefined
@@ -80,14 +78,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/MemberCreate',
-    payload: io.object({
-      teamId: io.string(),
-      email: io.string().email(),
-      firstName: io.optional(io.string().emptyok()),
-      lastName: io.optional(io.string().emptyok()),
-      gender: io.optional(io.string()),
-    }),
+    ...MemberCreateDef,
     handler:
       ({teamId, email, ...body}) =>
       async (req) => {
@@ -131,8 +122,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/MemberRemove',
-    payload: io.string(),
+    ...MemberRemoveDef,
     handler: (memberId) => async (req) => {
       const [user] = await requireUser(req)
       const memberDelete = await $Member.maybeOne({id: memberId})
@@ -161,8 +151,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/MemberRequestCreate',
-    payload: io.string(),
+    ...MemberRequestCreateDef,
     handler: (teamId) => async (req) => {
       const [user] = await requireUser(req)
       const team = await $Team.getOne({id: teamId})
@@ -187,11 +176,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/MemberAcceptOrDecline',
-    payload: io.object({
-      memberId: io.string(),
-      accept: io.boolean(),
-    }),
+    ...MemberAcceptOrDeclineDef,
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)
       const memberToAdd = await $Member.getOne({id: body.memberId})
@@ -214,8 +199,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/MemberSetCaptain',
-    payload: io.string(),
+    ...MemberSetCaptainDef,
     handler: (memberId) => async (req) => {
       const [user] = await requireUser(req)
       const memberNewCaptain = await $Member.getOne({id: memberId})

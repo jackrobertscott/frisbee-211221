@@ -1,74 +1,30 @@
-import {ioMember} from '@shared/schemas/ioMember'
-import {ioTeam} from '@shared/schemas/ioTeam'
-import {ioUserPublic} from '@shared/schemas/ioUser'
-import {io} from 'torva'
+import {MemberAcceptOrDeclineDef, MemberCreateDef, MemberListOfTeamDef, MemberListOfUserDef, MemberRemoveDef, MemberRequestCreateDef, MemberSetCaptainDef} from '@shared/endpoints/MemberDef'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
  */
-export const $MemberListOfUser = createEndpoint({
-  path: '/MemberListOfUser',
-  result: io.object({
-    members: io.array(ioMember),
-    teams: io.array(ioTeam),
-  }),
-})
+export const $MemberListOfUser = createEndpoint(MemberListOfUserDef)
 /**
  *
  */
-export const $MemberListOfTeam = createEndpoint({
-  path: '/MemberListOfTeam',
-  payload: io.string(),
-  result: io.object({
-    current: io.optional(ioMember),
-    members: io.array(ioMember),
-    users: io.array(ioUserPublic),
-  }),
-})
+export const $MemberListOfTeam = createEndpoint(MemberListOfTeamDef)
 /**
  *
  */
-export const $MemberCreate = createEndpoint({
-  path: '/MemberCreate',
-  payload: io.object({
-    teamId: io.string(),
-    email: io.string(),
-    firstName: io.optional(io.string()),
-    lastName: io.optional(io.string()),
-    gender: io.optional(io.string()),
-  }),
-  result: ioMember,
-})
+export const $MemberCreate = createEndpoint(MemberCreateDef)
 /**
  *
  */
-export const $MemberRemove = createEndpoint({
-  path: '/MemberRemove',
-  payload: io.string(),
-})
+export const $MemberRemove = createEndpoint(MemberRemoveDef)
 /**
  *
  */
-export const $MemberRequestCreate = createEndpoint({
-  path: '/MemberRequestCreate',
-  payload: io.string(),
-  result: ioMember,
-})
+export const $MemberRequestCreate = createEndpoint(MemberRequestCreateDef)
 /**
  *
  */
-export const $MemberAcceptOrDecline = createEndpoint({
-  path: '/MemberAcceptOrDecline',
-  payload: io.object({
-    memberId: io.string(),
-    accept: io.boolean(),
-  }),
-})
+export const $MemberAcceptOrDecline = createEndpoint(MemberAcceptOrDeclineDef)
 /**
  *
  */
-export const $MemberSetCaptain = createEndpoint({
-  path: '/MemberSetCaptain',
-  payload: io.string(),
-  result: ioMember,
-})
+export const $MemberSetCaptain = createEndpoint(MemberSetCaptainDef)

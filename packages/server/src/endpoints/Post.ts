@@ -1,5 +1,5 @@
+import {PostCreateDef, PostDeleteDef, PostListDef, PostUpdateDef} from '@shared/endpoints/PostDef'
 import {RequestHandler} from 'micro'
-import {io} from 'torva'
 import {$Member} from '../tables/$Member'
 import {$Post} from '../tables/$Post'
 import {$User} from '../tables/$User'
@@ -18,11 +18,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PostList',
-    payload: io.object({
-      search: io.optional(io.string().emptyok()),
-      limit: io.optional(io.number()),
-    }),
+    ...PostListDef,
     handler:
       ({search, limit}) =>
       async () => {
@@ -43,13 +39,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PostCreate',
-    payload: io.object({
-      seasonId: io.optional(io.string()),
-      title: io.string(),
-      content: io.string(),
-      sendEmail: io.optional(io.boolean()),
-    }),
+    ...PostCreateDef,
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)
       body.content = purify.sanitize(body.content)
@@ -82,12 +72,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PostUpdate',
-    payload: io.object({
-      postId: io.string(),
-      title: io.string(),
-      content: io.string(),
-    }),
+    ...PostUpdateDef,
     handler:
       ({postId, ...body}) =>
       async (req) => {
@@ -106,10 +91,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PostDelete',
-    payload: io.object({
-      postId: io.string(),
-    }),
+    ...PostDeleteDef,
     handler:
       ({postId}) =>
       async (req) => {

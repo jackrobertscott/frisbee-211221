@@ -1,3 +1,4 @@
+import {PortExportDef, PortImportDef} from '@shared/endpoints/PortDef'
 import {TUser} from '@shared/schemas/ioUser'
 import AdmZip from 'adm-zip'
 import {RequestHandler} from 'micro'
@@ -22,8 +23,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PortImport',
-    multipart: true,
+    ...PortImportDef,
     handler: () => async (req) => {
       await requireUserAdmin(req)
       const [rawFiles, fields] = await blob.digestRequest(req)
@@ -46,7 +46,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PortExport',
+    ...PortExportDef,
     handler: () => async (req) => {
       throw new Error('Please ask admin (Jack) to enable export feature')
       const [user] = await requireUserAdmin(req)
