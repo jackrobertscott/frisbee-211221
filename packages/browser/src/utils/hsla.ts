@@ -39,9 +39,13 @@ export const hsla = {
         return this.darken(15).string()
       },
       compliment() {
-        return this.l + (this.h >= 210 ? -10 : 10) <= 55
-          ? theme.fontComplement
-          : theme.font
+        // let isLight = this.l + (this.h >= 210 ? -10 : 10) <= 55
+        let definitelyLight = false
+        if (this.h < 60) definitelyLight = this.l >= 50
+        if (this.h >= 60 && this.h < 210) definitelyLight = this.l >= 50
+        if (this.h >= 210 && this.h < 300) definitelyLight = this.l >= 70
+        if (this.h >= 300) definitelyLight = this.l >= 50
+        return definitelyLight ? theme.font : theme.fontComplement
       },
     }
   },

@@ -6,7 +6,7 @@ export const theme = {
   fib: [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597],
   fontFamily: 'Atkinson Hyperlegible Next',
   font: hsla.create(0, 0, 0, 0.75),
-  fontComplement: hsla.create(0, 0, 100, 0.9),
+  fontComplement: hsla.create(0, 0, 100, 1),
   fontMinor: hsla.create(0, 0, 0, 0.5),
   fontPlaceholder: hsla.create(0, 0, 0, 0.35),
   bg: hsla.create(0, 0, 100),

@@ -73,7 +73,7 @@ export const Table: TFCTable = ({head, body}) => {
                               ? data.value.toString()
                               : '...',
                           background: bg
-                            ? bg.merge({a: entry.click ? -0.5 : 0})
+                            ? bg // bg.merge({a: entry.click ? -0.5 : 0})
                             : hsla.create(0, 0, 0, 0),
                           font: data ? font : font?.merge({a: 0.5}),
                           select: !entry.click ? 'text' : undefined,
