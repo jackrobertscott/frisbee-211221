@@ -21,7 +21,6 @@ import {useMedia} from '../Media/useMedia'
 import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useEndpoint} from '../useEndpoint'
-import {useLocalState} from '../useLocalState'
 /**
  *
  */
@@ -35,14 +34,14 @@ export const DashboardFixtures: FC = () => {
   const [editing, editingSet] = useState<TFixture>()
   const [generating, generatingSet] = useState(false)
   const [adjusting, adjustingSet] = useState(false)
-  const [openfxs, openfxsSet] = useLocalState<string[]>('frisbee.fixtures', [])
+  const [openfxs, openfxsSet] = useState<string[]>([])
   const reload = () => {
     const seasonId = auth.season!.id
     $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))
     $fixtureList.fetch({seasonId}).then((i) => {
-      if (fixtures === undefined && i[0] && !openfxs.includes(i[0].id))
-        openfxsSet((x) => [...x, i[0].id])
       fixturesSet(i)
+      const fixturesInFuture = i.filter((f) => dayjs(f.date).isAfter(dayjs()))
+      openfxsSet(fixturesInFuture.map((f) => f.id))
     })
   }
   useEffect(() => reload(), [])
@@ -211,9 +210,9 @@ const _DashboardFixturesView: FC<{
               border: theme.border(),
               background: theme.bgMinor.string(),
               padding: theme.padify(theme.fib[4]),
-              [theme.ltMedia(theme.fib[14])]: {
-                flexDirection: 'column',
-              },
+              // [theme.ltMedia(theme.fib[14])]: {
+              //   flexDirection: 'column',
+              // },
               '&:hover': {
                 background: theme.bgMinor.hover(),
               },

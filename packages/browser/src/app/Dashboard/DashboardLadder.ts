@@ -271,44 +271,56 @@ const _LadderFixture: FC<{
   const isSmall = media.width < theme.fib[13]
   return $(FormColumn, {
     children: addkeys([
-      $('div', {
-        onClick: () => toggle(),
-        className: css({
-          display: 'flex',
-          justifyContent: 'space-between',
-          userSelect: 'none',
-          border: theme.border(),
-          background: theme.bgMinor.string(),
-          padding: theme.padify(theme.fib[4]),
-          '&:hover': {
-            background: theme.bgMinor.hover(),
-          },
-          '&:active': {
-            background: theme.bgMinor.press(),
-          },
-        }),
+      $(FormRow, {
         children: addkeys([
           $('div', {
-            children: fixture.title,
-          }),
-          $('div', {
+            onClick: () => toggle(),
             className: css({
+              flexGrow: 1,
               display: 'flex',
-              color: theme.fontMinor.string(),
-              '& > *:not(:last-child)': {
-                marginRight: theme.fib[4],
+              justifyContent: 'space-between',
+              userSelect: 'none',
+              border: theme.border(),
+              background: theme.bgMinor.string(),
+              padding: theme.padify(theme.fib[4]),
+              '&:hover': {
+                background: theme.bgMinor.hover(),
+              },
+              '&:active': {
+                background: theme.bgMinor.press(),
               },
             }),
             children: addkeys([
               $('div', {
-                children: dayjs(fixture.date).format('D MMM YYYY'),
+                children: fixture.title,
               }),
-              $(Icon, {
-                icon: open ? 'angle-up' : 'angle-down',
-                multiple: 1,
+              $('div', {
+                className: css({
+                  display: 'flex',
+                  color: theme.fontMinor.string(),
+                  '& > *:not(:last-child)': {
+                    marginRight: theme.fib[4],
+                  },
+                }),
+                children: addkeys([
+                  $('div', {
+                    children: dayjs(fixture.date).format('D MMM YYYY'),
+                  }),
+                  $(Icon, {
+                    icon: open ? 'angle-up' : 'angle-down',
+                    multiple: 1,
+                  }),
+                ]),
               }),
             ]),
           }),
+          isAdmin &&
+            $(FormBadge, {
+              icon: 'edit',
+              label: 'Edit Results',
+              background: theme.bgAdminButton,
+              click: () => editingSet(fixture),
+            }),
         ]),
       }),
       open &&
@@ -345,12 +357,6 @@ const _LadderFixture: FC<{
                 }
               }),
             }),
-            isAdmin &&
-              $(FormBadge, {
-                label: 'Edit Fixture Results',
-                background: theme.bgAdminButton,
-                click: () => editingSet(fixture),
-              }),
           ]),
         }),
     ]),

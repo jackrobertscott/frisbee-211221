@@ -159,6 +159,11 @@ export const Dashboard: FC = () => {
                       //   label: 'Forum',
                       //   render: () => $(DashboardForum),
                       // },
+                      auth.isAdmin() && {
+                        path: '/reports',
+                        label: 'Reports',
+                        render: () => $(DashboardReports),
+                      },
                       {
                         path: '/teams',
                         label: 'Teams',
@@ -168,11 +173,6 @@ export const Dashboard: FC = () => {
                         path: '/users',
                         label: 'Users',
                         render: () => $(DashboardUsers),
-                      },
-                      auth.isAdmin() && {
-                        path: '/reports',
-                        label: 'Reports',
-                        render: () => $(DashboardReports),
                       },
                       auth.isAdmin() && {
                         path: '/port',
@@ -216,6 +216,7 @@ export const Dashboard: FC = () => {
                                     }),
                                   }),
                                   $(MenuBarOption, {
+                                    icon: 'external-link-alt',
                                     label: 'Shop',
                                     click: () =>
                                       (window.location.href =

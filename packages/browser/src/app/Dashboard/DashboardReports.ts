@@ -92,7 +92,7 @@ export const DashboardReports: FC = () => {
                   children: addkeys([
                     $(FormBadge, {
                       grow: true,
-                      label: 'Create Report',
+                      label: 'Create Score Report',
                       background: theme.bgAdminButton,
                       click: () => creatingSet(true),
                     }),

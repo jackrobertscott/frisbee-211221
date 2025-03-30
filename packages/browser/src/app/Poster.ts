@@ -1,3 +1,4 @@
+import {Icon} from '@browser/app/Icon'
 import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
 import {theme} from '../theme'
@@ -6,9 +7,10 @@ import {addkeys} from '../utils/addkeys'
  *
  */
 export const Poster: FC<{
+  icon?: string
   title: string
   description: string
-}> = ({title, description}) => {
+}> = ({icon, title, description}) => {
   return $('div', {
     className: css({
       padding: 34,
@@ -18,6 +20,13 @@ export const Poster: FC<{
       textAlign: 'center',
     }),
     children: addkeys([
+      icon &&
+        $('div', {
+          children: $(Icon, {icon}),
+          className: css({
+            fontSize: theme.fib[8],
+          }),
+        }),
       $('div', {
         children: title,
         className: css({

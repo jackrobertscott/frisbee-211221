@@ -1,3 +1,5 @@
+import {Icon} from '@browser/app/Icon'
+import {addkeys} from '@browser/utils/addkeys'
 import {css} from '@emotion/css'
 import {createElement as $, FC, ReactNode} from 'react'
 import {theme} from '../theme'
@@ -40,13 +42,16 @@ export const MenuBarOption: FC<{
   active?: boolean
   background?: THSLA
   font?: THSLA
-}> = ({label, click, active, background, font}) => {
+}> = ({icon, label, click, active, background, font}) => {
   const bg = active ? theme.bg : background ?? theme.bgMinor
   return $('div', {
     onClick: click,
-    children: label,
+    children: addkeys([$('div', {children: label}), icon && $(Icon, {icon})]),
     className: css({
+      display: 'flex',
+      flexDirection: 'row',
       userSelect: 'none',
+      gap: theme.fib[4],
       padding: theme.padify(theme.fib[4]),
       background: bg?.string(),
       color: font

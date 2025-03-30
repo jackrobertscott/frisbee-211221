@@ -1,3 +1,4 @@
+import {Poster} from '@browser/app/Poster'
 import {css} from '@emotion/css'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TTeam} from '@shared/schemas/ioTeam'
@@ -116,157 +117,165 @@ export const ReportCreate: FC<{
                 ]),
               }),
           $(Fragment, {
-            children: !form.data.fixtureId
-              ? null
-              : !auth.current?.team || !againstOptions
-              ? $(Spinner)
-              : addkeys([
-                  $('div', {
-                    className: css({
-                      textAlign: 'center',
+            children:
+              !form.data.fixtureId || !auth.current?.team || !againstOptions
+                ? $(FormColumn, {
+                    children: $(Poster, {
+                      icon: 'edit',
+                      title: 'Submit A Report',
+                      description:
+                        'Score reports include the game score, MVPs, and spirit.',
                     }),
-                    children: $(FormRow, {
+                  })
+                : addkeys([
+                    $('div', {
+                      className: css({
+                        textAlign: 'center',
+                      }),
+                      children: $(FormRow, {
+                        children: addkeys([
+                          $(FormBadge, {
+                            grow: true,
+                            label: isSmall
+                              ? initials(auth.current.team.name)
+                              : auth.current.team.name,
+                            background: hsla.digest(auth.current.team.color),
+                            font: hsla
+                              .digest(auth.current.team.color)
+                              .compliment(),
+                          }),
+                          $(FormBadge, {
+                            label: 'vs',
+                          }),
+                          $(InputSelect, {
+                            value: form.data.againstTeamId,
+                            valueSet: form.link('againstTeamId'),
+                            options: againstOptions.map((i) => ({
+                              key: i.team.id,
+                              label: i.team.name,
+                              color: i.team.color,
+                            })),
+                          }),
+                        ]),
+                      }),
+                    }),
+                    $(FormColumn, {
                       children: addkeys([
-                        $(FormBadge, {
-                          grow: true,
-                          label: isSmall
-                            ? initials(auth.current.team.name)
-                            : auth.current.team.name,
-                          background: hsla.digest(auth.current.team.color),
-                          font: hsla
-                            .digest(auth.current.team.color)
-                            .compliment(),
+                        $(FormRow, {
+                          children: addkeys([
+                            $(FormLabel, {label: 'Your Score'}),
+                            $(InputNumber, {
+                              value: form.data.scoreFor,
+                              valueSet: form.link('scoreFor'),
+                            }),
+                          ]),
                         }),
-                        $(FormBadge, {
-                          label: 'vs',
-                        }),
-                        $(InputSelect, {
-                          value: form.data.againstTeamId,
-                          valueSet: form.link('againstTeamId'),
-                          options: againstOptions.map((i) => ({
-                            key: i.team.id,
-                            label: i.team.name,
-                            color: i.team.color,
-                          })),
+                        $(FormRow, {
+                          children: addkeys([
+                            $(FormLabel, {label: 'Opposition Score'}),
+                            $(InputNumber, {
+                              value: form.data.scoreAgainst,
+                              valueSet: form.link('scoreAgainst'),
+                            }),
+                          ]),
                         }),
                       ]),
                     }),
-                  }),
-                  $(FormColumn, {
-                    children: addkeys([
-                      $(FormRow, {
-                        children: addkeys([
-                          $(FormLabel, {label: 'Your Score'}),
-                          $(InputNumber, {
-                            value: form.data.scoreFor,
-                            valueSet: form.link('scoreFor'),
-                          }),
-                        ]),
-                      }),
-                      $(FormRow, {
-                        children: addkeys([
-                          $(FormLabel, {label: 'Against Score'}),
-                          $(InputNumber, {
-                            value: form.data.scoreAgainst,
-                            valueSet: form.link('scoreAgainst'),
-                          }),
-                        ]),
-                      }),
-                    ]),
-                  }),
-                  $(Fragment, {
-                    children:
-                      chosenAgainst &&
-                      $(FormColumn, {
-                        children: addkeys([
-                          $(FormRow, {
-                            children: addkeys([
-                              $(FormLabel, {label: 'MVP Male'}),
-                              $(InputSelect, {
-                                value: form.data.mvpMale,
-                                valueSet: form.link('mvpMale'),
-                                options: shuffledUsers.map((i) => ({
-                                  key: i.id,
-                                  label: `${i.firstName} ${i.lastName}`,
-                                })),
-                              }),
-                              $(FormBadge, {
-                                icon: 'times',
-                                click: () => form.patch({mvpMale: undefined}),
-                              }),
-                            ]),
-                          }),
-                          $(FormRow, {
-                            children: addkeys([
-                              $(FormLabel, {label: 'MVP Female'}),
-                              $(InputSelect, {
-                                value: form.data.mvpFemale,
-                                valueSet: form.link('mvpFemale'),
-                                options: shuffledUsers.map((i) => ({
-                                  key: i.id,
-                                  label: `${i.firstName} ${i.lastName}`,
-                                })),
-                              }),
-                              $(FormBadge, {
-                                icon: 'times',
-                                click: () => form.patch({mvpFemale: undefined}),
-                              }),
-                            ]),
-                          }),
-                          $(FormHelp, {
-                            children: `If you can't find the player you are looking for, please put their name in the spirit score comment section.`,
-                          }),
-                        ]),
-                      }),
-                  }),
-                  $(FormColumn, {
-                    children: addkeys([
-                      $(FormLabel, {label: 'Spirit'}),
-                      $(InputSelect, {
-                        value: form.data.spirit?.toString(),
-                        valueSet: (i) => form.patch({spirit: +i}),
-                        placeholder: 'Select...',
-                        options: SPIRIT_OPTIONS,
-                      }),
-                      $(FormRow, {
-                        children: addkeys([
-                          $(InputTextarea, {
-                            rows: 2,
-                            value: form.data.spiritComment,
-                            valueSet: form.link('spiritComment'),
-                            placeholder: 'Write a comment... (optional)',
-                          }),
-                        ]),
-                      }),
-                      $(FormHelp, {
-                        children: addkeys([
-                          'See ',
-                          $('a', {
-                            href: 'https://d36m266ykvepgv.cloudfront.net/uploads/media/vQLbEryD9k/o/wfdf-spirit-scoring-examples.pdf',
-                            target: '_blank',
-                            children: 'here',
-                          }),
-                          ' for more details regarding spirit scores.',
-                        ]),
-                      }),
-                    ]),
-                  }),
-                  $(FormBadge, {
-                    disabled: $create.loading,
-                    label: $create.loading ? 'Loading' : 'Submit',
-                    click: () => {
-                      if (
-                        form.data.mvpMale &&
-                        form.data.mvpMale === form.data.mvpFemale
-                      ) {
-                        const message =
-                          'The male and female MVP can not be the same person.'
-                        return toaster.error(message)
-                      }
-                      $create.fetch(form.data as any).then(done)
-                    },
-                  }),
-                ]),
+                    $(Fragment, {
+                      children:
+                        chosenAgainst &&
+                        $(FormColumn, {
+                          children: addkeys([
+                            $(FormRow, {
+                              children: addkeys([
+                                $(FormLabel, {label: 'MVP Male'}),
+                                $(InputSelect, {
+                                  value: form.data.mvpMale,
+                                  valueSet: form.link('mvpMale'),
+                                  options: shuffledUsers.map((i) => ({
+                                    key: i.id,
+                                    label: `${i.firstName} ${i.lastName}`,
+                                  })),
+                                }),
+                                $(FormBadge, {
+                                  icon: 'times',
+                                  click: () => form.patch({mvpMale: undefined}),
+                                }),
+                              ]),
+                            }),
+                            $(FormRow, {
+                              children: addkeys([
+                                $(FormLabel, {label: 'MVP Female'}),
+                                $(InputSelect, {
+                                  value: form.data.mvpFemale,
+                                  valueSet: form.link('mvpFemale'),
+                                  options: shuffledUsers.map((i) => ({
+                                    key: i.id,
+                                    label: `${i.firstName} ${i.lastName}`,
+                                  })),
+                                }),
+                                $(FormBadge, {
+                                  icon: 'times',
+                                  click: () =>
+                                    form.patch({mvpFemale: undefined}),
+                                }),
+                              ]),
+                            }),
+                          ]),
+                        }),
+                    }),
+                    $(FormColumn, {
+                      children: addkeys([
+                        $(FormRow, {
+                          children: addkeys([
+                            $(FormLabel, {label: 'Spirit Score'}),
+                            $(InputSelect, {
+                              value: form.data.spirit?.toString(),
+                              valueSet: (i) => form.patch({spirit: +i}),
+                              placeholder: 'Select...',
+                              options: SPIRIT_OPTIONS,
+                            }),
+                          ]),
+                        }),
+                        $(FormRow, {
+                          children: addkeys([
+                            $(InputTextarea, {
+                              rows: 2,
+                              value: form.data.spiritComment,
+                              valueSet: form.link('spiritComment'),
+                              placeholder: 'Write a comment... (optional)',
+                            }),
+                          ]),
+                        }),
+                        $(FormHelp, {
+                          children: addkeys([
+                            'See ',
+                            $('a', {
+                              href: 'https://d36m266ykvepgv.cloudfront.net/uploads/media/aTYVA2eazu/o/sotg-scoring-system-template-2019.pdf',
+                              target: '_blank',
+                              children: 'here',
+                            }),
+                            ' for more details regarding spirit scores.',
+                          ]),
+                        }),
+                      ]),
+                    }),
+                    $(FormBadge, {
+                      disabled: $create.loading,
+                      label: $create.loading ? 'Loading' : 'Submit',
+                      click: () => {
+                        if (
+                          form.data.mvpMale &&
+                          form.data.mvpMale === form.data.mvpFemale
+                        ) {
+                          const message =
+                            'The male and female MVP can not be the same person.'
+                          return toaster.error(message)
+                        }
+                        $create.fetch(form.data as any).then(done)
+                      },
+                    }),
+                  ]),
           }),
         ]),
       }),
