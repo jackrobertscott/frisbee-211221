@@ -16,18 +16,23 @@ import {$TeamListOfSeason} from '../../endpoints/Team'
 import {$UserListManyById} from '../../endpoints/User'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
-import {SPIRIT_OPTIONS} from '../../utils/constants'
 import {go} from '../../utils/go'
 import {hsla} from '../../utils/hsla'
+import {
+  renderAgainstTeamSelect,
+  renderFixtureSelect,
+  renderMVPInputs,
+  renderScoreInputs,
+  renderSpiritInputs,
+  renderSubmitButton,
+  renderTeamSelect,
+  validateReportForm,
+} from '../../utils/renderReportForm'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
 import {FormColumn} from '../Form/FormColumn'
 import {FormLabel} from '../Form/FormLabel'
-import {FormRow} from '../Form/FormRow'
-import {InputNumber} from '../Input/InputNumber'
-import {InputSelect} from '../Input/InputSelect'
-import {InputTextarea} from '../Input/InputTextarea'
 import {Modal} from '../Modal'
 import {Pager} from '../Pager/Pager'
 import {usePager} from '../Pager/usePager'
@@ -277,6 +282,7 @@ const _DashboardReportsForm: FC<{
     spiritComment: '',
     ...data,
   })
+
   useEffect(() => {
     if (form.data.fixtureId && form.data.teamId) {
       $fixtureAgainst
@@ -291,9 +297,19 @@ const _DashboardReportsForm: FC<{
         })
     }
   }, [form.data.fixtureId, form.data.teamId])
+
   const chosenAgainst = againstOptions?.find(
     (i) => i.team.id === form.data.againstTeamId
   )
+
+  const handleSubmit = () => {
+    const errorMessage = validateReportForm(form.data)
+    if (errorMessage) {
+      return toaster.error(errorMessage)
+    }
+    dataSet(form.data)
+  }
+
   return $(Fragment, {
     children: addkeys([
       $(Modal, {
@@ -322,32 +338,26 @@ const _DashboardReportsForm: FC<{
           $(Form, {
             background: theme.bgMinor,
             children: addkeys([
-              $(FormRow, {
+              renderFixtureSelect(
+                form.data.fixtureId,
+                form.link('fixtureId'),
+                fixtures
+              ),
+              $(FormColumn, {
                 children: addkeys([
-                  $(FormLabel, {label: 'Fixture'}),
-                  $(InputSelect, {
-                    value: form.data.fixtureId,
-                    valueSet: form.link('fixtureId'),
-                    options: fixtures.map((i) => ({
-                      key: i.id,
-                      label: `${i.title} - ${dayjs(i.date).format('DD/MM/YY')}`,
-                    })),
-                  }),
-                ]),
-              }),
-              $(FormRow, {
-                children: addkeys([
-                  $(FormLabel, {label: 'For'}),
-                  $(InputSelect, {
-                    disabled: !!data?.teamId,
-                    value: form.data.teamId,
-                    valueSet: form.link('teamId'),
-                    options: teams.map((i) => ({
-                      key: i.id,
-                      label: i.name,
-                      color: i.color,
-                    })),
-                  }),
+                  renderTeamSelect(
+                    form.data.teamId,
+                    form.link('teamId'),
+                    teams,
+                    !!data?.teamId
+                  ),
+                  againstOptions &&
+                    renderAgainstTeamSelect(
+                      form.data.againstTeamId,
+                      form.link('againstTeamId'),
+                      againstOptions,
+                      !!data?.teamAgainstId
+                    ),
                 ]),
               }),
               $(Fragment, {
@@ -361,122 +371,31 @@ const _DashboardReportsForm: FC<{
                 children:
                   againstOptions &&
                   addkeys([
-                    $(FormRow, {
-                      children: addkeys([
-                        $(FormLabel, {label: 'Against'}),
-                        $(InputSelect, {
-                          disabled: !!data?.teamAgainstId,
-                          value: form.data.againstTeamId,
-                          valueSet: form.link('againstTeamId'),
-                          options: againstOptions.map((i) => ({
-                            key: i.team.id,
-                            label: i.team.name,
-                            color: i.team.color,
-                          })),
-                        }),
-                      ]),
-                    }),
-                    $(FormColumn, {
-                      children: addkeys([
-                        $(FormRow, {
-                          children: addkeys([
-                            $(FormLabel, {label: 'For Score'}),
-                            $(InputNumber, {
-                              value: form.data.scoreFor,
-                              valueSet: form.link('scoreFor'),
-                            }),
-                          ]),
-                        }),
-                        $(FormRow, {
-                          children: addkeys([
-                            $(FormLabel, {label: 'Against Score'}),
-                            $(InputNumber, {
-                              value: form.data.scoreAgainst,
-                              valueSet: form.link('scoreAgainst'),
-                            }),
-                          ]),
-                        }),
-                      ]),
-                    }),
+                    renderScoreInputs(
+                      form.data.scoreFor,
+                      form.link('scoreFor'),
+                      form.data.scoreAgainst,
+                      form.link('scoreAgainst'),
+                      true
+                    ),
                     $(Fragment, {
                       children:
                         chosenAgainst &&
-                        $(FormColumn, {
-                          children: addkeys([
-                            $(FormRow, {
-                              children: addkeys([
-                                $(FormLabel, {label: 'MVP Male'}),
-                                $(InputSelect, {
-                                  value: form.data.mvpMale,
-                                  valueSet: form.link('mvpMale'),
-                                  options: chosenAgainst.users.map((i) => ({
-                                    key: i.id,
-                                    label: `${i.firstName} ${i.lastName}`,
-                                  })),
-                                }),
-                                $(FormBadge, {
-                                  icon: 'times',
-                                  click: () => form.patch({mvpMale: undefined}),
-                                }),
-                              ]),
-                            }),
-                            $(FormRow, {
-                              children: addkeys([
-                                $(FormLabel, {label: 'MVP Female'}),
-                                $(InputSelect, {
-                                  value: form.data.mvpFemale,
-                                  valueSet: form.link('mvpFemale'),
-                                  options: chosenAgainst.users.map((i) => ({
-                                    key: i.id,
-                                    label: `${i.firstName} ${i.lastName}`,
-                                  })),
-                                }),
-                                $(FormBadge, {
-                                  icon: 'times',
-                                  click: () =>
-                                    form.patch({mvpFemale: undefined}),
-                                }),
-                              ]),
-                            }),
-                          ]),
-                        }),
+                        renderMVPInputs(
+                          form.data.mvpMale,
+                          form.link('mvpMale'),
+                          form.data.mvpFemale,
+                          form.link('mvpFemale'),
+                          chosenAgainst.users
+                        ),
                     }),
-                    $(FormColumn, {
-                      children: addkeys([
-                        $(FormLabel, {label: 'Spirit'}),
-                        $(InputSelect, {
-                          value: form.data.spirit?.toString(),
-                          valueSet: (i) => form.patch({spirit: +i}),
-                          placeholder: 'Select...',
-                          options: SPIRIT_OPTIONS,
-                        }),
-                        $(FormRow, {
-                          children: addkeys([
-                            $(InputTextarea, {
-                              rows: 2,
-                              value: form.data.spiritComment,
-                              valueSet: form.link('spiritComment'),
-                              placeholder: 'Write a comment (optional) ...',
-                            }),
-                          ]),
-                        }),
-                      ]),
-                    }),
-                    $(FormBadge, {
-                      disabled: loading,
-                      label: loading ? 'Loading' : 'Submit',
-                      click: () => {
-                        if (
-                          form.data.mvpMale &&
-                          form.data.mvpMale === form.data.mvpFemale
-                        ) {
-                          const message =
-                            'The male and female MVP can not be the same person.'
-                          return toaster.error(message)
-                        }
-                        dataSet(form.data)
-                      },
-                    }),
+                    renderSpiritInputs(
+                      form.data.spirit,
+                      (value) => form.patch({spirit: value}),
+                      form.data.spiritComment,
+                      form.link('spiritComment')
+                    ),
+                    renderSubmitButton(loading, handleSubmit),
                   ]),
               }),
             ]),
