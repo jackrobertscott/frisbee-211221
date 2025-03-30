@@ -10,6 +10,7 @@ import {addkeys} from '../utils/addkeys'
 import {
   renderFixtureSelect,
   renderMVPInputs,
+  renderOfficialSpiritInputs,
   renderScoreInputs,
   renderSpiritInputs,
   renderSubmitButton,
@@ -44,6 +45,11 @@ export const ReportCreate: FC<{
   const $fixtureList = useEndpoint($FixtureListOfSeason)
   const $fixtureAgainst = useEndpoint($ReportGetFixtureAgainst)
   const $create = useEndpoint($ReportCreate)
+
+  // Check if the season uses official scoring
+  const useOfficialScoring = auth.season?.useOfficialScoring === true
+
+  // Initialize the form with fields based on scoring type
   const form = useForm({
     teamId: auth.current?.team?.id,
     againstTeamId: undefined as undefined | string,
@@ -52,6 +58,13 @@ export const ReportCreate: FC<{
     scoreAgainst: undefined as undefined | number,
     mvpMale: undefined as undefined | string,
     mvpFemale: undefined as undefined | string,
+    mvpMale2: undefined as undefined | string,
+    mvpFemale2: undefined as undefined | string,
+    spiritP1: undefined as undefined | number,
+    spiritP2: undefined as undefined | number,
+    spiritP3: undefined as undefined | number,
+    spiritP4: undefined as undefined | number,
+    spiritP5: undefined as undefined | number,
     spirit: undefined as undefined | number,
     spiritComment: '',
   })
@@ -87,7 +100,7 @@ export const ReportCreate: FC<{
   const shuffledUsers = shuffleArray(chosenAgainst?.users ?? [])
 
   const handleSubmit = () => {
-    const errorMessage = validateReportForm(form.data)
+    const errorMessage = validateReportForm(form.data, useOfficialScoring)
     if (errorMessage) {
       return toaster.error(errorMessage)
     }
@@ -152,15 +165,36 @@ export const ReportCreate: FC<{
                           form.link('mvpMale'),
                           form.data.mvpFemale,
                           form.link('mvpFemale'),
-                          shuffledUsers
+                          shuffledUsers,
+                          useOfficialScoring,
+                          form.data.mvpMale2,
+                          form.link('mvpMale2'),
+                          form.data.mvpFemale2,
+                          form.link('mvpFemale2')
                         ),
                     }),
-                    renderSpiritInputs(
-                      form.data.spirit,
-                      (value) => form.patch({spirit: value}),
-                      form.data.spiritComment,
-                      form.link('spiritComment')
-                    ),
+                    // Render either official or standard spirit inputs based on the season setting
+                    useOfficialScoring
+                      ? renderOfficialSpiritInputs(
+                          form.data.spiritP1,
+                          (value) => form.patch({spiritP1: value}),
+                          form.data.spiritP2,
+                          (value) => form.patch({spiritP2: value}),
+                          form.data.spiritP3,
+                          (value) => form.patch({spiritP3: value}),
+                          form.data.spiritP4,
+                          (value) => form.patch({spiritP4: value}),
+                          form.data.spiritP5,
+                          (value) => form.patch({spiritP5: value}),
+                          form.data.spiritComment,
+                          form.link('spiritComment')
+                        )
+                      : renderSpiritInputs(
+                          form.data.spirit,
+                          (value) => form.patch({spirit: value}),
+                          form.data.spiritComment,
+                          form.link('spiritComment')
+                        ),
                     renderSubmitButton($create.loading, handleSubmit),
                   ]),
           }),

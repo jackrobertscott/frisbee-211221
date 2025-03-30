@@ -1,10 +1,10 @@
 import {css} from '@emotion/css'
+import {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 import {createElement as $, FC} from 'react'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {THSLA} from '../../utils/hsla'
 import {Icon} from '../Icon'
-import {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 /**
  *
  */
@@ -18,6 +18,7 @@ export interface TFormBadge {
   font?: THSLA
   background?: THSLA | string
   padding?: number
+  width?: number
   grow?: boolean
   noshrink?: boolean
   select?: 'auto' | 'text' | 'none' | 'contain' | 'all'
@@ -37,6 +38,7 @@ export const FormBadge: FC<TFormBadge> = ({
   font,
   background: _background,
   padding,
+  width,
   grow,
   noshrink,
   select,
@@ -48,6 +50,7 @@ export const FormBadge: FC<TFormBadge> = ({
     onClick: (event: MouseEvent) => !disabled && click?.(event),
     className: css(
       {
+        width,
         display: 'flex',
         overflow: 'hidden',
         textAlign: 'center',

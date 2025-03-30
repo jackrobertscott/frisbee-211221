@@ -22,6 +22,7 @@ import {
   renderAgainstTeamSelect,
   renderFixtureSelect,
   renderMVPInputs,
+  renderOfficialSpiritInputs,
   renderScoreInputs,
   renderSpiritInputs,
   renderSubmitButton,
@@ -135,14 +136,28 @@ export const DashboardReports: FC = () => {
                           value: teamAgainst?.name ?? report.teamAgainstId,
                           color: teamAgainst?.color,
                         },
-                        spirit: {value: report.spirit},
+                        spirit: {
+                          value: auth.season?.useOfficialScoring
+                            ? (report.spiritP1 ?? 0) +
+                              (report.spiritP2 ?? 0) +
+                              (report.spiritP3 ?? 0) +
+                              (report.spiritP4 ?? 0) +
+                              (report.spiritP5 ?? 0)
+                            : report.spirit ?? 0,
+                        },
                         mvps: {
                           children: $(FormLabel, {
                             multiple: 0.9,
-                            icon:
-                              report.mvpFemale && report.mvpMale
+                            icon: auth.season?.useOfficialScoring
+                              ? report.mvpFemale &&
+                                report.mvpMale &&
+                                report.mvpFemale2 &&
+                                report.mvpMale2
                                 ? 'check'
-                                : 'times',
+                                : 'times'
+                              : report.mvpFemale && report.mvpMale
+                              ? 'check'
+                              : 'times',
                           }),
                         },
                         comment: {
@@ -266,10 +281,16 @@ const _DashboardReportsForm: FC<{
   dataSet: (data: Partial<TReport>) => void
   close: () => void
 }> = ({title, teams, fixtures, loading, options, data, dataSet, close}) => {
+  const auth = useAuth()
   const toaster = useToaster()
   const $fixtureAgainst = useEndpoint($ReportGetFixtureAgainst)
   const [againstOptions, againstOptionsSet] =
     useState<Array<{team: TTeam; users: TUserPublic[]}>>()
+
+  // Check if the season uses official scoring
+  const useOfficialScoring = auth.season?.useOfficialScoring === true
+
+  // Create form with the appropriate fields based on scoring type
   const form = useForm({
     teamId: undefined as undefined | string,
     againstTeamId: undefined as undefined | string,
@@ -278,9 +299,16 @@ const _DashboardReportsForm: FC<{
     scoreAgainst: undefined as undefined | number,
     mvpMale: undefined as undefined | string,
     mvpFemale: undefined as undefined | string,
+    mvpMale2: undefined as undefined | string,
+    mvpFemale2: undefined as undefined | string,
+    spiritP1: undefined as undefined | number,
+    spiritP2: undefined as undefined | number,
+    spiritP3: undefined as undefined | number,
+    spiritP4: undefined as undefined | number,
+    spiritP5: undefined as undefined | number,
     spirit: undefined as undefined | number,
     spiritComment: '',
-    ...data,
+    ...data, // Overlay the data passed in (if editing an existing report)
   })
 
   useEffect(() => {
@@ -303,7 +331,7 @@ const _DashboardReportsForm: FC<{
   )
 
   const handleSubmit = () => {
-    const errorMessage = validateReportForm(form.data)
+    const errorMessage = validateReportForm(form.data, useOfficialScoring)
     if (errorMessage) {
       return toaster.error(errorMessage)
     }
@@ -386,15 +414,36 @@ const _DashboardReportsForm: FC<{
                           form.link('mvpMale'),
                           form.data.mvpFemale,
                           form.link('mvpFemale'),
-                          chosenAgainst.users
+                          chosenAgainst.users,
+                          useOfficialScoring,
+                          form.data.mvpMale2,
+                          form.link('mvpMale2'),
+                          form.data.mvpFemale2,
+                          form.link('mvpFemale2')
                         ),
                     }),
-                    renderSpiritInputs(
-                      form.data.spirit,
-                      (value) => form.patch({spirit: value}),
-                      form.data.spiritComment,
-                      form.link('spiritComment')
-                    ),
+                    // Render spirit form based on scoring type
+                    useOfficialScoring
+                      ? renderOfficialSpiritInputs(
+                          form.data.spiritP1,
+                          (value) => form.patch({spiritP1: value}),
+                          form.data.spiritP2,
+                          (value) => form.patch({spiritP2: value}),
+                          form.data.spiritP3,
+                          (value) => form.patch({spiritP3: value}),
+                          form.data.spiritP4,
+                          (value) => form.patch({spiritP4: value}),
+                          form.data.spiritP5,
+                          (value) => form.patch({spiritP5: value}),
+                          form.data.spiritComment,
+                          form.link('spiritComment')
+                        )
+                      : renderSpiritInputs(
+                          form.data.spirit,
+                          (value) => form.patch({spirit: value}),
+                          form.data.spiritComment,
+                          form.link('spiritComment')
+                        ),
                     renderSubmitButton(loading, handleSubmit),
                   ]),
               }),
@@ -411,18 +460,39 @@ const _DashboardReportsForm: FC<{
 const _DashboardReportsMVP: FC<{
   reports: TReport[]
 }> = ({reports}) => {
+  const auth = useAuth()
+  const useOfficialScoring = auth.season?.useOfficialScoring === true
+
   const calcMvp = () => {
-    const tally = reports.reduce((all, {mvpMale, mvpFemale}) => {
+    const tally = reports.reduce((all, report) => {
+      // Extract MVPs from the report
+      const {mvpMale, mvpFemale, mvpMale2, mvpFemale2} = report
+
+      // Process primary MVPs (5 points in official scoring)
       if (mvpMale) {
         all[mvpMale] ??= [0, 0]
-        all[mvpMale][0] = all[mvpMale][0] + 1
+        all[mvpMale][0] = all[mvpMale][0] + (useOfficialScoring ? 5 : 1)
       }
       if (mvpFemale) {
         all[mvpFemale] ??= [0, 0]
-        all[mvpFemale][1] = all[mvpFemale][1] + 1
+        all[mvpFemale][1] = all[mvpFemale][1] + (useOfficialScoring ? 5 : 1)
       }
+
+      // Process secondary MVPs (3 points) for official scoring
+      if (useOfficialScoring) {
+        if (mvpMale2) {
+          all[mvpMale2] ??= [0, 0]
+          all[mvpMale2][0] = all[mvpMale2][0] + 3
+        }
+        if (mvpFemale2) {
+          all[mvpFemale2] ??= [0, 0]
+          all[mvpFemale2][1] = all[mvpFemale2][1] + 3
+        }
+      }
+
       return all
     }, {} as Record<string, number[]>)
+
     return Object.keys(tally)
       .map((i) => ({
         userId: i,
@@ -437,7 +507,7 @@ const _DashboardReportsMVP: FC<{
   const $userList = useEndpoint($UserListManyById)
   useEffect(() => {
     usersAndVotesSet(calcMvp)
-  }, [reports])
+  }, [reports, useOfficialScoring])
   useEffect(() => {
     if (userIdsAndVotes.length)
       $userList
@@ -518,32 +588,58 @@ const _DashboardReportsSpirit: FC<{
   reports: TReport[]
   teams: TTeam[]
 }> = ({reports, teams}) => {
+  const auth = useAuth()
+  const useOfficialScoring = !!auth.season?.useOfficialScoring
+
   const calculate = () =>
     teams
       .map((team) => {
-        const spirit = reports
-          .filter((i) => i.teamAgainstId === team.id)
-          .reduce((a, b) => {
-            a += b.spirit
+        // Filter reports for this team
+        const teamReports = reports.filter((i) => i.teamAgainstId === team.id)
+
+        let spirit = 0
+
+        // Calculate spirit based on scoring system
+        if (useOfficialScoring) {
+          // For official scoring, calculate the sum of the 5 category scores for each report
+          teamReports.forEach((report) => {
+            // Add all spirit category points
+            if (report.spiritP1 !== undefined) spirit += report.spiritP1
+            if (report.spiritP2 !== undefined) spirit += report.spiritP2
+            if (report.spiritP3 !== undefined) spirit += report.spiritP3
+            if (report.spiritP4 !== undefined) spirit += report.spiritP4
+            if (report.spiritP5 !== undefined) spirit += report.spiritP5
+          })
+        } else {
+          // For traditional scoring, just sum the spirit values
+          spirit = teamReports.reduce((a, b) => {
+            a += b.spirit || 0
             return a
           }, 0)
+        }
+
         return {team, spirit}
       })
       .sort((a, b) => b.spirit - a.spirit)
+
   const [teamsAndSpirit, teamsAndSpiritSet] = useState(calculate)
+
   useEffect(() => {
     teamsAndSpiritSet(calculate)
-  }, [reports, teams])
+  }, [reports, teams, useOfficialScoring])
+
   return $(FormColumn, {
     grow: true,
     children: addkeys([
       $(FormBadge, {
-        label: 'Team Spirit Scores',
+        label: useOfficialScoring
+          ? 'Team Spirit Scores (Official)'
+          : 'Team Spirit Scores',
         background: theme.bgMinor,
       }),
       $(Table, {
         head: {
-          team: {label: 'Fixture', grow: 2},
+          team: {label: 'Team', grow: 2},
           spirit: {label: 'Spirit', grow: 1},
         },
         body: teamsAndSpirit.map(({team, spirit}) => {
