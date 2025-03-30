@@ -218,9 +218,16 @@ export const Dashboard: FC = () => {
                                   $(MenuBarOption, {
                                     icon: 'external-link-alt',
                                     label: 'Shop',
-                                    click: () =>
-                                      (window.location.href =
-                                        'https://marlow-street-ultimate.square.site/s/shop?fbclid=IwAR21rulDg_KiLtXACWJmW1bm08W0xoVqRHLie3L12-bg0_0Rtqu8ObB2LDs'),
+                                    click: () => {
+                                      const linkUrl =
+                                        'https://marlow-street-ultimate.square.site/s/shop?fbclid=IwAR21rulDg_KiLtXACWJmW1bm08W0xoVqRHLie3L12-bg0_0Rtqu8ObB2LDs'
+                                      const a = document.createElement('a')
+                                      a.href = linkUrl
+                                      a.target = '_blank'
+                                      a.rel = 'noopener noreferrer'
+                                      a.click()
+                                      a.remove()
+                                    },
                                   }),
                                   $(Fragment, {
                                     children: !isSmall && $(MenuBarSpacer),
