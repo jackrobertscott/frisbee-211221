@@ -12,3 +12,12 @@ export const PortExportDef = {
     email: io.string(),
   }),
 } satisfies TEndpointDef
+
+export const PortMockGenerateDef = {
+  path: '/PortMockGenerate',
+  payload: io.object({
+    seasonId: io.string().trim(),
+    teams: io.number(),
+    usersPerTeam: io.number(),
+  }),
+} satisfies TEndpointDef

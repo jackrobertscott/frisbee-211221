@@ -109,8 +109,14 @@ export const DashboardReports: FC = () => {
                     fixture: {label: 'Fixture', grow: 2},
                     by: {label: 'By', grow: 3},
                     against: {label: 'Against', grow: 3},
-                    spirit: {label: 'Spirit', grow: 1.5},
-                    mvps: {label: 'MVPs', grow: 1.5},
+                    spirit: {
+                      label: 'Spirit',
+                      grow: 1.5,
+                    },
+                    mvps: {
+                      label: 'MVPs',
+                      grow: 1.5,
+                    },
                     comment: {label: 'Comment', grow: 4},
                   },
                   body: reports.map((report) => {
@@ -154,6 +160,8 @@ export const DashboardReports: FC = () => {
                                 report.mvpFemale2 &&
                                 report.mvpMale2
                                 ? 'check'
+                                : report.mvpFemale && report.mvpMale // At least primary MVPs are selected
+                                ? 'exclamation-circle'
                                 : 'times'
                               : report.mvpFemale && report.mvpMale
                               ? 'check'
@@ -470,23 +478,23 @@ const _DashboardReportsMVP: FC<{
 
       // Process primary MVPs (5 points in official scoring)
       if (mvpMale) {
-        all[mvpMale] ??= [0, 0]
+        all[mvpMale] ??= [0, 0, 0, 0] // [male5pt, female5pt, male3pt, female3pt]
         all[mvpMale][0] = all[mvpMale][0] + (useOfficialScoring ? 5 : 1)
       }
       if (mvpFemale) {
-        all[mvpFemale] ??= [0, 0]
+        all[mvpFemale] ??= [0, 0, 0, 0]
         all[mvpFemale][1] = all[mvpFemale][1] + (useOfficialScoring ? 5 : 1)
       }
 
       // Process secondary MVPs (3 points) for official scoring
       if (useOfficialScoring) {
         if (mvpMale2) {
-          all[mvpMale2] ??= [0, 0]
-          all[mvpMale2][0] = all[mvpMale2][0] + 3
+          all[mvpMale2] ??= [0, 0, 0, 0]
+          all[mvpMale2][2] = all[mvpMale2][2] + 3
         }
         if (mvpFemale2) {
-          all[mvpFemale2] ??= [0, 0]
-          all[mvpFemale2][1] = all[mvpFemale2][1] + 3
+          all[mvpFemale2] ??= [0, 0, 0, 0]
+          all[mvpFemale2][3] = all[mvpFemale2][3] + 3
         }
       }
 
@@ -494,11 +502,26 @@ const _DashboardReportsMVP: FC<{
     }, {} as Record<string, number[]>)
 
     return Object.keys(tally)
-      .map((i) => ({
-        userId: i,
-        votes: tally[i][0] + tally[i][1],
-        gender: tally[i][0] > tally[i][1] ? 0 : 1,
-      }))
+      .map((i) => {
+        const [male5pt, female5pt, male3pt, female3pt] = tally[i]
+        const maleTotal = male5pt + male3pt
+        const femaleTotal = female5pt + female3pt
+        const totalPoints = maleTotal + femaleTotal
+
+        return {
+          userId: i,
+          votes: totalPoints,
+          gender: maleTotal > femaleTotal ? 0 : 1,
+          // Add detailed breakdown for official scoring
+          detail: useOfficialScoring
+            ? `${male5pt > 0 ? `${male5pt}(M5) ` : ''}${
+                female5pt > 0 ? `${female5pt}(F5) ` : ''
+              }${male3pt > 0 ? `${male3pt}(M3) ` : ''}${
+                female3pt > 0 ? `${female3pt}(F3)` : ''
+              }`
+            : undefined,
+        }
+      })
       .sort((a, b) => b.votes - a.votes)
       .filter((a) => a.votes > 0)
   }
@@ -515,7 +538,7 @@ const _DashboardReportsMVP: FC<{
         .then(usersSet)
   }, [userIdsAndVotes.map((i) => i.userId).join()])
   const usersAndVotes = userIdsAndVotes
-    .map(({userId, votes, gender}) => {
+    .map(({userId, votes, gender, detail}) => {
       const user = users?.find((j) => j.id === userId)
       return {
         key: userId,
@@ -524,6 +547,14 @@ const _DashboardReportsMVP: FC<{
         data: {
           user: {value: user ? `${user.firstName} ${user.lastName}` : userId},
           votes: {value: votes},
+          ...(detail && useOfficialScoring
+            ? {
+                breakdown: {
+                  value: detail,
+                  tooltip: 'Breakdown of MVP points (Male/Female, 5pt/3pt)',
+                },
+              }
+            : {}),
         },
       }
     })
@@ -550,13 +581,18 @@ const _DashboardReportsMVP: FC<{
         grow: true,
         children: addkeys([
           $(FormBadge, {
-            label: 'Male MVP Votes',
+            label: useOfficialScoring
+              ? 'Male MVP Points (5/3pt)'
+              : 'Male MVP Votes',
             background: theme.bgMinor,
           }),
           $(Table, {
             head: {
               user: {label: 'User', grow: 2},
-              votes: {label: 'Votes', grow: 1},
+              votes: {label: 'Points', grow: 1},
+              ...(useOfficialScoring
+                ? {breakdown: {label: 'Breakdown', grow: 2}}
+                : {}),
             },
             body: usersAndVotes.filter((i) => i.gender === 0),
           }),
@@ -566,13 +602,16 @@ const _DashboardReportsMVP: FC<{
         grow: true,
         children: addkeys([
           $(FormBadge, {
-            label: 'Female MVP Votes',
+            label: 'Female MVP Points',
             background: theme.bgMinor,
           }),
           $(Table, {
             head: {
               user: {label: 'User', grow: 2},
-              votes: {label: 'Votes', grow: 1},
+              votes: {label: 'Points', grow: 1},
+              ...(useOfficialScoring
+                ? {breakdown: {label: 'Breakdown', grow: 2}}
+                : {}),
             },
             body: usersAndVotes.filter((i) => i.gender === 1),
           }),
@@ -596,19 +635,36 @@ const _DashboardReportsSpirit: FC<{
       .map((team) => {
         // Filter reports for this team
         const teamReports = reports.filter((i) => i.teamAgainstId === team.id)
+        const reportCount = teamReports.length
 
         let spirit = 0
+        let totalPossiblePoints = 0
 
         // Calculate spirit based on scoring system
         if (useOfficialScoring) {
           // For official scoring, calculate the sum of the 5 category scores for each report
           teamReports.forEach((report) => {
             // Add all spirit category points
-            if (report.spiritP1 !== undefined) spirit += report.spiritP1
-            if (report.spiritP2 !== undefined) spirit += report.spiritP2
-            if (report.spiritP3 !== undefined) spirit += report.spiritP3
-            if (report.spiritP4 !== undefined) spirit += report.spiritP4
-            if (report.spiritP5 !== undefined) spirit += report.spiritP5
+            if (report.spiritP1 !== undefined) {
+              spirit += report.spiritP1
+              totalPossiblePoints += 4 // Max points per category is 4
+            }
+            if (report.spiritP2 !== undefined) {
+              spirit += report.spiritP2
+              totalPossiblePoints += 4
+            }
+            if (report.spiritP3 !== undefined) {
+              spirit += report.spiritP3
+              totalPossiblePoints += 4
+            }
+            if (report.spiritP4 !== undefined) {
+              spirit += report.spiritP4
+              totalPossiblePoints += 4
+            }
+            if (report.spiritP5 !== undefined) {
+              spirit += report.spiritP5
+              totalPossiblePoints += 4
+            }
           })
         } else {
           // For traditional scoring, just sum the spirit values
@@ -616,9 +672,16 @@ const _DashboardReportsSpirit: FC<{
             a += b.spirit || 0
             return a
           }, 0)
+          totalPossiblePoints = reportCount * 4 // Max points in traditional is 4 per report
         }
 
-        return {team, spirit}
+        // Calculate percentage for display
+        const percentage =
+          totalPossiblePoints > 0
+            ? Math.round((spirit / totalPossiblePoints) * 100)
+            : 0
+
+        return {team, spirit, percentage, reportCount}
       })
       .sort((a, b) => b.spirit - a.spirit)
 
@@ -632,17 +695,17 @@ const _DashboardReportsSpirit: FC<{
     grow: true,
     children: addkeys([
       $(FormBadge, {
-        label: useOfficialScoring
-          ? 'Team Spirit Scores (Official)'
-          : 'Team Spirit Scores',
+        label: 'Team Spirit Scores',
         background: theme.bgMinor,
       }),
       $(Table, {
         head: {
           team: {label: 'Team', grow: 2},
-          spirit: {label: 'Spirit', grow: 1},
+          spirit: {label: 'Points', grow: 1},
+          percentage: {label: '%', grow: 1},
+          reports: {label: '# Reports', grow: 1},
         },
-        body: teamsAndSpirit.map(({team, spirit}) => {
+        body: teamsAndSpirit.map(({team, spirit, percentage, reportCount}) => {
           return {
             key: team.id,
             data: {
@@ -651,6 +714,8 @@ const _DashboardReportsSpirit: FC<{
                 color: team.color,
               },
               spirit: {value: spirit},
+              percentage: {value: `${percentage}%`},
+              reports: {value: reportCount},
             },
           }
         }),

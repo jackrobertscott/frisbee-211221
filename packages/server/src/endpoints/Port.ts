@@ -1,5 +1,11 @@
-import {PortExportDef, PortImportDef} from '@shared/endpoints/PortDef'
-import {TUser} from '@shared/schemas/ioUser'
+import {faker} from '@faker-js/faker'
+import {random} from '@server/utils/random'
+import {
+  PortExportDef,
+  PortImportDef,
+  PortMockGenerateDef,
+} from '@shared/endpoints/PortDef'
+import {TUser, TUserEmail} from '@shared/schemas/ioUser'
 import AdmZip from 'adm-zip'
 import {RequestHandler} from 'micro'
 import {$Fixture} from '../tables/$Fixture'
@@ -97,6 +103,97 @@ export default new Map<string, RequestHandler>([
           .trim(),
       })
       return {email}
+    },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    ...PortMockGenerateDef,
+    handler: (body) => async (req) => {
+      await requireUserAdmin(req)
+      if (!body.seasonId?.trim())
+        throw new Error('Season id missing from request.')
+      const season = await $Season.getOne({id: body.seasonId})
+
+      const teams = [] as {
+        id: string
+        seasonId: string
+        name: string
+        color: string
+        division: number
+      }[]
+
+      while (teams.length < body.teams) {
+        let teamName = faker.company.name()
+        teamName = teamName.charAt(0).toUpperCase() + teamName.slice(1) + 's'
+        if (!teams.some((t) => t.name === teamName)) {
+          teams.push({
+            id: random.generateId(),
+            seasonId: season.id,
+            name: teamName,
+            color: `hsla(${Math.floor(Math.random() * 12) * 30}, 100%, 65%, 1)`,
+            division: 1,
+          })
+        }
+      }
+
+      const users = [] as {
+        id: string
+        firstName: string
+        lastName: string
+        termsAccepted: boolean
+        gender: string
+        emails: TUserEmail[]
+      }[]
+
+      const members = [] as {
+        seasonId: string
+        teamId: string
+        userId: string
+        captain: boolean
+        pending: boolean
+      }[]
+
+      for (const team of teams) {
+        const teamUsers = [] as typeof users
+        while (teamUsers.length < body.usersPerTeam) {
+          const firstName = faker.person.firstName()
+          const lastName = faker.person.lastName()
+          const email = faker.internet.email({firstName, lastName})
+          if (!teamUsers.some((u) => u.emails[0].value === email)) {
+            const user = {
+              id: random.generateId(),
+              firstName,
+              lastName,
+              gender: Math.random() > 0.5 ? 'male' : 'female',
+              termsAccepted: true,
+              emails: [
+                {
+                  value: email,
+                  verified: true,
+                  code: '0000',
+                  createdOn: new Date().toISOString(),
+                  primary: true,
+                },
+              ],
+            }
+            teamUsers.push(user)
+            members.push({
+              seasonId: team.seasonId,
+              teamId: team.id,
+              userId: user.id,
+              captain: teamUsers.length === 1,
+              pending: false,
+            })
+          }
+        }
+        users.push(...teamUsers)
+      }
+
+      $Member.createMany(members)
+      $Team.createMany(teams)
+      $User.createMany(users)
     },
   }),
 ])
