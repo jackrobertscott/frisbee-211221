@@ -9,6 +9,7 @@ export const ioMember = io.object({
   userId: io.string(),
   seasonId: io.string(),
   teamId: io.string(),
+  isMock: io.optional(io.boolean()), // for testing purposes
   captain: io.optional(io.boolean()),
   pending: io.boolean(),
 })

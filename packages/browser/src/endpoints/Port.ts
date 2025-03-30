@@ -1,4 +1,4 @@
-import {PortExportDef, PortImportDef, PortMockGenerateDef} from '@shared/endpoints/PortDef'
+import {PortDeleteAllMockDataDef, PortExportDef, PortImportDef, PortMockGenerateDef} from '@shared/endpoints/PortDef'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
@@ -12,3 +12,7 @@ export const $PortExport = createEndpoint(PortExportDef)
  *
  */
 export const $PortMockGenerate = createEndpoint(PortMockGenerateDef)
+/**
+ *
+ */
+export const $PortDeleteAllMockData = createEndpoint(PortDeleteAllMockDataDef)

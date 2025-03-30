@@ -80,9 +80,11 @@ export const FixtureAdjustForm: FC<{
     {key: 'backward', label: 'Backward (Into Past)'},
   ]
 
+  const labelWidth = theme.fib[11] - theme.fib[8]
+
   return $(Modal, {
     close,
-    width: theme.fib[13],
+    width: theme.fib[12] + theme.fib[9],
     children: addkeys([
       $(TopBar, {
         children: addkeys([
@@ -105,6 +107,7 @@ export const FixtureAdjustForm: FC<{
                 children: addkeys([
                   $(FormLabel, {
                     label: 'After and Including',
+                    width: labelWidth,
                   }),
                   $(InputSelect, {
                     value: referenceFixtureId,
@@ -119,6 +122,7 @@ export const FixtureAdjustForm: FC<{
                 children: addkeys([
                   $(FormLabel, {
                     label: 'Adjustment Amount',
+                    width: labelWidth,
                   }),
                   $(InputNumber, {
                     value: amount,
@@ -132,6 +136,7 @@ export const FixtureAdjustForm: FC<{
                 children: addkeys([
                   $(FormLabel, {
                     label: 'Unit',
+                    width: labelWidth,
                   }),
                   $(InputSelect, {
                     value: unit,
@@ -145,6 +150,7 @@ export const FixtureAdjustForm: FC<{
                 children: addkeys([
                   $(FormLabel, {
                     label: 'Direction',
+                    width: labelWidth,
                   }),
                   $(InputSelect, {
                     value: direction,
@@ -162,7 +168,6 @@ export const FixtureAdjustForm: FC<{
                 ? 'Loading'
                 : 'Adjust Fixtures',
             click: onSubmit,
-            background: theme.bgHighlight,
             disabled: loading || $adjustFixtures.loading,
           }),
         ]),

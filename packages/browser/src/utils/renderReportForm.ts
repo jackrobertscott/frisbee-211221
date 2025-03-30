@@ -366,7 +366,6 @@ export function renderSpiritInputs(
       $(FormRow, {
         children: addkeys([
           $(FormLabel, {
-            width: theme.fib[11],
             label: 'Spirit Score',
           }),
           $(InputSelect, {

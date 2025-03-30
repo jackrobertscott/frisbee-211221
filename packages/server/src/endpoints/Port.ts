@@ -1,6 +1,7 @@
 import {faker} from '@faker-js/faker'
 import {random} from '@server/utils/random'
 import {
+  PortDeleteAllMockDataDef,
   PortExportDef,
   PortImportDef,
   PortMockGenerateDef,
@@ -119,20 +120,22 @@ export default new Map<string, RequestHandler>([
       const teams = [] as {
         id: string
         seasonId: string
+        isMock: boolean
         name: string
         color: string
         division: number
       }[]
 
       while (teams.length < body.teams) {
-        let teamName = faker.company.name()
+        let teamName = faker.animal.type()
         teamName = teamName.charAt(0).toUpperCase() + teamName.slice(1) + 's'
         if (!teams.some((t) => t.name === teamName)) {
           teams.push({
             id: random.generateId(),
+            isMock: true,
             seasonId: season.id,
             name: teamName,
-            color: `hsla(${Math.floor(Math.random() * 12) * 30}, 100%, 65%, 1)`,
+            color: `hsla(${Math.floor(Math.random() * 36) * 10}, 100%, 65%, 1)`,
             division: 1,
           })
         }
@@ -152,6 +155,7 @@ export default new Map<string, RequestHandler>([
         seasonId: string
         teamId: string
         userId: string
+        isMock: boolean
         captain: boolean
         pending: boolean
       }[]
@@ -185,6 +189,7 @@ export default new Map<string, RequestHandler>([
               seasonId: team.seasonId,
               teamId: team.id,
               userId: user.id,
+              isMock: true,
               captain: teamUsers.length === 1,
               pending: false,
             })
@@ -193,9 +198,34 @@ export default new Map<string, RequestHandler>([
         users.push(...teamUsers)
       }
 
-      $Member.createMany(members)
-      $Team.createMany(teams)
-      $User.createMany(users)
+      await mongo.transaction(async () => {
+        $Member.createMany(members)
+        $Team.createMany(teams)
+        $User.createMany(users)
+      })
+    },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    ...PortDeleteAllMockDataDef,
+    handler: () => async (req) => {
+      await requireUserAdmin(req)
+
+      const mockTeams = await $Team.getMany({isMock: true})
+
+      await mongo.transaction(async () => {
+        await $Member.deleteMany({isMock: true})
+        await $Team.deleteMany({isMock: true})
+        await $User.deleteMany({isMock: true})
+        await $Report.deleteMany({
+          $or: [
+            {teamId: {$in: mockTeams.map((i) => i.id)}},
+            {teamAgainstId: {$in: mockTeams.map((i) => i.id)}},
+          ],
+        })
+      })
     },
   }),
 ])

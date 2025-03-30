@@ -204,6 +204,15 @@ export const DashboardReports: FC = () => {
                           reports: _reports,
                           teams,
                         }),
+                        auth.season?.useOfficialScoring &&
+                          $(FormLabel, {
+                            label:
+                              'MVP 1st Place = 5 Points & MVP 2nd Place = 3 Points',
+                            background: theme.bgMinor,
+                            style: {
+                              justifyContent: 'center',
+                            },
+                          }),
                         $(_DashboardReportsMVP, {
                           reports: _reports,
                         }),

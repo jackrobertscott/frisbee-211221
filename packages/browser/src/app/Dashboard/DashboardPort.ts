@@ -14,6 +14,7 @@ import {addkeys} from '../../utils/addkeys'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
+import {MockDeleteConfirmation} from '../MockDeleteConfirmation'
 import {MockGenerate} from '../MockGenerate'
 import {Modal} from '../Modal'
 import {Poster} from '../Poster'
@@ -30,6 +31,7 @@ export const DashboardPort: FC = () => {
   const [importing, importingSet] = useState(false)
   const [exporting, exportingSet] = useState(false)
   const [generating, generatingSet] = useState(false)
+  const [deleting, deletingSet] = useState(false)
   const $export = useEndpoint($PortExport)
   return $(Fragment, {
     children: addkeys([
@@ -70,6 +72,13 @@ export const DashboardPort: FC = () => {
               label: 'Generate Mock Data',
               background: theme.bgAdminButton,
               click: () => generatingSet(true),
+            }),
+            $(FormBadge, {
+              grow: true,
+              icon: 'trash',
+              label: 'Delete Mock Data',
+              background: theme.bgAdminButton,
+              click: () => deletingSet(true),
             }),
           ]),
         }),
@@ -115,6 +124,14 @@ export const DashboardPort: FC = () => {
             seasonId: auth.season.id,
             close: () => generatingSet(false),
             done: () => generatingSet(false),
+          }),
+      }),
+      $(Fragment, {
+        children:
+          deleting &&
+          $(MockDeleteConfirmation, {
+            close: () => deletingSet(false),
+            done: () => deletingSet(false),
           }),
       }),
     ]),

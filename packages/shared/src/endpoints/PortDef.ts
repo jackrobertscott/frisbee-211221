@@ -21,3 +21,7 @@ export const PortMockGenerateDef = {
     usersPerTeam: io.number(),
   }),
 } satisfies TEndpointDef
+
+export const PortDeleteAllMockDataDef = {
+  path: '/PortDeleteAllMockData',
+} satisfies TEndpointDef

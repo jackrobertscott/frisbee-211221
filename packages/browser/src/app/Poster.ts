@@ -39,6 +39,7 @@ export const Poster: FC<{
           opacity: 0.5,
           marginTop: 5,
           maxWidth: theme.fib[11] + theme.fib[8],
+          whiteSpace: 'pre-line',
         }),
       }),
     ]),
