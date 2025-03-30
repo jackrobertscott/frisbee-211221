@@ -50,8 +50,15 @@ export const ReportCreateDef = {
     scoreAgainst: io.number(),
     mvpMale: io.optional(io.string()),
     mvpFemale: io.optional(io.string()),
-    spirit: io.number(),
+    mvpMale2: io.optional(io.string()),
+    mvpFemale2: io.optional(io.string()),
+    spirit: io.optional(io.number()),
     spiritComment: io.string().emptyok(),
+    spiritP1: io.optional(io.number()), // Rules Knowledge and Use
+    spiritP2: io.optional(io.number()), // Fouls and Body Contact
+    spiritP3: io.optional(io.number()), // Fair-Mindedness
+    spiritP4: io.optional(io.number()), // Attitude and Self-Control
+    spiritP5: io.optional(io.number()), // Communication
   }),
   result: ioReport,
 } satisfies TEndpointDef
@@ -64,8 +71,15 @@ export const ReportUpdateDef = {
     scoreAgainst: io.number(),
     mvpMale: io.optional(io.string()),
     mvpFemale: io.optional(io.string()),
-    spirit: io.number(),
+    mvpMale2: io.optional(io.string()),
+    mvpFemale2: io.optional(io.string()),
+    spirit: io.optional(io.number()),
     spiritComment: io.string().emptyok(),
+    spiritP1: io.optional(io.number()),
+    spiritP2: io.optional(io.number()),
+    spiritP3: io.optional(io.number()),
+    spiritP4: io.optional(io.number()),
+    spiritP5: io.optional(io.number()),
   }),
   result: ioReport,
 } satisfies TEndpointDef
