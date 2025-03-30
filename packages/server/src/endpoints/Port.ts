@@ -140,6 +140,7 @@ export default new Map<string, RequestHandler>([
 
       const users = [] as {
         id: string
+        isMock: boolean
         firstName: string
         lastName: string
         termsAccepted: boolean
@@ -164,6 +165,7 @@ export default new Map<string, RequestHandler>([
           if (!teamUsers.some((u) => u.emails[0].value === email)) {
             const user = {
               id: random.generateId(),
+              isMock: true,
               firstName,
               lastName,
               gender: Math.random() > 0.5 ? 'male' : 'female',
