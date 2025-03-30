@@ -12,10 +12,21 @@ export const ioReport = io.object({
   userId: io.optional(io.string()),
   scoreFor: io.number(),
   scoreAgainst: io.number(),
-  mvpMale: io.optional(io.string()),
-  mvpFemale: io.optional(io.string()),
-  spirit: io.number(),
+
+  // MVPs
+  mvpMale: io.optional(io.string()), // 5 points
+  mvpMale2: io.optional(io.string()), // 3 points
+  mvpFemale: io.optional(io.string()), // 5 points
+  mvpFemale2: io.optional(io.string()), // 3 points
+
+  // Spirit
+  spirit: io.number(), // Non-Official version of the Spirit of the Game
   spiritComment: io.string().emptyok(),
+  spiritP1: io.number(), // Rules Knowledge and Use
+  spiritP2: io.number(), // Fouls and Body Contact
+  spiritP3: io.number(), // Fair-Mindedness
+  spiritP4: io.number(), // Attitude and Self-Control
+  spiritP5: io.number(), // Communication
 })
 /**
  *
