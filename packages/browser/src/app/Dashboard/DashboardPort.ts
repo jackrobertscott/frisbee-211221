@@ -14,6 +14,7 @@ import {addkeys} from '../../utils/addkeys'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
+import {MockGenerate} from '../MockGenerate'
 import {Modal} from '../Modal'
 import {Poster} from '../Poster'
 import {Question} from '../Question'
@@ -28,6 +29,7 @@ export const DashboardPort: FC = () => {
   const toaster = useToaster()
   const [importing, importingSet] = useState(false)
   const [exporting, exportingSet] = useState(false)
+  const [generating, generatingSet] = useState(false)
   const $export = useEndpoint($PortExport)
   return $(Fragment, {
     children: addkeys([
@@ -61,6 +63,13 @@ export const DashboardPort: FC = () => {
               label: 'Export CSV',
               background: theme.bgAdminButton,
               click: () => exportingSet(true),
+            }),
+            $(FormBadge, {
+              grow: true,
+              icon: 'magic',
+              label: 'Generate Mock Data',
+              background: theme.bgAdminButton,
+              click: () => generatingSet(true),
             }),
           ]),
         }),
@@ -96,6 +105,16 @@ export const DashboardPort: FC = () => {
                   }),
               },
             ],
+          }),
+      }),
+      $(Fragment, {
+        children:
+          auth.season &&
+          generating &&
+          $(MockGenerate, {
+            seasonId: auth.season.id,
+            close: () => generatingSet(false),
+            done: () => generatingSet(false),
           }),
       }),
     ]),

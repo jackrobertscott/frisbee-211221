@@ -49,7 +49,8 @@ export type ReportFormData = {
 export function renderFixtureSelect(
   fixtureId: string | undefined,
   setFixtureId: (value: string) => void,
-  fixtures: TFixture[] | undefined
+  fixtures: TFixture[] | undefined,
+  disabled?: boolean
 ) {
   if (fixtures === undefined) {
     return $(Spinner)
@@ -59,6 +60,7 @@ export function renderFixtureSelect(
     children: addkeys([
       $(FormLabel, {label: 'Fixture'}),
       $(InputSelect, {
+        disabled,
         value: fixtureId,
         valueSet: setFixtureId,
         options: fixtures.map((i) => ({
@@ -236,12 +238,16 @@ export function renderMVPInputs(
         $(InputSelect, {
           value: mvpMale,
           valueSet: setMvpMale,
-          options: users.map((i) => ({
-            key: i.id,
-            label: `${i.firstName} ${i.lastName}`,
-          })),
+          options: users
+            .filter((i) => i.gender.toLowerCase() !== 'female')
+            .filter((i) => i.id !== mvpMale2)
+            .map((i) => ({
+              key: i.id,
+              label: `${i.firstName} ${i.lastName}`,
+            })),
         }),
         $(FormBadge, {
+          noshrink: true,
           icon: 'times',
           click: () => setMvpMale(undefined),
         }),
@@ -260,12 +266,16 @@ export function renderMVPInputs(
           $(InputSelect, {
             value: mvpMale2,
             valueSet: setMvpMale2,
-            options: users.map((i) => ({
-              key: i.id,
-              label: `${i.firstName} ${i.lastName}`,
-            })),
+            options: users
+              .filter((i) => i.gender.toLowerCase() !== 'female')
+              .filter((i) => i.id !== mvpMale)
+              .map((i) => ({
+                key: i.id,
+                label: `${i.firstName} ${i.lastName}`,
+              })),
           }),
           $(FormBadge, {
+            noshrink: true,
             icon: 'times',
             click: () => setMvpMale2(undefined),
           }),
@@ -284,12 +294,16 @@ export function renderMVPInputs(
         $(InputSelect, {
           value: mvpFemale,
           valueSet: setMvpFemale,
-          options: users.map((i) => ({
-            key: i.id,
-            label: `${i.firstName} ${i.lastName}`,
-          })),
+          options: users
+            .filter((i) => i.gender.toLowerCase() !== 'male')
+            .filter((i) => i.id !== mvpFemale2)
+            .map((i) => ({
+              key: i.id,
+              label: `${i.firstName} ${i.lastName}`,
+            })),
         }),
         $(FormBadge, {
+          noshrink: true,
           icon: 'times',
           click: () => setMvpFemale(undefined),
         }),
@@ -308,12 +322,16 @@ export function renderMVPInputs(
           $(InputSelect, {
             value: mvpFemale2,
             valueSet: setMvpFemale2,
-            options: users.map((i) => ({
-              key: i.id,
-              label: `${i.firstName} ${i.lastName}`,
-            })),
+            options: users
+              .filter((i) => i.gender.toLowerCase() !== 'male')
+              .filter((i) => i.id !== mvpFemale)
+              .map((i) => ({
+                key: i.id,
+                label: `${i.firstName} ${i.lastName}`,
+              })),
           }),
           $(FormBadge, {
+            noshrink: true,
             icon: 'times',
             click: () => setMvpFemale2(undefined),
           }),

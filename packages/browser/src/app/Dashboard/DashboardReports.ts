@@ -377,7 +377,8 @@ const _DashboardReportsForm: FC<{
               renderFixtureSelect(
                 form.data.fixtureId,
                 form.link('fixtureId'),
-                fixtures
+                fixtures,
+                !!data?.fixtureId
               ),
               $(FormColumn, {
                 children: addkeys([
@@ -512,14 +513,6 @@ const _DashboardReportsMVP: FC<{
           userId: i,
           votes: totalPoints,
           gender: maleTotal > femaleTotal ? 0 : 1,
-          // Add detailed breakdown for official scoring
-          detail: useOfficialScoring
-            ? `${male5pt > 0 ? `${male5pt}(M5) ` : ''}${
-                female5pt > 0 ? `${female5pt}(F5) ` : ''
-              }${male3pt > 0 ? `${male3pt}(M3) ` : ''}${
-                female3pt > 0 ? `${female3pt}(F3)` : ''
-              }`
-            : undefined,
         }
       })
       .sort((a, b) => b.votes - a.votes)
@@ -538,7 +531,7 @@ const _DashboardReportsMVP: FC<{
         .then(usersSet)
   }, [userIdsAndVotes.map((i) => i.userId).join()])
   const usersAndVotes = userIdsAndVotes
-    .map(({userId, votes, gender, detail}) => {
+    .map(({userId, votes, gender}) => {
       const user = users?.find((j) => j.id === userId)
       return {
         key: userId,
@@ -547,14 +540,6 @@ const _DashboardReportsMVP: FC<{
         data: {
           user: {value: user ? `${user.firstName} ${user.lastName}` : userId},
           votes: {value: votes},
-          ...(detail && useOfficialScoring
-            ? {
-                breakdown: {
-                  value: detail,
-                  tooltip: 'Breakdown of MVP points (Male/Female, 5pt/3pt)',
-                },
-              }
-            : {}),
         },
       }
     })
@@ -581,18 +566,13 @@ const _DashboardReportsMVP: FC<{
         grow: true,
         children: addkeys([
           $(FormBadge, {
-            label: useOfficialScoring
-              ? 'Male MVP Points (5/3pt)'
-              : 'Male MVP Votes',
+            label: 'Male MVP Votes',
             background: theme.bgMinor,
           }),
           $(Table, {
             head: {
               user: {label: 'User', grow: 2},
               votes: {label: 'Points', grow: 1},
-              ...(useOfficialScoring
-                ? {breakdown: {label: 'Breakdown', grow: 2}}
-                : {}),
             },
             body: usersAndVotes.filter((i) => i.gender === 0),
           }),
@@ -609,9 +589,6 @@ const _DashboardReportsMVP: FC<{
             head: {
               user: {label: 'User', grow: 2},
               votes: {label: 'Points', grow: 1},
-              ...(useOfficialScoring
-                ? {breakdown: {label: 'Breakdown', grow: 2}}
-                : {}),
             },
             body: usersAndVotes.filter((i) => i.gender === 1),
           }),
@@ -702,10 +679,10 @@ const _DashboardReportsSpirit: FC<{
         head: {
           team: {label: 'Team', grow: 2},
           spirit: {label: 'Points', grow: 1},
-          percentage: {label: '%', grow: 1},
           reports: {label: '# Reports', grow: 1},
+          average: {label: 'Average', grow: 1},
         },
-        body: teamsAndSpirit.map(({team, spirit, percentage, reportCount}) => {
+        body: teamsAndSpirit.map(({team, spirit, reportCount}) => {
           return {
             key: team.id,
             data: {
@@ -714,8 +691,10 @@ const _DashboardReportsSpirit: FC<{
                 color: team.color,
               },
               spirit: {value: spirit},
-              percentage: {value: `${percentage}%`},
               reports: {value: reportCount},
+              average: {
+                value: Math.trunc((spirit / reportCount) * 1000) / 1000,
+              },
             },
           }
         }),
