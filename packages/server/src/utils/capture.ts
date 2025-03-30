@@ -27,7 +27,18 @@ export default {
         }
         return data
       } catch (error) {
-        if (typeof error === 'string') error = new Error(error)
+        if (
+          error instanceof Error &&
+          (error as any).statusCode === StatusCodes.FORBIDDEN
+        ) {
+          if (config.debug) console.log(error.message)
+          return send(res, StatusCodes.FORBIDDEN) // DDOS
+        }
+
+        if (typeof error === 'string') {
+          error = new Error(error)
+        }
+
         const pretty = this.pretty(error, req)
         if (config.debug) console.log(pretty)
         if (pretty.code === StatusCodes.INTERNAL_SERVER_ERROR) {
@@ -70,7 +81,7 @@ export default {
   /**
    *
    */
-  scope() {
+  scope(req: IncomingMessage) {
     // Sentry.configureScope((scope: Sentry.Scope) => {
     //   scope.addEventProcessor(async (event: Sentry.Event) => {
     //     return Sentry.Handlers.parseRequest(event, req)
