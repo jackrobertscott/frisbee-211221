@@ -559,7 +559,7 @@ const _DashboardReportsMVP: FC<{
           // Append team name next to the user's name if available
           user: {
             value: teamName
-              ? `${displayName} - ${teamName} D${teamDiv ?? '?'}`
+              ? `${displayName} - D${teamDiv ?? '?'} ${teamName}`
               : displayName,
           },
           votes: {value: votes},
@@ -716,7 +716,7 @@ const _DashboardReportsSpirit: FC<{
               spirit: {value: spirit},
               reports: {value: reportCount},
               average: {
-                value: Math.trunc((spirit / reportCount) * 1000) / 1000,
+                value: Math.round((spirit / reportCount) * 100) / 100,
               },
             },
           }

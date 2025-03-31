@@ -84,6 +84,7 @@ export const Table: TFCTable = ({head, body}) => {
                           font: data ? font : font?.merge({a: 0.5}),
                           select: !entry.click ? 'text' : undefined,
                           icon: data.icon,
+                          wrap: true,
                           grow: true,
                         }),
                     })
