@@ -485,29 +485,29 @@ const _DashboardReportsMVP: FC<{
 
   const calcMvp = () => {
     const tally = reports.reduce((all, report) => {
-      const {mvpMale, mvpFemale, mvpMale2, mvpFemale2, teamId} = report
+      const {mvpMale, mvpFemale, mvpMale2, mvpFemale2, teamAgainstId} = report
       if (mvpMale) {
         if (!all[mvpMale]) {
-          all[mvpMale] = {points: [0, 0, 0, 0], teamId}
+          all[mvpMale] = {points: [0, 0, 0, 0], teamId: teamAgainstId}
         }
         all[mvpMale].points[0] += useOfficialScoring ? 5 : 1
       }
       if (mvpFemale) {
         if (!all[mvpFemale]) {
-          all[mvpFemale] = {points: [0, 0, 0, 0], teamId}
+          all[mvpFemale] = {points: [0, 0, 0, 0], teamId: teamAgainstId}
         }
         all[mvpFemale].points[1] += useOfficialScoring ? 5 : 1
       }
       if (useOfficialScoring) {
         if (mvpMale2) {
           if (!all[mvpMale2]) {
-            all[mvpMale2] = {points: [0, 0, 0, 0], teamId}
+            all[mvpMale2] = {points: [0, 0, 0, 0], teamId: teamAgainstId}
           }
           all[mvpMale2].points[2] += 3
         }
         if (mvpFemale2) {
           if (!all[mvpFemale2]) {
-            all[mvpFemale2] = {points: [0, 0, 0, 0], teamId}
+            all[mvpFemale2] = {points: [0, 0, 0, 0], teamId: teamAgainstId}
           }
           all[mvpFemale2].points[3] += 3
         }
@@ -594,7 +594,7 @@ const _DashboardReportsMVP: FC<{
           }),
           $(Table, {
             head: {
-              user: {label: 'User', grow: 2},
+              user: {label: 'User', grow: 3},
               votes: {label: 'Points', grow: 1},
             },
             body: usersAndVotes.filter((i) => i.gender === 0),
@@ -610,7 +610,7 @@ const _DashboardReportsMVP: FC<{
           }),
           $(Table, {
             head: {
-              user: {label: 'User', grow: 2},
+              user: {label: 'User', grow: 3},
               votes: {label: 'Points', grow: 1},
             },
             body: usersAndVotes.filter((i) => i.gender === 1),

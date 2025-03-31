@@ -35,7 +35,7 @@ jobs:
 
       - name: Copy Docker Image to Server
         run: |
-          docker save ${{ secrets.DOCKER_IMAGE_NAME }}:latest | bzip2 | ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'bunzip2 | docker load'
+          docker save ${{ secrets.DOCKER_IMAGE_NAME }}:latest | bzip2 | ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'bzip2 -d | docker load'
 
       - name: Deploy Applications to Test Ports
         run: |
