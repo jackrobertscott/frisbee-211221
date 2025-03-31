@@ -26,9 +26,28 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKER_IMAGE_NAME }}:latest .
 
-      - name: Copy Docker Image to Server
+      - name: Save Docker Image to File
         run: |
-          docker save ${{ secrets.DOCKER_IMAGE_NAME }}:latest | ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'docker load'
+          docker save ${{ secrets.DOCKER_IMAGE_NAME }}:latest -o image.tar
+
+      - name: Copy Docker Image to Server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: 'image.tar'
+          target: '~/image.tar'
+
+      - name: Load Docker Image on Server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker load -i ~/image.tar
+            rm ~/image.tar
 
       - name: Deploy Applications to Test Ports
         uses: appleboy/ssh-action@v1
@@ -44,8 +63,8 @@ jobs:
               live_port=$(echo $entry | cut -d':' -f2)
               test_port=$((live_port + 1))
               echo "Deploying $app on test port $test_port (live port: $live_port)"
-              docker rm -f "${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test" || true
-              docker run -d --name "${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test" --env-file "/root/secrets/${app}.env" -p ${test_port}:4000 "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
+              docker rm -f ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test || true
+              docker run -d --name ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test --env-file /root/secrets/${app}.env -p ${test_port}:4000 ${{ secrets.DOCKER_IMAGE_NAME }}:latest
             done
 
       - name: Wait for Applications to be Ready
@@ -87,7 +106,7 @@ jobs:
               app=$(echo $entry | cut -d':' -f1)
               live_port=$(echo $entry | cut -d':' -f2)
               echo "Promoting $app to live on port $live_port"
-              docker rm -f "${{ secrets.DOCKER_IMAGE_NAME }}-${app}-live" || true
-              docker rename "${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test" "${{ secrets.DOCKER_IMAGE_NAME }}-${app}-live"
-              docker update --publish-add ${live_port}:4000 "${{ secrets.DOCKER_IMAGE_NAME }}-${app}-live"
+              docker rm -f ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-live || true
+              docker rename ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-live
+              docker update --publish-add ${live_port}:4000 ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-live
             done
