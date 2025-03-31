@@ -1,3 +1,6 @@
+import {TMember} from '@shared/schemas/ioMember'
+import {TTeam} from '@shared/schemas/ioTeam'
+import {TUserPublic} from '@shared/schemas/ioUser'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {
   $MemberAcceptOrDecline,
@@ -6,9 +9,6 @@ import {
   $MemberRemove,
   $MemberSetCaptain,
 } from '../endpoints/Member'
-import {TMember} from '../schemas/ioMember'
-import {TTeam} from '../schemas/ioTeam'
-import {TUserPublic} from '../schemas/ioUser'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {GENDER_OPTIONS} from '../utils/constants'

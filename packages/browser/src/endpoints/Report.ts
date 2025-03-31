@@ -1,115 +1,30 @@
-import {io} from 'torva'
-import {ioFixture} from '../schemas/ioFixture'
-import {ioReport} from '../schemas/ioReport'
-import {ioTeam} from '../schemas/ioTeam'
-import {ioUserPublic} from '../schemas/ioUser'
+import {ReportCreateDef, ReportDeleteDef, ReportGetFixtureAgainstDef, ReportListOfFixtureDef, ReportListOfSeasonDef, ReportMissingListDef, ReportUpdateDef} from '@shared/endpoints/ReportDef'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
  */
-export const $ReportListOfFixture = createEndpoint({
-  path: '/ReportListOfFixture',
-  payload: io.object({
-    fixtureId: io.string(),
-    limit: io.optional(io.number()),
-  }),
-  result: io.array(ioReport),
-})
+export const $ReportListOfFixture = createEndpoint(ReportListOfFixtureDef)
 /**
  *
  */
-export const $ReportListOfSeason = createEndpoint({
-  path: '/ReportListOfSeason',
-  payload: io.object({
-    seasonId: io.string(),
-  }),
-  result: io.object({
-    count: io.number(),
-    reports: io.array(ioReport),
-    fixtures: io.array(ioFixture),
-  }),
-})
+export const $ReportListOfSeason = createEndpoint(ReportListOfSeasonDef)
 /**
  *
  */
-export const $ReportGetFixtureAgainst = createEndpoint({
-  path: '/ReportGetFixtureAgainst',
-  payload: io.object({
-    teamId: io.string(),
-    fixtureId: io.string(),
-  }),
-  result: io.array(
-    io.object({
-      team: ioTeam,
-      users: io.array(ioUserPublic),
-    })
-  ),
-})
+export const $ReportGetFixtureAgainst = createEndpoint(ReportGetFixtureAgainstDef)
 /**
  *
  */
-export const $ReportCreate = createEndpoint({
-  path: '/ReportCreate',
-  payload: io.object({
-    teamId: io.string(),
-    againstTeamId: io.string(),
-    fixtureId: io.string(),
-    scoreFor: io.number(),
-    scoreAgainst: io.number(),
-    mvpMale: io.optional(io.string()),
-    mvpFemale: io.optional(io.string()),
-    spirit: io.number(),
-    spiritComment: io.string(),
-  }),
-  result: ioReport,
-})
+export const $ReportCreate = createEndpoint(ReportCreateDef)
 /**
  *
  */
-export const $ReportUpdate = createEndpoint({
-  path: '/ReportUpdate',
-  payload: io.object({
-    reportId: io.string(),
-    scoreFor: io.number(),
-    scoreAgainst: io.number(),
-    mvpMale: io.optional(io.string()),
-    mvpFemale: io.optional(io.string()),
-    spirit: io.number(),
-    spiritComment: io.string().emptyok(),
-  }),
-  result: ioReport,
-})
+export const $ReportUpdate = createEndpoint(ReportUpdateDef)
 /**
  *
  */
-export const $ReportDelete = createEndpoint({
-  path: '/ReportDelete',
-  payload: io.object({
-    reportId: io.string(),
-  }),
-})
+export const $ReportDelete = createEndpoint(ReportDeleteDef)
 /**
  *
  */
-export const $ReportMissingList = createEndpoint({
-  path: '/ReportMissingList',
-  payload: io.object({
-    seasonId: io.string(),
-  }),
-  result: io.array(
-    io.object({
-      title: io.string(),
-      fixtureId: io.string(),
-      date: io.date(),
-      missingTeams: io.array(
-        io.object({
-          id: io.string(),
-          name: io.string(),
-          color: io.optional(io.string()),
-          againstId: io.optional(io.string()),
-          againstName: io.optional(io.string()),
-        })
-      ),
-    })
-  ),
-})
+export const $ReportMissingList = createEndpoint(ReportMissingListDef)

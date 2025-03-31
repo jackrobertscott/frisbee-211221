@@ -16,7 +16,12 @@ type TFCTable<T extends string = any> = FC<{
     click?: () => void
     data: Record<
       T,
-      {children?: ReactNode; value?: ReactText; color?: string; icon?: string}
+      {
+        children?: ReactNode
+        value?: ReactText
+        color?: string
+        icon?: string
+      }
     >
   }>
 }>
@@ -28,6 +33,7 @@ export const Table: TFCTable = ({head, body}) => {
     className: css({
       overflow: 'auto',
       background: theme.bg.string(),
+      borderBottom: theme.border(),
     }),
     children: $(FormColumn, {
       grow: true,
@@ -85,8 +91,11 @@ export const Table: TFCTable = ({head, body}) => {
                 })
               })
             : $(FormLabel, {
-                font: theme.fontMinor,
                 label: 'Empty',
+                font: theme.fontMinor,
+                style: {
+                  borderBottom: 'none',
+                },
               }),
         }),
       ]),
@@ -110,6 +119,9 @@ const _TableCell: FC<{
       flexDirection: 'column',
       minWidth: theme.fib[8] * grow,
       overflow: 'hidden',
+      '& div': {
+        borderBottom: 'none',
+      },
     }),
   })
 }

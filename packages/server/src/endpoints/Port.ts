@@ -1,6 +1,14 @@
+import {randAnimal, randEmail, randFirstName, randLastName} from '@ngneat/falso'
+import {random} from '@server/utils/random'
+import {
+  PortDeleteAllMockDataDef,
+  PortExportDef,
+  PortImportDef,
+  PortMockGenerateDef,
+} from '@shared/endpoints/PortDef'
+import {TUser, TUserEmail} from '@shared/schemas/ioUser'
 import AdmZip from 'adm-zip'
 import {RequestHandler} from 'micro'
-import {TUser} from '../schemas/ioUser'
 import {$Fixture} from '../tables/$Fixture'
 import {$Member} from '../tables/$Member'
 import {$Report} from '../tables/$Report'
@@ -22,8 +30,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PortImport',
-    multipart: true,
+    ...PortImportDef,
     handler: () => async (req) => {
       await requireUserAdmin(req)
       const [rawFiles, fields] = await blob.digestRequest(req)
@@ -46,7 +53,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PortExport',
+    ...PortExportDef,
     handler: () => async (req) => {
       throw new Error('Please ask admin (Jack) to enable export feature')
       const [user] = await requireUserAdmin(req)
@@ -97,6 +104,127 @@ export default new Map<string, RequestHandler>([
           .trim(),
       })
       return {email}
+    },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    ...PortMockGenerateDef,
+    handler: (body) => async (req) => {
+      await requireUserAdmin(req)
+      if (!body.seasonId?.trim())
+        throw new Error('Season id missing from request.')
+      const season = await $Season.getOne({id: body.seasonId})
+
+      const teams = [] as {
+        id: string
+        seasonId: string
+        isMock: boolean
+        name: string
+        color: string
+        division: number
+      }[]
+
+      while (teams.length < body.teams) {
+        const teamName = randAnimal() + 's'
+        if (!teams.some((t) => t.name === teamName)) {
+          teams.push({
+            id: random.generateId(),
+            isMock: true,
+            seasonId: season.id,
+            name: teamName,
+            color: `hsla(${Math.floor(Math.random() * 36) * 10}, 100%, 65%, 1)`,
+            division: 1,
+          })
+        }
+      }
+
+      const users = [] as {
+        id: string
+        isMock: boolean
+        firstName: string
+        lastName: string
+        termsAccepted: boolean
+        gender: string
+        emails: TUserEmail[]
+      }[]
+
+      const members = [] as {
+        seasonId: string
+        teamId: string
+        userId: string
+        isMock: boolean
+        captain: boolean
+        pending: boolean
+      }[]
+
+      for (const team of teams) {
+        const teamUsers = [] as typeof users
+        while (teamUsers.length < body.usersPerTeam) {
+          const firstName = randFirstName()
+          const lastName = randLastName()
+          const email = randEmail({firstName, lastName})
+          if (!teamUsers.some((u) => u.emails[0].value === email)) {
+            const user = {
+              id: random.generateId(),
+              isMock: true,
+              firstName,
+              lastName,
+              gender: Math.random() > 0.5 ? 'male' : 'female',
+              termsAccepted: true,
+              emails: [
+                {
+                  value: email,
+                  verified: true,
+                  code: '0000',
+                  createdOn: new Date().toISOString(),
+                  primary: true,
+                },
+              ],
+            }
+            teamUsers.push(user)
+            members.push({
+              seasonId: team.seasonId,
+              teamId: team.id,
+              userId: user.id,
+              isMock: true,
+              captain: teamUsers.length === 1,
+              pending: false,
+            })
+          }
+        }
+        users.push(...teamUsers)
+      }
+
+      await mongo.transaction(async () => {
+        $Member.createMany(members)
+        $Team.createMany(teams)
+        $User.createMany(users)
+      })
+    },
+  }),
+  /**
+   *
+   */
+  createEndpoint({
+    ...PortDeleteAllMockDataDef,
+    handler: () => async (req) => {
+      await requireUserAdmin(req)
+
+      const mockTeams = await $Team.getMany({isMock: true})
+
+      await mongo.transaction(async () => {
+        await $Member.deleteMany({isMock: true})
+        await $Team.deleteMany({isMock: true})
+        await $User.deleteMany({isMock: true})
+        await $Report.deleteMany({
+          $or: [
+            {teamId: {$in: mockTeams.map((i) => i.id)}},
+            {teamAgainstId: {$in: mockTeams.map((i) => i.id)}},
+          ],
+        })
+      })
     },
   }),
 ])

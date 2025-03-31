@@ -1,11 +1,14 @@
 import * as dotenv from 'dotenv'
 import * as dotenvSafe from 'dotenv-safe'
 import path from 'path'
+import {fileURLToPath} from 'url'
 /**
  *
  */
 const envFile =
   process.env.NODE_ENV === 'production' ? '.env.production' : '.env'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 const envPath = path.join(__dirname, '..', envFile)
 dotenvSafe.config({
   allowEmptyValues: true,

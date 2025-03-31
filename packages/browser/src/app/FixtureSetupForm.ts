@@ -1,4 +1,6 @@
 import {css} from '@emotion/css'
+import {TFixture} from '@shared/schemas/ioFixture'
+import {TTeam} from '@shared/schemas/ioTeam'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {
   $FixtureCreate,
@@ -6,8 +8,6 @@ import {
   $FixtureUpdate,
 } from '../endpoints/Fixture'
 import {$TeamListOfSeason} from '../endpoints/Team'
-import {TFixture} from '../schemas/ioFixture'
-import {TTeam} from '../schemas/ioTeam'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {random} from '../utils/random'

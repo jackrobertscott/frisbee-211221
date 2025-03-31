@@ -1,45 +1,9 @@
 # frisbee
 
-Todos:
+- www.marlowst.com
+- www.perthulti.com
 
-- [x] Spirit scores.
-- [x] Games count to ladder.
-- [x] Admin user list page.
-- [x] Admin team list page.
-- [x] Admin to create another admin.
-- [x] Admin to create a user.
-- [x] Admin to create a team.
-- [x] Admin to assign a member to team.
-- [x] Admin import csv files with afda export.
-- [x] Verify user email on sign up.
-- [x] Update the server email address.
-- [x] Make responsive for mobile.
-- [x] Fix font color on dark team.
-- [x] Add replying to comments.
-- [x] Add rich text editor to posts.
-- [x] Add automatic web-page refresher.
-- [x] Spirit score and mvp tab.
-  - [x] List all reports.
-  - [x] List mvp standings filterable by gender.
-  - [x] List team spirit scores.
-  - [x] Change "fixtureId" to "fixtureId" using migration.
-- [x] Make joining a team optional.
-- [x] Allow one user to have multiple emails.
-- [x] Add a user merge function.
-- [x] Add data export feature.
-- [x] Allow user to verify email inside settings modal.
-- [ ] Allow a user to leave a team.
-- [ ] Allow user to join multiple teams.
-- [ ] Admin change (other) user password.
-- [ ] Add divisions to a season.
-- [ ] Add merch store.
-- [ ] Send game fixture emails with png.
-- [ ] Admin send custom emails.
-- [ ] Captain member management popup.
-- [ ] Request players tab.
-- [ ] Ability to contact admins.
-- [ ] Automated fixtures.
-- [ ] Events: late 2021 fun rounds.
-- [ ] Fixture games should have individual dates.
-- [ ] Facebook login.
-- [ ] Analytics.
+## Setup
+
+- DigitalOcean docker server.
+- GitHub workflow "rolling" deployments.

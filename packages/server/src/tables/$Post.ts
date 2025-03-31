@@ -1,4 +1,4 @@
-import {ioPost} from '../schemas/ioPost'
+import {ioPost} from '@shared/schemas/ioPost'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
 /**

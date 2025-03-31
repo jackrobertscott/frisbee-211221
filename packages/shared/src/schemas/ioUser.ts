@@ -22,6 +22,7 @@ export const ioUser = io.object({
   updatedOn: io.date(),
   userMergedIds: io.optional(io.array(io.string())),
   admin: io.optional(io.boolean()),
+  isMock: io.optional(io.boolean()), // for testing purposes
   firstName: io.string(),
   lastName: io.string(),
   gender: io.string(),

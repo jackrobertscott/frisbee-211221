@@ -1,4 +1,8 @@
 import {css} from '@emotion/css'
+import {TFixture} from '@shared/schemas/ioFixture'
+import {TReport} from '@shared/schemas/ioReport'
+import {TTeam} from '@shared/schemas/ioTeam'
+import {TUserPublic} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {
@@ -10,24 +14,26 @@ import {
 } from '../../endpoints/Report'
 import {$TeamListOfSeason} from '../../endpoints/Team'
 import {$UserListManyById} from '../../endpoints/User'
-import {TFixture} from '../../schemas/ioFixture'
-import {TReport} from '../../schemas/ioReport'
-import {TTeam} from '../../schemas/ioTeam'
-import {TUserPublic} from '../../schemas/ioUser'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
-import {SPIRIT_OPTIONS} from '../../utils/constants'
 import {go} from '../../utils/go'
 import {hsla} from '../../utils/hsla'
+import {
+  renderAgainstTeamSelect,
+  renderFixtureSelect,
+  renderMVPInputs,
+  renderOfficialSpiritInputs,
+  renderScoreInputs,
+  renderSpiritInputs,
+  renderSubmitButton,
+  renderTeamSelect,
+  validateReportForm,
+} from '../../utils/renderReportForm'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
 import {FormColumn} from '../Form/FormColumn'
 import {FormLabel} from '../Form/FormLabel'
-import {FormRow} from '../Form/FormRow'
-import {InputNumber} from '../Input/InputNumber'
-import {InputSelect} from '../Input/InputSelect'
-import {InputTextarea} from '../Input/InputTextarea'
 import {Modal} from '../Modal'
 import {Pager} from '../Pager/Pager'
 import {usePager} from '../Pager/usePager'
@@ -92,7 +98,7 @@ export const DashboardReports: FC = () => {
                   children: addkeys([
                     $(FormBadge, {
                       grow: true,
-                      label: 'Create Report',
+                      label: 'Create Score Report',
                       background: theme.bgAdminButton,
                       click: () => creatingSet(true),
                     }),
@@ -103,8 +109,14 @@ export const DashboardReports: FC = () => {
                     fixture: {label: 'Fixture', grow: 2},
                     by: {label: 'By', grow: 3},
                     against: {label: 'Against', grow: 3},
-                    spirit: {label: 'Spirit', grow: 1.5},
-                    mvps: {label: 'MVPs', grow: 1.5},
+                    spirit: {
+                      label: 'Spirit',
+                      grow: 1.5,
+                    },
+                    mvps: {
+                      label: 'MVPs',
+                      grow: 1.5,
+                    },
                     comment: {label: 'Comment', grow: 4},
                   },
                   body: reports.map((report) => {
@@ -130,14 +142,30 @@ export const DashboardReports: FC = () => {
                           value: teamAgainst?.name ?? report.teamAgainstId,
                           color: teamAgainst?.color,
                         },
-                        spirit: {value: report.spirit},
+                        spirit: {
+                          value: auth.season?.useOfficialScoring
+                            ? (report.spiritP1 ?? 0) +
+                              (report.spiritP2 ?? 0) +
+                              (report.spiritP3 ?? 0) +
+                              (report.spiritP4 ?? 0) +
+                              (report.spiritP5 ?? 0)
+                            : report.spirit ?? 0,
+                        },
                         mvps: {
                           children: $(FormLabel, {
                             multiple: 0.9,
-                            icon:
-                              report.mvpFemale && report.mvpMale
+                            icon: auth.season?.useOfficialScoring
+                              ? report.mvpFemale &&
+                                report.mvpMale &&
+                                report.mvpFemale2 &&
+                                report.mvpMale2
                                 ? 'check'
-                                : 'times',
+                                : report.mvpFemale && report.mvpMale // At least primary MVPs are selected
+                                ? 'exclamation-circle'
+                                : 'times'
+                              : report.mvpFemale && report.mvpMale
+                              ? 'check'
+                              : 'times',
                           }),
                         },
                         comment: {
@@ -176,8 +204,18 @@ export const DashboardReports: FC = () => {
                           reports: _reports,
                           teams,
                         }),
+                        auth.season?.useOfficialScoring &&
+                          $(FormLabel, {
+                            label:
+                              'MVP 1st Place = 5 Points & MVP 2nd Place = 3 Points',
+                            background: theme.bgMinor,
+                            style: {
+                              justifyContent: 'center',
+                            },
+                          }),
                         $(_DashboardReportsMVP, {
                           reports: _reports,
+                          teams,
                         }),
                       ]),
                     }),
@@ -261,10 +299,16 @@ const _DashboardReportsForm: FC<{
   dataSet: (data: Partial<TReport>) => void
   close: () => void
 }> = ({title, teams, fixtures, loading, options, data, dataSet, close}) => {
+  const auth = useAuth()
   const toaster = useToaster()
   const $fixtureAgainst = useEndpoint($ReportGetFixtureAgainst)
   const [againstOptions, againstOptionsSet] =
     useState<Array<{team: TTeam; users: TUserPublic[]}>>()
+
+  // Check if the season uses official scoring
+  const useOfficialScoring = auth.season?.useOfficialScoring === true
+
+  // Create form with the appropriate fields based on scoring type
   const form = useForm({
     teamId: undefined as undefined | string,
     againstTeamId: undefined as undefined | string,
@@ -273,10 +317,18 @@ const _DashboardReportsForm: FC<{
     scoreAgainst: undefined as undefined | number,
     mvpMale: undefined as undefined | string,
     mvpFemale: undefined as undefined | string,
+    mvpMale2: undefined as undefined | string,
+    mvpFemale2: undefined as undefined | string,
+    spiritP1: undefined as undefined | number,
+    spiritP2: undefined as undefined | number,
+    spiritP3: undefined as undefined | number,
+    spiritP4: undefined as undefined | number,
+    spiritP5: undefined as undefined | number,
     spirit: undefined as undefined | number,
     spiritComment: '',
-    ...data,
+    ...data, // Overlay the data passed in (if editing an existing report)
   })
+
   useEffect(() => {
     if (form.data.fixtureId && form.data.teamId) {
       $fixtureAgainst
@@ -291,9 +343,19 @@ const _DashboardReportsForm: FC<{
         })
     }
   }, [form.data.fixtureId, form.data.teamId])
+
   const chosenAgainst = againstOptions?.find(
     (i) => i.team.id === form.data.againstTeamId
   )
+
+  const handleSubmit = () => {
+    const errorMessage = validateReportForm(form.data, useOfficialScoring)
+    if (errorMessage) {
+      return toaster.error(errorMessage)
+    }
+    dataSet(form.data)
+  }
+
   return $(Fragment, {
     children: addkeys([
       $(Modal, {
@@ -322,32 +384,27 @@ const _DashboardReportsForm: FC<{
           $(Form, {
             background: theme.bgMinor,
             children: addkeys([
-              $(FormRow, {
+              renderFixtureSelect(
+                form.data.fixtureId,
+                form.link('fixtureId'),
+                fixtures,
+                !!data?.fixtureId
+              ),
+              $(FormColumn, {
                 children: addkeys([
-                  $(FormLabel, {label: 'Fixture'}),
-                  $(InputSelect, {
-                    value: form.data.fixtureId,
-                    valueSet: form.link('fixtureId'),
-                    options: fixtures.map((i) => ({
-                      key: i.id,
-                      label: `${i.title} - ${dayjs(i.date).format('DD/MM/YY')}`,
-                    })),
-                  }),
-                ]),
-              }),
-              $(FormRow, {
-                children: addkeys([
-                  $(FormLabel, {label: 'For'}),
-                  $(InputSelect, {
-                    disabled: !!data?.teamId,
-                    value: form.data.teamId,
-                    valueSet: form.link('teamId'),
-                    options: teams.map((i) => ({
-                      key: i.id,
-                      label: i.name,
-                      color: i.color,
-                    })),
-                  }),
+                  renderTeamSelect(
+                    form.data.teamId,
+                    form.link('teamId'),
+                    teams,
+                    !!data?.teamId
+                  ),
+                  againstOptions &&
+                    renderAgainstTeamSelect(
+                      form.data.againstTeamId,
+                      form.link('againstTeamId'),
+                      againstOptions,
+                      !!data?.teamAgainstId
+                    ),
                 ]),
               }),
               $(Fragment, {
@@ -361,122 +418,52 @@ const _DashboardReportsForm: FC<{
                 children:
                   againstOptions &&
                   addkeys([
-                    $(FormRow, {
-                      children: addkeys([
-                        $(FormLabel, {label: 'Against'}),
-                        $(InputSelect, {
-                          disabled: !!data?.teamAgainstId,
-                          value: form.data.againstTeamId,
-                          valueSet: form.link('againstTeamId'),
-                          options: againstOptions.map((i) => ({
-                            key: i.team.id,
-                            label: i.team.name,
-                            color: i.team.color,
-                          })),
-                        }),
-                      ]),
-                    }),
-                    $(FormColumn, {
-                      children: addkeys([
-                        $(FormRow, {
-                          children: addkeys([
-                            $(FormLabel, {label: 'For Score'}),
-                            $(InputNumber, {
-                              value: form.data.scoreFor,
-                              valueSet: form.link('scoreFor'),
-                            }),
-                          ]),
-                        }),
-                        $(FormRow, {
-                          children: addkeys([
-                            $(FormLabel, {label: 'Against Score'}),
-                            $(InputNumber, {
-                              value: form.data.scoreAgainst,
-                              valueSet: form.link('scoreAgainst'),
-                            }),
-                          ]),
-                        }),
-                      ]),
-                    }),
+                    renderScoreInputs(
+                      form.data.scoreFor,
+                      form.link('scoreFor'),
+                      form.data.scoreAgainst,
+                      form.link('scoreAgainst'),
+                      true
+                    ),
                     $(Fragment, {
                       children:
                         chosenAgainst &&
-                        $(FormColumn, {
-                          children: addkeys([
-                            $(FormRow, {
-                              children: addkeys([
-                                $(FormLabel, {label: 'MVP Male'}),
-                                $(InputSelect, {
-                                  value: form.data.mvpMale,
-                                  valueSet: form.link('mvpMale'),
-                                  options: chosenAgainst.users.map((i) => ({
-                                    key: i.id,
-                                    label: `${i.firstName} ${i.lastName}`,
-                                  })),
-                                }),
-                                $(FormBadge, {
-                                  icon: 'times',
-                                  click: () => form.patch({mvpMale: undefined}),
-                                }),
-                              ]),
-                            }),
-                            $(FormRow, {
-                              children: addkeys([
-                                $(FormLabel, {label: 'MVP Female'}),
-                                $(InputSelect, {
-                                  value: form.data.mvpFemale,
-                                  valueSet: form.link('mvpFemale'),
-                                  options: chosenAgainst.users.map((i) => ({
-                                    key: i.id,
-                                    label: `${i.firstName} ${i.lastName}`,
-                                  })),
-                                }),
-                                $(FormBadge, {
-                                  icon: 'times',
-                                  click: () =>
-                                    form.patch({mvpFemale: undefined}),
-                                }),
-                              ]),
-                            }),
-                          ]),
-                        }),
+                        renderMVPInputs(
+                          form.data.mvpMale,
+                          form.link('mvpMale'),
+                          form.data.mvpFemale,
+                          form.link('mvpFemale'),
+                          chosenAgainst.users,
+                          useOfficialScoring,
+                          form.data.mvpMale2,
+                          form.link('mvpMale2'),
+                          form.data.mvpFemale2,
+                          form.link('mvpFemale2')
+                        ),
                     }),
-                    $(FormColumn, {
-                      children: addkeys([
-                        $(FormLabel, {label: 'Spirit'}),
-                        $(InputSelect, {
-                          value: form.data.spirit?.toString(),
-                          valueSet: (i) => form.patch({spirit: +i}),
-                          placeholder: 'Select...',
-                          options: SPIRIT_OPTIONS,
-                        }),
-                        $(FormRow, {
-                          children: addkeys([
-                            $(InputTextarea, {
-                              rows: 2,
-                              value: form.data.spiritComment,
-                              valueSet: form.link('spiritComment'),
-                              placeholder: 'Write a comment (optional) ...',
-                            }),
-                          ]),
-                        }),
-                      ]),
-                    }),
-                    $(FormBadge, {
-                      disabled: loading,
-                      label: loading ? 'Loading' : 'Submit',
-                      click: () => {
-                        if (
-                          form.data.mvpMale &&
-                          form.data.mvpMale === form.data.mvpFemale
-                        ) {
-                          const message =
-                            'The male and female MVP can not be the same person.'
-                          return toaster.error(message)
-                        }
-                        dataSet(form.data)
-                      },
-                    }),
+                    // Render spirit form based on scoring type
+                    useOfficialScoring
+                      ? renderOfficialSpiritInputs(
+                          form.data.spiritP1,
+                          (value) => form.patch({spiritP1: value}),
+                          form.data.spiritP2,
+                          (value) => form.patch({spiritP2: value}),
+                          form.data.spiritP3,
+                          (value) => form.patch({spiritP3: value}),
+                          form.data.spiritP4,
+                          (value) => form.patch({spiritP4: value}),
+                          form.data.spiritP5,
+                          (value) => form.patch({spiritP5: value}),
+                          form.data.spiritComment,
+                          form.link('spiritComment')
+                        )
+                      : renderSpiritInputs(
+                          form.data.spirit,
+                          (value) => form.patch({spirit: value}),
+                          form.data.spiritComment,
+                          form.link('spiritComment')
+                        ),
+                    renderSubmitButton(loading, handleSubmit),
                   ]),
               }),
             ]),
@@ -491,25 +478,57 @@ const _DashboardReportsForm: FC<{
  */
 const _DashboardReportsMVP: FC<{
   reports: TReport[]
-}> = ({reports}) => {
+  teams: TTeam[]
+}> = ({reports, teams}) => {
+  const auth = useAuth()
+  const useOfficialScoring = auth.season?.useOfficialScoring === true
+
   const calcMvp = () => {
-    const tally = reports.reduce((all, {mvpMale, mvpFemale}) => {
+    const tally = reports.reduce((all, report) => {
+      const {mvpMale, mvpFemale, mvpMale2, mvpFemale2, teamId} = report
       if (mvpMale) {
-        all[mvpMale] ??= [0, 0]
-        all[mvpMale][0] = all[mvpMale][0] + 1
+        if (!all[mvpMale]) {
+          all[mvpMale] = {points: [0, 0, 0, 0], teamId}
+        }
+        all[mvpMale].points[0] += useOfficialScoring ? 5 : 1
       }
       if (mvpFemale) {
-        all[mvpFemale] ??= [0, 0]
-        all[mvpFemale][1] = all[mvpFemale][1] + 1
+        if (!all[mvpFemale]) {
+          all[mvpFemale] = {points: [0, 0, 0, 0], teamId}
+        }
+        all[mvpFemale].points[1] += useOfficialScoring ? 5 : 1
+      }
+      if (useOfficialScoring) {
+        if (mvpMale2) {
+          if (!all[mvpMale2]) {
+            all[mvpMale2] = {points: [0, 0, 0, 0], teamId}
+          }
+          all[mvpMale2].points[2] += 3
+        }
+        if (mvpFemale2) {
+          if (!all[mvpFemale2]) {
+            all[mvpFemale2] = {points: [0, 0, 0, 0], teamId}
+          }
+          all[mvpFemale2].points[3] += 3
+        }
       }
       return all
-    }, {} as Record<string, number[]>)
+    }, {} as Record<string, {points: number[]; teamId?: string}>)
+
     return Object.keys(tally)
-      .map((i) => ({
-        userId: i,
-        votes: tally[i][0] + tally[i][1],
-        gender: tally[i][0] > tally[i][1] ? 0 : 1,
-      }))
+      .map((i) => {
+        const {points, teamId} = tally[i]
+        const [male5pt, female5pt, male3pt, female3pt] = points
+        const maleTotal = male5pt + male3pt
+        const femaleTotal = female5pt + female3pt
+        const totalPoints = maleTotal + femaleTotal
+        return {
+          userId: i,
+          votes: totalPoints,
+          teamId,
+          gender: maleTotal > femaleTotal ? 0 : 1,
+        }
+      })
       .sort((a, b) => b.votes - a.votes)
       .filter((a) => a.votes > 0)
   }
@@ -518,7 +537,7 @@ const _DashboardReportsMVP: FC<{
   const $userList = useEndpoint($UserListManyById)
   useEffect(() => {
     usersAndVotesSet(calcMvp)
-  }, [reports])
+  }, [reports, useOfficialScoring])
   useEffect(() => {
     if (userIdsAndVotes.length)
       $userList
@@ -526,14 +545,23 @@ const _DashboardReportsMVP: FC<{
         .then(usersSet)
   }, [userIdsAndVotes.map((i) => i.userId).join()])
   const usersAndVotes = userIdsAndVotes
-    .map(({userId, votes, gender}) => {
+    .map(({userId, votes, gender, teamId}) => {
       const user = users?.find((j) => j.id === userId)
+      const teamOfUser = teams.find((t) => t.id === teamId)
+      const teamName = teamOfUser?.name
+      const teamDiv = teamOfUser?.division
+      const displayName = user ? `${user.firstName} ${user.lastName}` : userId
       return {
         key: userId,
         gender:
           user?.gender === 'male' ? 0 : user?.gender === 'female' ? 1 : gender,
         data: {
-          user: {value: user ? `${user.firstName} ${user.lastName}` : userId},
+          // Append team name next to the user's name if available
+          user: {
+            value: teamName
+              ? `${displayName} - ${teamName} D${teamDiv ?? '?'}`
+              : displayName,
+          },
           votes: {value: votes},
         },
       }
@@ -567,7 +595,7 @@ const _DashboardReportsMVP: FC<{
           $(Table, {
             head: {
               user: {label: 'User', grow: 2},
-              votes: {label: 'Votes', grow: 1},
+              votes: {label: 'Points', grow: 1},
             },
             body: usersAndVotes.filter((i) => i.gender === 0),
           }),
@@ -577,13 +605,13 @@ const _DashboardReportsMVP: FC<{
         grow: true,
         children: addkeys([
           $(FormBadge, {
-            label: 'Female MVP Votes',
+            label: 'Female MVP Points',
             background: theme.bgMinor,
           }),
           $(Table, {
             head: {
               user: {label: 'User', grow: 2},
-              votes: {label: 'Votes', grow: 1},
+              votes: {label: 'Points', grow: 1},
             },
             body: usersAndVotes.filter((i) => i.gender === 1),
           }),
@@ -599,22 +627,70 @@ const _DashboardReportsSpirit: FC<{
   reports: TReport[]
   teams: TTeam[]
 }> = ({reports, teams}) => {
+  const auth = useAuth()
+  const useOfficialScoring = !!auth.season?.useOfficialScoring
+
   const calculate = () =>
     teams
       .map((team) => {
-        const spirit = reports
-          .filter((i) => i.teamAgainstId === team.id)
-          .reduce((a, b) => {
-            a += b.spirit
+        // Filter reports for this team
+        const teamReports = reports.filter((i) => i.teamAgainstId === team.id)
+        const reportCount = teamReports.length
+
+        let spirit = 0
+        let totalPossiblePoints = 0
+
+        // Calculate spirit based on scoring system
+        if (useOfficialScoring) {
+          // For official scoring, calculate the sum of the 5 category scores for each report
+          teamReports.forEach((report) => {
+            // Add all spirit category points
+            if (report.spiritP1 !== undefined) {
+              spirit += report.spiritP1
+              totalPossiblePoints += 4 // Max points per category is 4
+            }
+            if (report.spiritP2 !== undefined) {
+              spirit += report.spiritP2
+              totalPossiblePoints += 4
+            }
+            if (report.spiritP3 !== undefined) {
+              spirit += report.spiritP3
+              totalPossiblePoints += 4
+            }
+            if (report.spiritP4 !== undefined) {
+              spirit += report.spiritP4
+              totalPossiblePoints += 4
+            }
+            if (report.spiritP5 !== undefined) {
+              spirit += report.spiritP5
+              totalPossiblePoints += 4
+            }
+          })
+        } else {
+          // For traditional scoring, just sum the spirit values
+          spirit = teamReports.reduce((a, b) => {
+            a += b.spirit || 0
             return a
           }, 0)
-        return {team, spirit}
+          totalPossiblePoints = reportCount * 4 // Max points in traditional is 4 per report
+        }
+
+        // Calculate percentage for display
+        const percentage =
+          totalPossiblePoints > 0
+            ? Math.round((spirit / totalPossiblePoints) * 100)
+            : 0
+
+        return {team, spirit, percentage, reportCount}
       })
       .sort((a, b) => b.spirit - a.spirit)
+
   const [teamsAndSpirit, teamsAndSpiritSet] = useState(calculate)
+
   useEffect(() => {
     teamsAndSpiritSet(calculate)
-  }, [reports, teams])
+  }, [reports, teams, useOfficialScoring])
+
   return $(FormColumn, {
     grow: true,
     children: addkeys([
@@ -624,10 +700,12 @@ const _DashboardReportsSpirit: FC<{
       }),
       $(Table, {
         head: {
-          team: {label: 'Fixture', grow: 2},
-          spirit: {label: 'Spirit', grow: 1},
+          team: {label: 'Team', grow: 2},
+          spirit: {label: 'Points', grow: 1},
+          reports: {label: '# Reports', grow: 1},
+          average: {label: 'Average', grow: 1},
         },
-        body: teamsAndSpirit.map(({team, spirit}) => {
+        body: teamsAndSpirit.map(({team, spirit, reportCount}) => {
           return {
             key: team.id,
             data: {
@@ -636,6 +714,10 @@ const _DashboardReportsSpirit: FC<{
                 color: team.color,
               },
               spirit: {value: spirit},
+              reports: {value: reportCount},
+              average: {
+                value: Math.trunc((spirit / reportCount) * 1000) / 1000,
+              },
             },
           }
         }),

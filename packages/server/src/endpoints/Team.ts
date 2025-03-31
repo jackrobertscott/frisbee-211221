@@ -1,13 +1,13 @@
+import {TeamCreateDef, TeamCurrentCreateDef, TeamCurrentUpdateDef, TeamDeleteDef, TeamListOfSeasonDef, TeamUpdateDef} from '@shared/endpoints/TeamDef'
 import {RequestHandler} from 'micro'
-import {io} from 'torva'
 import {$Member} from '../tables/$Member'
-import {$Team} from '../tables/$Team'
-import {createEndpoint} from '../utils/endpoints'
-import {requireUser} from './requireUser'
-import {requireTeam} from './requireTeam'
-import {$User} from '../tables/$User'
-import {regex} from '../utils/regex'
 import {$Season} from '../tables/$Season'
+import {$Team} from '../tables/$Team'
+import {$User} from '../tables/$User'
+import {createEndpoint} from '../utils/endpoints'
+import {regex} from '../utils/regex'
+import {requireTeam} from './requireTeam'
+import {requireUser} from './requireUser'
 import {requireUserAdmin} from './requireUserAdmin'
 /**
  *
@@ -17,13 +17,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/TeamListOfSeason',
-    payload: io.object({
-      seasonId: io.string(),
-      search: io.optional(io.string().emptyok()),
-      limit: io.optional(io.number()),
-      skip: io.optional(io.number()),
-    }),
+    ...TeamListOfSeasonDef,
     handler: (body) => async (req) => {
       await $Season.getOne({id: body.seasonId})
       const [count, teams] = await Promise.all([
@@ -46,12 +40,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/TeamCurrentCreate',
-    payload: io.object({
-      seasonId: io.string(),
-      name: io.string(),
-      color: io.string(),
-    }),
+    ...TeamCurrentCreateDef,
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)
       const season = await $Season.getOne({id: body.seasonId})
@@ -78,21 +67,14 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/TeamCurrentUpdate',
-    payload: io.object({
-      teamId: io.string(),
-      name: io.string(),
-      color: io.string(),
-      phone: io.optional(io.string().emptyok()),
-      email: io.optional(io.string().emptyok()),
-    }),
+    ...TeamCurrentUpdateDef,
     handler:
       ({teamId, ...body}) =>
       async (req) => {
         const [user] = await requireUser(req)
         const [team, member] = await requireTeam(user, teamId)
-        if (!member.captain)
-          throw new Error('Failed: only the team captain can update the team.')
+        if (member.pending)
+          throw new Error('Pending members cannot update team information.')
         return $Team.updateOne(
           {id: team.id},
           {...body, updatedOn: new Date().toISOString()}
@@ -103,14 +85,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/TeamCreate',
-    payload: io.object({
-      seasonId: io.string(),
-      name: io.string(),
-      color: io.string(),
-      phone: io.optional(io.string().emptyok()),
-      email: io.optional(io.string().emptyok()),
-    }),
+    ...TeamCreateDef,
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
       await $Season.getOne({id: body.seasonId})
@@ -121,15 +96,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/TeamUpdate',
-    payload: io.object({
-      teamId: io.string(),
-      name: io.string(),
-      color: io.string(),
-      phone: io.optional(io.string().emptyok()),
-      email: io.optional(io.string().emptyok()),
-      division: io.optional(io.number()),
-    }),
+    ...TeamUpdateDef,
     handler:
       ({teamId, ...body}) =>
       async (req) => {
@@ -145,10 +112,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/TeamDelete',
-    payload: io.object({
-      teamId: io.string(),
-    }),
+    ...TeamDeleteDef,
     handler:
       ({teamId}) =>
       async (req) => {

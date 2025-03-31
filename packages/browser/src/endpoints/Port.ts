@@ -1,18 +1,18 @@
-import {io} from 'torva'
+import {PortDeleteAllMockDataDef, PortExportDef, PortImportDef, PortMockGenerateDef} from '@shared/endpoints/PortDef'
 import {createEndpoint} from '../utils/endpoints'
 /**
  *
  */
-export const $PortImport = createEndpoint({
-  path: '/PortImport',
-  multipart: true,
-})
+export const $PortImport = createEndpoint(PortImportDef)
 /**
  *
  */
-export const $PortExport = createEndpoint({
-  path: '/PortExport',
-  result: io.object({
-    email: io.string(),
-  }),
-})
+export const $PortExport = createEndpoint(PortExportDef)
+/**
+ *
+ */
+export const $PortMockGenerate = createEndpoint(PortMockGenerateDef)
+/**
+ *
+ */
+export const $PortDeleteAllMockData = createEndpoint(PortDeleteAllMockDataDef)

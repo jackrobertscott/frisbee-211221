@@ -1,5 +1,5 @@
+import {UserChangePasswordDef, UserCreateDef, UserCurrentChangePasswordDef, UserCurrentEmailAddDef, UserCurrentEmailCodeResendDef, UserCurrentEmailPrimarySetDef, UserCurrentEmailRemoveDef, UserCurrentEmailVerifyDef, UserCurrentUpdateDef, UserListDef, UserListManyByIdDef, UserMergeDef, UserToggleAdminDef, UserUpdateDef} from '@shared/endpoints/UserDef'
 import {RequestHandler} from 'micro'
-import {io} from 'torva'
 import {$Comment} from '../tables/$Comment'
 import {$Member} from '../tables/$Member'
 import {$Post} from '../tables/$Post'
@@ -22,13 +22,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserCurrentUpdate',
-    payload: io.object({
-      firstName: io.optional(io.string()),
-      lastName: io.optional(io.string()),
-      gender: io.optional(io.string()),
-      avatarUrl: io.optional(io.string()),
-    }),
+    ...UserCurrentUpdateDef,
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)
       return $User.updateOne(
@@ -44,10 +38,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserCurrentEmailAdd',
-    payload: io.object({
-      email: io.string(),
-    }),
+    ...UserCurrentEmailAddDef,
     handler:
       ({email}) =>
       async (req) => {
@@ -59,11 +50,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserCurrentEmailVerify',
-    payload: io.object({
-      email: io.string(),
-      code: io.string(),
-    }),
+    ...UserCurrentEmailVerifyDef,
     handler:
       ({email, code}) =>
       async (req) => {
@@ -82,10 +69,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserCurrentEmailCodeResend',
-    payload: io.object({
-      email: io.string(),
-    }),
+    ...UserCurrentEmailCodeResendDef,
     handler:
       ({email}) =>
       async (req) => {
@@ -97,10 +81,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserCurrentEmailPrimarySet',
-    payload: io.object({
-      email: io.string(),
-    }),
+    ...UserCurrentEmailPrimarySetDef,
     handler:
       ({email}) =>
       async (req) => {
@@ -112,10 +93,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserCurrentEmailRemove',
-    payload: io.object({
-      email: io.string(),
-    }),
+    ...UserCurrentEmailRemoveDef,
     handler:
       ({email}) =>
       async (req) => {
@@ -127,11 +105,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserCurrentChangePassword',
-    payload: io.object({
-      oldPassword: io.string(),
-      newPassword: io.string(),
-    }),
+    ...UserCurrentChangePasswordDef,
     handler: (body) => async (req) => {
       let [user] = await requireUser(req)
       if (!user.password) throw new Error('User does not have a password.')
@@ -147,12 +121,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserList',
-    payload: io.object({
-      search: io.optional(io.string().emptyok()),
-      limit: io.optional(io.number()),
-      skip: io.optional(io.number()),
-    }),
+    ...UserListDef,
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
       const regexSearch = regex.from(body.search ?? '')
@@ -179,10 +148,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserListManyById',
-    payload: io.object({
-      userIds: io.array(io.string()),
-    }),
+    ...UserListManyByIdDef,
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
       const users = await $User.getMany({id: {$in: body.userIds}})
@@ -193,14 +159,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserCreate',
-    payload: io.object({
-      email: io.string().email().trim(),
-      firstName: io.string(),
-      lastName: io.string(),
-      gender: io.string(),
-      termsAccepted: io.boolean(),
-    }),
+    ...UserCreateDef,
     handler:
       ({email, ...body}) =>
       async (req) => {
@@ -217,14 +176,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserUpdate',
-    payload: io.object({
-      userId: io.string(),
-      firstName: io.optional(io.string()),
-      lastName: io.optional(io.string()),
-      gender: io.optional(io.string()),
-      avatarUrl: io.optional(io.string()),
-    }),
+    ...UserUpdateDef,
     handler:
       ({userId, ...body}) =>
       async (req) => {
@@ -240,10 +192,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserToggleAdmin',
-    payload: io.object({
-      userId: io.string(),
-    }),
+    ...UserToggleAdminDef,
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
       const user = await $User.getOne({id: body.userId})
@@ -254,11 +203,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserMerge',
-    payload: io.object({
-      user1Id: io.string(),
-      user2Id: io.string(),
-    }),
+    ...UserMergeDef,
     handler:
       ({user1Id, user2Id}) =>
       async (req) => {
@@ -350,11 +295,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/UserChangePassword',
-    payload: io.object({
-      userId: io.string(),
-      newPassword: io.string(),
-    }),
+    ...UserChangePasswordDef,
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
       const user = await $User.getOne({id: body.userId})

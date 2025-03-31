@@ -1,5 +1,5 @@
+import {SeasonCreateDef, SeasonListDef, SeasonUpdateDef} from '@shared/endpoints/SeasonDef'
 import {RequestHandler} from 'micro'
-import {io} from 'torva'
 import {$Season} from '../tables/$Season'
 import {createEndpoint} from '../utils/endpoints'
 import {regex} from '../utils/regex'
@@ -12,10 +12,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/SeasonList',
-    payload: io.object({
-      search: io.optional(io.string().emptyok()),
-    }),
+    ...SeasonListDef,
     handler: (body) => async () => {
       return $Season.getMany({name: regex.from(body.search ?? '')})
     },
@@ -24,11 +21,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/SeasonCreate',
-    payload: io.object({
-      name: io.string(),
-      signUpOpen: io.boolean(),
-    }),
+    ...SeasonCreateDef,
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
       return $Season.createOne(body)
@@ -38,20 +31,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/SeasonUpdate',
-    payload: io.object({
-      seasonId: io.string(),
-      name: io.string(),
-      signUpOpen: io.boolean(),
-      finalResults: io.optional(
-        io.array(
-          io.object({
-            teamId: io.string(),
-            position: io.optional(io.null(io.number())),
-          })
-        )
-      ),
-    }),
+    ...SeasonUpdateDef,
     handler:
       ({seasonId, ...body}) =>
       async (req) => {

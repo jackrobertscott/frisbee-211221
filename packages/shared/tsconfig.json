@@ -1,15 +1,36 @@
 {
   "compilerOptions": {
-    "strict": true,
+    // Input
+    "lib": ["ESNext"],
+    "target": "ESNext",
+
+    // Output
+    "noEmit": true,
+    "sourceMap": true,
     "declaration": true,
-    "skipLibCheck": true,
+    "outDir": "build",
+
+    // Import/Export
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "moduleDetection": "force",
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "Node",
-    "module": "CommonJS",
-    "target": "ES2017",
-    "outDir": "dist",
+    "skipLibCheck": true,
+
+    // Type Checking
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // Paths
+    "baseUrl": "..",
+    "paths": {
+      "@shared/*": ["shared/src/*"]
+    }
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "**/*.test.ts"]
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

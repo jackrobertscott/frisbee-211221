@@ -1,3 +1,4 @@
+import {Poster} from '@browser/app/Poster'
 import {createElement as $, FC, Fragment} from 'react'
 import {$FixtureGenerate} from '../endpoints/Fixture'
 import {theme} from '../theme'
@@ -73,6 +74,12 @@ export const FixtureGenerate: FC<{
       $(Form, {
         background: theme.bgMinor,
         children: addkeys([
+          $(Poster, {
+            icon: 'flag',
+            title: 'Before You Proceed',
+            description:
+              'This action requires that ALL teams have a division assigned\n(under the Teams tab)\n\nALSO the generator does not consider any existing fixtures and thus you should aim to generate ALL rounds at once!',
+          }),
           $(FormRow, {
             children: addkeys([
               $(FormLabel, {label: 'Number of Rounds'}),

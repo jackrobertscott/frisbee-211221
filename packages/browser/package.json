@@ -2,9 +2,10 @@
   "name": "browser",
   "version": "0.0.0",
   "license": "UNLICENSED",
+  "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "cd ../shared && npm i && cd ../browser && tsc && vite build",
     "preview": "vite preview",
     "deploy": "vercel --prod"
   },
@@ -24,10 +25,11 @@
     "whatwg-fetch": "^3.6.2"
   },
   "devDependencies": {
+    "@types/node": "^22.13.14",
     "@types/react": "^17.0.33",
     "@types/react-dom": "^17.0.10",
     "@vitejs/plugin-react": "^1.3.2",
-    "typescript": "^4.4.4",
+    "typescript": "^4.9.5",
     "vite": "^6.0.7"
   }
 }

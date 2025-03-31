@@ -1,5 +1,10 @@
+import {
+  CommentListOfPostDef,
+  CommentCreateDef,
+  CommentUpdateDef,
+  CommentDeleteDef
+} from '@shared/endpoints/CommentDef'
 import {RequestHandler} from 'micro'
-import {io} from 'torva'
 import {$Comment} from '../tables/$Comment'
 import {$Post} from '../tables/$Post'
 import {$User} from '../tables/$User'
@@ -14,11 +19,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/CommentListOfPost',
-    payload: io.object({
-      postId: io.string(),
-      limit: io.optional(io.number()),
-    }),
+    ...CommentListOfPostDef,
     handler:
       ({postId, limit}) =>
       async (req) => {
@@ -35,12 +36,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/CommentCreate',
-    payload: io.object({
-      postId: io.string(),
-      content: io.string(),
-      commentParentId: io.optional(io.string()),
-    }),
+    ...CommentCreateDef,
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)
       await $Post.getOne({id: body.postId})
@@ -54,11 +50,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/CommentUpdate',
-    payload: io.object({
-      commentId: io.string(),
-      content: io.string(),
-    }),
+    ...CommentUpdateDef,
     handler:
       ({commentId, ...body}) =>
       async (req) => {
@@ -79,10 +71,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/CommentDelete',
-    payload: io.object({
-      commentId: io.string(),
-    }),
+    ...CommentDeleteDef,
     handler:
       ({commentId}) =>
       async (req) => {

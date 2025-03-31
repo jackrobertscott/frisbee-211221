@@ -1,9 +1,9 @@
+import {SecurityCurrentDef, SecurityForgotDef, SecurityLoginDef, SecurityLoginGoogleDef, SecurityLogoutDef, SecuritySignUpDef, SecurityStatusDef, SecurityVerifyDef} from '@shared/endpoints/SecurityDef'
+import {TSeason} from '@shared/schemas/ioSeason'
+import {TSession} from '@shared/schemas/ioSession'
+import {TTeam} from '@shared/schemas/ioTeam'
+import {TUser} from '@shared/schemas/ioUser'
 import {RequestHandler} from 'micro'
-import {io} from 'torva'
-import {TSeason} from '../schemas/ioSeason'
-import {TSession} from '../schemas/ioSession'
-import {TTeam} from '../schemas/ioTeam'
-import {TUser} from '../schemas/ioUser'
 import {$Member} from '../tables/$Member'
 import {$Season} from '../tables/$Season'
 import {$Session} from '../tables/$Session'
@@ -22,10 +22,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/SecurityCurrent',
-    payload: io.object({
-      seasonId: io.optional(io.string()),
-    }),
+    ...SecurityCurrentDef,
     handler:
       ({seasonId}) =>
       async (req) => {
@@ -57,10 +54,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/SecurityStatus',
-    payload: io.object({
-      email: io.string().email().trim(),
-    }),
+    ...SecurityStatusDef,
     handler:
       ({email}) =>
       async () => {
@@ -86,13 +80,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/SecurityLogin',
-    payload: io.object({
-      seasonId: io.optional(io.string()),
-      email: io.string().email().trim(),
-      password: io.string(),
-      userAgent: io.optional(io.string()),
-    }),
+    ...SecurityLoginDef,
     handler:
       ({seasonId, email, password, userAgent}) =>
       async () => {
@@ -110,12 +98,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/SecurityLoginGoogle',
-    payload: io.object({
-      seasonId: io.optional(io.string()),
-      code: io.string().trim(),
-      userAgent: io.optional(io.string()),
-    }),
+    ...SecurityLoginGoogleDef,
     handler:
       ({seasonId, code, userAgent}) =>
       async () => {
@@ -134,16 +117,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/SecuritySignUp',
-    payload: io.object({
-      seasonId: io.optional(io.string()),
-      email: io.string().email().trim(),
-      firstName: io.string(),
-      lastName: io.string(),
-      gender: io.string(),
-      termsAccepted: io.boolean(),
-      userAgent: io.optional(io.string()),
-    }),
+    ...SecuritySignUpDef,
     handler:
       ({seasonId, userAgent, email, firstName, termsAccepted, ...body}) =>
       async () => {
@@ -166,8 +140,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/SecurityForgot',
-    payload: io.string().email(),
+    ...SecurityForgotDef,
     handler: (email) => async () => {
       const user = await userEmail.maybeUser(email)
       if (!user) throw new Error(`User with email ${email} does not exist.`)
@@ -178,14 +151,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/SecurityVerify',
-    payload: io.object({
-      seasonId: io.optional(io.string()),
-      email: io.string().email(),
-      code: io.string(),
-      newPassword: io.string().emptyok(),
-      userAgent: io.optional(io.string()),
-    }),
+    ...SecurityVerifyDef,
     handler:
       ({seasonId, email, code, newPassword, userAgent}) =>
       async () => {
@@ -213,7 +179,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/SecurityLogout',
+    ...SecurityLogoutDef,
     handler: () => async (req) => {
       const auth = await gatekeeper.digestRequest(req)
       if (auth) {

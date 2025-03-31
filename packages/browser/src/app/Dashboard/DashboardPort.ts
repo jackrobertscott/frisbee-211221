@@ -1,4 +1,5 @@
 import {css} from '@emotion/css'
+import {TSeason} from '@shared/schemas/ioSeason'
 import {
   createElement as $,
   ChangeEvent,
@@ -8,12 +9,13 @@ import {
   useState,
 } from 'react'
 import {$PortExport, $PortImport} from '../../endpoints/Port'
-import {TSeason} from '../../schemas/ioSeason'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
+import {MockDeleteConfirmation} from '../MockDeleteConfirmation'
+import {MockGenerate} from '../MockGenerate'
 import {Modal} from '../Modal'
 import {Poster} from '../Poster'
 import {Question} from '../Question'
@@ -28,6 +30,8 @@ export const DashboardPort: FC = () => {
   const toaster = useToaster()
   const [importing, importingSet] = useState(false)
   const [exporting, exportingSet] = useState(false)
+  const [generating, generatingSet] = useState(false)
+  const [deleting, deletingSet] = useState(false)
   const $export = useEndpoint($PortExport)
   return $(Fragment, {
     children: addkeys([
@@ -61,6 +65,20 @@ export const DashboardPort: FC = () => {
               label: 'Export CSV',
               background: theme.bgAdminButton,
               click: () => exportingSet(true),
+            }),
+            $(FormBadge, {
+              grow: true,
+              icon: 'magic',
+              label: 'Generate Mock Data',
+              background: theme.bgAdminButton,
+              click: () => generatingSet(true),
+            }),
+            $(FormBadge, {
+              grow: true,
+              icon: 'trash',
+              label: 'Delete Mock Data',
+              background: theme.bgAdminButton,
+              click: () => deletingSet(true),
             }),
           ]),
         }),
@@ -96,6 +114,24 @@ export const DashboardPort: FC = () => {
                   }),
               },
             ],
+          }),
+      }),
+      $(Fragment, {
+        children:
+          auth.season &&
+          generating &&
+          $(MockGenerate, {
+            seasonId: auth.season.id,
+            close: () => generatingSet(false),
+            done: () => generatingSet(false),
+          }),
+      }),
+      $(Fragment, {
+        children:
+          deleting &&
+          $(MockDeleteConfirmation, {
+            close: () => deletingSet(false),
+            done: () => deletingSet(false),
           }),
       }),
     ]),

@@ -1,15 +1,38 @@
 {
   "compilerOptions": {
-    "strict": true,
-    "skipLibCheck": true,
-    "noImplicitAny": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "CommonJS",
-    "target": "ES2017",
-    "baseUrl": ".",
+    // Input
+    "lib": ["ESNext"],
+    "target": "ESNext",
+
+    // Output
+    // "noEmit": true, // We want it to emit
+    "sourceMap": true,
+    "declaration": true,
     "outDir": "dist",
+
+    // Import/Export
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "moduleDetection": "force",
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+
+    // Type Checking
+    "strict": true,
+    "noUnusedLocals": true,
+    // "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // Paths
+    "baseUrl": "..",
+    "paths": {
+      "@server/*": ["server/src/*"],
+      "@shared/*": ["shared/src/*"],
+      "torva": ["server/node_modules/torva"] // Hack to get torva to work
+    }
   },
-  "include": ["src/**/*.ts", "../shared/src/**/*.ts"],
-  "exclude": ["src/**/*.test.*", "src/**/*.spec.*"]
+  "include": ["src", "../shared/src"],
+  "exclude": ["node_modules"]
 }

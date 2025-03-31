@@ -1,6 +1,6 @@
+import {TSeason} from '@shared/schemas/ioSeason'
 import {createElement as $, FC, ReactNode, useEffect, useState} from 'react'
 import {$SecurityCurrent, $SecurityLogout} from '../../endpoints/Security'
-import {TSeason} from '../../schemas/ioSeason'
 import {useLocalState} from '../useLocalState'
 import {AuthContext, TAuth, TAuthPayload} from './AuthContext'
 /**
@@ -56,9 +56,9 @@ export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
           throw new Error('Team does not match current season.')
         currentSet({...current, team})
       },
-      seasonSet: (data) => {
+      seasonSet: (data, noReload) => {
         seasonSet(data)
-        setTimeout(() => window.location.reload())
+        if (!noReload) setTimeout(() => window.location.reload())
       },
       isAdmin: () => !!current?.user.admin,
     },

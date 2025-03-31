@@ -1,7 +1,7 @@
 import {css} from '@emotion/css'
+import {TSeason} from '@shared/schemas/ioSeason'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {$SeasonList} from '../../endpoints/Season'
-import {TSeason} from '../../schemas/ioSeason'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
@@ -159,6 +159,11 @@ export const Dashboard: FC = () => {
                       //   label: 'Forum',
                       //   render: () => $(DashboardForum),
                       // },
+                      auth.isAdmin() && {
+                        path: '/reports',
+                        label: 'Reports',
+                        render: () => $(DashboardReports),
+                      },
                       {
                         path: '/teams',
                         label: 'Teams',
@@ -168,11 +173,6 @@ export const Dashboard: FC = () => {
                         path: '/users',
                         label: 'Users',
                         render: () => $(DashboardUsers),
-                      },
-                      auth.isAdmin() && {
-                        path: '/reports',
-                        label: 'Reports',
-                        render: () => $(DashboardReports),
                       },
                       auth.isAdmin() && {
                         path: '/port',
@@ -216,10 +216,18 @@ export const Dashboard: FC = () => {
                                     }),
                                   }),
                                   $(MenuBarOption, {
+                                    icon: 'external-link-alt',
                                     label: 'Shop',
-                                    click: () =>
-                                      (window.location.href =
-                                        'https://marlow-street-ultimate.square.site/s/shop?fbclid=IwAR21rulDg_KiLtXACWJmW1bm08W0xoVqRHLie3L12-bg0_0Rtqu8ObB2LDs'),
+                                    click: () => {
+                                      const linkUrl =
+                                        'https://marlow-street-ultimate.square.site/s/shop?fbclid=IwAR21rulDg_KiLtXACWJmW1bm08W0xoVqRHLie3L12-bg0_0Rtqu8ObB2LDs'
+                                      const a = document.createElement('a')
+                                      a.href = linkUrl
+                                      a.target = '_blank'
+                                      a.rel = 'noopener noreferrer'
+                                      a.click()
+                                      a.remove()
+                                    },
                                   }),
                                   $(Fragment, {
                                     children: !isSmall && $(MenuBarSpacer),

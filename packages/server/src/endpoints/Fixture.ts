@@ -1,8 +1,8 @@
+import {FixtureAdjustMultipleDef, FixtureCreateDef, FixtureDeleteDef, FixtureGenerateDef, FixtureGetDef, FixtureListOfSeasonDef, FixtureSnapshotDef, FixtureUpdateDef} from '@shared/endpoints/FixtureDef'
+import {TFixture} from '@shared/schemas/ioFixture'
 import {RequestHandler} from 'micro'
 import puppeteer from 'puppeteer'
-import {io} from 'torva'
 import config from '../config'
-import {TFixture, ioFixtureGame} from '../schemas/ioFixture'
 import {$Fixture} from '../tables/$Fixture'
 import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
@@ -17,11 +17,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/FixtureListOfSeason',
-    payload: io.object({
-      seasonId: io.string(),
-      limit: io.optional(io.number()),
-    }),
+    ...FixtureListOfSeasonDef,
     handler:
       ({seasonId, limit}) =>
       async () => {
@@ -32,10 +28,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/FixtureGet',
-    payload: io.object({
-      fixtureId: io.string(),
-    }),
+    ...FixtureGetDef,
     handler:
       ({fixtureId}) =>
       async () => {
@@ -48,14 +41,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/FixtureCreate',
-    payload: io.object({
-      seasonId: io.string(),
-      title: io.string(),
-      date: io.date(),
-      games: io.array(ioFixtureGame),
-      grading: io.optional(io.boolean()),
-    }),
+    ...FixtureCreateDef,
     handler: (body) => async (req) => {
       const [user] = await requireUserAdmin(req)
       await $Season.getOne({id: body.seasonId})
@@ -69,14 +55,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/FixtureUpdate',
-    payload: io.object({
-      fixtureId: io.string(),
-      title: io.string(),
-      date: io.date(),
-      games: io.array(ioFixtureGame),
-      grading: io.optional(io.boolean()),
-    }),
+    ...FixtureUpdateDef,
     handler:
       ({fixtureId, ...body}) =>
       async (req) => {
@@ -91,10 +70,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/FixtureDelete',
-    payload: io.object({
-      fixtureId: io.string(),
-    }),
+    ...FixtureDeleteDef,
     handler:
       ({fixtureId}) =>
       async (req) => {
@@ -106,10 +82,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/FixtureSnapshot',
-    payload: io.object({
-      fixtureId: io.string(),
-    }),
+    ...FixtureSnapshotDef,
     handler:
       ({fixtureId}) =>
       async (req, res) => {
@@ -132,14 +105,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/FixtureAdjustMultiple',
-    payload: io.object({
-      seasonId: io.string(),
-      referenceFixtureId: io.string(),
-      amount: io.number(),
-      unit: io.string(),
-      direction: io.string(),
-    }),
+    ...FixtureAdjustMultipleDef,
     handler:
       ({seasonId, referenceFixtureId, amount, unit, direction}) =>
       async (req) => {
@@ -199,19 +165,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/FixtureGenerate',
-    payload: io.object({
-      seasonId: io.string(),
-      startingDate: io.date(),
-      roundCount: io.number(),
-      slots: io.array(
-        io.object({
-          id: io.string(),
-          time: io.string(),
-          place: io.string(),
-        })
-      ),
-    }),
+    ...FixtureGenerateDef,
     handler: (body) => async (req) => {
       const [user] = await requireUserAdmin(req)
       const season = await $Season.getOne({id: body.seasonId})

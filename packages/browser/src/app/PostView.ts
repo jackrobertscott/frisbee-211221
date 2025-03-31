@@ -1,4 +1,7 @@
 import {css} from '@emotion/css'
+import {TComment} from '@shared/schemas/ioComment'
+import {TPost} from '@shared/schemas/ioPost'
+import {TUserPublic} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
 import {
   createElement as $,
@@ -14,9 +17,6 @@ import {
   $CommentListOfPost,
 } from '../endpoints/Comment'
 import {$PostDelete} from '../endpoints/Post'
-import {TComment} from '../schemas/ioComment'
-import {TPost} from '../schemas/ioPost'
-import {TUserPublic} from '../schemas/ioUser'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {go} from '../utils/go'

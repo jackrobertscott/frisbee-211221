@@ -7,6 +7,7 @@ export const ioTeam = io.object({
   createdOn: io.date(),
   updatedOn: io.date(),
   seasonId: io.string(),
+  isMock: io.optional(io.boolean()), // for testing purposes
   name: io.string(),
   color: io.string(),
   division: io.optional(io.number()),

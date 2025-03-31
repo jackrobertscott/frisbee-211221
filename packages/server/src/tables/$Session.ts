@@ -1,4 +1,4 @@
-import {ioSession} from '../schemas/ioSession'
+import {ioSession} from '@shared/schemas/ioSession'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
 /**

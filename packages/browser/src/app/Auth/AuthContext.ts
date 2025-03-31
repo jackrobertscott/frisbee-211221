@@ -1,8 +1,8 @@
+import {TSeason} from '@shared/schemas/ioSeason'
+import {TSession} from '@shared/schemas/ioSession'
+import {TTeam} from '@shared/schemas/ioTeam'
+import {TUser} from '@shared/schemas/ioUser'
 import {createContext} from 'react'
-import {TSeason} from '../../schemas/ioSeason'
-import {TSession} from '../../schemas/ioSession'
-import {TTeam} from '../../schemas/ioTeam'
-import {TUser} from '../../schemas/ioUser'
 import {contextNoop} from '../../utils/context'
 /**
  *
@@ -34,7 +34,7 @@ export interface TAuthContext {
   logout: () => void
   userSet: (user: TUser) => void
   teamSet: (team?: TTeam) => void
-  seasonSet: (season: TSeason) => void
+  seasonSet: (season: TSeason, noReload?: boolean) => void
   isAdmin: () => boolean
 }
 /**

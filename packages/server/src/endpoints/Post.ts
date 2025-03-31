@@ -1,11 +1,16 @@
+import {
+  PostCreateDef,
+  PostDeleteDef,
+  PostListDef,
+  PostUpdateDef,
+} from '@shared/endpoints/PostDef'
+import DOMPurify from 'dompurify'
 import {RequestHandler} from 'micro'
-import {io} from 'torva'
 import {$Member} from '../tables/$Member'
 import {$Post} from '../tables/$Post'
 import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
 import {mail} from '../utils/mail'
-import {purify} from '../utils/purify'
 import {regex} from '../utils/regex'
 import {requireUser} from './requireUser'
 import {userEmail} from './userEmail'
@@ -18,11 +23,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PostList',
-    payload: io.object({
-      search: io.optional(io.string().emptyok()),
-      limit: io.optional(io.number()),
-    }),
+    ...PostListDef,
     handler:
       ({search, limit}) =>
       async () => {
@@ -43,16 +44,10 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PostCreate',
-    payload: io.object({
-      seasonId: io.optional(io.string()),
-      title: io.string(),
-      content: io.string(),
-      sendEmail: io.optional(io.boolean()),
-    }),
+    ...PostCreateDef,
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)
-      body.content = purify.sanitize(body.content)
+      body.content = DOMPurify.sanitize(body.content)
       const post = await $Post.createOne({
         ...body,
         userId: user.id,
@@ -82,12 +77,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PostUpdate',
-    payload: io.object({
-      postId: io.string(),
-      title: io.string(),
-      content: io.string(),
-    }),
+    ...PostUpdateDef,
     handler:
       ({postId, ...body}) =>
       async (req) => {
@@ -95,7 +85,7 @@ export default new Map<string, RequestHandler>([
         const post = await $Post.getOne({id: postId})
         if (post.userId !== user.id && !user.admin)
           throw new Error('Failed: you can only update your own posts.')
-        body.content = purify.sanitize(body.content)
+        body.content = DOMPurify.sanitize(body.content)
         return $Post.updateOne(
           {id: postId},
           {...body, updatedOn: new Date().toISOString()}
@@ -106,10 +96,7 @@ export default new Map<string, RequestHandler>([
    *
    */
   createEndpoint({
-    path: '/PostDelete',
-    payload: io.object({
-      postId: io.string(),
-    }),
+    ...PostDeleteDef,
     handler:
       ({postId}) =>
       async (req) => {
