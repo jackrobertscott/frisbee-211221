@@ -42,6 +42,9 @@ jobs:
             IFS=',' read -ra APP_ENTRIES <<< "${{ secrets.DEPLOYABLE_APPS }}"
             DEPLOY_SUCCESS=true
 
+            # Create a safe container name prefix by replacing / with -
+            CONTAINER_PREFIX=$(echo "${{ secrets.DOCKER_IMAGE_NAME }}" | tr '/' '-')
+
             for entry in "${APP_ENTRIES[@]}"; do
               app=$(echo $entry | cut -d':' -f1)
               live_port=$(echo $entry | cut -d':' -f2)
@@ -49,10 +52,10 @@ jobs:
               echo "Deploying $app on test port $test_port (live port: $live_port)"
               
               # Always clean up any existing test container
-              docker rm -f ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test || true
+              docker rm -f ${CONTAINER_PREFIX}-${app}-test || true
               
               # Deploy to test port
-              docker run -d --name ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test \
+              docker run -d --name ${CONTAINER_PREFIX}-${app}-test \
                 --env-file /root/secrets/${app}.env \
                 -p ${test_port}:4000 \
                 ${{ secrets.DOCKER_IMAGE_NAME }}:latest
@@ -60,7 +63,7 @@ jobs:
               # Wait for container to be ready (increased attempts and wait time)
               APP_READY=false
               for i in {1..20}; do
-                STATUS=$(docker exec ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test curl -s -o /dev/null -w "%{http_code}" localhost:4000 || echo 'failed')
+                STATUS=$(docker exec ${CONTAINER_PREFIX}-${app}-test curl -s -o /dev/null -w "%{http_code}" localhost:4000 || echo 'failed')
                 if [ "$STATUS" = "200" ]; then
                   echo "$app is up inside container!"
                   APP_READY=true
@@ -72,9 +75,9 @@ jobs:
               
               if [ "$APP_READY" = "false" ]; then
                 echo "$app failed to respond with 200"
-                docker logs ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test
-                docker stop ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test
-                docker rm -f ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test
+                docker logs ${CONTAINER_PREFIX}-${app}-test
+                docker stop ${CONTAINER_PREFIX}-${app}-test
+                docker rm -f ${CONTAINER_PREFIX}-${app}-test
                 DEPLOY_SUCCESS=false
                 # Continue to next app instead of exiting
                 continue
@@ -82,16 +85,16 @@ jobs:
               
               # Promote to live
               echo "Promoting $app to live on port $live_port"
-              docker stop ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-live || true
-              docker rm -f ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-live || true
-              docker run -d --name ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-live \
+              docker stop ${CONTAINER_PREFIX}-${app}-live || true
+              docker rm -f ${CONTAINER_PREFIX}-${app}-live || true
+              docker run -d --name ${CONTAINER_PREFIX}-${app}-live \
                 --env-file /root/secrets/${app}.env \
                 -p ${live_port}:4000 \
                 ${{ secrets.DOCKER_IMAGE_NAME }}:latest
               
               # Cleanup test container
-              docker stop ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test || true
-              docker rm ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test || true
+              docker stop ${CONTAINER_PREFIX}-${app}-test || true
+              docker rm ${CONTAINER_PREFIX}-${app}-test || true
             done
 
             # Cleanup old images
