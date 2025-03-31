@@ -54,13 +54,12 @@ jobs:
           IFS=',' read -ra APP_ENTRIES <<< "${{ secrets.DEPLOYABLE_APPS }}"
           for entry in "${APP_ENTRIES[@]}"; do
             app=$(echo $entry | cut -d':' -f1)
-            live_port=$(echo $entry | cut -d':' -f2)
-            test_port=$((live_port + 1))
-            echo "Waiting for $app on test port $test_port"
+            container_name="${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test"
+            echo "Waiting for $app to be ready inside container $container_name"
             for i in {1..10}; do
-              STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.SSH_HOST }}:${test_port}/)
+              STATUS=$(docker exec $container_name curl -s -o /dev/null -w "%{http_code}" localhost:4000)
               if [ "$STATUS" = "200" ]; then
-                echo "$app is up!"
+                echo "$app is up inside container!"
                 break
               fi
               echo "Waiting for $app... attempt $i"
