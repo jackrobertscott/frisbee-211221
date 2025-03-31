@@ -1,11 +1,6 @@
 {
-  "watch": [
-    "src"
-  ],
-  "exec": "npm run serve",
+  "watch": ["src"],
+  "exec": "npm run start",
   "ext": "ts,tsx,gql",
-  "ignore": [
-    "**/*.test.*",
-    "**/*.spec.*"
-  ]
+  "ignore": ["**/*.test.*", "**/*.spec.*"]
 }

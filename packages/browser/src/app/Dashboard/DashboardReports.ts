@@ -215,6 +215,7 @@ export const DashboardReports: FC = () => {
                           }),
                         $(_DashboardReportsMVP, {
                           reports: _reports,
+                          teams,
                         }),
                       ]),
                     }),
@@ -477,50 +478,54 @@ const _DashboardReportsForm: FC<{
  */
 const _DashboardReportsMVP: FC<{
   reports: TReport[]
-}> = ({reports}) => {
+  teams: TTeam[]
+}> = ({reports, teams}) => {
   const auth = useAuth()
   const useOfficialScoring = auth.season?.useOfficialScoring === true
 
   const calcMvp = () => {
     const tally = reports.reduce((all, report) => {
-      // Extract MVPs from the report
-      const {mvpMale, mvpFemale, mvpMale2, mvpFemale2} = report
-
-      // Process primary MVPs (5 points in official scoring)
+      const {mvpMale, mvpFemale, mvpMale2, mvpFemale2, teamId} = report
       if (mvpMale) {
-        all[mvpMale] ??= [0, 0, 0, 0] // [male5pt, female5pt, male3pt, female3pt]
-        all[mvpMale][0] = all[mvpMale][0] + (useOfficialScoring ? 5 : 1)
+        if (!all[mvpMale]) {
+          all[mvpMale] = {points: [0, 0, 0, 0], teamId}
+        }
+        all[mvpMale].points[0] += useOfficialScoring ? 5 : 1
       }
       if (mvpFemale) {
-        all[mvpFemale] ??= [0, 0, 0, 0]
-        all[mvpFemale][1] = all[mvpFemale][1] + (useOfficialScoring ? 5 : 1)
+        if (!all[mvpFemale]) {
+          all[mvpFemale] = {points: [0, 0, 0, 0], teamId}
+        }
+        all[mvpFemale].points[1] += useOfficialScoring ? 5 : 1
       }
-
-      // Process secondary MVPs (3 points) for official scoring
       if (useOfficialScoring) {
         if (mvpMale2) {
-          all[mvpMale2] ??= [0, 0, 0, 0]
-          all[mvpMale2][2] = all[mvpMale2][2] + 3
+          if (!all[mvpMale2]) {
+            all[mvpMale2] = {points: [0, 0, 0, 0], teamId}
+          }
+          all[mvpMale2].points[2] += 3
         }
         if (mvpFemale2) {
-          all[mvpFemale2] ??= [0, 0, 0, 0]
-          all[mvpFemale2][3] = all[mvpFemale2][3] + 3
+          if (!all[mvpFemale2]) {
+            all[mvpFemale2] = {points: [0, 0, 0, 0], teamId}
+          }
+          all[mvpFemale2].points[3] += 3
         }
       }
-
       return all
-    }, {} as Record<string, number[]>)
+    }, {} as Record<string, {points: number[]; teamId?: string}>)
 
     return Object.keys(tally)
       .map((i) => {
-        const [male5pt, female5pt, male3pt, female3pt] = tally[i]
+        const {points, teamId} = tally[i]
+        const [male5pt, female5pt, male3pt, female3pt] = points
         const maleTotal = male5pt + male3pt
         const femaleTotal = female5pt + female3pt
         const totalPoints = maleTotal + femaleTotal
-
         return {
           userId: i,
           votes: totalPoints,
+          teamId,
           gender: maleTotal > femaleTotal ? 0 : 1,
         }
       })
@@ -540,14 +545,23 @@ const _DashboardReportsMVP: FC<{
         .then(usersSet)
   }, [userIdsAndVotes.map((i) => i.userId).join()])
   const usersAndVotes = userIdsAndVotes
-    .map(({userId, votes, gender}) => {
+    .map(({userId, votes, gender, teamId}) => {
       const user = users?.find((j) => j.id === userId)
+      const teamOfUser = teams.find((t) => t.id === teamId)
+      const teamName = teamOfUser?.name
+      const teamDiv = teamOfUser?.division
+      const displayName = user ? `${user.firstName} ${user.lastName}` : userId
       return {
         key: userId,
         gender:
           user?.gender === 'male' ? 0 : user?.gender === 'female' ? 1 : gender,
         data: {
-          user: {value: user ? `${user.firstName} ${user.lastName}` : userId},
+          // Append team name next to the user's name if available
+          user: {
+            value: teamName
+              ? `${displayName} - ${teamName} D${teamDiv ?? '?'}`
+              : displayName,
+          },
           votes: {value: votes},
         },
       }
