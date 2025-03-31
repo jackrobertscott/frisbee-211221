@@ -1,4 +1,4 @@
-import {faker} from '@faker-js/faker'
+import {randAnimal, randEmail, randFirstName, randLastName} from '@ngneat/falso'
 import {random} from '@server/utils/random'
 import {
   PortDeleteAllMockDataDef,
@@ -127,8 +127,7 @@ export default new Map<string, RequestHandler>([
       }[]
 
       while (teams.length < body.teams) {
-        let teamName = faker.animal.type()
-        teamName = teamName.charAt(0).toUpperCase() + teamName.slice(1) + 's'
+        const teamName = randAnimal() + 's'
         if (!teams.some((t) => t.name === teamName)) {
           teams.push({
             id: random.generateId(),
@@ -163,9 +162,9 @@ export default new Map<string, RequestHandler>([
       for (const team of teams) {
         const teamUsers = [] as typeof users
         while (teamUsers.length < body.usersPerTeam) {
-          const firstName = faker.person.firstName()
-          const lastName = faker.person.lastName()
-          const email = faker.internet.email({firstName, lastName})
+          const firstName = randFirstName()
+          const lastName = randLastName()
+          const email = randEmail({firstName, lastName})
           if (!teamUsers.some((u) => u.emails[0].value === email)) {
             const user = {
               id: random.generateId(),
