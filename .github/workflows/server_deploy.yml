@@ -26,57 +26,68 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKER_IMAGE_NAME }}:latest .
 
-      - name: Set up SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-
       - name: Copy Docker Image to Server
         run: |
           docker save ${{ secrets.DOCKER_IMAGE_NAME }}:latest | ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'docker load'
 
       - name: Deploy Applications to Test Ports
-        run: |
-          # Parse DEPLOYABLE_APPS formatted as app:livePort, e.g., app1:8084,app2:8090,app3:8096
-          IFS=',' read -ra APP_ENTRIES <<< "${{ secrets.DEPLOYABLE_APPS }}"
-          for entry in "${APP_ENTRIES[@]}"; do
-            app=$(echo $entry | cut -d':' -f1)
-            live_port=$(echo $entry | cut -d':' -f2)
-            test_port=$((live_port + 1))
-            echo "Deploying $app on test port $test_port (live port: $live_port)"
-            ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker rm -f ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test || true && docker run -d --name ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test --env-file /root/secrets/${app}.env -p ${test_port}:4000 ${{ secrets.DOCKER_IMAGE_NAME }}:latest"
-          done
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Parse DEPLOYABLE_APPS formatted as app:livePort, e.g., app1:8084,app2:8090,app3:8096
+            IFS=',' read -ra APP_ENTRIES <<< "${{ secrets.DEPLOYABLE_APPS }}"
+            for entry in "${APP_ENTRIES[@]}"; do
+              app=$(echo $entry | cut -d':' -f1)
+              live_port=$(echo $entry | cut -d':' -f2)
+              test_port=$((live_port + 1))
+              echo "Deploying $app on test port $test_port (live port: $live_port)"
+              docker rm -f "${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test" || true
+              docker run -d --name "${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test" --env-file "/root/secrets/${app}.env" -p ${test_port}:4000 "${{ secrets.DOCKER_IMAGE_NAME }}:latest"
+            done
 
       - name: Wait for Applications to be Ready
-        run: |
-          IFS=',' read -ra APP_ENTRIES <<< "${{ secrets.DEPLOYABLE_APPS }}"
-          for entry in "${APP_ENTRIES[@]}"; do
-            app=$(echo $entry | cut -d':' -f1)
-            container_name="${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test"
-            echo "Waiting for $app to be ready inside container $container_name"
-            for i in {1..10}; do
-              STATUS=$(docker exec $container_name curl -s -o /dev/null -w "%{http_code}" localhost:4000)
-              if [ "$STATUS" = "200" ]; then
-                echo "$app is up inside container!"
-                break
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            IFS=',' read -ra APP_ENTRIES <<< "${{ secrets.DEPLOYABLE_APPS }}"
+            for entry in "${APP_ENTRIES[@]}"; do
+              app=$(echo $entry | cut -d':' -f1)
+              container_name="${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test"
+              echo "Waiting for $app to be ready inside container $container_name"
+              for i in {1..10}; do
+                STATUS=$(docker exec $container_name curl -s -o /dev/null -w "%{http_code}" localhost:4000)
+                if [ "$STATUS" = "200" ]; then
+                  echo "$app is up inside container!"
+                  break
+                fi
+                echo "Waiting for $app... attempt $i"
+                sleep 3
+              done
+              if [ "$STATUS" != "200" ]; then
+                echo "$app failed to respond with 200"
+                exit 1
               fi
-              echo "Waiting for $app... attempt $i"
-              sleep 3
             done
-            if [ "$STATUS" != "200" ]; then
-              echo "$app failed to respond with 200"
-              exit 1
-            fi
-          done
 
       - name: Promote Test to Live (Rolling Deployment)
-        run: |
-          IFS=',' read -ra APP_ENTRIES <<< "${{ secrets.DEPLOYABLE_APPS }}"
-          for entry in "${APP_ENTRIES[@]}"; do
-            app=$(echo $entry | cut -d':' -f1)
-            live_port=$(echo $entry | cut -d':' -f2)
-            echo "Promoting $app to live on port $live_port"
-            ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker rm -f ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-live || true && docker rename ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-live && docker update --publish-add ${live_port}:4000 ${{ secrets.DOCKER_IMAGE_NAME }}-${app}-live"
-          done
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            IFS=',' read -ra APP_ENTRIES <<< "${{ secrets.DEPLOYABLE_APPS }}"
+            for entry in "${APP_ENTRIES[@]}"; do
+              app=$(echo $entry | cut -d':' -f1)
+              live_port=$(echo $entry | cut -d':' -f2)
+              echo "Promoting $app to live on port $live_port"
+              docker rm -f "${{ secrets.DOCKER_IMAGE_NAME }}-${app}-live" || true
+              docker rename "${{ secrets.DOCKER_IMAGE_NAME }}-${app}-test" "${{ secrets.DOCKER_IMAGE_NAME }}-${app}-live"
+              docker update --publish-add ${live_port}:4000 "${{ secrets.DOCKER_IMAGE_NAME }}-${app}-live"
+            done
