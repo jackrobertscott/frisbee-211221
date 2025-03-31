@@ -11,6 +11,18 @@ export default (handler: RequestHandler): RequestHandler => {
   return async (req, res) => {
     if (req.method === 'OPTIONS') return {}
 
+    switch (req.url) {
+      case '/':
+        return {
+          env: config.env,
+          now: new Date().toISOString(),
+        }
+      case '/robots.txt':
+        return null
+      case '/favicon.ico':
+        return null
+    }
+
     // check origin host of request
     const origin = req.headers.origin
     if (!origin || !config.urlClient.startsWith(origin)) {
@@ -19,18 +31,6 @@ export default (handler: RequestHandler): RequestHandler => {
       )
       e.statusCode = StatusCodes.FORBIDDEN
       throw e
-    }
-
-    switch (req.url) {
-      case '/':
-        return {
-          env: config.env,
-          now: Date.now(),
-        }
-      case '/robots.txt':
-        return null
-      case '/favicon.ico':
-        return null
     }
 
     if (req.method !== 'POST') {
