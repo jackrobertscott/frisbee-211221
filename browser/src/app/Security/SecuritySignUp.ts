@@ -124,7 +124,7 @@ export const SecuritySignUp: FC<{
             .then(() => {
               savedEmailSet(form.data.email)
               const url =
-                '/verify?email=' +
+                '/auth/verify?email=' +
                 encodeURIComponent(form.data.email) +
                 '&status=password'
               toaster.notify('Please check your email inbox.', 8000)
