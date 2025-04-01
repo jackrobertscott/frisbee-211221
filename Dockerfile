@@ -15,17 +15,17 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Install shared dependencies
 WORKDIR /app/shared
-COPY /packages/shared/package.json .
+COPY /shared/package.json .
 RUN npm install
 
 # Install server dependencies
 WORKDIR /app/server
-COPY /packages/server/package.json .
+COPY /server/package.json .
 RUN npm install
 
 # Copy app files after installing dependencies
-COPY /packages/shared /app/shared
-COPY /packages/server /app/server
+COPY /shared /app/shared
+COPY /server /app/server
 
 # Build server (cbf getting build to work.. using tsx instead)
 # RUN npm run build
