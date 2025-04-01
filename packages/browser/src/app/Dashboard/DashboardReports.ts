@@ -359,6 +359,7 @@ const _DashboardReportsForm: FC<{
   return $(Fragment, {
     children: addkeys([
       $(Modal, {
+        width: theme.fib[13],
         children: addkeys([
           $(TopBar, {
             children: addkeys([
