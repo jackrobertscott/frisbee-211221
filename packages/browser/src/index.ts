@@ -1,3 +1,4 @@
+import {config} from '@browser/config'
 import {injectGlobal} from '@emotion/css'
 import '@fortawesome/fontawesome-free/css/all.min.css'
 import 'promise-polyfill/src/polyfill'
@@ -10,9 +11,29 @@ import {MediaProvider} from './app/Media/MediaProvider'
 import {RouterProvider} from './app/Router/RouterProvider'
 import {StackProvider} from './app/Stack/StackProvider'
 import {ToasterProvider} from './app/Toaster/ToasterProvider'
+import marlowFavicon from './assets/marlow-favicon.ico'
+import pulFavicon from './assets/pul-favicon.ico'
 import './index.css'
 import {theme} from './theme'
 
+// add title
+document.title = config.title
+
+// add favicon
+const favicon = document.createElement('link')
+favicon.rel = 'icon'
+favicon.type = 'image/svg+xml'
+switch (config.leagueKey) {
+  case 'marlow':
+    favicon.href = marlowFavicon
+    break
+  case 'pul':
+    favicon.href = pulFavicon
+    break
+}
+document.head.appendChild(favicon)
+
+// add global styles
 injectGlobal({
   body: {
     fontFamily: theme.fontFamily,
@@ -21,9 +42,6 @@ injectGlobal({
   },
 })
 
-/**
- *
- */
 const root = $(StrictMode, {
   children: $(MediaProvider, {
     children: $(StackProvider, {
@@ -37,7 +55,5 @@ const root = $(StrictMode, {
     }),
   }),
 })
-/**
- *
- */
+
 ReactDOM.render(root, document.getElementById('root'))

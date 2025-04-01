@@ -1,3 +1,4 @@
+import {config} from '@browser/config'
 import {css} from '@emotion/css'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
@@ -103,7 +104,7 @@ export const Dashboard: FC = () => {
                             ])
                           : $(TopBarBadge, {
                               grow: true,
-                              label: 'Marlow Street',
+                              label: config.title,
                             }),
                       }),
                       $(Fragment, {
@@ -215,20 +216,21 @@ export const Dashboard: FC = () => {
                                       })
                                     }),
                                   }),
-                                  $(MenuBarOption, {
-                                    icon: 'external-link-alt',
-                                    label: 'Shop',
-                                    click: () => {
-                                      const linkUrl =
-                                        'https://marlow-street-ultimate.square.site/s/shop?fbclid=IwAR21rulDg_KiLtXACWJmW1bm08W0xoVqRHLie3L12-bg0_0Rtqu8ObB2LDs'
-                                      const a = document.createElement('a')
-                                      a.href = linkUrl
-                                      a.target = '_blank'
-                                      a.rel = 'noopener noreferrer'
-                                      a.click()
-                                      a.remove()
-                                    },
-                                  }),
+                                  config.leagueKey === 'marlow' &&
+                                    $(MenuBarOption, {
+                                      icon: 'external-link-alt',
+                                      label: 'Shop',
+                                      click: () => {
+                                        const linkUrl =
+                                          'https://marlow-street-ultimate.square.site/s/shop?fbclid=IwAR21rulDg_KiLtXACWJmW1bm08W0xoVqRHLie3L12-bg0_0Rtqu8ObB2LDs'
+                                        const a = document.createElement('a')
+                                        a.href = linkUrl
+                                        a.target = '_blank'
+                                        a.rel = 'noopener noreferrer'
+                                        a.click()
+                                        a.remove()
+                                      },
+                                    }),
                                   $(Fragment, {
                                     children: !isSmall && $(MenuBarSpacer),
                                   }),
@@ -289,7 +291,6 @@ export const Dashboard: FC = () => {
                                     display: 'flex',
                                     flexDirection: 'column',
                                     padding: theme.fib[6],
-                                    background: theme.bgDisabled.string(),
                                     borderTop: theme.border(),
                                     '& > *:not(:last-child)': {
                                       marginBottom: theme.fib[5],
@@ -461,9 +462,22 @@ const _DashboardSeasonBadge: FC = () => {
 const _DashboardFooter: FC = () => {
   return $(Fragment, {
     children: addkeys([
+      config.leagueKey === 'marlow'
+        ? $(Link, {
+            label: 'Policy & Rules',
+            href: 'https://drive.google.com/file/d/1A9ZQTAly2_rSdF6h710ZUYS0tXz8LQzg/view',
+            font: theme.fontMinor,
+            external: true,
+          })
+        : $(Link, {
+            label: 'WFDF Rules',
+            href: 'https://rules.wfdf.sport/resources/',
+            font: theme.fontMinor,
+            external: true,
+          }),
       $(Link, {
-        label: 'Policy & Rules',
-        href: 'https://drive.google.com/file/d/1A9ZQTAly2_rSdF6h710ZUYS0tXz8LQzg/view',
+        label: 'Accreditation',
+        href: 'https://rules.wfdf.sport/accreditation/',
         font: theme.fontMinor,
         external: true,
       }),

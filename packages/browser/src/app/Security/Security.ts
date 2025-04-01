@@ -1,5 +1,7 @@
+import {config} from '@browser/config'
 import {css} from '@emotion/css'
 import {createElement as $, FC, useState} from 'react'
+import pulPng from '../../assets/logopul.png'
 import marlowPng from '../../assets/marlowstreet.png'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
@@ -34,45 +36,54 @@ export const Security: FC = () => {
     }),
     children: $(Center, {
       children: addkeys([
-        $('div', {
-          onClick: () => go.to('/'),
-          className: css({
-            display: 'flex',
-            justifyContent: 'center',
-            marginBottom: theme.fib[6],
-            marginRight: theme.fib[4],
-            [theme.ltMedia(theme.fib[12])]: {
-              marginBottom: theme.fib[5],
-              marginTop: theme.fib[6],
-            },
-          }),
-          children: $('div', {
+        config.leagueKey === 'marlow' &&
+          $('div', {
+            onClick: () => go.to('/'),
             className: css({
-              position: 'relative',
+              display: 'flex',
+              justifyContent: 'center',
+              marginBottom: theme.fib[6],
+              marginRight: theme.fib[4],
+              [theme.ltMedia(theme.fib[12])]: {
+                marginBottom: theme.fib[5],
+                marginTop: theme.fib[6],
+              },
             }),
-            children: addkeys([
-              $('img', {
-                src: marlowPng,
-                className: css({
-                  width: theme.fib[11],
-                  position: 'relative',
-                  zIndex: 10,
-                }),
+            children: $('div', {
+              className: css({
+                position: 'relative',
               }),
-              $('div', {
-                className: css({
-                  width: theme.fib[5],
-                  height: theme.fib[10],
-                  background: hsla.string(0, 0, 0),
-                  borderRadius: 3,
-                  position: 'absolute',
-                  right: 24,
-                  top: -5,
+              children: addkeys([
+                $('img', {
+                  src: marlowPng,
+                  className: css({
+                    width: theme.fib[11],
+                    position: 'relative',
+                    zIndex: 10,
+                  }),
                 }),
-              }),
-            ]),
+                $('div', {
+                  className: css({
+                    width: theme.fib[5],
+                    height: theme.fib[10],
+                    background: hsla.string(0, 0, 0),
+                    borderRadius: 3,
+                    position: 'absolute',
+                    right: 24,
+                    top: -5,
+                  }),
+                }),
+              ]),
+            }),
           }),
-        }),
+        config.leagueKey === 'pul' &&
+          $('img', {
+            src: pulPng,
+            className: css({
+              width: theme.fib[11],
+              margin: `${theme.fib[6]}px 0`,
+            }),
+          }),
         $('div', {
           className: css({
             maxWidth: '100%',
