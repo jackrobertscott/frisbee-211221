@@ -27,6 +27,7 @@ import {useToaster} from './Toaster/useToaster'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
+import { Spinner } from './Spinner'
 
 /**
  *
@@ -45,6 +46,7 @@ export const ReportCreate: FC<{
   const $fixtureList = useEndpoint($FixtureListOfSeason)
   const $fixtureAgainst = useEndpoint($ReportGetFixtureAgainst)
   const $create = useEndpoint($ReportCreate)
+  const [loadingSelection, setLoadingSelection] = useState<boolean>(false);
 
   // Check if the season uses official scoring
   const useOfficialScoring = auth.season?.useOfficialScoring === true
@@ -75,9 +77,11 @@ export const ReportCreate: FC<{
 
   useEffect(() => {
     if (form.data.fixtureId && auth.current?.team) {
+      setLoadingSelection(true);
       $fixtureAgainst
         .fetch({fixtureId: form.data.fixtureId, teamId: auth.current?.team.id})
         .then((againstOptions) => againstOptionsSet(againstOptions))
+        .then(() => setLoadingSelection(false))
     }
   }, [form.data.fixtureId])
 
@@ -133,14 +137,14 @@ export const ReportCreate: FC<{
           $(Fragment, {
             children:
               !form.data.fixtureId || !auth.current?.team || !againstOptions
-                ? $(FormColumn, {
-                    children: $(Poster, {
-                      icon: 'edit',
-                      title: 'Submit A Report',
-                      description:
-                        'Score reports include the game score, MVPs, and spirit.',
-                    }),
-                  })
+                ? loadingSelection ? $(Spinner) : $(FormColumn, {
+                  children: $(Poster, {
+                    icon: 'edit',
+                    title: 'Submit A Report',
+                    description:
+                      'Score reports include the game score, MVPs, and spirit.',
+                  }),
+                })
                 : addkeys([
                     renderTeamHeader(
                       form.data.teamId,
