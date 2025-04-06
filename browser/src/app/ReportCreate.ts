@@ -21,7 +21,6 @@ import {
 import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
 import {FormColumn} from './Form/FormColumn'
-import {useMedia} from './Media/useMedia'
 import {Modal} from './Modal'
 import {useToaster} from './Toaster/useToaster'
 import {TopBar, TopBarBadge} from './TopBar'
@@ -36,9 +35,9 @@ export const ReportCreate: FC<{
   done: () => void
 }> = ({close, done}) => {
   const auth = useAuth()
-  const media = useMedia()
+  // const media = useMedia()
   const toaster = useToaster()
-  const isSmall = media.width < theme.fib[12]
+  // const isSmall = media.width < theme.fib[12]
   const [fixtures, fixturesSet] = useState<TFixture[]>()
   const [againstOptions, againstOptionsSet] =
     useState<Array<{team: TTeam; users: TUserPublic[]}>>()
