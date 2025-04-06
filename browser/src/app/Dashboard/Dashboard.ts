@@ -194,6 +194,7 @@ export const Dashboard: FC = () => {
                               deactivated: !isSmall,
                               children: $(MenuBar, {
                                 horizon: !isSmall,
+                                strongBorder: true,
                                 children: addkeys([
                                   $(Fragment, {
                                     children:

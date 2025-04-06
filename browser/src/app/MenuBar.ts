@@ -12,7 +12,8 @@ export const MenuBar: FC<{
   children: ReactNode
   horizon?: boolean
   width?: number
-}> = ({children, horizon, width = theme.fib[11]}) => {
+  strongBorder?: boolean
+}> = ({children, horizon, width = theme.fib[11], strongBorder}) => {
   return $('div', {
     children,
     className: css({
@@ -23,7 +24,11 @@ export const MenuBar: FC<{
       paddingBottom: horizon ? undefined : theme.fib[8],
       borderRight: horizon
         ? undefined
-        : `${theme.borderWidth}px solid ${hsla.create(0, 0, 0).string()}`,
+        : `${theme.borderWidth}px solid ${
+            strongBorder
+              ? hsla.create(0, 0, 0).string()
+              : theme.borderColor.string()
+          }`,
       borderBottom: horizon ? theme.border() : undefined,
       background: theme.bgMinor.string(),
       '& > *:not(:last-child)': horizon
