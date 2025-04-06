@@ -54,11 +54,7 @@ export const Modal: FC<{
               flexDirection: 'column',
               boxShadow: `0 0 10px ${hsla.string(0, 0, 0, 0.1)}`,
               background: hsla.string(0, 0, 100),
-              minHeight: theme.fib[12],
               border: theme.border(),
-              '& > div:not(:first-of-type)': {
-                flexGrow: 1,
-              },
             }),
           }),
         }),
