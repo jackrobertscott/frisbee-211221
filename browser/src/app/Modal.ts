@@ -56,7 +56,7 @@ export const Modal: FC<{
               background: hsla.string(0, 0, 100),
               minHeight: theme.fib[12],
               border: theme.border(),
-              '& > div': {
+              '& > div:not(:first-of-type)': {
                 flexGrow: 1,
               },
             }),
