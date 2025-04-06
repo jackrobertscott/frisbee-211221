@@ -17,8 +17,8 @@ export const Center: FC<{
       width: '100%',
       height: '100%',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: 'safe center',
+      justifyContent: 'safe center',
       overflow: 'auto',
       [theme.ltMedia(breakpoint)]: {
         flexDirection: 'column',
@@ -37,6 +37,7 @@ export const Center: FC<{
         padding,
         [theme.ltMedia(breakpoint)]: {
           flexGrow: 1,
+          justifyContent: 'end',
         },
       }),
     }),

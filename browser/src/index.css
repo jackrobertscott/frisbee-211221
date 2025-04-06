@@ -28,13 +28,13 @@ i {
 }
 *::-webkit-scrollbar {
   width: 13px;
-  background-color: hsla(0, 0%, 0%, 0.15);
+  background-color: hsla(0, 0%, 80%);
 }
 *::-webkit-scrollbar-corner {
-  background-color: hsla(0, 0%, 0%, 0.15);
+  background-color: hsla(0, 0%, 100%);
 }
 *::-webkit-scrollbar-thumb {
-  background-color: hsla(0, 0%, 0%, 0.15);
+  background-color: hsla(0, 0%, 100%);
 }
 *:focus-visible {
   outline: none;

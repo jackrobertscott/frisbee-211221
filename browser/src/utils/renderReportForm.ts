@@ -1,4 +1,5 @@
 import {theme} from '@browser/theme'
+import {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUserPublic} from '@shared/schemas/ioUser'
@@ -20,7 +21,6 @@ import {
   SPIRIT_OPTIONS,
 } from './constants'
 import {hsla} from './hsla'
-import {initials} from './initials'
 
 // Common type for form data
 export type ReportFormData = {
@@ -139,8 +139,7 @@ export function renderTeamHeader(
   teamColor: string | undefined,
   againstTeamId: string | undefined,
   setAgainstTeamId: (value: string) => void,
-  againstOptions: Array<{team: TTeam; users: TUserPublic[]}> | undefined,
-  isSmall: boolean = false
+  againstOptions: Array<{team: TTeam; users: TUserPublic[]}> | undefined
 ) {
   if (!teamId || !againstOptions) return null
 
@@ -149,10 +148,10 @@ export function renderTeamHeader(
     children: $(FormRow, {
       children: addkeys([
         $(FormBadge, {
-          grow: true,
-          label: isSmall ? initials(teamName || '') : teamName,
+          label: teamName,
           background: hsla.digest(teamColor || ''),
           font: hsla.digest(teamColor || '').compliment(),
+          wrap: true,
         }),
         $(FormBadge, {
           label: 'vs',
@@ -186,7 +185,7 @@ export function renderScoreInputs(
       $(FormRow, {
         children: addkeys([
           $(FormLabel, {
-            width: theme.fib[11],
+            width: theme.fib[10],
             label: adminVersion ? 'For Score' : 'Your Score',
           }),
           $(InputNumber, {
@@ -198,8 +197,8 @@ export function renderScoreInputs(
       $(FormRow, {
         children: addkeys([
           $(FormLabel, {
-            width: theme.fib[11],
-            label: adminVersion ? 'Against Score' : 'Opposition Score',
+            width: theme.fib[10],
+            label: adminVersion ? 'Against Score' : 'Opponent Score',
           }),
           $(InputNumber, {
             value: scoreAgainst,
@@ -228,28 +227,41 @@ export function renderMVPInputs(
 ) {
   const formElements = []
 
+  const rowBp = theme.fib[13]
+  const labelStyle: CSSObject = {
+    [theme.gtMedia(theme.fib[13])]: {
+      width: theme.fib[10],
+    },
+  }
+
   formElements.push(
     $(FormRow, {
+      bpColumn: rowBp,
       children: addkeys([
         $(FormLabel, {
-          width: theme.fib[11],
           label: 'MVP Male' + (useOfficialScoring ? ' 1' : ''),
+          style: labelStyle,
         }),
-        $(InputSelect, {
-          value: mvpMale,
-          valueSet: setMvpMale,
-          options: users
-            .filter((i) => i.gender.toLowerCase() !== 'female')
-            .filter((i) => i.id !== mvpMale2)
-            .map((i) => ({
-              key: i.id,
-              label: `${i.firstName} ${i.lastName}`,
-            })),
-        }),
-        $(FormBadge, {
-          noshrink: true,
-          icon: 'times',
-          click: () => setMvpMale(undefined),
+        $(FormRow, {
+          grow: true,
+          children: addkeys([
+            $(InputSelect, {
+              value: mvpMale,
+              valueSet: setMvpMale,
+              options: users
+                .filter((i) => i.gender.toLowerCase() !== 'female')
+                .filter((i) => i.id !== mvpMale2)
+                .map((i) => ({
+                  key: i.id,
+                  label: `${i.firstName} ${i.lastName}`,
+                })),
+            }),
+            $(FormBadge, {
+              noshrink: true,
+              icon: 'times',
+              click: () => setMvpMale(undefined),
+            }),
+          ]),
         }),
       ]),
     })
@@ -258,26 +270,32 @@ export function renderMVPInputs(
   if (useOfficialScoring && setMvpMale2) {
     formElements.push(
       $(FormRow, {
+        bpColumn: rowBp,
         children: addkeys([
           $(FormLabel, {
-            width: theme.fib[11],
             label: 'MVP Male' + (useOfficialScoring ? ' 2' : ''),
+            style: labelStyle,
           }),
-          $(InputSelect, {
-            value: mvpMale2,
-            valueSet: setMvpMale2,
-            options: users
-              .filter((i) => i.gender.toLowerCase() !== 'female')
-              .filter((i) => i.id !== mvpMale)
-              .map((i) => ({
-                key: i.id,
-                label: `${i.firstName} ${i.lastName}`,
-              })),
-          }),
-          $(FormBadge, {
-            noshrink: true,
-            icon: 'times',
-            click: () => setMvpMale2(undefined),
+          $(FormRow, {
+            grow: true,
+            children: addkeys([
+              $(InputSelect, {
+                value: mvpMale2,
+                valueSet: setMvpMale2,
+                options: users
+                  .filter((i) => i.gender.toLowerCase() !== 'female')
+                  .filter((i) => i.id !== mvpMale)
+                  .map((i) => ({
+                    key: i.id,
+                    label: `${i.firstName} ${i.lastName}`,
+                  })),
+              }),
+              $(FormBadge, {
+                noshrink: true,
+                icon: 'times',
+                click: () => setMvpMale2(undefined),
+              }),
+            ]),
           }),
         ]),
       })
@@ -286,26 +304,32 @@ export function renderMVPInputs(
 
   formElements.push(
     $(FormRow, {
+      bpColumn: rowBp,
       children: addkeys([
         $(FormLabel, {
-          width: theme.fib[11],
           label: 'MVP Female' + (useOfficialScoring ? ' 1' : ''),
+          style: labelStyle,
         }),
-        $(InputSelect, {
-          value: mvpFemale,
-          valueSet: setMvpFemale,
-          options: users
-            .filter((i) => i.gender.toLowerCase() !== 'male')
-            .filter((i) => i.id !== mvpFemale2)
-            .map((i) => ({
-              key: i.id,
-              label: `${i.firstName} ${i.lastName}`,
-            })),
-        }),
-        $(FormBadge, {
-          noshrink: true,
-          icon: 'times',
-          click: () => setMvpFemale(undefined),
+        $(FormRow, {
+          grow: true,
+          children: addkeys([
+            $(InputSelect, {
+              value: mvpFemale,
+              valueSet: setMvpFemale,
+              options: users
+                .filter((i) => i.gender.toLowerCase() !== 'male')
+                .filter((i) => i.id !== mvpFemale2)
+                .map((i) => ({
+                  key: i.id,
+                  label: `${i.firstName} ${i.lastName}`,
+                })),
+            }),
+            $(FormBadge, {
+              noshrink: true,
+              icon: 'times',
+              click: () => setMvpFemale(undefined),
+            }),
+          ]),
         }),
       ]),
     })
@@ -314,26 +338,32 @@ export function renderMVPInputs(
   if (useOfficialScoring && setMvpFemale2) {
     formElements.push(
       $(FormRow, {
+        bpColumn: rowBp,
         children: addkeys([
           $(FormLabel, {
-            width: theme.fib[11],
+            style: labelStyle,
             label: 'MVP Female' + (useOfficialScoring ? ' 2' : ''),
           }),
-          $(InputSelect, {
-            value: mvpFemale2,
-            valueSet: setMvpFemale2,
-            options: users
-              .filter((i) => i.gender.toLowerCase() !== 'male')
-              .filter((i) => i.id !== mvpFemale)
-              .map((i) => ({
-                key: i.id,
-                label: `${i.firstName} ${i.lastName}`,
-              })),
-          }),
-          $(FormBadge, {
-            noshrink: true,
-            icon: 'times',
-            click: () => setMvpFemale2(undefined),
+          $(FormRow, {
+            grow: true,
+            children: addkeys([
+              $(InputSelect, {
+                value: mvpFemale2,
+                valueSet: setMvpFemale2,
+                options: users
+                  .filter((i) => i.gender.toLowerCase() !== 'male')
+                  .filter((i) => i.id !== mvpFemale)
+                  .map((i) => ({
+                    key: i.id,
+                    label: `${i.firstName} ${i.lastName}`,
+                  })),
+              }),
+              $(FormBadge, {
+                noshrink: true,
+                icon: 'times',
+                click: () => setMvpFemale2(undefined),
+              }),
+            ]),
           }),
         ]),
       })
@@ -364,6 +394,7 @@ export function renderSpiritInputs(
   return $(FormColumn, {
     children: addkeys([
       $(FormRow, {
+        bpColumn: theme.fib[12],
         children: addkeys([
           $(FormLabel, {
             label: 'Spirit Score',
@@ -430,6 +461,13 @@ export function renderOfficialSpiritInputs(
     spiritP5: p5,
   } = SPIRIT_CATEGORY_DESCRIPTIONS
 
+  const labelStyle: CSSObject = {
+    width: theme.fib[11],
+    [theme.ltMedia(theme.fib[13])]: {
+      width: theme.fib[10],
+    },
+  }
+
   return $(FormColumn, {
     children: addkeys([
       $(FormLabel, {
@@ -442,8 +480,9 @@ export function renderOfficialSpiritInputs(
       $(FormRow, {
         children: addkeys([
           $(FormLabel, {
-            width: theme.fib[11],
             label: p1.title,
+            style: labelStyle,
+            wrap: true,
           }),
           $(InputSelect, {
             value: spiritP1?.toString(),
@@ -461,8 +500,9 @@ export function renderOfficialSpiritInputs(
       $(FormRow, {
         children: addkeys([
           $(FormLabel, {
-            width: theme.fib[11],
             label: p2.title,
+            style: labelStyle,
+            wrap: true,
           }),
           $(InputSelect, {
             value: spiritP2?.toString(),
@@ -480,8 +520,9 @@ export function renderOfficialSpiritInputs(
       $(FormRow, {
         children: addkeys([
           $(FormLabel, {
-            width: theme.fib[11],
             label: p3.title,
+            style: labelStyle,
+            wrap: true,
           }),
           $(InputSelect, {
             value: spiritP3?.toString(),
@@ -499,8 +540,9 @@ export function renderOfficialSpiritInputs(
       $(FormRow, {
         children: addkeys([
           $(FormLabel, {
-            width: theme.fib[11],
             label: p4.title,
+            style: labelStyle,
+            wrap: true,
           }),
           $(InputSelect, {
             value: spiritP4?.toString(),
@@ -518,8 +560,9 @@ export function renderOfficialSpiritInputs(
       $(FormRow, {
         children: addkeys([
           $(FormLabel, {
-            width: theme.fib[11],
             label: p5.title,
+            style: labelStyle,
+            wrap: true,
           }),
           $(InputSelect, {
             value: spiritP5?.toString(),

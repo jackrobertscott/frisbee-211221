@@ -136,7 +136,7 @@ export const ReportCreate: FC<{
                 ? $(FormColumn, {
                     children: form.data.fixtureId
                       ? $(Poster, {
-                          icon: 'loading',
+                          icon: 'spinner',
                           title: 'Loading',
                           description: 'Loading teams and players...',
                         })
@@ -154,8 +154,7 @@ export const ReportCreate: FC<{
                       auth.current.team.color,
                       form.data.againstTeamId,
                       form.link('againstTeamId'),
-                      againstOptions,
-                      isSmall
+                      againstOptions
                     ),
                     renderScoreInputs(
                       form.data.scoreFor,

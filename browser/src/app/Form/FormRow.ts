@@ -12,6 +12,7 @@ export const FormRow: FC<{
   shrink?: boolean
   grow?: boolean
   wrap?: boolean
+  bpColumn?: number
 }> = ({
   children,
   click,
@@ -19,6 +20,7 @@ export const FormRow: FC<{
   shrink = true,
   grow = false,
   wrap = false,
+  bpColumn,
 }) => {
   return $('div', {
     children,
@@ -39,6 +41,13 @@ export const FormRow: FC<{
       },
       '&:active': click && {
         background: background?.press() ?? theme.bg.press(),
+      },
+      [theme.ltMedia(bpColumn ?? 0)]: {
+        flexDirection: 'column',
+        '& > *:not(:last-child)': {
+          marginRight: 0,
+          marginBottom: -theme.borderWidth,
+        },
       },
     }),
   })

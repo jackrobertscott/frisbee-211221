@@ -4,10 +4,10 @@ import {theme} from '../theme'
 import {hsla} from '../utils/hsla'
 import {fadein} from '../utils/keyframes'
 import {Center} from './Center'
+import {useMedia} from './Media/useMedia'
+import {Portal} from './Portal'
 import {StackProvider} from './Stack/StackProvider'
 import {useStack} from './Stack/useStack'
-import {Portal} from './Portal'
-import {useMedia} from './Media/useMedia'
 /**
  *
  */
@@ -38,12 +38,12 @@ export const Modal: FC<{
           background: hsla.string(0, 0, 0, 0.25),
           animation: `${fadein} 0.15s linear`,
           [theme.ltMedia(theme.fib[13])]: {
-            padding: theme.fib[5],
+            paddingTop: 0,
           },
         }),
         children: $(Center, {
           click: handleClose,
-          padding: media.width < theme.fib[13] ? theme.fib[5] : theme.fib[6],
+          padding: media.width < theme.fib[13] ? 0 : theme.fib[6],
           children: $('div', {
             children,
             className: css({
@@ -55,6 +55,7 @@ export const Modal: FC<{
               boxShadow: `0 0 10px ${hsla.string(0, 0, 0, 0.1)}`,
               background: hsla.string(0, 0, 100),
               border: theme.border(),
+              minHeight: theme.fib[12],
             }),
           }),
         }),
