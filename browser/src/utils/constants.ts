@@ -46,11 +46,11 @@ export const SPIRIT_CATEGORY_OPTIONS: Array<{
   key: string
   label: string
 }> = [
-  {key: '4', label: '4: Legendary'},
-  {key: '3', label: '3: Great'},
-  {key: '2', label: '2: Average'},
-  {key: '1', label: '1: Poor'},
-  {key: '0', label: '0: Terrible'},
+  {key: '4', label: '4. Legendary'},
+  {key: '3', label: '3. Great'},
+  {key: '2', label: '2. Average'},
+  {key: '1', label: '1. Poor'},
+  {key: '0', label: '0. Terrible'},
 ]
 
 /**

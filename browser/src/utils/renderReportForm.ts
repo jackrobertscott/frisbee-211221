@@ -227,9 +227,9 @@ export function renderMVPInputs(
 ) {
   const formElements = []
 
-  const rowBp = theme.fib[13]
+  const rowBp = theme.fib[12] - theme.fib[7]
   const labelStyle: CSSObject = {
-    [theme.gtMedia(theme.fib[13])]: {
+    [theme.gtMedia(rowBp)]: {
       width: theme.fib[10],
     },
   }
@@ -463,7 +463,7 @@ export function renderOfficialSpiritInputs(
 
   const labelStyle: CSSObject = {
     width: theme.fib[11],
-    [theme.ltMedia(theme.fib[13])]: {
+    [theme.ltMedia(theme.fib[12] + theme.fib[9])]: {
       width: theme.fib[10],
     },
   }
