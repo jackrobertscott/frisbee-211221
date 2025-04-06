@@ -134,12 +134,18 @@ export const ReportCreate: FC<{
             children:
               !form.data.fixtureId || !auth.current?.team || !againstOptions
                 ? $(FormColumn, {
-                    children: $(Poster, {
-                      icon: 'edit',
-                      title: 'Submit A Report',
-                      description:
-                        'Score reports include the game score, MVPs, and spirit.',
-                    }),
+                    children: form.data.fixtureId
+                      ? $(Poster, {
+                          icon: 'loading',
+                          title: 'Loading',
+                          description: 'Loading teams and players...',
+                        })
+                      : $(Poster, {
+                          icon: 'edit',
+                          title: 'Submit A Report',
+                          description:
+                            'Score reports include the game score, MVPs, and spirit.',
+                        }),
                   })
                 : addkeys([
                     renderTeamHeader(
