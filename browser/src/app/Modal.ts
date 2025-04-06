@@ -35,7 +35,7 @@ export const Modal: FC<{
           left: 0,
           zIndex: 100,
           position: 'fixed',
-          background: hsla.string(0, 0, 0, 0.25),
+          background: hsla.string(0, 0, 0, 0.5),
           animation: `${fadein} 0.15s linear`,
           [theme.ltMedia(theme.fib[13])]: {
             paddingTop: 0,

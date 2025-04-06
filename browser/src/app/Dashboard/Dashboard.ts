@@ -1,4 +1,5 @@
 import {config} from '@browser/config'
+import {initials} from '@browser/utils/initials'
 import {css} from '@emotion/css'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
@@ -45,7 +46,7 @@ export const Dashboard: FC = () => {
   const [reporting, reportingSet] = useState(false)
   const [teamSetup, teamSetupSet] = useState(false)
   const [settings, settingsSet] = useState(false)
-  const bpSmall = theme.fib[13] + theme.fib[11]
+  const bpSmall = theme.fib[13]
   const isSmall = media.width < bpSmall
   return $(Fragment, {
     children: addkeys([
@@ -111,7 +112,9 @@ export const Dashboard: FC = () => {
                         children: auth.current
                           ? auth.current.team
                             ? $(TopBarBadge, {
-                                label: auth.current.team.name,
+                                label: isSmall
+                                  ? initials(auth.current.team.name)
+                                  : auth.current.team.name,
                                 // background: hsla.digest(auth.current.team.color),
                               })
                             : $(TopBarBadge, {
@@ -191,15 +194,14 @@ export const Dashboard: FC = () => {
                               deactivated: !isSmall,
                               children: $(MenuBar, {
                                 horizon: !isSmall,
-                                bordered: isSmall,
                                 children: addkeys([
                                   $(Fragment, {
                                     children:
                                       isSmall &&
-                                      $(MenuBarOption, {
-                                        label: 'Menu',
-                                        background: theme.bg,
-                                        font: theme.font,
+                                      $('div', {
+                                        className: css({
+                                          height: theme.fib[8],
+                                        }),
                                       }),
                                   }),
                                   $(Fragment, {
@@ -236,7 +238,7 @@ export const Dashboard: FC = () => {
                                   }),
                                   $(Fragment, {
                                     children: $(MenuBarOption, {
-                                      label: 'Submit Score Report',
+                                      label: 'Report Score',
                                       font: theme.bgHighlight.compliment(),
                                       background: theme.bgHighlight,
                                       click: () => {
@@ -376,11 +378,13 @@ export const Dashboard: FC = () => {
  */
 const _DashboardSeasonBadge: FC = () => {
   const auth = useAuth()
+  const media = useMedia()
   const [open, openSet] = useState(false)
   const [seasons, seasonsSet] = useState<TSeason[]>([])
   const [creating, creatingSet] = useState(false)
   const $seasonList = useEndpoint($SeasonList)
   const seasonList = () => $seasonList.fetch({}).then(seasonsSet)
+  const isSmall = media.width < theme.fib[13]
   useEffect(() => {
     seasonList()
   }, [])
@@ -392,7 +396,7 @@ const _DashboardSeasonBadge: FC = () => {
         clickOutside: () => openSet(false),
         wrap: $(TopBarBadge, {
           tooltip: 'Seasons',
-          label: auth.season!.name,
+          label: isSmall ? initials(auth.season!.name) : auth.season!.name,
           click: () => openSet(true),
         }),
         popup: $(Form, {

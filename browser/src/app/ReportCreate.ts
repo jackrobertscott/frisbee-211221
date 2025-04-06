@@ -113,7 +113,7 @@ export const ReportCreate: FC<{
         children: addkeys([
           $(TopBarBadge, {
             grow: true,
-            label: 'Score Report',
+            label: 'Report Score',
           }),
           $(TopBarBadge, {
             icon: 'times',

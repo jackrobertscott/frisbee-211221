@@ -22,9 +22,10 @@ export const MenuBar: FC<{
       minWidth: horizon ? undefined : width,
       maxWidth: horizon ? undefined : width,
       paddingBottom: horizon ? undefined : theme.fib[8],
-      borderRight: horizon ? undefined : theme.border(),
+      borderRight: horizon
+        ? undefined
+        : `${theme.borderWidth}px solid ${hsla.create(0, 0, 0).string()}`,
       borderBottom: horizon ? theme.border() : undefined,
-      border: bordered ? theme.border() : undefined,
       background: theme.bgMinor.string(),
       '& > *:not(:last-child)': horizon
         ? {borderRight: theme.border()}
@@ -97,7 +98,7 @@ export const MenuBarShadow: FC<{
           right: 0,
           bottom: 0,
           left: 0,
-          background: hsla.string(0, 0, 0, 0.25),
+          background: hsla.string(0, 0, 0, 0.5),
           display: 'flex',
           zIndex: 100,
           '& > *': {
