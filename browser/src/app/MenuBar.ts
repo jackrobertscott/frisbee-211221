@@ -12,8 +12,7 @@ export const MenuBar: FC<{
   children: ReactNode
   horizon?: boolean
   width?: number
-  bordered?: boolean
-}> = ({children, horizon, width = theme.fib[11], bordered}) => {
+}> = ({children, horizon, width = theme.fib[11]}) => {
   return $('div', {
     children,
     className: css({
