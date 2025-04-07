@@ -178,10 +178,26 @@ export const _DashboardImport: FC<{
           !csv
             ? $(Form, {
                 background: theme.bgMinor,
-                children: $(FormBadge, {
-                  label: 'Select File',
-                  click: () => ref.current?.click(),
-                }),
+                children: addkeys([
+                  $('div', {
+                    className: css({
+                      whiteSpace: 'pre-line',
+                    }),
+                    children: `
+The expected headings in the CSV are:
+- team_name
+- first_name
+- last_name
+- email_address
+- gender
+
+                      `.trim(),
+                  }),
+                  $(FormBadge, {
+                    label: 'Select File',
+                    click: () => ref.current?.click(),
+                  }),
+                ]),
               })
             : $(Fragment, {
                 children: addkeys([
