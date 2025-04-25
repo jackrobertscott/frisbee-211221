@@ -236,14 +236,18 @@ const _createTeamsFromObjects = async (
   seasonId: string
 ) => {
   const teamCSVMap = new Map(
-    objects.map((i) => [
-      i.team_name,
-      {
-        seasonId: seasonId,
-        name: i.team_name,
-        color: 'hsla(0, 0%, 100%, 1)',
-      },
-    ])
+    objects.map((i) => {
+      const div = i.team_division && parseInt(i.team_division)
+      return [
+        i.team_name,
+        {
+          seasonId: seasonId,
+          name: i.team_name,
+          division: !div || isNaN(div) ? 1 : div,
+          color: 'hsla(0, 0%, 100%, 1)',
+        },
+      ]
+    })
   )
   const teamCSVList = [...teamCSVMap.values()]
   const teamCSVNameList = [...teamCSVMap.keys()]

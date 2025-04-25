@@ -186,6 +186,7 @@ export const _DashboardImport: FC<{
                     children: `
 The expected headings in the CSV are:
 - team_name
+- team_division (optional)
 - first_name
 - last_name
 - email_address
