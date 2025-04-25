@@ -41,6 +41,23 @@ export const SettingsSeason: FC = () => {
         children: addkeys([
           $(FormRow, {
             children: addkeys([
+              $(FormLabel, {label: 'Hide From Dashboard'}),
+              $(InputBoolean, {
+                value: form.data.isHidden,
+                valueSet: form.link('isHidden'),
+              }),
+            ]),
+          }),
+          $(FormHelp, {
+            children:
+              'The season will not be shown in the dashboard dropdown menu.',
+          }),
+        ]),
+      }),
+      $(FormColumn, {
+        children: addkeys([
+          $(FormRow, {
+            children: addkeys([
               $(FormLabel, {label: 'Sign Up Open'}),
               $(InputBoolean, {
                 value: form.data.signUpOpen,

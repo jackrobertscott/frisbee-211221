@@ -25,6 +25,7 @@ export const SeasonUpdateDef = {
   payload: io.object({
     seasonId: io.string(),
     name: io.string(),
+    isHidden: io.optional(io.boolean()),
     signUpOpen: io.boolean(),
     finalResults: io.optional(
       io.array(

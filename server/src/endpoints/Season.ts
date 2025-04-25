@@ -1,4 +1,8 @@
-import {SeasonCreateDef, SeasonListDef, SeasonUpdateDef} from '@shared/endpoints/SeasonDef'
+import {
+  SeasonCreateDef,
+  SeasonListDef,
+  SeasonUpdateDef,
+} from '@shared/endpoints/SeasonDef'
 import {RequestHandler} from 'micro'
 import {$Season} from '../tables/$Season'
 import {createEndpoint} from '../utils/endpoints'
@@ -14,7 +18,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...SeasonListDef,
     handler: (body) => async () => {
-      return $Season.getMany({name: regex.from(body.search ?? '')})
+      return $Season.getMany({
+        name: regex.from(body.search ?? ''),
+      })
     },
   }),
   /**
