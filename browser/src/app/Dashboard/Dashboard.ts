@@ -384,10 +384,7 @@ const _DashboardSeasonBadge: FC = () => {
   const [seasons, seasonsSet] = useState<TSeason[]>([])
   const [creating, creatingSet] = useState(false)
   const $seasonList = useEndpoint($SeasonList)
-  const seasonList = () =>
-    $seasonList.fetch({}).then((i) => {
-      seasonsSet(i.filter((i) => !i.isHidden))
-    })
+  const seasonList = () => $seasonList.fetch({}).then(seasonsSet)
   const isSmall = media.width < theme.fib[13]
   useEffect(() => {
     seasonList()
@@ -413,14 +410,17 @@ const _DashboardSeasonBadge: FC = () => {
               }),
               children: $(FormMenu, {
                 empty: seasons === undefined ? 'Loading' : 'Empty',
-                options: spreadify(seasons).map((i) => ({
-                  ...i,
-                  label: i.name,
-                  click: () => {
-                    openSet(false)
-                    auth.seasonSet(i)
-                  },
-                })),
+                options: spreadify(seasons)
+                  .filter((i) => auth.isAdmin || !i.isHidden)
+                  .map((i) => ({
+                    ...i,
+                    label: i.name,
+                    color: i.isHidden ? theme.bgAdmin.string() : undefined,
+                    click: () => {
+                      openSet(false)
+                      auth.seasonSet(i)
+                    },
+                  })),
               }),
             }),
             auth.isAdmin() &&
