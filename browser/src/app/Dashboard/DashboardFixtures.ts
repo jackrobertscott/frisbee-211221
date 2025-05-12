@@ -40,7 +40,9 @@ export const DashboardFixtures: FC = () => {
     $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))
     $fixtureList.fetch({seasonId}).then((i) => {
       fixturesSet(i)
-      const fixturesInFuture = i.filter((f) => dayjs(f.date).isAfter(dayjs()))
+      const fixturesInFuture = i.filter((f) => {
+        return dayjs(f.date).add(1, 'day').isAfter(dayjs())
+      })
       openfxsSet(fixturesInFuture.map((f) => f.id))
     })
   }
