@@ -35,12 +35,12 @@ const config: {
   mongodbName: string
   stripeSecretKey: string
   jwtSecret: string
-  sentryDSN?: string
   AWSAccessKeyId: string
   AWSAccessKeySecret: string
   AWSBucket: string
   AWSBucketRegion: string
   AWSFromEmail: string
+  sentryDSN?: string
   googleClientId?: string
   googleClientSecret?: string
 } = {
@@ -54,14 +54,14 @@ const config: {
   mongodbName: env.MONGODB_DB,
   stripeSecretKey: env.STRIPE_SECRET_KEY,
   jwtSecret: env.JWT_SECRET,
-  sentryDSN: env.SENTRY_DSN,
   AWSAccessKeyId: env.AWS_ACCESS_KEY_ID,
   AWSAccessKeySecret: env.AWS_SECRET_ACCESS_KEY,
   AWSBucket: env.AWS_BUCKET,
   AWSBucketRegion: env.AWS_BUCKET_REGION,
   AWSFromEmail: env.AWS_FROM_EMAIL,
-  googleClientId: env.GOOGLE_CLIENT_ID,
-  googleClientSecret: env.GOOGLE_CLIENT_SECRET,
+  // sentryDSN: env.SENTRY_DSN,
+  // googleClientId: env.GOOGLE_CLIENT_ID,
+  // googleClientSecret: env.GOOGLE_CLIENT_SECRET,
 }
 /**
  *
