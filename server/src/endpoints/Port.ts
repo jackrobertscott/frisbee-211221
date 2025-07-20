@@ -270,7 +270,6 @@ const _createUsersFromObjects = async (
 ) => {
   const userCSVEmailList = [] as string[]
   console.log(JSON.stringify(objects.slice(0, 5)))
-  console.log(JSON.stringify(objects.slice(0, 5), null, 2))
   let userCSVList = objects
     .map((i) => ({
       _team: i.team_name,
@@ -302,9 +301,6 @@ const _createUsersFromObjects = async (
   const userCSVNewList = userCSVList.filter((i) => {
     return !userDBEmailList.includes(i._email.toLowerCase().trim())
   })
-  console.log('---')
-  console.log(JSON.stringify(userCSVNewList.slice(0, 5)))
-  console.log(JSON.stringify(userCSVNewList.slice(0, 5), null, 2))
   if (userCSVNewList.length) await $User.createMany(userCSVNewList)
   userDBList = await loadDBUsers()
   const teamDBList = await $Team.getMany({seasonId})
@@ -362,7 +358,8 @@ const _parseCSVString = (csv: string) => {
  */
 const _tokenify = (text: string) => {
   let tokens = [] as string[]
-  for (let i = 0, quotes = false, token = ''; i < text.length; i++) {
+  let token = ''
+  for (let i = 0, quotes = false; i < text.length; i++) {
     const escaped =
       i > 0 && text[i - 1] === '\\' && !(i > 1 && text[i - 2] === '\\')
     if (text[i] === '"' && !escaped) {
@@ -376,6 +373,7 @@ const _tokenify = (text: string) => {
     }
     token += text[i]
   }
+  tokens.push(token.trim())
   return tokens
 }
 /**
