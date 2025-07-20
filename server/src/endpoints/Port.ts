@@ -269,6 +269,8 @@ const _createUsersFromObjects = async (
   seasonId: string
 ) => {
   const userCSVEmailList = [] as string[]
+  console.log(JSON.stringify(objects.slice(0, 5)))
+  console.log(JSON.stringify(objects.slice(0, 5), null, 2))
   let userCSVList = objects
     .map((i) => ({
       _team: i.team_name,
@@ -300,7 +302,9 @@ const _createUsersFromObjects = async (
   const userCSVNewList = userCSVList.filter((i) => {
     return !userDBEmailList.includes(i._email.toLowerCase().trim())
   })
-  console.log(JSON.stringify(userCSVNewList, null, 2))
+  console.log('---')
+  console.log(JSON.stringify(userCSVNewList.slice(0, 5)))
+  console.log(JSON.stringify(userCSVNewList.slice(0, 5), null, 2))
   if (userCSVNewList.length) await $User.createMany(userCSVNewList)
   userDBList = await loadDBUsers()
   const teamDBList = await $Team.getMany({seasonId})
