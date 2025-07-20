@@ -23,8 +23,8 @@ RUN apk add --no-cache \
 
 # Copy package files first for better caching
 WORKDIR /app
-COPY shared/package.json shared/package.json
-COPY server/package.json server/package.json
+COPY shared/package.json shared/package-lock.json shared/
+COPY server/package.json server/package-lock.json server/
 
 # Install dependencies (cached layer unless package.json changes)
 RUN cd shared && npm ci --only=production
