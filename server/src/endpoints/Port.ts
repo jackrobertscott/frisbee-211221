@@ -276,7 +276,7 @@ const _createUsersFromObjects = async (
       _email: i.email_address,
       firstName: i.first_name,
       lastName: i.last_name,
-      gender: i.gender as any,
+      gender: i.gender,
       termsAccepted: false,
       emails: [userEmail.create(i.email_address, true)],
     }))
@@ -300,6 +300,7 @@ const _createUsersFromObjects = async (
   const userCSVNewList = userCSVList.filter((i) => {
     return !userDBEmailList.includes(i._email.toLowerCase().trim())
   })
+  console.log(JSON.stringify(userCSVNewList, null, 2))
   if (userCSVNewList.length) await $User.createMany(userCSVNewList)
   userDBList = await loadDBUsers()
   const teamDBList = await $Team.getMany({seasonId})
