@@ -1,33 +1,45 @@
-FROM node:20-alpine
+FROM node:20-alpine AS base
 
-# Install system dependencies
+# Install only runtime dependencies
 RUN apk add --no-cache \
-    # node canvas dependencies
-    build-base g++ cairo-dev jpeg-dev pango-dev giflib-dev \
-    # puppeteer dependencies
-    chromium ca-certificates \
-    # healthcheck dependencies
+    chromium \
+    ca-certificates \
     curl
 
 # Set puppeteer configs
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-# Install shared dependencies
-WORKDIR /app/shared
-COPY /shared/package.json .
-RUN npm install
+FROM base AS dependencies
 
-# Install server dependencies
-WORKDIR /app/server
-COPY /server/package.json .
-RUN npm install
+# Install build dependencies only when needed
+RUN apk add --no-cache \
+    build-base \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    giflib-dev
 
-# Copy app files after installing dependencies
-COPY /shared /app/shared
-COPY /server /app/server
+# Copy package files first for better caching
+WORKDIR /app
+COPY shared/package.json shared/package.json
+COPY server/package.json server/package.json
 
-# Build server (cbf getting build to work.. using tsx instead)
-# RUN npm run build
+# Install dependencies (cached layer unless package.json changes)
+RUN cd shared && npm ci --only=production
+RUN cd server && npm ci --only=production
+
+FROM base AS runtime
+
+# Copy installed dependencies from dependencies stage
+COPY --from=dependencies /app/shared/node_modules /app/shared/node_modules
+COPY --from=dependencies /app/server/node_modules /app/server/node_modules
+
+# Copy source code
+WORKDIR /app
+COPY shared/ shared/
+COPY server/ server/
+
 EXPOSE 8080
 CMD ["npm", "run", "start"]
