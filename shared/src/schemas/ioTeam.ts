@@ -13,6 +13,10 @@ export const ioTeam = io.object({
   division: io.optional(io.number()),
   phone: io.optional(io.string().emptyok()),
   email: io.optional(io.string().emptyok()),
+  gamedayId: io.optional(io.string()), // GameDay team ID for sync tracking
+  grade: io.optional(io.string()), // GameDay grade information
+  ageGroup: io.optional(io.string()), // GameDay age group information
+  shortName: io.optional(io.string()), // GameDay short name
 })
 /**
  *

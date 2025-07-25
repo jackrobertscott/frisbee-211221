@@ -18,6 +18,16 @@ export const ioSeason = io.object({
       })
     )
   ),
+  gamedaySync: io.optional(
+    io.object({
+      enabled: io.boolean(),
+      gamedayLeagueId: io.optional(io.string()),
+      gamedaySeasonId: io.optional(io.string()),
+      lastSyncDate: io.optional(io.date()),
+      syncStatus: io.optional(io.string()),
+      syncErrorMessage: io.optional(io.string()),
+    })
+  ),
 })
 /**
  *

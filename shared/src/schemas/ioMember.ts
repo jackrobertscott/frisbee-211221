@@ -12,6 +12,7 @@ export const ioMember = io.object({
   isMock: io.optional(io.boolean()), // for testing purposes
   captain: io.optional(io.boolean()),
   pending: io.boolean(),
+  gamedayRegistrationId: io.optional(io.string()), // GameDay registration ID for sync tracking
 })
 /**
  *

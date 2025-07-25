@@ -33,6 +33,7 @@ export const ioUser = io.object({
   bio: io.optional(io.string().trim()),
   termsAccepted: io.boolean(),
   lastSeasonId: io.optional(io.string()),
+  gamedayId: io.optional(io.string()), // GameDay user ID for sync tracking
 })
 /**
  *

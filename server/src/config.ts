@@ -43,6 +43,13 @@ const config: {
   sentryDSN?: string
   googleClientId?: string
   googleClientSecret?: string
+  gameday: {
+    clientId?: string
+    clientSecret?: string
+    oauthEndpoint?: string
+    baseUrl?: string
+    syncInterval: string
+  }
 } = {
   env: env.NODE_ENV || 'development',
   prod: !env.URL_CLIENT?.startsWith('http://localhost'),
@@ -62,6 +69,13 @@ const config: {
   // sentryDSN: env.SENTRY_DSN,
   // googleClientId: env.GOOGLE_CLIENT_ID,
   // googleClientSecret: env.GOOGLE_CLIENT_SECRET,
+  gameday: {
+    clientId: env.GAMEDAY_CLIENT_ID,
+    clientSecret: env.GAMEDAY_CLIENT_SECRET,
+    oauthEndpoint: env.GAMEDAY_OAUTH_ENDPOINT,
+    baseUrl: env.GAMEDAY_BASE_URL,
+    syncInterval: env.GAMEDAY_SYNC_INTERVAL || '0 */6 * * *', // Every 6 hours
+  },
 }
 /**
  *

@@ -7,6 +7,7 @@ import endpoints from './endpoints'
 import capture from './utils/capture'
 import cors from './utils/cors'
 import prerequest from './utils/prerequest'
+import { initializeGameDayScheduler } from './utils/scheduler'
 
 const MAX_CLUSTER_WORKERS = Math.min(os.cpus().length, 3)
 
@@ -37,5 +38,10 @@ function startServer() {
     const cid = cluster.worker ? `WORKER ${cluster.worker.id}` : 'MASTER'
     const envName = config.prod ? 'PROD' : 'DEV'
     console.log(`Started: ${envName} ${cid} ${config.port}`)
+    
+    // Initialize GameDay scheduler only on the master process or when not using clustering
+    if (!cluster.worker || !config.prod) {
+      initializeGameDayScheduler();
+    }
   })
 }
