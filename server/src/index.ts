@@ -8,7 +8,7 @@ import capture from './utils/capture'
 import cors from './utils/cors'
 import prerequest from './utils/prerequest'
 
-const MAX_CLUSTER_WORKERS = Math.min(os.cpus().length, 3)
+const MAX_CLUSTER_WORKERS = Math.min(os.cpus().length, 2)
 
 if (!config.prod) {
   startServer()
