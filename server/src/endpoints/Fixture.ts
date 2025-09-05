@@ -1,8 +1,16 @@
-import {FixtureAdjustMultipleDef, FixtureCreateDef, FixtureDeleteDef, FixtureGenerateDef, FixtureGetDef, FixtureListOfSeasonDef, FixtureSnapshotDef, FixtureUpdateDef} from '@shared/endpoints/FixtureDef'
+import {
+  FixtureAdjustMultipleDef,
+  FixtureCreateDef,
+  FixtureDeleteDef,
+  FixtureGenerateDef,
+  FixtureGetDef,
+  FixtureListOfSeasonDef,
+  FixtureSnapshotDef,
+  FixtureUpdateDef,
+} from '@shared/endpoints/FixtureDef'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {RequestHandler} from 'micro'
-import puppeteer from 'puppeteer'
-import config from '../config'
+// import puppeteer from 'puppeteer' // disabled: puppeteer features removed
 import {$Fixture} from '../tables/$Fixture'
 import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
@@ -85,20 +93,24 @@ export default new Map<string, RequestHandler>([
     ...FixtureSnapshotDef,
     handler:
       ({fixtureId}) =>
-      async (req, res) => {
-        let buffer: Buffer | null
-        try {
-          const fixture = await $Fixture.getOne({id: fixtureId})
-          buffer = await _fixtureScreenshot(fixture.id)
-          // this method fails if you do not have enough server memory
-          // for example, it will fail on a "$5" DigitalOcean droplet
-          res.setHeader('Content-Type', 'image/png')
-          res.end(buffer)
-        } catch (e) {
-          throw e
-        } finally {
-          buffer = null
-        }
+      // Puppeteer-based snapshot generation disabled
+      // async (req, res) => {
+      //   let buffer: Buffer | null
+      //   try {
+      //     const fixture = await $Fixture.getOne({id: fixtureId})
+      //     buffer = await _fixtureScreenshot(fixture.id)
+      //     // this method fails if you do not have enough server memory
+      //     // for example, it will fail on a "$5" DigitalOcean droplet
+      //     res.setHeader('Content-Type', 'image/png')
+      //     res.end(buffer)
+      //   } catch (e) {
+      //     throw e
+      //   } finally {
+      //     buffer = null
+      //   }
+      // },
+      async () => {
+        throw new Error('Fixture snapshot is disabled')
       },
   }),
   /**
@@ -231,61 +243,61 @@ export default new Map<string, RequestHandler>([
 /**
  *
  */
-const _fixtureScreenshot = async (fixtureId: string) => {
-  let browser = null
-  let page = null
-  let $clip = null
-
-  // warning: default puppeteer (without args) will not work without >=2 cpu cores
-  try {
-    browser = await puppeteer.launch({
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        // following args help run in a low-memory and cpu environment
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--disable-software-rasterizer',
-      ],
-    })
-    page = await browser.newPage()
-    await page.setViewport({width: 987, height: 987})
-    const url = `${config.urlClient}/?fixtureId=${fixtureId}`
-    await page.goto(url, {
-      waitUntil: ['networkidle0', 'networkidle2'],
-    })
-
-    await page.emulateTimezone('Australia/Perth')
-    await page.evaluateHandle('document.fonts.ready')
-
-    $clip = await page.waitForSelector('#clip')
-    if (!$clip) throw new Error('Could not find #clip element')
-
-    const box = await $clip.boundingBox()
-    if (!box) throw new Error('Could not get bounding box')
-
-    const screenshot = await page.screenshot({
-      clip: {x: 0, y: 0, width: box.width, height: box.height},
-    })
-
-    return screenshot as Buffer
-  } catch (e) {
-    console.log(e)
-    throw e
-  } finally {
-    if ($clip) {
-      await $clip.dispose()
-    }
-    if (page) {
-      await page.close()
-    }
-    if (browser) {
-      await browser.close()
-    }
-  }
-}
+// const _fixtureScreenshot = async (fixtureId: string) => {
+//   let browser = null
+//   let page = null
+//   let $clip = null
+//
+//   // warning: default puppeteer (without args) will not work without >=2 cpu cores
+//   try {
+//     browser = await puppeteer.launch({
+//       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+//       headless: true,
+//       args: [
+//         '--no-sandbox',
+//         '--disable-setuid-sandbox',
+//         // following args help run in a low-memory and cpu environment
+//         '--disable-dev-shm-usage',
+//         '--disable-gpu',
+//         '--disable-software-rasterizer',
+//       ],
+//     })
+//     page = await browser.newPage()
+//     await page.setViewport({width: 987, height: 987})
+//     const url = `${config.urlClient}/?fixtureId=${fixtureId}`
+//     await page.goto(url, {
+//       waitUntil: ['networkidle0', 'networkidle2'],
+//     })
+//
+//     await page.emulateTimezone('Australia/Perth')
+//     await page.evaluateHandle('document.fonts.ready')
+//
+//     $clip = await page.waitForSelector('#clip')
+//     if (!$clip) throw new Error('Could not find #clip element')
+//
+//     const box = await $clip.boundingBox()
+//     if (!box) throw new Error('Could not get bounding box')
+//
+//     const screenshot = await page.screenshot({
+//       clip: {x: 0, y: 0, width: box.width, height: box.height},
+//     })
+//
+//     return screenshot as Buffer
+//   } catch (e) {
+//     console.log(e)
+//     throw e
+//   } finally {
+//     if ($clip) {
+//       await $clip.dispose()
+//     }
+//     if (page) {
+//       await page.close()
+//     }
+//     if (browser) {
+//       await browser.close()
+//     }
+//   }
+// }
 /**
  *
  */

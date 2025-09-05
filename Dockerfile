@@ -1,18 +1,5 @@
 FROM node:20-alpine
 
-# Install system dependencies
-RUN apk add --no-cache \
-    # node canvas dependencies
-    build-base g++ cairo-dev jpeg-dev pango-dev giflib-dev \
-    # puppeteer dependencies
-    chromium ca-certificates \
-    # healthcheck dependencies
-    curl
-
-# Set puppeteer configs
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-
 # Install shared dependencies
 WORKDIR /app/shared
 COPY /shared/package.json .
