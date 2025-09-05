@@ -10,7 +10,6 @@ import {
 } from '@shared/endpoints/FixtureDef'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {RequestHandler} from 'micro'
-// import puppeteer from 'puppeteer' // disabled: puppeteer features removed
 import {$Fixture} from '../tables/$Fixture'
 import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
