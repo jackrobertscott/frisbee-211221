@@ -1,4 +1,6 @@
 node_modules
+server/node_modules
+shared/node_modules
 npm-debug.log
 dist
 .git
