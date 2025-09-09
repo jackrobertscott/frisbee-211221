@@ -8,8 +8,8 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat
 
 # Install server deps (including dev for build)
-COPY server/package.json server/package-lock.json ./server/
-RUN cd server && npm ci
+COPY server/package.json ./server/
+RUN cd server && npm install --no-audit --no-fund
 
 # Copy sources needed for bundling
 COPY server ./server
@@ -26,10 +26,9 @@ FROM node:20-alpine AS runner
 ENV NODE_ENV=production
 WORKDIR /app/server
 
-# Install only prod dependencies using lockfile
-COPY server/package.json server/package-lock.json ./
-RUN npm ci --omit=dev --no-audit --no-fund && \
-    npm i --omit=dev --no-audit --no-fund --no-save torva@^0.4.0
+# Install only prod dependencies (no lockfile)
+COPY server/package.json ./
+RUN npm install --omit=dev --no-audit --no-fund
 
 # Copy dotenv-safe example for env validation
 COPY server/.env.example ./
