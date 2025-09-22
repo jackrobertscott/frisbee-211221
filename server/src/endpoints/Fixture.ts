@@ -52,8 +52,10 @@ export default new Map<string, RequestHandler>([
     handler: (body) => async (req) => {
       const [user] = await requireUserAdmin(req)
       await $Season.getOne({id: body.seasonId})
+      const adjustedGames = enforceRestrictedTeamTimeSlots(body.games)
       return $Fixture.createOne({
         ...body,
+        games: adjustedGames,
         userId: user.id,
       })
     },
@@ -67,9 +69,10 @@ export default new Map<string, RequestHandler>([
       ({fixtureId, ...body}) =>
       async (req) => {
         await requireUserAdmin(req)
+        const adjustedGames = enforceRestrictedTeamTimeSlots(body.games)
         return $Fixture.updateOne(
           {id: fixtureId},
-          {...body, updatedOn: new Date().toISOString()}
+          {...body, games: adjustedGames, updatedOn: new Date().toISOString()}
         )
       },
   }),
@@ -232,6 +235,9 @@ export default new Map<string, RequestHandler>([
           }
           fixture.games.push(game)
         })
+
+        // Enforce restriction per fixture before saving
+        fixture.games = enforceRestrictedTeamTimeSlots(fixture.games)
       }
       await Promise.all(
         newFixtures.map((fixture) => $Fixture.createOne(fixture))
@@ -340,4 +346,64 @@ function shuffleArray(array: any[]): any[] {
     ;[array[i], array[j]] = [array[j], array[i]]
   }
   return array
+}
+
+// Team-time restriction: optionally prevent a specific team from any slot containing '6'
+const RESTRICTED_TEAM_ID = process.env.RESTRICTED_TEAM_ID
+
+function containsSix(s?: string) {
+  return typeof s === 'string' && s.includes('6')
+}
+
+// Ensures the restricted team (if configured) is not scheduled in a slot whose time contains '6'.
+// If a violation is found, swaps the entire slot (time + place) with a suitable non-violating game.
+function enforceRestrictedTeamTimeSlots(
+  games: TFixture['games']
+): TFixture['games'] {
+  if (!RESTRICTED_TEAM_ID) return games
+  if (!Array.isArray(games) || games.length === 0) return games
+
+  // In typical fixtures, a team appears at most once per fixture.
+  // Still, handle multiple just in case.
+  const result = games.map((g) => ({...g}))
+
+  for (let i = 0; i < result.length; i++) {
+    const g = result[i]
+    const involvesRestricted =
+      g.team1Id === RESTRICTED_TEAM_ID || g.team2Id === RESTRICTED_TEAM_ID
+    if (!involvesRestricted) continue
+
+    if (!containsSix(g.time)) continue
+
+    // Find a candidate game that does not involve the restricted team and whose time does not contain '6'
+    let swapIndex = -1
+    for (let j = 0; j < result.length; j++) {
+      if (j === i) continue
+      const other = result[j]
+      const otherInvolvesRestricted =
+        other.team1Id === RESTRICTED_TEAM_ID ||
+        other.team2Id === RESTRICTED_TEAM_ID
+      if (otherInvolvesRestricted) continue
+      if (!containsSix(other.time)) {
+        swapIndex = j
+        break
+      }
+    }
+
+    if (swapIndex === -1) {
+      throw new Error(
+        'Unable to schedule restricted team without a 6 in the time slot. Please add a slot without 6 or adjust other games.'
+      )
+    }
+
+    // Swap full slot: time + place
+    const tmpTime = result[i].time
+    const tmpPlace = result[i].place
+    result[i].time = result[swapIndex].time
+    result[i].place = result[swapIndex].place
+    result[swapIndex].time = tmpTime
+    result[swapIndex].place = tmpPlace
+  }
+
+  return result
 }
