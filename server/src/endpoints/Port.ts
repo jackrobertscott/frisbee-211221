@@ -43,6 +43,38 @@ export default new Map<string, RequestHandler>([
       const csvBuffer = await blob.filepathBuffer(rawFiles[0].filepath)
       const content = csvBuffer.toString()
       const objects = _parseCSVString(content)
+      const requiredHeadings = [
+        'team_name',
+        'email_address',
+        'first_name',
+        'last_name',
+      ]
+      const providedHeadings = objects.length > 0 ? Object.keys(objects[0]) : []
+      const missingHeadings = requiredHeadings.filter(
+        (h) => !providedHeadings.includes(h)
+      )
+      if (missingHeadings.length > 0) {
+        throw new Error(
+          `Missing required headings: ${missingHeadings.join(', ')}`
+        )
+      }
+      const allowedHeadings = [
+        'team_name',
+        'team_division',
+        'type',
+        'email_address',
+        'first_name',
+        'last_name',
+        'gender',
+      ]
+      const unexpectedHeadings = providedHeadings.filter(
+        (h) => !allowedHeadings.includes(h)
+      )
+      if (unexpectedHeadings.length > 0) {
+        throw new Error(
+          `Unexpected headings found: ${unexpectedHeadings.join(', ')}`
+        )
+      }
       await mongo.transaction(async () => {
         await _createTeamsFromObjects(objects, season.id)
         await _createUsersFromObjects(objects, season.id)
