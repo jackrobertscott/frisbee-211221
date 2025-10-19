@@ -18,9 +18,10 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...SeasonListDef,
     handler: (body) => async () => {
-      return $Season.getMany({
-        name: regex.from(body.search ?? ''),
-      })
+      return $Season.getMany(
+        {name: regex.from(body.search ?? '')},
+        {sort: {createdOn: -1}}
+      )
     },
   }),
   /**
