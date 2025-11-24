@@ -302,6 +302,11 @@ export default new Map<string, RequestHandler>([
         // Gather all the game pairings from all divisions
         let allPairings: Array<string[]> = []
         teamOrder.forEach((divisionTeams) => {
+          if (divisionTeams.length % 2 !== 0) {
+            throw new Error(
+              'Fixture generation failed: each division must contain an even number of teams to create valid round-robin matchups. Please add or remove a team in the affected division.'
+            )
+          }
           // Use the actual round index in the sequence (startingRound + r)
           let roundPairings = getRoundRobinPairings(
             divisionTeams,
@@ -397,15 +402,17 @@ export default new Map<string, RequestHandler>([
  *
  */
 function getRoundRobinPairings(teams: string[], round: number): string[][] {
-  if (teams.length % 2 !== 0) {
-    throw new Error('Number of teams must be even')
-  }
+  // Support odd team counts by adding a bye placeholder.
+  const hasBye = teams.length % 2 !== 0
+  const byeId = '__BYE__'
+  const workingTeams = hasBye ? [...teams, byeId] : [...teams]
+
   // Calculate the total number of matchups in a full cycle
-  const totalRounds = teams.length - 1
+  const totalRounds = workingTeams.length - 1
   const currentCycle = Math.floor(round / totalRounds)
   const currentRoundInCycle = round % totalRounds
   // Adjust teams array for the current round in the cycle
-  let adjustedTeams = [...teams]
+  let adjustedTeams = [...workingTeams]
   const fixedPosition = adjustedTeams.shift() // Remove the first team to keep it fixed
   // Rotate the remaining teams currentRoundInCycle times
   for (let i = 0; i < currentRoundInCycle; i++) {
@@ -423,6 +430,8 @@ function getRoundRobinPairings(teams: string[], round: number): string[][] {
       // Swap home and away teams every alternate cycle
       ;[homeTeam, awayTeam] = [awayTeam, homeTeam]
     }
+    // Skip any pairing that involves the bye placeholder
+    if (homeTeam === byeId || awayTeam === byeId) continue
     pairings.push([homeTeam, awayTeam])
   }
   return pairings
