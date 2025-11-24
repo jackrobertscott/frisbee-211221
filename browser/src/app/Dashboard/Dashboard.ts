@@ -410,6 +410,7 @@ const _DashboardSeasonBadge: FC = () => {
               }),
               children: $(FormMenu, {
                 empty: seasons === undefined ? 'Loading' : 'Empty',
+                maxHeight: '60vh',
                 options: spreadify(seasons)
                   .filter((i) => auth.isAdmin || !i.isHidden)
                   .map((i) => ({
