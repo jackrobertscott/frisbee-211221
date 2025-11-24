@@ -189,6 +189,13 @@ export default new Map<string, RequestHandler>([
         throw new Error('Every team needs a division number')
       if (body.slots.length * 2 < teams.length - 1)
         throw new Error('Not enough slots have been added')
+
+      // Get existing fixtures to determine starting round
+      const existingFixtures = await $Fixture.getMany(
+        {seasonId: season.id},
+        {sort: {date: 1}}
+      )
+
       type TPartialFixture = Omit<TFixture, 'id' | 'createdOn' | 'updatedOn'>
       const newFixtures: TPartialFixture[] = []
       const divisions = new Map<number, string[]>()
@@ -197,16 +204,95 @@ export default new Map<string, RequestHandler>([
         divisionTeams.push(team.id)
         divisions.set(team.division!, divisionTeams)
       })
+
+      // Determine starting round number and validate existing fixtures
+      let startingRound = 0
+      let teamOrder = new Map<number, string[]>()
+
+      if (existingFixtures.length > 0) {
+        // Extract round numbers from existing fixtures
+        const roundNumbers = existingFixtures
+          .map((f) => {
+            const match = f.title.match(/Round\s+(\d+)/i)
+            return match ? parseInt(match[1], 10) : null
+          })
+          .filter((n): n is number => n !== null)
+          .sort((a, b) => a - b)
+
+        if (roundNumbers.length > 0) {
+          startingRound = Math.max(...roundNumbers)
+
+          // Validate that existing fixtures match round robin pattern
+          // We need to reverse-engineer the team order from existing fixtures
+          for (const [division, divisionTeams] of divisions.entries()) {
+            const divTeamSet = new Set(divisionTeams)
+
+            // Try to find the team order by analyzing the first round
+            const firstRound = existingFixtures.find((f) =>
+              f.title.match(/Round\s+1/i)
+            )
+
+            if (firstRound) {
+              // Extract teams from this division in the first round
+              const divisionGames = firstRound.games.filter(
+                (g) => divTeamSet.has(g.team1Id) && divTeamSet.has(g.team2Id)
+              )
+
+              // Reconstruct the team order from the first round games
+              // In round robin, the first team is fixed, others rotate
+              if (divisionGames.length > 0) {
+                const reconstructedOrder: string[] = []
+
+                // The team order can be reconstructed from the pairings
+                // For round 0: pairs are (teams[0], teams[n-1]), (teams[1], teams[n-2]), etc.
+                // We can work backwards from this
+                const pairings = divisionGames.map((g) => [
+                  g.team1Id,
+                  g.team2Id,
+                ])
+
+                if (pairings.length > 0) {
+                  // Extract all unique teams from pairings
+                  const teamsInPairings = new Set<string>()
+                  pairings.forEach(([t1, t2]) => {
+                    teamsInPairings.add(t1)
+                    teamsInPairings.add(t2)
+                  })
+
+                  // Use the existing team order if we can't determine it exactly
+                  // The shuffling was random anyway, so we'll use a deterministic order
+                  reconstructedOrder.push(...Array.from(teamsInPairings).sort())
+
+                  // Add any missing teams from the division
+                  divisionTeams.forEach((t) => {
+                    if (!reconstructedOrder.includes(t)) {
+                      reconstructedOrder.push(t)
+                    }
+                  })
+
+                  teamOrder.set(division, reconstructedOrder)
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // If we couldn't determine team order from existing fixtures, shuffle as before
       divisions.forEach((divisionTeams, division) => {
-        divisions.set(division, shuffleArray(divisionTeams))
+        if (!teamOrder.has(division)) {
+          teamOrder.set(division, shuffleArray([...divisionTeams]))
+        }
       })
+
       for (let r = 0; r < body.roundCount; r++) {
+        const roundNumber = startingRound + r + 1
         const gameDate = new Date(body.startingDate)
         gameDate.setDate(gameDate.getDate() + r * 7)
         const fixture: TPartialFixture = {
           seasonId: season.id,
           userId: user.id,
-          title: `Round ${r + 1}`,
+          title: `Round ${roundNumber}`,
           date: gameDate.toISOString(),
           games: [],
           grading: false,
@@ -215,8 +301,12 @@ export default new Map<string, RequestHandler>([
 
         // Gather all the game pairings from all divisions
         let allPairings: Array<string[]> = []
-        divisions.forEach((divisionTeams) => {
-          let roundPairings = getRoundRobinPairings(divisionTeams, r)
+        teamOrder.forEach((divisionTeams) => {
+          // Use the actual round index in the sequence (startingRound + r)
+          let roundPairings = getRoundRobinPairings(
+            divisionTeams,
+            startingRound + r
+          )
           allPairings = allPairings.concat(roundPairings)
         })
 

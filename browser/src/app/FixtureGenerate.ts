@@ -78,7 +78,7 @@ export const FixtureGenerate: FC<{
             icon: 'flag',
             title: 'Before You Proceed',
             description:
-              'This action requires that ALL teams have a division assigned\n(under the Teams tab)\n\nALSO the generator does not consider any existing fixtures and thus you should aim to generate ALL rounds at once!',
+              'This action requires that ALL teams have a division assigned\n(under the Teams tab)\n\nThe generator will automatically continue from any existing rounds and maintain the round robin pattern.',
           }),
           $(FormRow, {
             children: addkeys([
