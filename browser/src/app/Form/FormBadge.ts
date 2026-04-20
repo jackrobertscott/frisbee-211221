@@ -1,5 +1,6 @@
 import {css} from '@emotion/css'
 import {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
+import type {Property} from 'csstype'
 import {createElement as $, FC} from 'react'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
@@ -21,7 +22,7 @@ export interface TFormBadge {
   width?: number
   grow?: boolean
   noshrink?: boolean
-  select?: 'auto' | 'text' | 'none' | 'contain' | 'all'
+  select?: Property.UserSelect
   style?: CSSObject
   wrap?: boolean
 }
