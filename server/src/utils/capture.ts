@@ -4,6 +4,7 @@ import {IncomingMessage} from 'http'
 import {StatusCodes, getReasonPhrase} from 'http-status-codes'
 import {RequestHandler, send} from 'micro'
 import config from '../config'
+import tarpit from './tarpit'
 /**
  *
  */
@@ -27,6 +28,16 @@ export default {
         }
         return data
       } catch (error) {
+        if (
+          error instanceof Error &&
+          typeof (error as any).tarpit === 'object' &&
+          (error as any).tarpit
+        ) {
+          if (config.debug) console.log(error.message)
+          await tarpit.respond(res, (error as any).tarpit)
+          return null
+        }
+
         if (
           error instanceof Error &&
           (error as any).statusCode === StatusCodes.FORBIDDEN

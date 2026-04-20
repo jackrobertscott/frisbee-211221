@@ -6,6 +6,7 @@ import config from './config'
 import endpoints from './endpoints'
 import capture from './utils/capture'
 import cors from './utils/cors'
+import intrusion from './utils/intrusion'
 import prerequest from './utils/prerequest'
 
 const MAX_CLUSTER_WORKERS = Math.min(os.cpus().length, 2)
@@ -25,9 +26,10 @@ if (!config.prod) {
 function startServer() {
   const handler: RequestHandler = async (req, res) => {
     if (!req.url) throw new Error('Request url required.')
-    if (endpoints.has(req.url))
+    const pathname = intrusion.getPathname(req.url)
+    if (endpoints.has(pathname))
       // return "null" instead of "undefined" to end request
-      return (await endpoints.get(req.url)!(req, res)) ?? null
+      return (await endpoints.get(pathname)!(req, res)) ?? null
     throw new Error(`Url ${req.url} is not supported.`)
   }
   const server = new http.Server(
