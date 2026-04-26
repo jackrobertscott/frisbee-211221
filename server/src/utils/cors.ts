@@ -1,5 +1,6 @@
+import {IncomingMessage} from 'http'
 import {RequestHandler} from 'micro'
-import config from '../config'
+import {origin} from './origin'
 /**
  *
  */
@@ -16,15 +17,16 @@ export default (options?: ICorsOptions) => {
    */
   return (handler: RequestHandler): RequestHandler => {
     return (req, res) => {
-      attachCorsToResponse(res, options)
+      attachCorsToResponse(req, res, options)
       return handler(req, res)
     }
   }
 }
 
 export const attachCorsToResponse = (
+  req: IncomingMessage,
   res: Parameters<RequestHandler>[1],
-  options: ICorsOptions = {origin: config.urlClient}
+  options?: ICorsOptions
 ) => {
   const allowedAge = 60 * 60 * 24 // 24 hours
   const allowedMethods = ['POST', 'OPTIONS']
@@ -34,8 +36,17 @@ export const attachCorsToResponse = (
     'Authorization',
     'Accept',
   ]
-  res.setHeader('Access-Control-Allow-Origin', options.origin || '*')
-  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  const requestOrigin =
+    typeof req.headers.origin === 'string' ? req.headers.origin : undefined
+  const allowedOrigin = options?.origin ?? origin.allowed()
+  if (origin.isAllowed(requestOrigin)) {
+    res.setHeader('Access-Control-Allow-Origin', requestOrigin!)
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+  } else if (allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin)
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+  }
+  res.setHeader('Vary', 'Origin')
   res.setHeader('Access-Control-Allow-Methods', allowedMethods.join(','))
   res.setHeader('Access-Control-Allow-Headers', allowedHeaders.join(','))
   res.setHeader('Access-Control-Max-Age', String(allowedAge))

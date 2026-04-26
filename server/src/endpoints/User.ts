@@ -12,8 +12,9 @@ import mongo from '../utils/mongo'
 import {regex} from '../utils/regex'
 import {requireUser} from './requireUser'
 import {requireUserAdmin} from './requireUserAdmin'
-import {userEmail} from './userEmail'
 import {selectPublicUserFields} from './userPublic'
+import {selectSafeUserFields} from './userSafe'
+import {userEmail} from './userEmail'
 /**
  *
  */
@@ -25,13 +26,14 @@ export default new Map<string, RequestHandler>([
     ...UserCurrentUpdateDef,
     handler: (body) => async (req) => {
       const [user] = await requireUser(req)
-      return $User.updateOne(
+      const next = await $User.updateOne(
         {id: user.id},
         {
           ...body,
           updatedOn: new Date().toISOString(),
         }
       )
+      return selectSafeUserFields(next)
     },
   }),
   /**
@@ -43,7 +45,7 @@ export default new Map<string, RequestHandler>([
       ({email}) =>
       async (req) => {
         const [user] = await requireUser(req)
-        return userEmail.add(user, email)
+        return selectSafeUserFields(await userEmail.add(user, email))
       },
   }),
   /**
@@ -62,7 +64,7 @@ export default new Map<string, RequestHandler>([
           const message = `Your code has expired. A new code has been sent to your email.`
           throw new Error(message)
         }
-        return userEmail.verify(user, email)
+        return selectSafeUserFields(await userEmail.verify(user, email))
       },
   }),
   /**
@@ -74,7 +76,9 @@ export default new Map<string, RequestHandler>([
       ({email}) =>
       async (req) => {
         const [user] = await requireUser(req)
-        return userEmail.codeSendSave(user, email, 'Verify Email')
+        return selectSafeUserFields(
+          await userEmail.codeSendSave(user, email, 'Verify Email')
+        )
       },
   }),
   /**
@@ -86,7 +90,7 @@ export default new Map<string, RequestHandler>([
       ({email}) =>
       async (req) => {
         const [user] = await requireUser(req)
-        return userEmail.primarySet(user, email)
+        return selectSafeUserFields(await userEmail.primarySet(user, email))
       },
   }),
   /**
@@ -98,7 +102,7 @@ export default new Map<string, RequestHandler>([
       ({email}) =>
       async (req) => {
         const [user] = await requireUser(req)
-        return userEmail.remove(user, email)
+        return selectSafeUserFields(await userEmail.remove(user, email))
       },
   }),
   /**
@@ -111,10 +115,11 @@ export default new Map<string, RequestHandler>([
       if (!user.password) throw new Error('User does not have a password.')
       if (!(await hash.compare(body.oldPassword, user.password)))
         throw new Error('Old password is incorrect.')
-      return $User.updateOne(
+      user = await $User.updateOne(
         {id: user.id},
         {password: await hash.encrypt(body.newPassword)}
       )
+      return selectSafeUserFields(user)
     },
   }),
   /**
@@ -141,7 +146,7 @@ export default new Map<string, RequestHandler>([
           }
         ),
       ])
-      return {count, users}
+      return {count, users: users.map(selectSafeUserFields)}
     },
   }),
   /**
@@ -166,10 +171,11 @@ export default new Map<string, RequestHandler>([
         await requireUserAdmin(req)
         if (await userEmail.maybeUser(email))
           throw new Error(`User already exists with email "${email}".`)
-        return $User.createOne({
+        const user = await $User.createOne({
           ...body,
           emails: [userEmail.create(email, true)],
         })
+        return selectSafeUserFields(user)
       },
   }),
   /**
@@ -182,10 +188,11 @@ export default new Map<string, RequestHandler>([
       async (req) => {
         await requireUserAdmin(req)
         const user = await $User.getOne({id: userId})
-        return $User.updateOne(
+        const next = await $User.updateOne(
           {id: user.id},
           {...body, updatedOn: new Date().toISOString()}
         )
+        return selectSafeUserFields(next)
       },
   }),
   /**
@@ -196,7 +203,8 @@ export default new Map<string, RequestHandler>([
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
       const user = await $User.getOne({id: body.userId})
-      return $User.updateOne({id: user.id}, {admin: !user.admin})
+      const next = await $User.updateOne({id: user.id}, {admin: !user.admin})
+      return selectSafeUserFields(next)
     },
   }),
   /**
@@ -288,7 +296,7 @@ export default new Map<string, RequestHandler>([
             {emails: u1Emails, userMergedIds: u2MergedIds}
           )
         })
-        return user1
+        return selectSafeUserFields(user1)
       },
   }),
   /**
@@ -299,10 +307,11 @@ export default new Map<string, RequestHandler>([
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
       const user = await $User.getOne({id: body.userId})
-      return $User.updateOne(
+      const next = await $User.updateOne(
         {id: user.id},
         {password: await hash.encrypt(body.newPassword)}
       )
+      return selectSafeUserFields(next)
     },
   }),
 ])

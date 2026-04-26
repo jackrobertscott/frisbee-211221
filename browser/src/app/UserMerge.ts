@@ -1,5 +1,5 @@
 import {css} from '@emotion/css'
-import {TUser} from '@shared/schemas/ioUser'
+import {TUserSafe} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {$UserList, $UserMerge} from '../endpoints/User'
@@ -25,13 +25,13 @@ import {useSling} from './useThrottle'
  *
  */
 export const UserMerge: FC<{
-  user: TUser
-  userSet: (user: TUser) => void
+  user: TUserSafe
+  userSet: (user: TUserSafe) => void
   close: () => void
 }> = ({user: user1, userSet: user1Set, close}) => {
   const $merge = useEndpoint($UserMerge)
   const [check, checkSet] = useState(false)
-  const [user2, user2Set] = useState<TUser>()
+  const [user2, user2Set] = useState<TUserSafe>()
   return $(Fragment, {
     children: addkeys([
       $(Modal, {
@@ -134,12 +134,12 @@ export const UserMerge: FC<{
  *
  */
 const _UserMergeSelect: FC<{
-  user1: TUser
-  user2Set: (user: TUser) => void
+  user1: TUserSafe
+  user2Set: (user: TUserSafe) => void
 }> = ({user1, user2Set}) => {
   const auth = useAuth()
   const $userList = useEndpoint($UserList)
-  const [users, usersSet] = useState<TUser[]>()
+  const [users, usersSet] = useState<TUserSafe[]>()
   const [search, searchSet] = useState(user1.firstName)
   const userList = () =>
     $userList.fetch({search, limit: 10}).then((i) => {

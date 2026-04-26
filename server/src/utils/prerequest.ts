@@ -3,6 +3,7 @@ import {RequestHandler} from 'micro'
 import config from '../config'
 import endpoints from '../endpoints'
 import intrusion from './intrusion'
+import {origin} from './origin'
 /**
  *
  */
@@ -18,7 +19,7 @@ export default (handler: RequestHandler): RequestHandler => {
     switch (pathname) {
       case '/':
         return {
-          env: config.env,
+          env: config.debug ? config.env : undefined,
           now: new Date().toISOString(),
         }
       case '/robots.txt':
@@ -30,13 +31,13 @@ export default (handler: RequestHandler): RequestHandler => {
     const knownRoute = endpoints.has(pathname)
 
     // check origin host of request
-    const origin =
+    const requestOrigin =
       typeof req.headers.origin === 'string' ? req.headers.origin : undefined
     const threat = intrusion.inspect(req, {
       pathname,
       knownRoute,
-      originAllowed: Boolean(origin && config.urlClient.startsWith(origin)),
-      origin,
+      originAllowed: origin.isAllowed(requestOrigin),
+      origin: requestOrigin,
     })
     if (threat) throw threat
 

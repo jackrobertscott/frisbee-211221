@@ -43,7 +43,7 @@ export default {
           (error as any).statusCode === StatusCodes.FORBIDDEN
         ) {
           if (config.debug) console.log(error.message)
-          return send(res, StatusCodes.FORBIDDEN) // DDOS
+          return send(res, StatusCodes.FORBIDDEN)
         }
 
         if (typeof error === 'string') {
@@ -70,21 +70,25 @@ export default {
       : error.name === 'ValidationError'
       ? StatusCodes.UNPROCESSABLE_ENTITY
       : error.message === 'jwt expired'
-      ? 401
+      ? StatusCodes.UNAUTHORIZED
       : StatusCodes.INTERNAL_SERVER_ERROR
     let status: string = ''
     try {
       status = getReasonPhrase(code)
     } catch (e) {}
+    const message =
+      code === StatusCodes.UNPROCESSABLE_ENTITY
+        ? sentenceCase(error.message).concat('.')
+        : code >= StatusCodes.INTERNAL_SERVER_ERROR && !config.debug
+        ? status || 'Internal Server Error'
+        : error.message || status
     return {
       code,
       status,
-      message:
-        code === StatusCodes.UNPROCESSABLE_ENTITY
-          ? sentenceCase(error.message).concat('.') // { stripRegexp: /[_]+/gi } // strip underscores
-          : error.message,
+      message,
       url: req.url,
       lines:
+        config.debug &&
         typeof error.stack === 'string' &&
         error.stack.split('\n').map((i: string) => i.trim()),
     }

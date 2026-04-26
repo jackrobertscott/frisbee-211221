@@ -1,4 +1,4 @@
-import {TUser} from '@shared/schemas/ioUser'
+import {TUserSafe} from '@shared/schemas/ioUser'
 
 /**
  *
@@ -7,7 +7,7 @@ export const userEmails = {
   /**
    *
    */
-  primary(user: TUser) {
+  primary(user: TUserSafe) {
     if (user.emails?.length) {
       const {value} = user.emails.find((i) => i.primary) ?? user.emails[0]
       return value

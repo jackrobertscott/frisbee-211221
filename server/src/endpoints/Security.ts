@@ -13,10 +13,13 @@ import {createEndpoint} from '../utils/endpoints'
 import gatekeeper from '../utils/gatekeeper'
 import {getGoogleAccessToken, getGoogleUserInfo} from '../utils/google'
 import hash from '../utils/hash'
+import {selectSafeUserFields} from './userSafe'
 import {userEmail} from './userEmail'
 /**
  *
  */
+const INVALID_LOGIN_MESSAGE = 'Email or password is incorrect.'
+
 export default new Map<string, RequestHandler>([
   /**
    *
@@ -27,14 +30,24 @@ export default new Map<string, RequestHandler>([
       ({seasonId}) =>
       async (req) => {
         const auth = await gatekeeper.digestRequest(req)
-        let [user, session] =
-          auth && auth.userId && auth.sessionId
-            ? await Promise.all([
-                $User.maybeOne({id: auth.userId}),
-                $Session.maybeOne({id: auth.sessionId}),
-              ])
-            : []
-        if (user && userEmail.isOld(user)) user = await userEmail.migrate(user)
+        let user: TUser | undefined
+        let session: TSession | undefined
+        if (auth?.userId && auth.sessionId) {
+          const [maybeUser, maybeSession] = await Promise.all([
+            $User.maybeOne({id: auth.userId}),
+            $Session.maybeOne({id: auth.sessionId}),
+          ])
+          if (
+            maybeUser &&
+            maybeSession &&
+            gatekeeper.isSessionValid(auth, maybeSession)
+          ) {
+            user = userEmail.isOld(maybeUser)
+              ? await userEmail.migrate(maybeUser)
+              : maybeUser
+            session = maybeSession
+          }
+        }
         let season: TSeason | undefined
         if (seasonId) season = await $Season.maybeOne({id: seasonId})
         if (!season && user?.lastSeasonId)
@@ -85,11 +98,10 @@ export default new Map<string, RequestHandler>([
       ({seasonId, email, password, userAgent}) =>
       async () => {
         const user = await userEmail.maybeUser(email)
-        if (!user) throw new Error(`User with email ${email} does not exist.`)
-        if (!user.password?.trim().length)
-          throw new Error('User does not have a password.')
-        if (!(await hash.compare(password, user.password)))
-          throw new Error('Password is incorrect.')
+        if (!user?.password?.trim().length) throw new Error(INVALID_LOGIN_MESSAGE)
+        if (!(await hash.compare(password, user.password))) {
+          throw new Error(INVALID_LOGIN_MESSAGE)
+        }
         const session = await gatekeeper.createUserSession(user, userAgent)
         return _addTeamOfSeason(user, session, seasonId)
       },
@@ -143,8 +155,7 @@ export default new Map<string, RequestHandler>([
     ...SecurityForgotDef,
     handler: (email) => async () => {
       const user = await userEmail.maybeUser(email)
-      if (!user) throw new Error(`User with email ${email} does not exist.`)
-      await userEmail.codeSendSave(user, email, 'Restore Account')
+      if (user) await userEmail.codeSendSave(user, email, 'Restore Account')
     },
   }),
   /**
@@ -182,13 +193,13 @@ export default new Map<string, RequestHandler>([
     ...SecurityLogoutDef,
     handler: () => async (req) => {
       const auth = await gatekeeper.digestRequest(req)
-      if (auth) {
-        const session = await $Session.getOne({id: auth.sessionId})
-        await $Session.updateOne(
-          {id: session.id},
-          {ended: true, endedOn: new Date().toISOString()}
-        )
-      }
+      if (!auth) return
+      const session = await $Session.maybeOne({id: auth.sessionId})
+      if (!session || !gatekeeper.isSessionValid(auth, session)) return
+      await $Session.updateOne(
+        {id: session.id},
+        {ended: true, endedOn: new Date().toISOString()}
+      )
     },
   }),
 ])
@@ -196,10 +207,11 @@ export default new Map<string, RequestHandler>([
  *
  */
 export const _addTeamOfSeason = async (
-  user: TUser,
+  rawUser: TUser,
   session: TSession,
   seasonId?: string
 ) => {
+  let user = rawUser
   let team: TTeam | undefined
   if (seasonId) {
     const season = await $Season.getOne({id: seasonId})
@@ -209,11 +221,12 @@ export const _addTeamOfSeason = async (
       pending: false,
     })
     team = member ? await $Team.getOne({id: member.teamId}) : undefined
-    if (user.lastSeasonId !== season.id)
-      await $User.updateOne({id: user.id}, {lastSeasonId: season.id})
+    if (user.lastSeasonId !== season.id) {
+      user = await $User.updateOne({id: user.id}, {lastSeasonId: season.id})
+    }
   }
   return {
-    user,
+    user: selectSafeUserFields(user),
     session,
     team,
   }

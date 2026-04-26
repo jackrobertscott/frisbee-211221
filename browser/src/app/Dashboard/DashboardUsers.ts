@@ -1,5 +1,5 @@
 import {css} from '@emotion/css'
-import {TUser} from '@shared/schemas/ioUser'
+import {TUserSafe} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {
@@ -44,7 +44,7 @@ export const DashboardUsers: FC = () => {
   const pager = usePager()
   const $userList = useEndpoint($UserList)
   const [search, searchSet] = useState('')
-  const [users, usersSet] = useState<TUser[]>()
+  const [users, usersSet] = useState<TUserSafe[]>()
   const [creating, creatingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
   const current = currentId && users?.find((i) => currentId === i.id)
@@ -150,7 +150,7 @@ export const DashboardUsers: FC = () => {
  *
  */
 export const _DashboardUsersCreate: FC<{
-  userSet: (user: TUser) => void
+  userSet: (user: TUserSafe) => void
   close: () => void
 }> = ({userSet, close}) => {
   const $userCreate = useEndpoint($UserCreate)
@@ -242,8 +242,8 @@ export const _DashboardUsersCreate: FC<{
  *
  */
 export const _DashboardUsersView: FC<{
-  user: TUser
-  userSet: (user: TUser) => void
+  user: TUserSafe
+  userSet: (user: TUserSafe) => void
   close: () => void
 }> = ({user, userSet, close}) => {
   const auth = useAuth()
@@ -444,7 +444,7 @@ export const _DashboardUsersView: FC<{
  *
  */
 export const _DashboardUsersViewChangePassword: FC<{
-  user: TUser
+  user: TUserSafe
   close: () => void
 }> = ({user, close}) => {
   const $changePassword = useEndpoint($UserChangePassword)

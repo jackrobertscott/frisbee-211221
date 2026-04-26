@@ -1,4 +1,4 @@
-import {ioUser, ioUserPublic} from '@shared/schemas/ioUser'
+import {ioUserPublic, ioUserSafe} from '@shared/schemas/ioUser'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from 'torva'
 
@@ -10,7 +10,7 @@ export const UserCurrentUpdateDef = {
     gender: io.optional(io.string()),
     avatarUrl: io.optional(io.string()),
   }),
-  result: ioUser,
+  result: ioUserSafe,
 } satisfies TEndpointDef
 
 export const UserCurrentEmailAddDef = {
@@ -18,7 +18,7 @@ export const UserCurrentEmailAddDef = {
   payload: io.object({
     email: io.string(),
   }),
-  result: ioUser,
+  result: ioUserSafe,
 } satisfies TEndpointDef
 
 export const UserCurrentEmailVerifyDef = {
@@ -27,7 +27,7 @@ export const UserCurrentEmailVerifyDef = {
     email: io.string(),
     code: io.string(),
   }),
-  result: ioUser,
+  result: ioUserSafe,
 } satisfies TEndpointDef
 
 export const UserCurrentEmailCodeResendDef = {
@@ -35,7 +35,7 @@ export const UserCurrentEmailCodeResendDef = {
   payload: io.object({
     email: io.string(),
   }),
-  result: ioUser,
+  result: ioUserSafe,
 } satisfies TEndpointDef
 
 export const UserCurrentEmailPrimarySetDef = {
@@ -43,7 +43,7 @@ export const UserCurrentEmailPrimarySetDef = {
   payload: io.object({
     email: io.string(),
   }),
-  result: ioUser,
+  result: ioUserSafe,
 } satisfies TEndpointDef
 
 export const UserCurrentEmailRemoveDef = {
@@ -51,7 +51,7 @@ export const UserCurrentEmailRemoveDef = {
   payload: io.object({
     email: io.string(),
   }),
-  result: ioUser,
+  result: ioUserSafe,
 } satisfies TEndpointDef
 
 export const UserCurrentChangePasswordDef = {
@@ -60,7 +60,7 @@ export const UserCurrentChangePasswordDef = {
     oldPassword: io.string(),
     newPassword: io.string(),
   }),
-  result: ioUser,
+  result: ioUserSafe,
 } satisfies TEndpointDef
 
 export const UserListDef = {
@@ -72,7 +72,7 @@ export const UserListDef = {
   }),
   result: io.object({
     count: io.number(),
-    users: io.array(ioUser),
+    users: io.array(ioUserSafe),
   }),
 } satisfies TEndpointDef
 
@@ -93,7 +93,7 @@ export const UserCreateDef = {
     gender: io.string(),
     termsAccepted: io.boolean(),
   }),
-  result: ioUser,
+  result: ioUserSafe,
 } satisfies TEndpointDef
 
 export const UserUpdateDef = {
@@ -105,7 +105,7 @@ export const UserUpdateDef = {
     gender: io.optional(io.string()),
     avatarUrl: io.optional(io.string()),
   }),
-  result: ioUser,
+  result: ioUserSafe,
 } satisfies TEndpointDef
 
 export const UserToggleAdminDef = {
@@ -113,7 +113,7 @@ export const UserToggleAdminDef = {
   payload: io.object({
     userId: io.string(),
   }),
-  result: ioUser,
+  result: ioUserSafe,
 } satisfies TEndpointDef
 
 export const UserMergeDef = {
@@ -122,7 +122,7 @@ export const UserMergeDef = {
     user1Id: io.string(),
     user2Id: io.string(),
   }),
-  result: ioUser,
+  result: ioUserSafe,
 } satisfies TEndpointDef
 
 export const UserChangePasswordDef = {
@@ -131,5 +131,5 @@ export const UserChangePasswordDef = {
     userId: io.string(),
     newPassword: io.string(),
   }),
-  result: ioUser,
+  result: ioUserSafe,
 } satisfies TEndpointDef

@@ -46,7 +46,7 @@ const config: {
 } = {
   env: env.NODE_ENV || 'development',
   prod: !env.URL_CLIENT?.startsWith('http://localhost'),
-  debug: true,
+  debug: env.DEBUG === 'true' || env.NODE_ENV !== 'production',
   port: +env.PORT,
   appName: env.APP_NAME,
   urlClient: env.URL_CLIENT,

@@ -1,4 +1,4 @@
-import {TUser} from '@shared/schemas/ioUser'
+import {TUserSafe} from '@shared/schemas/ioUser'
 import {createElement as $, FC, Fragment, useState} from 'react'
 import {
   $UserCurrentEmailAdd,
@@ -213,7 +213,7 @@ export const SettingsAccount: FC = () => {
  *
  */
 const _SettingsAccountEmailNew: FC<{
-  userSet: (user: TUser, email: string) => void
+  userSet: (user: TUserSafe, email: string) => void
   close: () => void
 }> = ({userSet, close}) => {
   const [value, valueSet] = useState('')
@@ -260,7 +260,7 @@ const _SettingsAccountEmailNew: FC<{
  */
 const _SettingsAccountEmailVerify: FC<{
   email: string
-  userSet: (user: TUser) => void
+  userSet: (user: TUserSafe) => void
   close: () => void
 }> = ({email, userSet, close}) => {
   const toaster = useToaster()

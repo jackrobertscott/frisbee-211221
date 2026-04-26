@@ -13,6 +13,14 @@ import {getSignedUrl} from '@aws-sdk/s3-request-presigner'
 const s3Client = new S3Client({
   region: config.AWSBucketRegion,
 })
+
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
+const MAX_UPLOAD_FILES = 1
+const MAX_UPLOAD_FIELDS = 16
+
+const cleanupFiles = async (filepaths: string[]) => {
+  await Promise.all(filepaths.map((filepath) => fs.remove(filepath).catch(() => {})))
+}
 /**
  *
  */
@@ -21,41 +29,107 @@ export const blob = {
    *
    */
   digestRequest(req: IncomingMessage) {
-    const busboy = createBusboy({
-      headers: req.headers as any,
-    })
-    const fields = new Map<string, string | undefined>()
-    const files: Array<{
-      filepath: string
-      filename: string
-      extension: string
-      mimetype: string
-      encoding: string
-    }> = []
-    busboy.on('field', (fieldname, val) => fields.set(fieldname, val))
-    busboy.on('file', (fieldname, file, {filename, encoding, mimeType}) => {
-      const filepath = path.join(os.tmpdir(), path.basename(fieldname))
-      const extension = path.extname(filename).toLowerCase()
-      file.pipe(fs.createWriteStream(filepath))
-      files.push({
-        filename,
-        filepath,
-        extension,
-        mimetype: mimeType,
-        encoding,
+    return new Promise<
+      [
+        Array<{
+          filepath: string
+          filename: string
+          extension: string
+          mimetype: string
+          encoding: string
+        }>,
+        Map<string, string | undefined>,
+      ]
+    >((resolve, reject) => {
+      const busboy = createBusboy({
+        headers: req.headers as any,
+        limits: {
+          fileSize: MAX_UPLOAD_BYTES,
+          files: MAX_UPLOAD_FILES,
+          fields: MAX_UPLOAD_FIELDS,
+        },
       })
+      const fields = new Map<string, string | undefined>()
+      const files: Array<{
+        filepath: string
+        filename: string
+        extension: string
+        mimetype: string
+        encoding: string
+      }> = []
+      const filepaths: string[] = []
+      const uploads: Promise<void>[] = []
+      let done = false
+
+      const fail = async (error: unknown) => {
+        if (done) return
+        done = true
+        await cleanupFiles(filepaths)
+        reject(error instanceof Error ? error : new Error(String(error)))
+      }
+
+      req.on('aborted', () => fail(new Error('Upload was aborted.')))
+      req.on('error', fail)
+      busboy.on('field', (fieldname, val) => fields.set(fieldname, val))
+      busboy.on('filesLimit', () => fail(new Error('Too many files were uploaded.')))
+      busboy.on('fieldsLimit', () => fail(new Error('Too many fields were uploaded.')))
+      busboy.on('partsLimit', () => fail(new Error('Too many parts were uploaded.')))
+      busboy.on('error', fail)
+
+      busboy.on('file', (fieldname, file, {filename, encoding, mimeType}) => {
+        if (!filename?.trim()) {
+          file.resume()
+          return
+        }
+        const extension = path.extname(filename).toLowerCase()
+        const filepath = path.join(
+          os.tmpdir(),
+          `upload-${random.generateId()}${extension || '.bin'}`
+        )
+        filepaths.push(filepath)
+        const output = fs.createWriteStream(filepath, {flags: 'wx'})
+        const upload = new Promise<void>((ok, no) => {
+          output.on('finish', ok)
+          output.on('error', no)
+          file.on('error', no)
+          file.on('limit', () => no(new Error('Upload exceeded size limit.')))
+        }).catch((error) => {
+          if (!done) throw error
+        })
+        file.pipe(output)
+        files.push({
+          filename,
+          filepath,
+          extension,
+          mimetype: mimeType,
+          encoding,
+        })
+        uploads.push(upload)
+      })
+
+      busboy.on('finish', async () => {
+        if (done) return
+        try {
+          await Promise.all(uploads)
+          done = true
+          resolve([files, fields])
+        } catch (error) {
+          await fail(error)
+        }
+      })
+
+      req.pipe(busboy)
     })
-    const uploadPromise = new Promise<[typeof files, typeof fields]>((ok) => {
-      busboy.on('finish', () => ok([files, fields]))
-    })
-    req.pipe(busboy)
-    return uploadPromise
   },
   /**
    *
    */
   async filepathBuffer(filepath: string) {
-    return fs.readFile(filepath)
+    try {
+      return await fs.readFile(filepath)
+    } finally {
+      await fs.remove(filepath).catch(() => {})
+    }
   },
   /**
    *

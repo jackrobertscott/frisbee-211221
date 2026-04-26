@@ -1,6 +1,7 @@
+import {StatusCodes} from 'http-status-codes'
 import {json, RequestHandler} from 'micro'
 import {TypeIoAll, TypeIoValue} from 'torva'
-import config from '../config'
+import {origin} from './origin'
 /**
  *
  */
@@ -20,8 +21,13 @@ export const createEndpoint = <P extends TypeIoAll>({
   return [
     path,
     async (req, res) => {
-      if (!unsafe && req.headers.origin !== config.urlClient)
-        throw new Error('Request origin not valid.')
+      const requestOrigin =
+        typeof req.headers.origin === 'string' ? req.headers.origin : undefined
+      if (!unsafe && !origin.isAllowed(requestOrigin)) {
+        const error: any = new Error('Request origin not valid.')
+        error.statusCode = StatusCodes.FORBIDDEN
+        throw error
+      }
       const body: any = multipart ? {} : await json(req)
       let result: any
       if (payload) {

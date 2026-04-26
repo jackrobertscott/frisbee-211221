@@ -1,7 +1,7 @@
 import {ioSeason} from '@shared/schemas/ioSeason'
 import {ioSession} from '@shared/schemas/ioSession'
 import {ioTeam} from '@shared/schemas/ioTeam'
-import {ioUser} from '@shared/schemas/ioUser'
+import {ioUserSafe} from '@shared/schemas/ioUser'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from 'torva'
 
@@ -9,7 +9,7 @@ import {io} from 'torva'
  * Auth payload shared between endpoints
  */
 export const ioAuthPayload = io.object({
-  user: ioUser,
+  user: ioUserSafe,
   session: ioSession,
   season: io.optional(ioSeason),
   team: io.optional(ioTeam),

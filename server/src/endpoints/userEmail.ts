@@ -1,12 +1,18 @@
 import {TUser, TUserEmail} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
 import {$User} from '../tables/$User'
+import hash from '../utils/hash'
 import {mail} from '../utils/mail'
 import {random} from '../utils/random'
 import {regex} from '../utils/regex'
 /**
  *
  */
+const normalizeCode = (value: string) =>
+  value.split('-').join('').split(' ').join('').trim().toUpperCase()
+
+const isHashedCode = (value: string) => /^[a-f0-9]{64}$/i.test(value)
+
 export const userEmail = {
   /**
    *
@@ -24,10 +30,11 @@ export const userEmail = {
    *
    */
   create(email: string, primary: boolean = false, code?: string) {
+    const rawCode = normalizeCode(code ?? random.randomString(8))
     return {
       value: email,
       verified: false,
-      code: code ?? random.randomString(8).toUpperCase(),
+      code: hash.digest(rawCode),
       createdOn: new Date().toISOString(),
       primary,
     }
@@ -54,7 +61,8 @@ export const userEmail = {
     if (await userEmail.maybeUser(email))
       throw new Error('Another account already has this email.')
     const i = userEmail.create(email)
-    i.code = await userEmail.codeSend(i.value, user.firstName, 'Verify Email')
+    const rawCode = await userEmail.codeSend(i.value, user.firstName, 'Verify Email')
+    i.code = hash.digest(normalizeCode(rawCode))
     const emails = user.emails ? [...user.emails, i] : [i]
     return $User.updateOne({id: user.id}, {emails})
   },
@@ -105,7 +113,7 @@ export const userEmail = {
    *
    */
   async codeSend(email: string, firstName: string, subject: string) {
-    const code = random.randomString(8).toUpperCase()
+    const code = normalizeCode(random.randomString(8))
     const codeSliced = `${code.slice(0, 4)}-${code.slice(4, 8)}`
     await mail.send({
       to: [email],
@@ -134,7 +142,7 @@ export const userEmail = {
     const data = emails[index]
     emails.splice(index, 1, {
       ...data,
-      code,
+      code: hash.digest(normalizeCode(code)),
       createdOn: new Date().toISOString(),
     })
     return $User.updateOne({id: user.id}, {emails})
@@ -145,7 +153,10 @@ export const userEmail = {
   isCodeEqual(user: TUser, email: string, code: string) {
     const data = userEmail.get(user, email)
     if (!data) throw new Error('Email does not exist on user.')
-    return data.code === code.split('-').join('').split(' ').join('')
+    const normalizedCode = normalizeCode(code)
+    return isHashedCode(data.code)
+      ? hash.equals(normalizedCode, data.code)
+      : data.code === normalizedCode
   },
   /**
    *

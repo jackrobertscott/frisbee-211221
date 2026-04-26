@@ -12,6 +12,8 @@ export const requireUser = async (req: IncomingMessage) => {
     $User.getOne({id: auth.userId}),
     $Session.getOne({id: auth.sessionId}),
   ])
-  if (session.ended) throw new Error('Your current session has ended.')
+  if (!gatekeeper.isSessionValid(auth, session)) {
+    throw new Error('Auth token is not valid.')
+  }
   return [user, session] as const
 }

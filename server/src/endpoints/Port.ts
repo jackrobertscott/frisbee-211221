@@ -1,4 +1,3 @@
-import {randAnimal, randEmail, randFirstName, randLastName} from '@ngneat/falso'
 import {random} from '@server/utils/random'
 import {
   PortDeleteAllMockDataDef,
@@ -159,17 +158,14 @@ export default new Map<string, RequestHandler>([
       }[]
 
       while (teams.length < body.teams) {
-        const teamName = randAnimal() + 's'
-        if (!teams.some((t) => t.name === teamName)) {
-          teams.push({
-            id: random.generateId(),
-            isMock: true,
-            seasonId: season.id,
-            name: teamName,
-            color: `hsla(${Math.floor(Math.random() * 36) * 10}, 100%, 65%, 1)`,
-            division: 1,
-          })
-        }
+        teams.push({
+          id: random.generateId(),
+          isMock: true,
+          seasonId: season.id,
+          name: _mockTeamName(teams.length),
+          color: `hsla(${Math.floor(Math.random() * 36) * 10}, 100%, 65%, 1)`,
+          division: 1,
+        })
       }
 
       const users = [] as {
@@ -194,9 +190,9 @@ export default new Map<string, RequestHandler>([
       for (const team of teams) {
         const teamUsers = [] as typeof users
         while (teamUsers.length < body.usersPerTeam) {
-          const firstName = randFirstName()
-          const lastName = randLastName()
-          const email = randEmail({firstName, lastName})
+          const firstName = _randFirstName()
+          const lastName = _randLastName()
+          const email = _randEmail(firstName, lastName)
           if (!teamUsers.some((u) => u.emails[0].value === email)) {
             const user = {
               id: random.generateId(),
@@ -230,9 +226,9 @@ export default new Map<string, RequestHandler>([
       }
 
       await mongo.transaction(async () => {
-        $Member.createMany(members)
-        $Team.createMany(teams)
-        $User.createMany(users)
+        await $Member.createMany(members)
+        await $Team.createMany(teams)
+        await $User.createMany(users)
       })
     },
   }),
@@ -260,6 +256,71 @@ export default new Map<string, RequestHandler>([
     },
   }),
 ])
+
+const MOCK_ANIMALS = [
+  'Falcon',
+  'Otter',
+  'Puma',
+  'Shark',
+  'Wolf',
+  'Eagle',
+  'Panther',
+  'Fox',
+  'Raven',
+  'Lynx',
+  'Tiger',
+  'Bear',
+]
+
+const MOCK_FIRST_NAMES = [
+  'Alex',
+  'Taylor',
+  'Jordan',
+  'Sam',
+  'Casey',
+  'Riley',
+  'Jamie',
+  'Cameron',
+  'Morgan',
+  'Avery',
+  'Quinn',
+  'Parker',
+]
+
+const MOCK_LAST_NAMES = [
+  'Smith',
+  'Johnson',
+  'Williams',
+  'Brown',
+  'Jones',
+  'Miller',
+  'Davis',
+  'Wilson',
+  'Taylor',
+  'Clark',
+  'Evans',
+  'Hall',
+]
+
+const _pick = (values: string[]) => values[Math.floor(Math.random() * values.length)]
+
+const _slugify = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '.')
+
+
+const _mockTeamName = (index: number) => {
+  const animal = MOCK_ANIMALS[index % MOCK_ANIMALS.length]
+  const base = `${animal}s`
+  const cycle = Math.floor(index / MOCK_ANIMALS.length)
+  return cycle > 0 ? `${base} ${cycle + 1}` : base
+}
+
+const _randFirstName = () => _pick(MOCK_FIRST_NAMES)
+
+const _randLastName = () => _pick(MOCK_LAST_NAMES)
+
+const _randEmail = (firstName: string, lastName: string) => {
+  return `${_slugify(firstName)}.${_slugify(lastName)}.${random.randomString(6).toLowerCase()}@example.com`
+}
 /**
  *
  */
@@ -301,7 +362,6 @@ const _createUsersFromObjects = async (
   seasonId: string
 ) => {
   const userCSVEmailList = [] as string[]
-  console.log(JSON.stringify(objects.slice(0, 5)))
   let userCSVList = objects
     .map((i) => ({
       _team: i.team_name,

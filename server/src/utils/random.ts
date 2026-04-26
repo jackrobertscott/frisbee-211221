@@ -1,3 +1,5 @@
+import {randomInt} from 'crypto'
+
 export const random = {
   /**
    *
@@ -11,8 +13,7 @@ export const random = {
     let value = ''
     const max = this.alphanumerics.length
     for (let i = 0; i < length; i++) {
-      let q = Math.floor(Math.random() * max)
-      value += this.alphanumerics[q]
+      value += this.alphanumerics[randomInt(0, max)]
     }
     return value
   },

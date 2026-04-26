@@ -1,7 +1,7 @@
 import {TSeason} from '@shared/schemas/ioSeason'
 import {TSession} from '@shared/schemas/ioSession'
 import {TTeam} from '@shared/schemas/ioTeam'
-import {TUser} from '@shared/schemas/ioUser'
+import {TUserSafe} from '@shared/schemas/ioUser'
 import {createContext} from 'react'
 import {contextNoop} from '../../utils/context'
 /**
@@ -12,7 +12,7 @@ export interface TAuth {
   created: string
   userId: string
   session: TSession
-  user: TUser
+  user: TUserSafe
   team?: TTeam
 }
 /**
@@ -20,7 +20,7 @@ export interface TAuth {
  */
 export interface TAuthPayload {
   session: TSession
-  user: TUser
+  user: TUserSafe
   team?: TTeam
 }
 /**
@@ -32,7 +32,7 @@ export interface TAuthContext {
   current?: TAuth
   login: (data: TAuthPayload) => void
   logout: () => void
-  userSet: (user: TUser) => void
+  userSet: (user: TUserSafe) => void
   teamSet: (team?: TTeam) => void
   seasonSet: (season: TSeason, noReload?: boolean) => void
   isAdmin: () => boolean

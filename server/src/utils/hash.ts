@@ -1,4 +1,7 @@
+import {createHmac, timingSafeEqual} from 'crypto'
 import bcrypt from 'bcryptjs'
+import config from '../config'
+import {random} from './random'
 /**
  *
  */
@@ -20,9 +23,21 @@ export default {
   /**
    *
    */
+  digest(value: string) {
+    return createHmac('sha256', config.jwtSecret).update(value).digest('hex')
+  },
+  /**
+   *
+   */
+  equals(value: string, expected: string) {
+    const left = Buffer.from(this.digest(value), 'utf8')
+    const right = Buffer.from(expected, 'utf8')
+    return left.length === right.length && timingSafeEqual(left, right)
+  },
+  /**
+   *
+   */
   randomString(length?: number) {
-    let data = Math.random().toString().slice(2)
-    if (length) data = data.slice(0, length)
-    return data
+    return random.randomString(length)
   },
 }
