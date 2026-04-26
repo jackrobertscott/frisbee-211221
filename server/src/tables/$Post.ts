@@ -1,9 +1,7 @@
 import {ioPost} from '@shared/schemas/ioPost'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-/**
- *
- */
+
 export const $Post = db.table({
   key: 'post',
   index: ['id'],

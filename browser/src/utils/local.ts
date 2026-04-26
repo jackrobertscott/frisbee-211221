@@ -1,7 +1,5 @@
 export const local = {
-  /**
-   *
-   */
+
   get(key: string) {
     try {
       const raw = localStorage.getItem(key)
@@ -11,9 +9,7 @@ export const local = {
       return undefined
     }
   },
-  /**
-   *
-   */
+
   set(key: string, value: any) {
     try {
       const data = JSON.stringify(value)
@@ -22,9 +18,7 @@ export const local = {
       localStorage.removeItem(key)
     }
   },
-  /**
-   *
-   */
+
   remove(key: string) {
     localStorage.removeItem(key)
   },

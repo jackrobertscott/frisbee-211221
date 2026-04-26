@@ -2,9 +2,7 @@ import {css} from '@emotion/css'
 import {createElement as $, FC, useState} from 'react'
 import {theme} from '../../theme'
 import {isDefined} from '../../utils/coerce'
-/**
- *
- */
+
 export const InputNumber: FC<{
   value?: number
   valueSet: (value?: number) => void

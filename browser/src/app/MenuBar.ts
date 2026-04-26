@@ -5,9 +5,7 @@ import {createElement as $, FC, ReactNode} from 'react'
 import {theme} from '../theme'
 import {hsla, THSLA} from '../utils/hsla'
 import {slideright} from '../utils/keyframes'
-/**
- *
- */
+
 export const MenuBar: FC<{
   children: ReactNode
   horizon?: boolean
@@ -37,9 +35,7 @@ export const MenuBar: FC<{
     }),
   })
 }
-/**
- *
- */
+
 export const MenuBarOption: FC<{
   icon?: string
   label: string
@@ -73,9 +69,7 @@ export const MenuBarOption: FC<{
     }),
   })
 }
-/**
- *
- */
+
 export const MenuBarSpacer: FC = () => {
   return $('div', {
     className: css({
@@ -83,9 +77,7 @@ export const MenuBarSpacer: FC = () => {
     }),
   })
 }
-/**
- *
- */
+
 export const MenuBarShadow: FC<{
   click: () => void
   deactivated?: boolean

@@ -1,9 +1,7 @@
 import {createElement as $, FC, ReactNode, useEffect, useState} from 'react'
 import {useDrip} from '../useThrottle'
 import {MediaContext} from './MediaContext'
-/**
- *
- */
+
 export const MediaProvider: FC<{children: ReactNode}> = ({children}) => {
   const sizeGet = () => ({width: window.innerWidth, height: window.innerHeight})
   const [{width, height}, _sizeSet] = useState(sizeGet)

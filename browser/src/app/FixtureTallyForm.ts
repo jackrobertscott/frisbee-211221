@@ -23,17 +23,13 @@ import {Table} from './Table'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
-/**
- *
- */
+
 interface TFixtureForm {
   title: string
   date: string
   games: TFixture['games']
 }
-/**
- *
- */
+
 export const FixtureTallyForm: FC<{
   fixture: TFixture
   loading?: boolean

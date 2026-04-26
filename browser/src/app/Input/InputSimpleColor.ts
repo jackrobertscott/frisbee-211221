@@ -3,9 +3,7 @@ import {createElement as $, FC} from 'react'
 import {theme} from '../../theme'
 import {SIMPLE_COLORS} from '../../utils/colors'
 import {Icon} from '../Icon'
-/**
- *
- */
+
 export const InputSimpleColor: FC<{
   value?: string
   valueSet?: (value: string) => void

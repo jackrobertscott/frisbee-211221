@@ -14,9 +14,7 @@ import {PostCreate} from '../PostCreate'
 import {PostView} from '../PostView'
 import {Spinner} from '../Spinner'
 import {useEndpoint} from '../useEndpoint'
-/**
- *
- */
+
 export const DashboardForum: FC = () => {
   const auth = useAuth()
   const [viewId, viewIdSet] = useState<string>()
@@ -86,9 +84,7 @@ export const DashboardForum: FC = () => {
     ]),
   })
 }
-/**
- *
- */
+
 const _NewsPost: FC<{
   post: TPost
   user?: TUserPublic

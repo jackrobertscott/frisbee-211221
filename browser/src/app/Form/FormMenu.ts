@@ -4,9 +4,7 @@ import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {hsla} from '../../utils/hsla'
 import {Icon} from '../Icon'
-/**
- *
- */
+
 export const FormMenu: FC<{
   options: Array<{
     key?: string

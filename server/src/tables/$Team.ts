@@ -1,9 +1,7 @@
 import {ioTeam} from '@shared/schemas/ioTeam'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-/**
- *
- */
+
 export const $Team = db.table({
   key: 'team',
   index: ['id'],

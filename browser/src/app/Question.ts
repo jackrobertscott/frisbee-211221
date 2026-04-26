@@ -7,9 +7,7 @@ import {FormBadge} from './Form/FormBadge'
 import {Modal} from './Modal'
 import {Poster} from './Poster'
 import {TopBar, TopBarBadge} from './TopBar'
-/**
- *
- */
+
 export const Question: FC<{
   title: string
   description: string

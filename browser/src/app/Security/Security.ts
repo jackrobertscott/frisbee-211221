@@ -16,9 +16,7 @@ import {SecurityLogin} from './SecurityLogin'
 import {SecuritySignUp} from './SecuritySignUp'
 import {SecurityStatus, TSecurityStatus} from './SecurityStatus'
 import {SecurityVerify} from './SecurityVerify'
-/**
- *
- */
+
 export const Security: FC = () => {
   const [status, statusSet] = useState<TSecurityStatus>()
   const [savedEmail, savedEmailSet] = useLocalState('frisbee.savedEmail', '')

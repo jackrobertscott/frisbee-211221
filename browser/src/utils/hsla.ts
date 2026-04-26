@@ -1,9 +1,7 @@
 import {theme} from '../theme'
 
 export const hsla = {
-  /**
-   *
-   */
+
   create(h: number = 0, s: number = 0, l: number = 0, a: number = 1) {
     return {
       h,
@@ -49,33 +47,23 @@ export const hsla = {
       },
     }
   },
-  /**
-   *
-   */
+
   string(h: number = 0, s: number = 0, l: number = 0, a: number = 1) {
     return `hsla(${h}, ${s}%, ${l}%, ${a})`
   },
-  /**
-   *
-   */
+
   digest(value: string) {
     const data = value.match(this.regex)
     const [_, _h = 0, _s = 50, _l = 50, _a = 1] = data || []
     const [h, s, l, a] = [_h, _s, _l, _a].map((i) => parseFloat(i.toString()))
     return this.create(h, s, l, a)
   },
-  /**
-   *
-   */
+
   validate(value: string) {
     return this.regex.test(value)
   },
-  /**
-   *
-   */
+
   regex: /^hsla\((\d+),\s*([\d.]+)%,\s*([\d.]+)%,\s*(\d*(?:\.\d+)?)\)$/,
 }
-/**
- *
- */
+
 export type THSLA = ReturnType<typeof hsla.create>

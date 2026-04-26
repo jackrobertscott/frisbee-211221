@@ -37,9 +37,7 @@ import {Spinner} from './Spinner'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
-/**
- *
- */
+
 export const PostView: FC<{
   post: TPost
   user?: TUserPublic
@@ -249,9 +247,7 @@ export const PostView: FC<{
     ]),
   })
 }
-/**
- *
- */
+
 const _PostViewComment: FC<{
   post: TPost
   comment: TComment
@@ -395,9 +391,7 @@ const _PostViewComment: FC<{
     ]),
   })
 }
-/**
- *
- */
+
 const _PostViewCommentContent: FC<{
   comment: TComment
   user?: TUserPublic

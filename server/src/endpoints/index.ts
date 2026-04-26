@@ -9,9 +9,7 @@ import Security from './Security'
 import Team from './Team'
 import User from './User'
 import Port from './Port'
-/**
- *
- */
+
 export default new Map<string, RequestHandler>([
   ...Comment.entries(),
   ...Fixture.entries(),

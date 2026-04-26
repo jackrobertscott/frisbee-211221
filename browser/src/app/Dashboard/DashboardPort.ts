@@ -22,9 +22,7 @@ import {Question} from '../Question'
 import {useToaster} from '../Toaster/useToaster'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
-/**
- *
- */
+
 export const DashboardPort: FC = () => {
   const auth = useAuth()
   const toaster = useToaster()
@@ -137,9 +135,7 @@ export const DashboardPort: FC = () => {
     ]),
   })
 }
-/**
- *
- */
+
 export const _DashboardImport: FC<{
   done: () => void
   close: () => void

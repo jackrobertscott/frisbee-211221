@@ -29,9 +29,6 @@ import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {MissingReportsModal} from './MissingReportsModal'
 
-/**
- *
- */
 export const DashboardLadder: FC = () => {
   const auth = useAuth()
   const media = useMedia()
@@ -256,9 +253,7 @@ export const DashboardLadder: FC = () => {
     ]),
   })
 }
-/**
- *
- */
+
 const _LadderFixture: FC<{
   fixture: TFixture
   teams: TTeam[]
@@ -362,9 +357,7 @@ const _LadderFixture: FC<{
     ]),
   })
 }
-/**
- *
- */
+
 const _LadderDivision: FC<{
   teams: TTeam[]
   tally: Record<string, TTallyChart | undefined>
@@ -429,9 +422,7 @@ const _LadderDivision: FC<{
     ]),
   })
 }
-/**
- *
- */
+
 export const FinalResultsForm: FC<{
   teams: TTeam[]
   divisions: number[]

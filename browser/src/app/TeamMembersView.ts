@@ -27,9 +27,7 @@ import {useToaster} from './Toaster/useToaster'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
-/**
- *
- */
+
 export const TeamMembersView: FC<{team: TTeam}> = ({team}) => {
   const auth = useAuth()
   const toaster = useToaster()
@@ -221,9 +219,7 @@ export const TeamMembersView: FC<{team: TTeam}> = ({team}) => {
     ]),
   })
 }
-/**
- *
- */
+
 const _TeamMembersViewCreate: FC<{
   team: TTeam
   close: () => void

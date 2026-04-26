@@ -1,9 +1,7 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
 import {spin} from '../utils/keyframes'
-/**
- *
- */
+
 export const Icon: FC<{
   icon: string
   prefix?: string

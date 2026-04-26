@@ -1,7 +1,5 @@
 import {io, TypeIoValue} from 'torva'
-/**
- *
- */
+
 export const ioUserEmail = io.object({
   value: io.string(),
   verified: io.boolean(),
@@ -9,26 +7,18 @@ export const ioUserEmail = io.object({
   createdOn: io.date(),
   primary: io.boolean(),
 })
-/**
- *
- */
+
 export type TUserEmail = TypeIoValue<typeof ioUserEmail>
-/**
- *
- */
+
 export const ioUserEmailSafe = io.object({
   value: io.string(),
   verified: io.boolean(),
   createdOn: io.date(),
   primary: io.boolean(),
 })
-/**
- *
- */
+
 export type TUserEmailSafe = TypeIoValue<typeof ioUserEmailSafe>
-/**
- *
- */
+
 export const ioUser = io.object({
   id: io.string(),
   createdOn: io.date(),
@@ -47,13 +37,9 @@ export const ioUser = io.object({
   termsAccepted: io.boolean(),
   lastSeasonId: io.optional(io.string()),
 })
-/**
- *
- */
+
 export type TUser = TypeIoValue<typeof ioUser>
-/**
- *
- */
+
 export const ioUserSafe = io.object({
   id: io.string(),
   createdOn: io.date(),
@@ -71,13 +57,9 @@ export const ioUserSafe = io.object({
   termsAccepted: io.boolean(),
   lastSeasonId: io.optional(io.string()),
 })
-/**
- *
- */
+
 export type TUserSafe = TypeIoValue<typeof ioUserSafe>
-/**
- *
- */
+
 export const ioUserPublic = io.object({
   id: io.string(),
   createdOn: io.date(),
@@ -87,7 +69,5 @@ export const ioUserPublic = io.object({
   gender: io.string(),
   avatarUrl: io.optional(io.string().trim()),
 })
-/**
- *
- */
+
 export type TUserPublic = TypeIoValue<typeof ioUserPublic>

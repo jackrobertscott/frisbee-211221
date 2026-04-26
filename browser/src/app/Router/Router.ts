@@ -4,9 +4,7 @@ import {useMountedRef} from '../useMountedRef'
 import {TRoute, TRouteParams, TRouteQuery} from './RouterContext'
 import {RouterProvider} from './RouterProvider'
 import {useRouter} from './useRouter'
-/**
- *
- */
+
 interface TRouterRenderContext {
   current: TRoute
   routes: TRoute[]
@@ -14,9 +12,7 @@ interface TRouterRenderContext {
   query: TRouteQuery
   go: (path: string) => void
 }
-/**
- *
- */
+
 export const Router: FC<{
   prefix?: string
   fallback: TRoute['path']
@@ -72,9 +68,7 @@ export const Router: FC<{
     location,
   })
 }
-/**
- *
- */
+
 const _parseRoute = (
   path: string,
   exact?: boolean

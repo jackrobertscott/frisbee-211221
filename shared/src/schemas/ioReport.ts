@@ -1,7 +1,5 @@
 import {io, TypeIoValue} from 'torva'
-/**
- *
- */
+
 export const ioReport = io.object({
   id: io.string(),
   createdOn: io.date(),
@@ -28,7 +26,5 @@ export const ioReport = io.object({
   spiritP4: io.optional(io.number()), // Attitude and Self-Control
   spiritP5: io.optional(io.number()), // Communication
 })
-/**
- *
- */
+
 export type TReport = TypeIoValue<typeof ioReport>

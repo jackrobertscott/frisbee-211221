@@ -1,12 +1,8 @@
 export const random = {
-  /**
-   *
-   */
+
   alphanumerics:
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.split(''),
-  /**
-   *
-   */
+
   randomString(length: number = 10) {
     let value = ''
     const max = this.alphanumerics.length

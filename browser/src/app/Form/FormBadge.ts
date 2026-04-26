@@ -6,9 +6,7 @@ import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {THSLA} from '../../utils/hsla'
 import {Icon} from '../Icon'
-/**
- *
- */
+
 export interface TFormBadge {
   icon?: string
   multiple?: number
@@ -26,9 +24,7 @@ export interface TFormBadge {
   style?: CSSObject
   wrap?: boolean
 }
-/**
- *
- */
+
 export const FormBadge: FC<TFormBadge> = ({
   icon,
   multiple,

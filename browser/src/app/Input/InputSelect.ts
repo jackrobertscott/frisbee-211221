@@ -6,18 +6,14 @@ import {hsla} from '../../utils/hsla'
 import {FormMenu} from '../Form/FormMenu'
 import {Icon} from '../Icon'
 import {Popup} from '../Popup'
-/**
- *
- */
+
 export interface TSelectOption {
   key: string
   label: string
   icon?: string
   color?: string
 }
-/**
- *
- */
+
 export const InputSelect: FC<{
   value?: string
   valueSet?: (value: string) => void

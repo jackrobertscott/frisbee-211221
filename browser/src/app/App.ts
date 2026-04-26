@@ -11,9 +11,7 @@ import {SeasonSetup} from './SeasonSetup'
 import {Security} from './Security/Security'
 import {Spinner} from './Spinner'
 import {useReload} from './useReload'
-/**
- *
- */
+
 export const App: FC = () => {
   useReload()
   const router = useRouter()
@@ -34,9 +32,7 @@ export const App: FC = () => {
     }),
   })
 }
-/**
- *
- */
+
 const _AppGuard: FC = () => {
   const auth = useAuth()
   if (!auth.loaded) return $(_AppLoading)
@@ -57,9 +53,7 @@ const _AppGuard: FC = () => {
     ],
   })
 }
-/**
- *
- */
+
 const _AppLoading: FC = () => {
   return $(Center, {
     breakpoint: 0,

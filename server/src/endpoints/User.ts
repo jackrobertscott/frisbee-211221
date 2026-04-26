@@ -15,13 +15,9 @@ import {requireUserAdmin} from './requireUserAdmin'
 import {selectPublicUserFields} from './userPublic'
 import {selectSafeUserFields} from './userSafe'
 import {userEmail} from './userEmail'
-/**
- *
- */
+
 export default new Map<string, RequestHandler>([
-  /**
-   *
-   */
+
   createEndpoint({
     ...UserCurrentUpdateDef,
     handler: (body) => async (req) => {
@@ -36,9 +32,7 @@ export default new Map<string, RequestHandler>([
       return selectSafeUserFields(next)
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...UserCurrentEmailAddDef,
     handler:
@@ -48,9 +42,7 @@ export default new Map<string, RequestHandler>([
         return selectSafeUserFields(await userEmail.add(user, email))
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...UserCurrentEmailVerifyDef,
     handler:
@@ -67,9 +59,7 @@ export default new Map<string, RequestHandler>([
         return selectSafeUserFields(await userEmail.verify(user, email))
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...UserCurrentEmailCodeResendDef,
     handler:
@@ -81,9 +71,7 @@ export default new Map<string, RequestHandler>([
         )
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...UserCurrentEmailPrimarySetDef,
     handler:
@@ -93,9 +81,7 @@ export default new Map<string, RequestHandler>([
         return selectSafeUserFields(await userEmail.primarySet(user, email))
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...UserCurrentEmailRemoveDef,
     handler:
@@ -105,9 +91,7 @@ export default new Map<string, RequestHandler>([
         return selectSafeUserFields(await userEmail.remove(user, email))
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...UserCurrentChangePasswordDef,
     handler: (body) => async (req) => {
@@ -122,9 +106,7 @@ export default new Map<string, RequestHandler>([
       return selectSafeUserFields(user)
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...UserListDef,
     handler: (body) => async (req) => {
@@ -149,9 +131,7 @@ export default new Map<string, RequestHandler>([
       return {count, users: users.map(selectSafeUserFields)}
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...UserListManyByIdDef,
     handler: (body) => async (req) => {
@@ -160,9 +140,7 @@ export default new Map<string, RequestHandler>([
       return users.map(selectPublicUserFields)
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...UserCreateDef,
     handler:
@@ -178,9 +156,7 @@ export default new Map<string, RequestHandler>([
         return selectSafeUserFields(user)
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...UserUpdateDef,
     handler:
@@ -195,9 +171,7 @@ export default new Map<string, RequestHandler>([
         return selectSafeUserFields(next)
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...UserToggleAdminDef,
     handler: (body) => async (req) => {
@@ -207,9 +181,7 @@ export default new Map<string, RequestHandler>([
       return selectSafeUserFields(next)
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...UserMergeDef,
     handler:
@@ -299,9 +271,7 @@ export default new Map<string, RequestHandler>([
         return selectSafeUserFields(user1)
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...UserChangePasswordDef,
     handler: (body) => async (req) => {

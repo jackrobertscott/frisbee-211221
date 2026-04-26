@@ -9,13 +9,9 @@ import {regex} from '../utils/regex'
 import {requireTeam} from './requireTeam'
 import {requireUser} from './requireUser'
 import {requireUserAdmin} from './requireUserAdmin'
-/**
- *
- */
+
 export default new Map<string, RequestHandler>([
-  /**
-   *
-   */
+
   createEndpoint({
     ...TeamListOfSeasonDef,
     handler: (body) => async (req) => {
@@ -36,9 +32,7 @@ export default new Map<string, RequestHandler>([
       return {count, teams}
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...TeamCurrentCreateDef,
     handler: (body) => async (req) => {
@@ -63,9 +57,7 @@ export default new Map<string, RequestHandler>([
       }
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...TeamCurrentUpdateDef,
     handler:
@@ -81,9 +73,7 @@ export default new Map<string, RequestHandler>([
         )
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...TeamCreateDef,
     handler: (body) => async (req) => {
@@ -92,9 +82,7 @@ export default new Map<string, RequestHandler>([
       return $Team.createOne(body)
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...TeamUpdateDef,
     handler:
@@ -108,9 +96,7 @@ export default new Map<string, RequestHandler>([
         )
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...TeamDeleteDef,
     handler:

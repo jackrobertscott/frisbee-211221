@@ -1,10 +1,5 @@
-/**
- *
- */
 export const DATETIME_PERIOD = ['AM', 'PM']
-/**
- *
- */
+
 export const DATETIME_DAYS = [
   'Sunday',
   'Monday',
@@ -14,9 +9,7 @@ export const DATETIME_DAYS = [
   'Friday',
   'Saturday',
 ]
-/**
- *
- */
+
 export const DATETIME_MONTHS = [
   'January',
   'February',
@@ -31,9 +24,7 @@ export const DATETIME_MONTHS = [
   'November',
   'December',
 ]
-/**
- *
- */
+
 export const DATETIME_YEARS = new Array(100)
   .fill(0)
   .map((_, index) => (new Date().getFullYear() + 3 - index).toString())

@@ -3,9 +3,7 @@ import {createElement as $, FC, ReactNode, useEffect, useState} from 'react'
 import {$SecurityCurrent, $SecurityLogout} from '../../endpoints/Security'
 import {useLocalState} from '../useLocalState'
 import {AuthContext, TAuth, TAuthPayload} from './AuthContext'
-/**
- *
- */
+
 export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
   const [loaded, loadedSet] = useState(false)
   const [season, seasonSet] = useLocalState<TSeason | undefined>('season')

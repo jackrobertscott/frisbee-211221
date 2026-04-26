@@ -25,9 +25,7 @@ import {useToaster} from '../Toaster/useToaster'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
-/**
- *
- */
+
 export const SettingsAccount: FC = () => {
   const auth = useAuth()
   const toaster = useToaster()
@@ -209,9 +207,7 @@ export const SettingsAccount: FC = () => {
     ]),
   })
 }
-/**
- *
- */
+
 const _SettingsAccountEmailNew: FC<{
   userSet: (user: TUserSafe, email: string) => void
   close: () => void
@@ -255,9 +251,7 @@ const _SettingsAccountEmailNew: FC<{
     ]),
   })
 }
-/**
- *
- */
+
 const _SettingsAccountEmailVerify: FC<{
   email: string
   userSet: (user: TUserSafe) => void

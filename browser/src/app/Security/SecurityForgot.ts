@@ -12,9 +12,7 @@ import {Link} from '../Link'
 import {useToaster} from '../Toaster/useToaster'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
-/**
- *
- */
+
 export const SecurityForgot: FC<{email?: string}> = ({email: _email}) => {
   const toaster = useToaster()
   const $send = useEndpoint($SecurityForgot)

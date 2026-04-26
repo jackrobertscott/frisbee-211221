@@ -2,21 +2,15 @@ import {Document, Filter, FindOptions, WithId} from 'mongodb'
 import {TypeIoAll, TypeIoValue} from 'torva'
 import mongo from './mongo'
 import {Simplify} from './types'
-/**
- *
- */
+
 export interface TQueryOptions<T> {
   sort?: {[key in keyof T]?: 1 | -1}
   limit?: number
   skip?: number
 }
-/**
- *
- */
+
 export const db = {
-  /**
-   *
-   */
+
   table<T extends TypeIoAll, P extends Partial<TypeIoValue<T>>>(options: {
     key: string
     index: string[]
@@ -25,24 +19,18 @@ export const db = {
   }) {
     type V = TypeIoValue<T>
     return {
-      /**
-       *
-       */
+
       validator() {
         return options.schema
       },
-      /**
-       *
-       */
+
       async count(query: Filter<V>): Promise<number> {
         const collection = await mongo.collection(options.key)
         return collection.countDocuments(
           query as Filter<Document>
         ) as Promise<number>
       },
-      /**
-       *
-       */
+
       async maybeOne(
         query: Filter<V>,
         queryOptions?: TQueryOptions<V>
@@ -54,17 +42,13 @@ export const db = {
         )
         return result ? this._clean(result as any) : undefined
       },
-      /**
-       *
-       */
+
       async getOne(query: Filter<V>): Promise<V> {
         const data = await this.maybeOne(query)
         if (!data) throw new Error(`Failed to get ${options.key}.`)
         return data
       },
-      /**
-       *
-       */
+
       async getMany(
         query: Filter<V>,
         queryOptions?: TQueryOptions<V>
@@ -80,9 +64,7 @@ export const db = {
         const result = await chain.toArray()
         return result.map((i) => this._clean(i as any))
       },
-      /**
-       *
-       */
+
       async createOne(
         value: Simplify<Omit<V, keyof P> & Partial<P>>
       ): Promise<V> {
@@ -93,9 +75,7 @@ export const db = {
         const result = await collection.insertOne(i.value)
         return this.getOne({_id: result.insertedId} as any)
       },
-      /**
-       *
-       */
+
       async createMany(
         value: Simplify<Omit<V, keyof P> & Partial<P>>[]
       ): Promise<number> {
@@ -110,9 +90,7 @@ export const db = {
         await collection.insertMany(all)
         return all.length
       },
-      /**
-       *
-       */
+
       async updateOne(query: Filter<V>, value: Partial<V>): Promise<V> {
         const current = await this.maybeOne(query)
         if (!current) throw Error('Failed to find document.')
@@ -123,9 +101,7 @@ export const db = {
         await collection.updateOne(query as Filter<Document>, {$set})
         return i.value as V
       },
-      /**
-       *
-       */
+
       async updateBulk(tasks: Array<{query: Filter<V>; value: Partial<V>}>) {
         const collection = await mongo.collection(options.key)
         const operations = tasks.map((i) => ({
@@ -136,32 +112,24 @@ export const db = {
         }))
         if (operations.length) await collection.bulkWrite(operations)
       },
-      /**
-       *
-       */
+
       async deleteOne(query: Filter<V>): Promise<number> {
         const collection = await mongo.collection(options.key)
         const result = await collection.deleteOne(query as Filter<Document>)
         return result.deletedCount
       },
-      /**
-       *
-       */
+
       async deleteMany(query: Filter<V>): Promise<number> {
         const collection = await mongo.collection(options.key)
         const result = await collection.deleteMany(query as Filter<Document>)
         return result.deletedCount
       },
-      /**
-       *
-       */
+
       _clean(value: WithId<V>): V {
         const {_id, ...result} = value
         return result as any
       },
-      /**
-       *
-       */
+
       _compileDefaults() {
         if (!options.defaults) return {}
         return Object.entries(options.defaults).reduce((all, next) => {

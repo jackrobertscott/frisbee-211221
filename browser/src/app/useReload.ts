@@ -1,8 +1,6 @@
 import {useRef, useEffect} from 'react'
 import {useRouter} from './Router/useRouter'
-/**
- *
- */
+
 export const useReload = () => {
   const stale = useRef(0)
   const router = useRouter()

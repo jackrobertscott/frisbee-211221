@@ -2,9 +2,7 @@ import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
 import {theme} from '../theme'
 import {Icon} from './Icon'
-/**
- *
- */
+
 export const Spinner: FC<{
   size?: number
 }> = ({size}) => {

@@ -1,9 +1,7 @@
 import {ioSession} from '@shared/schemas/ioSession'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-/**
- *
- */
+
 export const $Session = db.table({
   key: 'session',
   index: ['id'],

@@ -5,9 +5,7 @@ import {ioUserSafe} from '@shared/schemas/ioUser'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from 'torva'
 
-/**
- * Auth payload shared between endpoints
- */
+// Auth payload shared between endpoints
 export const ioAuthPayload = io.object({
   user: ioUserSafe,
   session: ioSession,

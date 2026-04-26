@@ -11,13 +11,9 @@ import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
 import {requireUser} from './requireUser'
 import {selectPublicUserFields} from './userPublic'
-/**
- *
- */
+
 export default new Map<string, RequestHandler>([
-  /**
-   *
-   */
+
   createEndpoint({
     ...CommentListOfPostDef,
     handler:
@@ -32,9 +28,7 @@ export default new Map<string, RequestHandler>([
         return {comments, users: users.map(selectPublicUserFields)}
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...CommentCreateDef,
     handler: (body) => async (req) => {
@@ -46,9 +40,7 @@ export default new Map<string, RequestHandler>([
       })
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...CommentUpdateDef,
     handler:
@@ -67,9 +59,7 @@ export default new Map<string, RequestHandler>([
         )
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...CommentDeleteDef,
     handler:

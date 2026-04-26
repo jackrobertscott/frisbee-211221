@@ -1,7 +1,5 @@
 import {hsla} from './hsla'
-/**
- *
- */
+
 export const SIMPLE_COLORS = new Array(12)
   .fill(0)
   .flatMap((_, index) => [

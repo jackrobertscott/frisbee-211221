@@ -1,9 +1,7 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC, ReactNode} from 'react'
 import {theme} from '../../theme'
-/**
- *
- */
+
 export const FormHelp: FC<{
   children: ReactNode
 }> = ({children}) => {

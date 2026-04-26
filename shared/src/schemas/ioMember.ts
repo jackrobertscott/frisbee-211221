@@ -1,7 +1,5 @@
 import {io, TypeIoValue} from 'torva'
-/**
- *
- */
+
 export const ioMember = io.object({
   id: io.string(),
   createdOn: io.date(),
@@ -13,7 +11,5 @@ export const ioMember = io.object({
   captain: io.optional(io.boolean()),
   pending: io.boolean(),
 })
-/**
- *
- */
+
 export type TMember = TypeIoValue<typeof ioMember>

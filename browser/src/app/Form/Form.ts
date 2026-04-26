@@ -2,9 +2,7 @@ import {css} from '@emotion/css'
 import {createElement as $, FC, ReactNode} from 'react'
 import {theme} from '../../theme'
 import {THSLA} from '../../utils/hsla'
-/**
- *
- */
+
 export const Form: FC<{
   children: ReactNode
   background?: THSLA

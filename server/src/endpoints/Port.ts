@@ -21,13 +21,9 @@ import mongo from '../utils/mongo'
 import {regex} from '../utils/regex'
 import {requireUserAdmin} from './requireUserAdmin'
 import {userEmail} from './userEmail'
-/**
- *
- */
+
 export default new Map<string, RequestHandler>([
-  /**
-   *
-   */
+
   createEndpoint({
     ...PortImportDef,
     handler: () => async (req) => {
@@ -80,9 +76,7 @@ export default new Map<string, RequestHandler>([
       })
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...PortExportDef,
     handler: () => async (req) => {
@@ -137,9 +131,7 @@ export default new Map<string, RequestHandler>([
       return {email}
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...PortMockGenerateDef,
     handler: (body) => async (req) => {
@@ -232,9 +224,7 @@ export default new Map<string, RequestHandler>([
       })
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...PortDeleteAllMockDataDef,
     handler: () => async (req) => {
@@ -321,9 +311,7 @@ const _randLastName = () => _pick(MOCK_LAST_NAMES)
 const _randEmail = (firstName: string, lastName: string) => {
   return `${_slugify(firstName)}.${_slugify(lastName)}.${random.randomString(6).toLowerCase()}@example.com`
 }
-/**
- *
- */
+
 const _createTeamsFromObjects = async (
   objects: Record<string, string>[],
   seasonId: string
@@ -354,9 +342,7 @@ const _createTeamsFromObjects = async (
   })
   if (teamCSVNewList.length) await $Team.createMany(teamCSVNewList)
 }
-/**
- *
- */
+
 const _createUsersFromObjects = async (
   objects: Record<string, string>[],
   seasonId: string
@@ -427,9 +413,7 @@ const _createUsersFromObjects = async (
   })
   if (memberCSVNewList.length) await $Member.createMany(memberCSVNewList)
 }
-/**
- *
- */
+
 const _parseCSVString = (csv: string) => {
   const data = []
   const body = csv.split('\n').filter((i) => i.trim())
@@ -445,9 +429,7 @@ const _parseCSVString = (csv: string) => {
   }
   return data
 }
-/**
- *
- */
+
 const _tokenify = (text: string) => {
   let tokens = [] as string[]
   let token = ''
@@ -468,9 +450,7 @@ const _tokenify = (text: string) => {
   tokens.push(token.trim())
   return tokens
 }
-/**
- *
- */
+
 const _csvify = (objects: any[]) => {
   const headings: string[] = []
   for (const obj of objects) {

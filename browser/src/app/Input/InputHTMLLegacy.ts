@@ -10,9 +10,7 @@ import {FormMenu} from '../Form/FormMenu'
 import {FormRow} from '../Form/FormRow'
 import {Popup} from '../Popup'
 import {InputString} from './InputString'
-/**
- *
- */
+
 export const InputHTMLLegacy: FC<{
   value?: string
   valueSet?: (value: string) => void
@@ -69,9 +67,7 @@ export const InputHTMLLegacy: FC<{
     ]),
   })
 }
-/**
- *
- */
+
 const _InputHTMLActions: FC<{
   refHTML: MutableRefObject<HTMLElement | undefined>
 }> = ({refHTML}) => {
@@ -177,9 +173,7 @@ const _InputHTMLActions: FC<{
     ]),
   })
 }
-/**
- *
- */
+
 const _InputHTMLSelect: FC<{
   icon: string
   options: Array<{
@@ -213,9 +207,7 @@ const _InputHTMLSelect: FC<{
     }),
   })
 }
-/**
- *
- */
+
 const _InputHTMLAnchor: FC<{
   done: (href: string) => void
   open: () => void

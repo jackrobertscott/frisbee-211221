@@ -2,9 +2,7 @@ import {StatusCodes} from 'http-status-codes'
 import {json, RequestHandler} from 'micro'
 import {TypeIoAll, TypeIoValue} from 'torva'
 import {origin} from './origin'
-/**
- *
- */
+
 export const createEndpoint = <P extends TypeIoAll>({
   path,
   payload,

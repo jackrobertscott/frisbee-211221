@@ -9,13 +9,9 @@ import {requireTeam} from './requireTeam'
 import {requireUser} from './requireUser'
 import {userEmail} from './userEmail'
 import {selectPublicUserFields} from './userPublic'
-/**
- *
- */
+
 export default new Map<string, RequestHandler>([
-  /**
-   *
-   */
+
   createEndpoint({
     ...MemberListOfUserDef,
     handler: () => async (req) => {
@@ -31,9 +27,7 @@ export default new Map<string, RequestHandler>([
       }
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...MemberListOfTeamDef,
     handler: (teamId) => async (req) => {
@@ -53,9 +47,7 @@ export default new Map<string, RequestHandler>([
       }
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...MemberDeleteDef,
     handler: (teamId) => async (req) => {
@@ -74,9 +66,7 @@ export default new Map<string, RequestHandler>([
       }
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...MemberCreateDef,
     handler:
@@ -118,9 +108,7 @@ export default new Map<string, RequestHandler>([
         })
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...MemberRemoveDef,
     handler: (memberId) => async (req) => {
@@ -147,9 +135,7 @@ export default new Map<string, RequestHandler>([
       await $Member.deleteOne({id: memberId})
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...MemberRequestCreateDef,
     handler: (teamId) => async (req) => {
@@ -172,9 +158,7 @@ export default new Map<string, RequestHandler>([
       })
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...MemberAcceptOrDeclineDef,
     handler: (body) => async (req) => {
@@ -195,9 +179,7 @@ export default new Map<string, RequestHandler>([
       }
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...MemberSetCaptainDef,
     handler: (memberId) => async (req) => {

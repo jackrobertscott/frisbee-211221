@@ -5,9 +5,7 @@ import {io} from 'torva'
 import {$Session} from '../tables/$Session'
 import jwt from './jwt'
 import {random} from './random'
-/**
- *
- */
+
 const normalizeToken = (value?: string | string[]) => {
   const header = Array.isArray(value) ? value[0] : value
   if (!header || header === 'undefined') return undefined
@@ -23,9 +21,7 @@ const compareToken = (first?: string, second?: string) => {
 }
 
 export default {
-  /**
-   *
-   */
+
   async createUserSession(user: TUser, userAgent?: string) {
     const createdOn = new Date().toISOString()
     const sessionId = random.generateId()
@@ -41,21 +37,15 @@ export default {
       }),
     })
   },
-  /**
-   *
-   */
+
   tokenFromRequest(req: IncomingMessage) {
     return normalizeToken(req.headers.authorization)
   },
-  /**
-   *
-   */
+
   isTokenEqual(first?: string, second?: string) {
     return compareToken(first, second)
   },
-  /**
-   *
-   */
+
   isSessionValid(
     auth:
       | {
@@ -78,9 +68,7 @@ export default {
         this.isTokenEqual(session.token, auth.token)
     )
   },
-  /**
-   *
-   */
+
   async digestRequest(req: IncomingMessage) {
     const token = this.tokenFromRequest(req)
     if (!token) return undefined
@@ -90,9 +78,7 @@ export default {
     return {...done.value, token}
   },
 }
-/**
- *
- */
+
 const ioJWT = io.object({
   sessionId: io.string(),
   userId: io.string(),

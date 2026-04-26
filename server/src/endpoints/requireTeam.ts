@@ -1,9 +1,7 @@
 import {TUser} from '@shared/schemas/ioUser'
 import {$Member} from '../tables/$Member'
 import {$Team} from '../tables/$Team'
-/**
- *
- */
+
 export const requireTeam = async (user: TUser, teamId: string) => {
   const team = await $Team.getOne({id: teamId})
   const member = await $Member.getOne({

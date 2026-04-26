@@ -1,7 +1,5 @@
 export const objectify = {
-  /**
-   *
-   */
+
   pick<X extends Record<string, any>, Y extends keyof X>(
     obj: X,
     keys: Y[]
@@ -11,9 +9,7 @@ export const objectify = {
       return all
     }, {})
   },
-  /**
-   *
-   */
+
   omit<X extends Record<string, any>, Y extends keyof X>(
     obj: X,
     keys: Y[]
@@ -23,9 +19,7 @@ export const objectify = {
       return all
     }, {})
   },
-  /**
-   *
-   */
+
   sortKeys(obj: object) {
     return Object.entries(obj)
       .sort((a, b) => a[0].localeCompare(b[0]))
@@ -39,17 +33,13 @@ export const objectify = {
         return all
       }, {})
   },
-  /**
-   *
-   */
+
   compare: (a: object, b: object) => {
     const _a = objectify.sortKeys(a)
     const _b = objectify.sortKeys(b)
     return JSON.stringify(_a) === JSON.stringify(_b)
   },
-  /**
-   *
-   */
+
   compareKeys<A extends Record<string, any>, B extends A, K extends keyof A>(
     a: A,
     b: B,
@@ -59,9 +49,7 @@ export const objectify = {
     const _b = this.sortKeys(this.pick(b, keys))
     return JSON.stringify(_a) === JSON.stringify(_b)
   },
-  /**
-   *
-   */
+
   clone<T extends object>(a: T): T {
     return JSON.parse(JSON.stringify(a))
   },

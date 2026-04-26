@@ -1,6 +1,3 @@
-/**
- *
- */
 export const GENDER_OPTIONS: Array<{
   key: string
   label: string
@@ -10,9 +7,7 @@ export const GENDER_OPTIONS: Array<{
   {key: 'non-binary', label: 'Non-Binary'},
   {key: 'other', label: 'Other'},
 ]
-/**
- *
- */
+
 export const SPIRIT_OPTIONS: Array<{
   key: string
   label: string
@@ -39,9 +34,7 @@ export const SPIRIT_OPTIONS: Array<{
   },
 ]
 
-/**
- * Spirit Category Options for Official Scoring
- */
+// Spirit Category Options for Official Scoring
 export const SPIRIT_CATEGORY_OPTIONS: Array<{
   key: string
   label: string
@@ -53,9 +46,7 @@ export const SPIRIT_CATEGORY_OPTIONS: Array<{
   {key: '0', label: '0. Terrible'},
 ]
 
-/**
- * Spirit Category Descriptions for Official Scoring
- */
+// Spirit Category Descriptions for Official Scoring
 export const SPIRIT_CATEGORY_DESCRIPTIONS = {
   spiritP1: {
     title: 'Rules Knowledge and Use',

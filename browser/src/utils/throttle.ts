@@ -1,11 +1,9 @@
 export const throttle = {
-  /**
-   * Execute callback then set status to waiting for the given timeout
-   * time period. All attempts to execute the callback while the status
-   * is waiting will wait until the waiting period is over before
-   * executing. Consecutive callback executions during the timeout period
-   * will replace their prior.
-   */
+  // Execute callback then set status to waiting for the given timeout
+  // time period. All attempts to execute the callback while the status
+  // is waiting will wait until the waiting period is over before
+  // executing. Consecutive callback executions during the timeout period
+  // will replace their prior.
   drip: (timeout: number, cb: (...args: any[]) => void) => {
     let last: number | undefined
     let next: undefined | (() => void)
@@ -23,10 +21,8 @@ export const throttle = {
       }
     }
   },
-  /**
-   * Fire a callback at least the "timeout" specified time since
-   * the last time the callback was fired or set.
-   */
+  // Fire a callback at least the "timeout" specified time since
+  // the last time the callback was fired or set.
   sling: (timeout: number, cb: (...args: any[]) => void) => {
     let last: undefined | number
     let next: undefined | (() => void)
@@ -47,13 +43,11 @@ export const throttle = {
       delay()
     }
   },
-  /**
-   * Execute a number of callbacks (with an upper limit of max) then set
-   * status to waiting for the given timeout time period. All attempts to
-   * execute the callback while the status is waiting will be added to the
-   * callback queue and will wait until the queue has executed all other
-   * callbacks given the same maximum upper limit.
-   */
+  // Execute a number of callbacks (with an upper limit of max) then set
+  // status to waiting for the given timeout time period. All attempts to
+  // execute the callback while the status is waiting will be added to the
+  // callback queue and will wait until the queue has executed all other
+  // callbacks given the same maximum upper limit.
   dribble: <T>(
     max: number,
     timeout: number,
@@ -84,11 +78,9 @@ export const throttle = {
       })
     }
   },
-  /**
-   * Execute callback then set status to unavailable for the allocated
-   * timeout time period. All attempts to execute the callback while the
-   * status is unavailable will be ignored.
-   */
+  // Execute callback then set status to unavailable for the allocated
+  // timeout time period. All attempts to execute the callback while the
+  // status is unavailable will be ignored.
   halter: (timeout: number, cb: (...args: any[]) => void) => {
     let available = true
     return (...args: any[]) => {

@@ -1,9 +1,7 @@
 import {ioSeason} from '@shared/schemas/ioSeason'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-/**
- *
- */
+
 export const $Season = db.table({
   key: 'season',
   index: ['id'],

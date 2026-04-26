@@ -14,9 +14,6 @@ import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
 
-/**
- *
- */
 export const MockGenerate: FC<{
   seasonId: string
   close: () => void

@@ -1,7 +1,5 @@
 import {io, TypeIoValue} from 'torva'
-/**
- *
- */
+
 export const ioSeason = io.object({
   id: io.string(),
   createdOn: io.date(),
@@ -19,7 +17,5 @@ export const ioSeason = io.object({
     )
   ),
 })
-/**
- *
- */
+
 export type TSeason = TypeIoValue<typeof ioSeason>

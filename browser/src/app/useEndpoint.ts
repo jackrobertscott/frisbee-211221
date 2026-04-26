@@ -5,9 +5,7 @@ import {throttle} from '../utils/throttle'
 import {useAuth} from './Auth/useAuth'
 import {useToaster} from './Toaster/useToaster'
 import {useMountedRef} from './useMountedRef'
-/**
- *
- */
+
 export const useEndpoint = <
   I extends TypeIoAll,
   O extends TypeIoAll,

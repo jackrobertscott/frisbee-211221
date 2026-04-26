@@ -1,14 +1,10 @@
 import {randomInt} from 'crypto'
 
 export const random = {
-  /**
-   *
-   */
+
   alphanumerics:
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.split(''),
-  /**
-   *
-   */
+
   randomString(length: number = 10) {
     let value = ''
     const max = this.alphanumerics.length
@@ -17,9 +13,7 @@ export const random = {
     }
     return value
   },
-  /**
-   *
-   */
+
   generateId() {
     return this.randomString(24)
   },

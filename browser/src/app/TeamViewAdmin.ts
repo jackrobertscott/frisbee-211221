@@ -23,9 +23,7 @@ import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
 import {useLocalRouter} from './useLocalRouter'
-/**
- *
- */
+
 export const TeamViewAdmin: FC<{
   team: TTeam
   teamSet: (team?: TTeam) => void
@@ -151,9 +149,7 @@ export const TeamViewAdmin: FC<{
     ]),
   })
 }
-/**
- *
- */
+
 export const _TeamViewAdminEdit: FC<{
   team: TTeam
   teamSet: (team: TTeam) => void

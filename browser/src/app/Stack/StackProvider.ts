@@ -9,9 +9,7 @@ import {
 import {random} from '../../utils/random'
 import {StackContext} from './StackContext'
 import {useStack} from './useStack'
-/**
- *
- */
+
 export const StackProvider: FC<{children: ReactNode}> = ({children}) => {
   const stack = useStack()
   const _ref = useRef<string[]>([])

@@ -1,7 +1,5 @@
 import {useMemo, useState} from 'react'
-/**
- *
- */
+
 export const useForm = <T extends Record<string, any>>(defaults: T) => {
   const [formData, formDataSet] = useState(defaults)
   const formDataPatch = (data: Partial<T>) =>

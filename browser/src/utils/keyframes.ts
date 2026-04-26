@@ -1,7 +1,5 @@
 import {keyframes} from '@emotion/css'
-/**
- *
- */
+
 export const spin = keyframes(`
   0% {
     transform: rotateZ(0deg);
@@ -10,9 +8,7 @@ export const spin = keyframes(`
     transform: rotateZ(360deg);
   }
 `)
-/**
- *
- */
+
 export const fadeup = keyframes(`
   0% {
     opacity: 0;
@@ -23,9 +19,7 @@ export const fadeup = keyframes(`
     transform: translateY(0);
   }
 `)
-/**
- *
- */
+
 export const fadedown = keyframes(`
   0% {
     opacity: 0;
@@ -36,9 +30,7 @@ export const fadedown = keyframes(`
     transform: translateY(0);
   }
 `)
-/**
- *
- */
+
 export const fadein = keyframes(`
   0% {
     opacity: 0;
@@ -47,9 +39,7 @@ export const fadein = keyframes(`
     opacity: 1;
   }
 `)
-/**
- *
- */
+
 export const slideright = keyframes(`
   0% {
     transform: translateX(-100%);
@@ -58,9 +48,7 @@ export const slideright = keyframes(`
     transform: translateX(0);
   }
 `)
-/**
- *
- */
+
 export const shake = keyframes(`
   0%, 100% {
     transform: translateX(0);

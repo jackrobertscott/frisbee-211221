@@ -2,9 +2,7 @@ import {css} from '@emotion/css'
 import {createElement as $, FC, useEffect, useRef} from 'react'
 import {theme} from '../theme'
 import {useMedia} from './Media/useMedia'
-/**
- *
- */
+
 export const Graph: FC<{
   title?: string
   yLabel?: string

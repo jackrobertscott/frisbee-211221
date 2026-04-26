@@ -8,9 +8,7 @@ import {Poster} from './Poster'
 import {Question} from './Question'
 import {SeasonCreate} from './SeasonCreate'
 import {TopBar, TopBarBadge} from './TopBar'
-/**
- *
- */
+
 export const SeasonSetup: FC = () => {
   const auth = useAuth()
   const [logout, logoutSet] = useState(false)

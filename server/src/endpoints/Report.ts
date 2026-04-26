@@ -18,13 +18,9 @@ import {createEndpoint} from '../utils/endpoints'
 import {requireTeam} from './requireTeam'
 import {requireUser} from './requireUser'
 import {requireUserAdmin} from './requireUserAdmin'
-/**
- *
- */
+
 export default new Map<string, RequestHandler>([
-  /**
-   *
-   */
+
   createEndpoint({
     ...ReportListOfFixtureDef,
     handler:
@@ -34,9 +30,7 @@ export default new Map<string, RequestHandler>([
         return $Report.getMany({fixtureId}, {limit, sort: {createdOn: -1}})
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...ReportListOfSeasonDef,
     handler:
@@ -52,9 +46,7 @@ export default new Map<string, RequestHandler>([
         return {count, reports, fixtures}
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...ReportGetFixtureAgainstDef,
     handler:
@@ -95,9 +87,7 @@ export default new Map<string, RequestHandler>([
         )
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...ReportCreateDef,
     handler: (body) => async (req) => {
@@ -139,9 +129,7 @@ export default new Map<string, RequestHandler>([
       })
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...ReportUpdateDef,
     handler:
@@ -157,9 +145,7 @@ export default new Map<string, RequestHandler>([
         )
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...ReportDeleteDef,
     handler:
@@ -169,9 +155,7 @@ export default new Map<string, RequestHandler>([
         await $Report.deleteOne({id: reportId})
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...ReportMissingListDef,
     handler:

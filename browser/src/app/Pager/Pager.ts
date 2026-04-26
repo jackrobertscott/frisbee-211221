@@ -5,9 +5,7 @@ import {FormBadge} from '../Form/FormBadge'
 import {FormRow} from '../Form/FormRow'
 import {InputSelect} from '../Input/InputSelect'
 import {TPager} from './usePager'
-/**
- *
- */
+
 export const Pager: FC<{
   count?: number
   total?: number

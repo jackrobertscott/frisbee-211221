@@ -15,9 +15,7 @@ import {useToaster} from './Toaster/useToaster'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 
-/**
- * Form for adjusting multiple fixtures based on a reference fixture
- */
+// Form for adjusting multiple fixtures based on a reference fixture
 export const FixtureAdjustForm: FC<{
   fixtures: TFixture[]
   seasonId: string

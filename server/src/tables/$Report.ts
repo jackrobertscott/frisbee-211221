@@ -1,9 +1,7 @@
 import {ioReport} from '@shared/schemas/ioReport'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-/**
- *
- */
+
 export const $Report = db.table({
   key: 'report',
   index: ['id'],

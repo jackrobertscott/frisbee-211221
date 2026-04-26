@@ -4,9 +4,7 @@ import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {hsla, THSLA} from '../utils/hsla'
 import {FormLabel} from './Form/FormLabel'
-/**
- *
- */
+
 export const TopBar: FC<{
   children: ReactNode
 }> = ({children}) => {
@@ -21,9 +19,7 @@ export const TopBar: FC<{
     }),
   })
 }
-/**
- *
- */
+
 export const TopBarBadge: FC<{
   icon?: string
   label?: string
@@ -47,9 +43,7 @@ export const TopBarBadge: FC<{
     }),
   })
 }
-/**
- *
- */
+
 const _TopBarBadgeTooltip: FC<{
   label?: string
   children: ReactNode

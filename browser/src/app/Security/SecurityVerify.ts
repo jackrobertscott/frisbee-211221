@@ -15,9 +15,7 @@ import {Link} from '../Link'
 import {useToaster} from '../Toaster/useToaster'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
-/**
- *
- */
+
 export const SecurityVerify: FC<{
   email?: string
   status?: string

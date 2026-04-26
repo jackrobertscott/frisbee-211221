@@ -2,9 +2,7 @@ import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
 import {go} from '../utils/go'
 import {THSLA} from '../utils/hsla'
-/**
- *
- */
+
 export const Link: FC<{
   label: string
   href?: string

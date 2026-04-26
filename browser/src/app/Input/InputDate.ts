@@ -11,9 +11,7 @@ import {FormRow} from '../Form/FormRow'
 import {Popup} from '../Popup'
 import {Spinner} from '../Spinner'
 import {InputSelect} from './InputSelect'
-/**
- *
- */
+
 export const InputDate: FC<{
   value?: string
   valueSet?: (value: string) => void
@@ -65,9 +63,7 @@ export const InputDate: FC<{
       : $(Spinner),
   })
 }
-/**
- *
- */
+
 const _InputDatePicker: FC<{
   dateCurrent: dayjs.Dayjs
   dateViewing: dayjs.Dayjs

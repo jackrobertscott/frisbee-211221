@@ -1,8 +1,6 @@
 import {TypeIoAll, TypeIoValue} from 'torva'
 import {radio} from './radio'
-/**
- *
- */
+
 export interface TEndpoint<
   I extends TypeIoAll,
   O extends TypeIoAll,
@@ -15,9 +13,7 @@ export interface TEndpoint<
     token?: string
   ): Promise<TypeIoValue<O>>
 }
-/**
- *
- */
+
 export const createEndpoint = <
   I extends TypeIoAll,
   O extends TypeIoAll,

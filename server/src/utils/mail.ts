@@ -1,18 +1,12 @@
 import {SESv2Client, SendEmailCommand} from '@aws-sdk/client-sesv2'
 import config from '../config'
-/**
- *
- */
+
 const client = new SESv2Client({
   region: 'us-east-1',
 })
-/**
- *
- */
+
 export const mail = {
-  /**
-   *
-   */
+
   async send({
     to,
     from = `${config.appName} <${config.AWSFromEmail}>`,

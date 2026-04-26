@@ -16,13 +16,9 @@ import {$Team} from '../tables/$Team'
 import {createEndpoint} from '../utils/endpoints'
 import {random} from '../utils/random'
 import {requireUserAdmin} from './requireUserAdmin'
-/**
- *
- */
+
 export default new Map<string, RequestHandler>([
-  /**
-   *
-   */
+
   createEndpoint({
     ...FixtureListOfSeasonDef,
     handler:
@@ -31,9 +27,7 @@ export default new Map<string, RequestHandler>([
         return $Fixture.getMany({seasonId}, {limit, sort: {date: 1}})
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...FixtureGetDef,
     handler:
@@ -44,9 +38,7 @@ export default new Map<string, RequestHandler>([
         return {fixture, teams}
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...FixtureCreateDef,
     handler: (body) => async (req) => {
@@ -60,9 +52,7 @@ export default new Map<string, RequestHandler>([
       })
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...FixtureUpdateDef,
     handler:
@@ -76,9 +66,7 @@ export default new Map<string, RequestHandler>([
         )
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...FixtureDeleteDef,
     handler:
@@ -88,9 +76,7 @@ export default new Map<string, RequestHandler>([
         await $Fixture.deleteOne({id: fixtureId})
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...FixtureSnapshotDef,
     handler:
@@ -115,9 +101,7 @@ export default new Map<string, RequestHandler>([
         throw new Error('Fixture snapshot is disabled')
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...FixtureAdjustMultipleDef,
     handler:
@@ -175,9 +159,7 @@ export default new Map<string, RequestHandler>([
         return {count: fixtures.length}
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...FixtureGenerateDef,
     handler: (body) => async (req) => {
@@ -340,9 +322,7 @@ export default new Map<string, RequestHandler>([
     },
   }),
 ])
-/**
- *
- */
+
 // const _fixtureScreenshot = async (fixtureId: string) => {
 //   let browser = null
 //   let page = null
@@ -398,9 +378,7 @@ export default new Map<string, RequestHandler>([
 //     }
 //   }
 // }
-/**
- *
- */
+
 function getRoundRobinPairings(teams: string[], round: number): string[][] {
   // Support odd team counts by adding a bye placeholder.
   const hasBye = teams.length % 2 !== 0
@@ -436,9 +414,7 @@ function getRoundRobinPairings(teams: string[], round: number): string[][] {
   }
   return pairings
 }
-/**
- *
- */
+
 function shuffleArray(array: any[]): any[] {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))

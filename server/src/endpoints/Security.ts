@@ -15,15 +15,11 @@ import {getGoogleAccessToken, getGoogleUserInfo} from '../utils/google'
 import hash from '../utils/hash'
 import {selectSafeUserFields} from './userSafe'
 import {userEmail} from './userEmail'
-/**
- *
- */
+
 const INVALID_LOGIN_MESSAGE = 'Email or password is incorrect.'
 
 export default new Map<string, RequestHandler>([
-  /**
-   *
-   */
+
   createEndpoint({
     ...SecurityCurrentDef,
     handler:
@@ -63,9 +59,7 @@ export default new Map<string, RequestHandler>([
         }
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...SecurityStatusDef,
     handler:
@@ -89,9 +83,7 @@ export default new Map<string, RequestHandler>([
         return data
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...SecurityLoginDef,
     handler:
@@ -106,9 +98,7 @@ export default new Map<string, RequestHandler>([
         return _addTeamOfSeason(user, session, seasonId)
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...SecurityLoginGoogleDef,
     handler:
@@ -125,9 +115,7 @@ export default new Map<string, RequestHandler>([
         return _addTeamOfSeason(user, session, seasonId)
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...SecuritySignUpDef,
     handler:
@@ -148,9 +136,7 @@ export default new Map<string, RequestHandler>([
         return _addTeamOfSeason(user, session, seasonId)
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...SecurityForgotDef,
     handler: (email) => async () => {
@@ -158,9 +144,7 @@ export default new Map<string, RequestHandler>([
       if (user) await userEmail.codeSendSave(user, email, 'Restore Account')
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...SecurityVerifyDef,
     handler:
@@ -186,9 +170,7 @@ export default new Map<string, RequestHandler>([
         return _addTeamOfSeason(user, session, seasonId)
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...SecurityLogoutDef,
     handler: () => async (req) => {
@@ -203,9 +185,7 @@ export default new Map<string, RequestHandler>([
     },
   }),
 ])
-/**
- *
- */
+
 export const _addTeamOfSeason = async (
   rawUser: TUser,
   session: TSession,

@@ -1,20 +1,14 @@
 import {IncomingMessage} from 'http'
 import {RequestHandler} from 'micro'
 import {origin} from './origin'
-/**
- *
- */
+
 export interface ICorsOptions {
   origin?: string
   age?: string
 }
-/**
- *
- */
+
 export default (options?: ICorsOptions) => {
-  /**
-   *
-   */
+
   return (handler: RequestHandler): RequestHandler => {
     return (req, res) => {
       attachCorsToResponse(req, res, options)

@@ -1,9 +1,7 @@
 import {ioComment} from '@shared/schemas/ioComment'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
-/**
- *
- */
+
 export const $Comment = db.table({
   key: 'comment',
   index: ['id'],

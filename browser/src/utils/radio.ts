@@ -1,11 +1,7 @@
 import {config} from '../config'
-/**
- *
- */
+
 export const radio = {
-  /**
-   *
-   */
+
   async send(path: string, payload?: any, token?: string) {
     if (!config.urlServer) throw new Error('Server url not set in config.')
     return fetch(`${config.urlServer}${path}`, {
@@ -20,9 +16,7 @@ export const radio = {
       },
     }).then(this.handleResponse)
   },
-  /**
-   *
-   */
+
   async multipart(path: string, payload?: FormData, token?: string) {
     return fetch(`${config.urlServer}${path}`, {
       method: 'POST',
@@ -32,9 +26,7 @@ export const radio = {
       },
     }).then(this.handleResponse)
   },
-  /**
-   *
-   */
+
   async handleResponse(i: Response) {
     if (i.status === 204) return undefined
     if (i.status >= 200 && i.status < 300) {

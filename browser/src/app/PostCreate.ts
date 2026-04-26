@@ -17,9 +17,7 @@ import {Modal} from './Modal'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
-/**
- *
- */
+
 export const PostCreate: FC<{
   close: () => void
   done: (post: TPost) => void

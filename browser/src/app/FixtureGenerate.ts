@@ -17,17 +17,13 @@ import {useToaster} from './Toaster/useToaster'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
-/**
- *
- */
+
 type GameSlot = {
   id: string
   time: string
   place: string
 }
-/**
- *
- */
+
 export const FixtureGenerate: FC<{
   seasonId: string
   close: () => void

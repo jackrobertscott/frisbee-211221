@@ -19,9 +19,7 @@ import {TeamCreate} from './TeamCreate'
 import {useToaster} from './Toaster/useToaster'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
-/**
- *
- */
+
 export const TeamSetup: FC<{
   close: () => void
   teamSet: (team: TTeam) => void

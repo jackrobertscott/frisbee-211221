@@ -1,9 +1,7 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
 import {theme} from '../../theme'
-/**
- *
- */
+
 export const InputString: FC<{
   value?: string | null
   valueSet?: (value: string) => void

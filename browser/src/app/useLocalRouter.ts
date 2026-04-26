@@ -1,14 +1,10 @@
 import {createElement as $, Fragment, ReactNode, useState} from 'react'
-/**
- *
- */
+
 export interface TRoute {
   path: string
   render: () => ReactNode
 }
-/**
- *
- */
+
 export const useLocalRouter = <T extends TRoute>(
   fallback: string,
   _routes: (T | false)[]

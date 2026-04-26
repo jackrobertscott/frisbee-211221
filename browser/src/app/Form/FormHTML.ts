@@ -2,9 +2,7 @@ import dompurify from 'dompurify'
 import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
 import {theme} from '../../theme'
-/**
- *
- */
+
 export const FormHTML: FC<{
   html: string
   maxHeight?: number

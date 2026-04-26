@@ -14,9 +14,7 @@ import {Portal} from './Portal'
 import {StackProvider} from './Stack/StackProvider'
 import {useStack} from './Stack/useStack'
 import {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
-/**
- *
- */
+
 export const Popup: FC<{
   open: boolean
   wrap: ReactNode

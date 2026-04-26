@@ -36,9 +36,7 @@ import {UserMerge} from '../UserMerge'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
 import {useSling} from '../useThrottle'
-/**
- *
- */
+
 export const DashboardUsers: FC = () => {
   const auth = useAuth()
   const pager = usePager()
@@ -146,9 +144,6 @@ export const DashboardUsers: FC = () => {
   })
 }
 
-/**
- *
- */
 export const _DashboardUsersCreate: FC<{
   userSet: (user: TUserSafe) => void
   close: () => void
@@ -238,9 +233,7 @@ export const _DashboardUsersCreate: FC<{
     ]),
   })
 }
-/**
- *
- */
+
 export const _DashboardUsersView: FC<{
   user: TUserSafe
   userSet: (user: TUserSafe) => void
@@ -437,12 +430,7 @@ export const _DashboardUsersView: FC<{
     ]),
   })
 }
-/**
- *
- */
-/**
- *
- */
+
 export const _DashboardUsersViewChangePassword: FC<{
   user: TUserSafe
   close: () => void

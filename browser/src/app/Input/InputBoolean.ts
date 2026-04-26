@@ -3,9 +3,7 @@ import {createElement as $, FC} from 'react'
 import {theme} from '../../theme'
 import {hsla} from '../../utils/hsla'
 import {Icon} from '../Icon'
-/**
- *
- */
+
 export const InputBoolean: FC<{
   value?: boolean
   valueSet?: (value: boolean) => void

@@ -3,9 +3,7 @@ import {createElement as $, FC, ReactNode, useEffect, useState} from 'react'
 import {history} from '../../utils/history'
 import {useMountedRef} from '../useMountedRef'
 import {RouterContext, TRoute} from './RouterContext'
-/**
- *
- */
+
 export const RouterProvider: FC<{
   children: ReactNode
   parents?: TRoute[]

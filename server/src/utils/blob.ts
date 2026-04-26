@@ -7,9 +7,7 @@ import {IncomingMessage} from 'http'
 import {random} from './random'
 import {S3Client, PutObjectCommand, GetObjectCommand} from '@aws-sdk/client-s3'
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner'
-/**
- *
- */
+
 const s3Client = new S3Client({
   region: config.AWSBucketRegion,
 })
@@ -21,13 +19,9 @@ const MAX_UPLOAD_FIELDS = 16
 const cleanupFiles = async (filepaths: string[]) => {
   await Promise.all(filepaths.map((filepath) => fs.remove(filepath).catch(() => {})))
 }
-/**
- *
- */
+
 export const blob = {
-  /**
-   *
-   */
+
   digestRequest(req: IncomingMessage) {
     return new Promise<
       [
@@ -121,9 +115,7 @@ export const blob = {
       req.pipe(busboy)
     })
   },
-  /**
-   *
-   */
+
   async filepathBuffer(filepath: string) {
     try {
       return await fs.readFile(filepath)
@@ -131,9 +123,7 @@ export const blob = {
       await fs.remove(filepath).catch(() => {})
     }
   },
-  /**
-   *
-   */
+
   async uploadBuffer({
     body,
     mimetype,
@@ -166,9 +156,7 @@ export const blob = {
       filename,
     }
   },
-  /**
-   *
-   */
+
   async getObjectUrl(key: string, bucket: string = config.AWSBucket) {
     const command = new GetObjectCommand({Key: key, Bucket: bucket})
     return getSignedUrl(s3Client, command)

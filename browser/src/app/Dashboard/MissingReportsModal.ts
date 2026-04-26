@@ -12,9 +12,7 @@ import {Spinner} from '../Spinner'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 
-/**
- * Type for missing reports data structure
- */
+// Type for missing reports data structure
 type TMissingReportRound = {
   title: string
   fixtureId: string
@@ -28,9 +26,7 @@ type TMissingReportRound = {
   }>
 }
 
-/**
- * Modal component to display missing reports by round
- */
+// Modal component to display missing reports by round
 export const MissingReportsModal: FC<{
   seasonId: string
   close: () => void

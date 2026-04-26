@@ -1,8 +1,6 @@
 import {FC, ReactNode, useEffect, useState} from 'react'
 import {createPortal} from 'react-dom'
-/**
- *
- */
+
 export const Portal: FC<{
   id?: string
   children: ReactNode

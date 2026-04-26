@@ -2,9 +2,7 @@ import * as dotenv from 'dotenv'
 import * as dotenvSafe from 'dotenv-safe'
 import path from 'path'
 import {fileURLToPath} from 'url'
-/**
- *
- */
+
 const envFile =
   process.env.NODE_ENV === 'production' ? '.env.production' : '.env'
 const __filename = fileURLToPath(import.meta.url)
@@ -17,13 +15,9 @@ dotenvSafe.config({
 dotenv.config({
   path: envPath,
 })
-/**
- *
- */
+
 const env = process.env as Record<string, string>
-/**
- *
- */
+
 const config: {
   env: string
   prod: boolean
@@ -63,7 +57,5 @@ const config: {
   // googleClientId: env.GOOGLE_CLIENT_ID,
   // googleClientSecret: env.GOOGLE_CLIENT_SECRET,
 }
-/**
- *
- */
+
 export default config

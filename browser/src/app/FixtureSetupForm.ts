@@ -27,18 +27,14 @@ import {Question} from './Question'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
-/**
- *
- */
+
 interface TFixtureForm {
   title: string
   date?: string
   games: Partial<TFixture['games'][number]>[]
   grading: boolean
 }
-/**
- *
- */
+
 export const FixtureSetupForm: FC<{
   fixture?: TFixture
   close: () => void
@@ -79,9 +75,7 @@ export const FixtureSetupForm: FC<{
   }, [])
   return $(Fragment, {
     children: addkeys([
-      /**
-       *
-       */
+
       $(Modal, {
         width: theme.fib[14],
         children: addkeys([
@@ -270,9 +264,7 @@ export const FixtureSetupForm: FC<{
           }),
         ]),
       }),
-      /**
-       *
-       */
+
       $(Fragment, {
         children:
           deleting &&

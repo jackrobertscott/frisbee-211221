@@ -8,9 +8,7 @@ import {useMedia} from './Media/useMedia'
 import {Portal} from './Portal'
 import {StackProvider} from './Stack/StackProvider'
 import {useStack} from './Stack/useStack'
-/**
- *
- */
+
 export const Modal: FC<{
   close?: () => void
   children: ReactNode

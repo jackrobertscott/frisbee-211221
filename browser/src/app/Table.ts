@@ -6,9 +6,7 @@ import {hsla} from '../utils/hsla'
 import {FormColumn} from './Form/FormColumn'
 import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
-/**
- *
- */
+
 type TFCTable<T extends string = any> = FC<{
   head: Record<T, {label: string; grow: number}>
   body: Array<{
@@ -25,9 +23,7 @@ type TFCTable<T extends string = any> = FC<{
     >
   }>
 }>
-/**
- *
- */
+
 export const Table: TFCTable = ({head, body}) => {
   return $('div', {
     className: css({
@@ -103,9 +99,7 @@ export const Table: TFCTable = ({head, body}) => {
     }),
   })
 }
-/**
- *
- */
+
 const _TableCell: FC<{
   grow: number
   children: ReactNode

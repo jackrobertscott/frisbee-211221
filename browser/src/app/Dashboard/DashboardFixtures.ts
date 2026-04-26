@@ -21,9 +21,7 @@ import {useMedia} from '../Media/useMedia'
 import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useEndpoint} from '../useEndpoint'
-/**
- *
- */
+
 export const DashboardFixtures: FC = () => {
   const auth = useAuth()
   const $teamList = useEndpoint($TeamListOfSeason)
@@ -184,9 +182,7 @@ export const DashboardFixtures: FC = () => {
     ]),
   })
 }
-/**
- *
- */
+
 const _DashboardFixturesView: FC<{
   fixture: TFixture
   teams: TTeam[]

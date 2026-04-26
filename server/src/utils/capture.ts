@@ -5,19 +5,13 @@ import {StatusCodes, getReasonPhrase} from 'http-status-codes'
 import {RequestHandler, send} from 'micro'
 import config from '../config'
 import tarpit from './tarpit'
-/**
- *
- */
+
 Sentry.init({
   dsn: config.sentryDSN,
 })
-/**
- *
- */
+
 export default {
-  /**
-   *
-   */
+
   handle(handler: RequestHandler): RequestHandler {
     return async (req, res) => {
       try {
@@ -60,9 +54,7 @@ export default {
       }
     }
   },
-  /**
-   *
-   */
+
   pretty(error: any = {}, req: IncomingMessage) {
     let code = error.statusCode || error.code
     code = code
@@ -93,9 +85,7 @@ export default {
         error.stack.split('\n').map((i: string) => i.trim()),
     }
   },
-  /**
-   *
-   */
+
   scope(req: IncomingMessage) {
     // Sentry.configureScope((scope: Sentry.Scope) => {
     //   scope.addEventProcessor(async (event: Sentry.Event) => {

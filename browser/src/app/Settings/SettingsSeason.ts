@@ -14,9 +14,7 @@ import {InputString} from '../Input/InputString'
 import {useToaster} from '../Toaster/useToaster'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
-/**
- *
- */
+
 export const SettingsSeason: FC = () => {
   const auth = useAuth()
   const toaster = useToaster()

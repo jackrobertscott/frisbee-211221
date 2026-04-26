@@ -24,9 +24,7 @@ import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
 import {useSling} from '../useThrottle'
-/**
- *
- */
+
 export const DashboardTeams: FC = () => {
   const auth = useAuth()
   const pager = usePager()
@@ -160,9 +158,7 @@ export const DashboardTeams: FC = () => {
     ]),
   })
 }
-/**
- *
- */
+
 const _DashboardTeamsView: FC<{
   team: TTeam
   close: () => void
@@ -226,9 +222,7 @@ const _DashboardTeamsView: FC<{
     ]),
   })
 }
-/**
- *
- */
+
 const _DashboardTeamsCreate: FC<{
   teamSet: (team: TTeam) => void
   close: () => void

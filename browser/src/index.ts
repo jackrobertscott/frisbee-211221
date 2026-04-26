@@ -34,6 +34,7 @@ switch (config.leagueKey) {
 document.head.appendChild(favicon)
 
 // add global styles
+// override the CSS fallback font-family with the themed font
 injectGlobal({
   body: {
     fontFamily: theme.fontFamily,

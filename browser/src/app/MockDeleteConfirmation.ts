@@ -10,9 +10,6 @@ import {useToaster} from './Toaster/useToaster'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 
-/**
- *
- */
 export const MockDeleteConfirmation: FC<{
   close: () => void
   done: () => void

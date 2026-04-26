@@ -8,13 +8,9 @@ import {$Season} from '../tables/$Season'
 import {createEndpoint} from '../utils/endpoints'
 import {regex} from '../utils/regex'
 import {requireUserAdmin} from './requireUserAdmin'
-/**
- *
- */
+
 export default new Map<string, RequestHandler>([
-  /**
-   *
-   */
+
   createEndpoint({
     ...SeasonListDef,
     handler: (body) => async () => {
@@ -24,9 +20,7 @@ export default new Map<string, RequestHandler>([
       )
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...SeasonCreateDef,
     handler: (body) => async (req) => {
@@ -34,9 +28,7 @@ export default new Map<string, RequestHandler>([
       return $Season.createOne(body)
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...SeasonUpdateDef,
     handler:

@@ -10,9 +10,7 @@ import {FormColumn} from './Form/FormColumn'
 import {Spinner} from './Spinner'
 import {Table} from './Table'
 import {useEndpoint} from './useEndpoint'
-/**
- *
- */
+
 export const FixtureView: FC<{
   fixtureId: string
 }> = ({fixtureId}) => {

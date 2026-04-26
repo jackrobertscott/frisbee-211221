@@ -7,9 +7,7 @@ import {fadedown} from '../../utils/keyframes'
 import {random} from '../../utils/random'
 import {Icon} from '../Icon'
 import {ToasterContext, TToaster} from './ToasterContext'
-/**
- *
- */
+
 export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
   const [toasts, toastsSet] = useState<TToaster[]>([])
   const removeById = (id: string) =>

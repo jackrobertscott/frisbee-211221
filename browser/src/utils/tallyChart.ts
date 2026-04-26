@@ -1,8 +1,6 @@
 import {TFixture} from '@shared/schemas/ioFixture'
 import {isNumber} from './coerce'
-/**
- *
- */
+
 export interface TTallyChart {
   teamId: string
   points: number
@@ -16,9 +14,7 @@ export interface TTallyChart {
   aveFor: number
   aveAgainst: number
 }
-/**
- *
- */
+
 const emptyChart = (teamId: string): TTallyChart => ({
   teamId,
   points: 0,
@@ -32,9 +28,7 @@ const emptyChart = (teamId: string): TTallyChart => ({
   aveFor: 0,
   aveAgainst: 0,
 })
-/**
- *
- */
+
 export const tallyChart = (fixtures: TFixture[]) => {
   const tally: Record<string, TTallyChart | undefined> = {}
   for (const fixture of fixtures) {

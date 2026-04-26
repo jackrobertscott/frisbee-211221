@@ -34,9 +34,7 @@ import {DashboardPort} from './DashboardPort'
 import {DashboardReports} from './DashboardReports'
 import {DashboardTeams} from './DashboardTeams'
 import {DashboardUsers} from './DashboardUsers'
-/**
- *
- */
+
 export const Dashboard: FC = () => {
   const auth = useAuth()
   const media = useMedia()
@@ -374,9 +372,7 @@ export const Dashboard: FC = () => {
     ]),
   })
 }
-/**
- *
- */
+
 const _DashboardSeasonBadge: FC = () => {
   const auth = useAuth()
   const media = useMedia()
@@ -465,9 +461,7 @@ const _DashboardSeasonBadge: FC = () => {
     ]),
   })
 }
-/**
- *
- */
+
 const _DashboardFooter: FC = () => {
   return $(Fragment, {
     children: addkeys([

@@ -1,7 +1,5 @@
 import {createElement as $, ReactNode, Fragment} from 'react'
-/**
- *
- */
+
 export const addkeys = (
   children: ReactNode | ReactNode[]
 ): ReactNode | ReactNode[] =>

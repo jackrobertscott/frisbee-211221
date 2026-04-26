@@ -21,9 +21,7 @@ import {Table} from './Table'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useSling} from './useThrottle'
-/**
- *
- */
+
 export const UserMerge: FC<{
   user: TUserSafe
   userSet: (user: TUserSafe) => void
@@ -130,9 +128,7 @@ export const UserMerge: FC<{
     ]),
   })
 }
-/**
- *
- */
+
 const _UserMergeSelect: FC<{
   user1: TUserSafe
   user2Set: (user: TUserSafe) => void

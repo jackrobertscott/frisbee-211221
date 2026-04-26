@@ -10,17 +10,13 @@ import {InputString} from '../Input/InputString'
 import {Link} from '../Link'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
-/**
- *
- */
+
 export interface TSecurityStatus {
   status: 'unknown' | 'password' | 'unverified' | 'good'
   email: string
   firstName?: string
 }
-/**
- *
- */
+
 export const SecurityStatus: FC<{
   email?: string
   statusSet: (data: TSecurityStatus) => void

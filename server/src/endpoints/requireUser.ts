@@ -2,9 +2,7 @@ import {IncomingMessage} from 'http'
 import {$Session} from '../tables/$Session'
 import {$User} from '../tables/$User'
 import gatekeeper from '../utils/gatekeeper'
-/**
- *
- */
+
 export const requireUser = async (req: IncomingMessage) => {
   const auth = await gatekeeper.digestRequest(req)
   if (!auth) throw new Error('Auth token not present on request.')

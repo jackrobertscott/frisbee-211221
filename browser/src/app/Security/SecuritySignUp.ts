@@ -18,9 +18,7 @@ import {Link} from '../Link'
 import {useToaster} from '../Toaster/useToaster'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
-/**
- *
- */
+
 export const SecuritySignUp: FC<{
   email?: string
   savedEmailSet: (email: string) => void

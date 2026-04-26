@@ -3,9 +3,7 @@ import {css} from '@emotion/css'
 import {createElement as $, FC} from 'react'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
-/**
- *
- */
+
 export const Poster: FC<{
   icon?: string
   title: string

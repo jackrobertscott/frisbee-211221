@@ -1,7 +1,5 @@
 import {io, TypeIoValue} from 'torva'
-/**
- *
- */
+
 export const ioSession = io.object({
   id: io.string(),
   createdOn: io.date(),
@@ -12,7 +10,5 @@ export const ioSession = io.object({
   endedOn: io.optional(io.date()),
   userAgent: io.optional(io.string()),
 })
-/**
- *
- */
+
 export type TSession = TypeIoValue<typeof ioSession>

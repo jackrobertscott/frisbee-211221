@@ -4,13 +4,9 @@ import config from '../config'
 import endpoints from '../endpoints'
 import intrusion from './intrusion'
 import {origin} from './origin'
-/**
- *
- */
+
 export default (handler: RequestHandler): RequestHandler => {
-  /**
-   *
-   */
+
   return async (req, res) => {
     if (req.method === 'OPTIONS') return {}
 

@@ -15,13 +15,9 @@ import {regex} from '../utils/regex'
 import {requireUser} from './requireUser'
 import {userEmail} from './userEmail'
 import {selectPublicUserFields} from './userPublic'
-/**
- *
- */
+
 export default new Map<string, RequestHandler>([
-  /**
-   *
-   */
+
   createEndpoint({
     ...PostListDef,
     handler:
@@ -40,9 +36,7 @@ export default new Map<string, RequestHandler>([
         }
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...PostCreateDef,
     handler: (body) => async (req) => {
@@ -73,9 +67,7 @@ export default new Map<string, RequestHandler>([
       return post
     },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...PostUpdateDef,
     handler:
@@ -92,9 +84,7 @@ export default new Map<string, RequestHandler>([
         )
       },
   }),
-  /**
-   *
-   */
+
   createEndpoint({
     ...PostDeleteDef,
     handler:

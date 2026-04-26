@@ -1,7 +1,5 @@
 import {io, TypeIoValue} from 'torva'
-/**
- *
- */
+
 export const ioTeam = io.object({
   id: io.string(),
   createdOn: io.date(),
@@ -14,7 +12,5 @@ export const ioTeam = io.object({
   phone: io.optional(io.string().emptyok()),
   email: io.optional(io.string().emptyok()),
 })
-/**
- *
- */
+
 export type TTeam = TypeIoValue<typeof ioTeam>

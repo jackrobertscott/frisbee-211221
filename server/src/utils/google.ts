@@ -1,8 +1,6 @@
 import axios from 'axios'
 import config from '../config'
-/**
- *
- */
+
 export const getGoogleAccessToken = async (
   code: string
 ): Promise<{access_token: string}> => {
@@ -22,9 +20,7 @@ export const getGoogleAccessToken = async (
     throw new Error('Failed to get Google access token.')
   return data
 }
-/**
- *
- */
+
 export const getGoogleUserInfo = async (
   access_token: string
 ): Promise<{

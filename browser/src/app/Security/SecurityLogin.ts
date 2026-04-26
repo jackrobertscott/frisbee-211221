@@ -13,9 +13,7 @@ import {InputString} from '../Input/InputString'
 import {Link} from '../Link'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
-/**
- *
- */
+
 export const SecurityLogin: FC<{
   email?: string
   savedEmailSet: (email: string) => void

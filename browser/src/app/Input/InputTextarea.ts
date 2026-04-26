@@ -1,9 +1,7 @@
 import {css} from '@emotion/css'
 import {ChangeEvent, createElement as $, FC} from 'react'
 import {theme} from '../../theme'
-/**
- *
- */
+
 export const InputTextarea: FC<{
   value?: string
   valueSet?: (value: string) => void

@@ -13,9 +13,7 @@ import {SettingsAccount} from './SettingsAccount'
 import {SettingsMembers} from './SettingsMembers'
 import {SettingsPassword} from './SettingsPassword'
 import {SettingsTeam} from './SettingsTeam'
-/**
- *
- */
+
 export const Settings: FC<{close: () => void}> = ({close}) => {
   const auth = useAuth()
   const media = useMedia()

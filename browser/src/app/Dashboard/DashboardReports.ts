@@ -46,9 +46,7 @@ import {useToaster} from '../Toaster/useToaster'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
-/**
- *
- */
+
 export const DashboardReports: FC = () => {
   const auth = useAuth()
   const pager = usePager()
@@ -288,9 +286,7 @@ export const DashboardReports: FC = () => {
     ]),
   })
 }
-/**
- *
- */
+
 const _DashboardReportsForm: FC<{
   title: string
   teams: TTeam[]
@@ -504,9 +500,7 @@ const _DashboardReportsForm: FC<{
     ]),
   })
 }
-/**
- *
- */
+
 const _DashboardReportsMVP: FC<{
   reports: TReport[]
   teams: TTeam[]
@@ -651,9 +645,7 @@ const _DashboardReportsMVP: FC<{
     ]),
   })
 }
-/**
- *
- */
+
 const _DashboardReportsSpirit: FC<{
   reports: TReport[]
   teams: TTeam[]

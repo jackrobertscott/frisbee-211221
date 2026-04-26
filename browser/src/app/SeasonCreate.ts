@@ -15,9 +15,7 @@ import {InputBoolean} from './Input/InputBoolean'
 import {InputString} from './Input/InputString'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
-/**
- *
- */
+
 export const SeasonCreate: FC<{
   seasonSet: (season: TSeason) => void
 }> = ({seasonSet}) => {
