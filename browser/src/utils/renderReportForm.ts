@@ -1,6 +1,7 @@
 import {theme} from '@browser/theme'
 import {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 import {TFixture} from '@shared/schemas/ioFixture'
+import {TReport} from '@shared/schemas/ioReport'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUserPublic} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
@@ -11,7 +12,7 @@ import {FormHelp} from '../app/Form/FormHelp'
 import {FormLabel} from '../app/Form/FormLabel'
 import {FormRow} from '../app/Form/FormRow'
 import {InputNumber} from '../app/Input/InputNumber'
-import {InputSelect} from '../app/Input/InputSelect'
+import {InputSelect, TSelectOption} from '../app/Input/InputSelect'
 import {InputTextarea} from '../app/Input/InputTextarea'
 import {Spinner} from '../app/Spinner'
 import {addkeys} from './addkeys'
@@ -22,7 +23,6 @@ import {
 } from './constants'
 import {hsla} from './hsla'
 
-// Common type for form data
 export type ReportFormData = {
   teamId: undefined | string
   againstTeamId: undefined | string
@@ -35,7 +35,6 @@ export type ReportFormData = {
   mvpFemale2?: undefined | string
   spirit: undefined | number
   spiritComment: string
-  // Official Spirit Categories
   spiritP1?: undefined | number
   spiritP2?: undefined | number
   spiritP3?: undefined | number
@@ -43,9 +42,195 @@ export type ReportFormData = {
   spiritP5?: undefined | number
 }
 
-/**
- * Renders fixture selection input
- */
+export type ReportAgainstOption = {team: TTeam; users: TUserPublic[]}
+type MvpSlot = 'male' | 'female'
+type ReportMvpField = 'mvpMale' | 'mvpFemale' | 'mvpMale2' | 'mvpFemale2'
+
+const REPORT_FORM_DEFAULTS: ReportFormData = {
+  teamId: undefined,
+  againstTeamId: undefined,
+  fixtureId: undefined,
+  scoreFor: undefined,
+  scoreAgainst: undefined,
+  mvpMale: undefined,
+  mvpFemale: undefined,
+  mvpMale2: undefined,
+  mvpFemale2: undefined,
+  spirit: undefined,
+  spiritComment: '',
+  spiritP1: undefined,
+  spiritP2: undefined,
+  spiritP3: undefined,
+  spiritP4: undefined,
+  spiritP5: undefined,
+}
+
+const MVP_ROW_BP = theme.fib[12] - theme.fib[7]
+const MVP_LABEL_STYLE: CSSObject = {
+  [theme.gtMedia(MVP_ROW_BP)]: {
+    width: theme.fib[10],
+  },
+}
+const OFFICIAL_SPIRIT_LABEL_STYLE: CSSObject = {
+  width: theme.fib[11],
+  [theme.ltMedia(theme.fib[12] + theme.fib[9])]: {
+    width: theme.fib[10],
+  },
+}
+
+export const createReportFormData = (
+  overrides: Partial<ReportFormData> = {}
+): ReportFormData => ({
+  ...REPORT_FORM_DEFAULTS,
+  ...overrides,
+})
+
+export const createReportFormDataFromReport = (
+  report?: Partial<TReport>
+): ReportFormData =>
+  createReportFormData({
+    teamId: report?.teamId,
+    againstTeamId: report?.teamAgainstId,
+    fixtureId: report?.fixtureId,
+    scoreFor: report?.scoreFor,
+    scoreAgainst: report?.scoreAgainst,
+    mvpMale: report?.mvpMale,
+    mvpFemale: report?.mvpFemale,
+    mvpMale2: report?.mvpMale2,
+    mvpFemale2: report?.mvpFemale2,
+    spirit: report?.spirit,
+    spiritComment: report?.spiritComment ?? '',
+    spiritP1: report?.spiritP1,
+    spiritP2: report?.spiritP2,
+    spiritP3: report?.spiritP3,
+    spiritP4: report?.spiritP4,
+    spiritP5: report?.spiritP5,
+  })
+
+export function sanitizeReportFormMvps(
+  formData: Pick<ReportFormData, ReportMvpField>,
+  users: TUserPublic[] | undefined
+): Pick<ReportFormData, ReportMvpField> {
+  const usersById = new Map(users?.map((user) => [user.id, user]) ?? [])
+  const getValidUserId = (field: ReportMvpField, userId: string | undefined) => {
+    if (!userId) {
+      return undefined
+    }
+
+    const user = usersById.get(userId)
+    if (!user) {
+      return undefined
+    }
+
+    const slot = field === 'mvpMale' || field === 'mvpMale2' ? 'male' : 'female'
+    return isEligibleForMvpSlot(user, slot) ? userId : undefined
+  }
+
+  const nextMvps = {
+    mvpMale: getValidUserId('mvpMale', formData.mvpMale),
+    mvpFemale: getValidUserId('mvpFemale', formData.mvpFemale),
+    mvpMale2: getValidUserId('mvpMale2', formData.mvpMale2),
+    mvpFemale2: getValidUserId('mvpFemale2', formData.mvpFemale2),
+  }
+
+  if (nextMvps.mvpMale && nextMvps.mvpMale === nextMvps.mvpMale2) {
+    nextMvps.mvpMale2 = undefined
+  }
+
+  if (nextMvps.mvpFemale && nextMvps.mvpFemale === nextMvps.mvpFemale2) {
+    nextMvps.mvpFemale2 = undefined
+  }
+
+  return nextMvps
+}
+
+function formatFixtureOptions(fixtures: TFixture[]): TSelectOption[] {
+  return fixtures.map((fixture) => ({
+    key: fixture.id,
+    label: `${fixture.title} - ${dayjs(fixture.date).format('DD/MM/YY')}`,
+  }))
+}
+
+function formatTeamOptions(teams: TTeam[]): TSelectOption[] {
+  return teams.map((team) => ({
+    key: team.id,
+    label: team.name,
+    color: team.color,
+  }))
+}
+
+function formatAgainstOptions(againstOptions: ReportAgainstOption[]): TSelectOption[] {
+  return againstOptions.map(({team}) => ({
+    key: team.id,
+    label: team.name,
+    color: team.color,
+  }))
+}
+
+function isEligibleForMvpSlot(user: TUserPublic, slot: MvpSlot) {
+  const gender = user.gender.toLowerCase()
+  return slot === 'male' ? gender !== 'female' : gender !== 'male'
+}
+
+function formatUserOptions(
+  users: TUserPublic[],
+  slot: MvpSlot,
+  excludedUserId?: string
+): TSelectOption[] {
+  return users
+    .filter((user) => isEligibleForMvpSlot(user, slot))
+    .filter((user) => user.id !== excludedUserId)
+    .map((user) => ({
+      key: user.id,
+      label: `${user.firstName} ${user.lastName}`,
+    }))
+}
+
+function renderClearableUserSelectRow(
+  label: string,
+  value: string | undefined,
+  valueSet: (value: string | undefined) => void,
+  options: TSelectOption[]
+) {
+  return $(FormRow, {
+    bpColumn: MVP_ROW_BP,
+    children: addkeys([
+      $(FormLabel, {
+        label,
+        style: MVP_LABEL_STYLE,
+      }),
+      $(FormRow, {
+        grow: true,
+        children: addkeys([
+          $(InputSelect, {
+            value,
+            valueSet,
+            options,
+          }),
+          $(FormBadge, {
+            noshrink: true,
+            icon: 'times',
+            click: () => valueSet(undefined),
+          }),
+        ]),
+      }),
+    ]),
+  })
+}
+
+function renderSpiritGrid() {
+  return $(FormHelp, {
+    children: addkeys([
+      'See details of the Spirit Scoring System ',
+      $('a', {
+        href: 'https://d36m266ykvepgv.cloudfront.net/uploads/media/aTYVA2eazu/o/sotg-scoring-system-template-2019.pdf',
+        target: '_blank',
+        children: 'here',
+      }),
+    ]),
+  })
+}
+
 export function renderFixtureSelect(
   fixtureId: string | undefined,
   setFixtureId: (value: string) => void,
@@ -63,18 +248,12 @@ export function renderFixtureSelect(
         disabled,
         value: fixtureId,
         valueSet: setFixtureId,
-        options: fixtures.map((i) => ({
-          key: i.id,
-          label: `${i.title} - ${dayjs(i.date).format('DD/MM/YY')}`,
-        })),
+        options: formatFixtureOptions(fixtures),
       }),
     ]),
   })
 }
 
-/**
- * Renders team select input for the reporting team
- */
 export function renderTeamSelect(
   teamId: string | undefined,
   setTeamId: (value: string) => void,
@@ -91,23 +270,16 @@ export function renderTeamSelect(
         disabled,
         value: teamId,
         valueSet: setTeamId,
-        options: teams.map((i) => ({
-          key: i.id,
-          label: i.name,
-          color: i.color,
-        })),
+        options: formatTeamOptions(teams),
       }),
     ]),
   })
 }
 
-/**
- * Renders against team select input
- */
 export function renderAgainstTeamSelect(
   againstTeamId: string | undefined,
   setAgainstTeamId: (value: string) => void,
-  againstOptions: Array<{team: TTeam; users: TUserPublic[]}>,
+  againstOptions: ReportAgainstOption[],
   disabled: boolean = false
 ) {
   return $(FormRow, {
@@ -120,28 +292,23 @@ export function renderAgainstTeamSelect(
         disabled,
         value: againstTeamId,
         valueSet: setAgainstTeamId,
-        options: againstOptions.map((i) => ({
-          key: i.team.id,
-          label: i.team.name,
-          color: i.team.color,
-        })),
+        options: formatAgainstOptions(againstOptions),
       }),
     ]),
   })
 }
 
-/**
- * Renders team header with team vs opponent badges
- */
 export function renderTeamHeader(
   teamId: string | undefined,
   teamName: string | undefined,
   teamColor: string | undefined,
   againstTeamId: string | undefined,
   setAgainstTeamId: (value: string) => void,
-  againstOptions: Array<{team: TTeam; users: TUserPublic[]}> | undefined
+  againstOptions: ReportAgainstOption[] | undefined
 ) {
   if (!teamId || !againstOptions) return null
+
+  const background = hsla.digest(teamColor || '')
 
   return $('div', {
     style: {textAlign: 'center'},
@@ -149,8 +316,8 @@ export function renderTeamHeader(
       children: addkeys([
         $(FormBadge, {
           label: teamName,
-          background: hsla.digest(teamColor || ''),
-          font: hsla.digest(teamColor || '').compliment(),
+          background,
+          font: background.compliment(),
           wrap: true,
         }),
         $(FormBadge, {
@@ -159,20 +326,13 @@ export function renderTeamHeader(
         $(InputSelect, {
           value: againstTeamId,
           valueSet: setAgainstTeamId,
-          options: againstOptions.map((i) => ({
-            key: i.team.id,
-            label: i.team.name,
-            color: i.team.color,
-          })),
+          options: formatAgainstOptions(againstOptions),
         }),
       ]),
     }),
   })
 }
 
-/**
- * Renders score inputs
- */
 export function renderScoreInputs(
   scoreFor: number | undefined,
   setScoreFor: (value: number | undefined) => void,
@@ -210,9 +370,6 @@ export function renderScoreInputs(
   })
 }
 
-/**
- * Renders MVP selection inputs
- */
 export function renderMVPInputs(
   mvpMale: string | undefined,
   setMvpMale: (value: string | undefined) => void,
@@ -225,159 +382,42 @@ export function renderMVPInputs(
   mvpFemale2?: string | undefined,
   setMvpFemale2?: (value: string | undefined) => void
 ) {
-  const formElements = []
-
-  const rowBp = theme.fib[12] - theme.fib[7]
-  const labelStyle: CSSObject = {
-    [theme.gtMedia(rowBp)]: {
-      width: theme.fib[10],
-    },
-  }
-
-  formElements.push(
-    $(FormRow, {
-      bpColumn: rowBp,
-      children: addkeys([
-        $(FormLabel, {
-          label: 'MVP Male' + (useOfficialScoring ? ' 1' : ''),
-          style: labelStyle,
-        }),
-        $(FormRow, {
-          grow: true,
-          children: addkeys([
-            $(InputSelect, {
-              value: mvpMale,
-              valueSet: setMvpMale,
-              options: users
-                .filter((i) => i.gender.toLowerCase() !== 'female')
-                .filter((i) => i.id !== mvpMale2)
-                .map((i) => ({
-                  key: i.id,
-                  label: `${i.firstName} ${i.lastName}`,
-                })),
-            }),
-            $(FormBadge, {
-              noshrink: true,
-              icon: 'times',
-              click: () => setMvpMale(undefined),
-            }),
-          ]),
-        }),
-      ]),
-    })
-  )
-
-  if (useOfficialScoring && setMvpMale2) {
-    formElements.push(
-      $(FormRow, {
-        bpColumn: rowBp,
-        children: addkeys([
-          $(FormLabel, {
-            label: 'MVP Male' + (useOfficialScoring ? ' 2' : ''),
-            style: labelStyle,
-          }),
-          $(FormRow, {
-            grow: true,
-            children: addkeys([
-              $(InputSelect, {
-                value: mvpMale2,
-                valueSet: setMvpMale2,
-                options: users
-                  .filter((i) => i.gender.toLowerCase() !== 'female')
-                  .filter((i) => i.id !== mvpMale)
-                  .map((i) => ({
-                    key: i.id,
-                    label: `${i.firstName} ${i.lastName}`,
-                  })),
-              }),
-              $(FormBadge, {
-                noshrink: true,
-                icon: 'times',
-                click: () => setMvpMale2(undefined),
-              }),
-            ]),
-          }),
-        ]),
-      })
-    )
-  }
-
-  formElements.push(
-    $(FormRow, {
-      bpColumn: rowBp,
-      children: addkeys([
-        $(FormLabel, {
-          label: 'MVP Female' + (useOfficialScoring ? ' 1' : ''),
-          style: labelStyle,
-        }),
-        $(FormRow, {
-          grow: true,
-          children: addkeys([
-            $(InputSelect, {
-              value: mvpFemale,
-              valueSet: setMvpFemale,
-              options: users
-                .filter((i) => i.gender.toLowerCase() !== 'male')
-                .filter((i) => i.id !== mvpFemale2)
-                .map((i) => ({
-                  key: i.id,
-                  label: `${i.firstName} ${i.lastName}`,
-                })),
-            }),
-            $(FormBadge, {
-              noshrink: true,
-              icon: 'times',
-              click: () => setMvpFemale(undefined),
-            }),
-          ]),
-        }),
-      ]),
-    })
-  )
-
-  if (useOfficialScoring && setMvpFemale2) {
-    formElements.push(
-      $(FormRow, {
-        bpColumn: rowBp,
-        children: addkeys([
-          $(FormLabel, {
-            style: labelStyle,
-            label: 'MVP Female' + (useOfficialScoring ? ' 2' : ''),
-          }),
-          $(FormRow, {
-            grow: true,
-            children: addkeys([
-              $(InputSelect, {
-                value: mvpFemale2,
-                valueSet: setMvpFemale2,
-                options: users
-                  .filter((i) => i.gender.toLowerCase() !== 'male')
-                  .filter((i) => i.id !== mvpFemale)
-                  .map((i) => ({
-                    key: i.id,
-                    label: `${i.firstName} ${i.lastName}`,
-                  })),
-              }),
-              $(FormBadge, {
-                noshrink: true,
-                icon: 'times',
-                click: () => setMvpFemale2(undefined),
-              }),
-            ]),
-          }),
-        ]),
-      })
-    )
-  }
+  const rows = [
+    renderClearableUserSelectRow(
+      `MVP Male${useOfficialScoring ? ' 1' : ''}`,
+      mvpMale,
+      setMvpMale,
+      formatUserOptions(users, 'male', mvpMale2)
+    ),
+    useOfficialScoring && setMvpMale2
+      ? renderClearableUserSelectRow(
+          'MVP Male 2',
+          mvpMale2,
+          setMvpMale2,
+          formatUserOptions(users, 'male', mvpMale)
+        )
+      : undefined,
+    renderClearableUserSelectRow(
+      `MVP Female${useOfficialScoring ? ' 1' : ''}`,
+      mvpFemale,
+      setMvpFemale,
+      formatUserOptions(users, 'female', mvpFemale2)
+    ),
+    useOfficialScoring && setMvpFemale2
+      ? renderClearableUserSelectRow(
+          'MVP Female 2',
+          mvpFemale2,
+          setMvpFemale2,
+          formatUserOptions(users, 'female', mvpFemale)
+        )
+      : undefined,
+  ]
 
   return $(FormColumn, {
-    children: addkeys(formElements),
+    children: addkeys(rows),
   })
 }
 
-/**
- * Renders spirit score and comment inputs
- */
 export function renderSpiritInputs(
   spirit: number | undefined,
   setSpirit: (value: number) => void,
@@ -385,8 +425,6 @@ export function renderSpiritInputs(
   setSpiritComment: (value: string) => void,
   useOfficialScoring?: boolean
 ) {
-  // If using official scoring, this function shouldn't be called
-  // Instead, use renderOfficialSpiritInputs
   if (useOfficialScoring) {
     return null
   }
@@ -401,7 +439,7 @@ export function renderSpiritInputs(
           }),
           $(InputSelect, {
             value: spirit?.toString(),
-            valueSet: (i) => setSpirit(+i),
+            valueSet: (value) => setSpirit(+value),
             placeholder: 'Select...',
             options: SPIRIT_OPTIONS,
           }),
@@ -417,28 +455,11 @@ export function renderSpiritInputs(
           }),
         ]),
       }),
-
       renderSpiritGrid(),
     ]),
   })
 }
 
-function renderSpiritGrid() {
-  return $(FormHelp, {
-    children: addkeys([
-      'See details of the Spirit Scoring System ',
-      $('a', {
-        href: 'https://d36m266ykvepgv.cloudfront.net/uploads/media/aTYVA2eazu/o/sotg-scoring-system-template-2019.pdf',
-        target: '_blank',
-        children: 'here',
-      }),
-    ]),
-  })
-}
-
-/**
- * Renders the official spirit scoring form with the five categories
- */
 export function renderOfficialSpiritInputs(
   spiritP1: number | undefined,
   setSpiritP1: (value: number) => void,
@@ -453,130 +474,57 @@ export function renderOfficialSpiritInputs(
   spiritComment: string,
   setSpiritComment: (value: string) => void
 ) {
-  const {
-    spiritP1: p1,
-    spiritP2: p2,
-    spiritP3: p3,
-    spiritP4: p4,
-    spiritP5: p5,
-  } = SPIRIT_CATEGORY_DESCRIPTIONS
-
-  const labelStyle: CSSObject = {
-    width: theme.fib[11],
-    [theme.ltMedia(theme.fib[12] + theme.fib[9])]: {
-      width: theme.fib[10],
+  const officialSpiritFields = [
+    {
+      title: SPIRIT_CATEGORY_DESCRIPTIONS.spiritP1.title,
+      value: spiritP1,
+      valueSet: setSpiritP1,
     },
-  }
+    {
+      title: SPIRIT_CATEGORY_DESCRIPTIONS.spiritP2.title,
+      value: spiritP2,
+      valueSet: setSpiritP2,
+    },
+    {
+      title: SPIRIT_CATEGORY_DESCRIPTIONS.spiritP3.title,
+      value: spiritP3,
+      valueSet: setSpiritP3,
+    },
+    {
+      title: SPIRIT_CATEGORY_DESCRIPTIONS.spiritP4.title,
+      value: spiritP4,
+      valueSet: setSpiritP4,
+    },
+    {
+      title: SPIRIT_CATEGORY_DESCRIPTIONS.spiritP5.title,
+      value: spiritP5,
+      valueSet: setSpiritP5,
+    },
+  ]
 
   return $(FormColumn, {
     children: addkeys([
       $(FormLabel, {
         label: 'Spirit Score',
       }),
-
       renderSpiritGrid(),
-
-      // Category 1
-      $(FormRow, {
-        children: addkeys([
-          $(FormLabel, {
-            label: p1.title,
-            style: labelStyle,
-            wrap: true,
-          }),
-          $(InputSelect, {
-            value: spiritP1?.toString(),
-            valueSet: (i) => setSpiritP1(+i),
-            placeholder: 'Select...',
-            options: SPIRIT_CATEGORY_OPTIONS,
-          }),
-        ]),
+      ...officialSpiritFields.map((field) => {
+        return $(FormRow, {
+          children: addkeys([
+            $(FormLabel, {
+              label: field.title,
+              style: OFFICIAL_SPIRIT_LABEL_STYLE,
+              wrap: true,
+            }),
+            $(InputSelect, {
+              value: field.value?.toString(),
+              valueSet: (value) => field.valueSet(+value),
+              placeholder: 'Select...',
+              options: SPIRIT_CATEGORY_OPTIONS,
+            }),
+          ]),
+        })
       }),
-      // $(FormHelp, {
-      //   children: p1.description,
-      // }),
-
-      // Category 2
-      $(FormRow, {
-        children: addkeys([
-          $(FormLabel, {
-            label: p2.title,
-            style: labelStyle,
-            wrap: true,
-          }),
-          $(InputSelect, {
-            value: spiritP2?.toString(),
-            valueSet: (i) => setSpiritP2(+i),
-            placeholder: 'Select...',
-            options: SPIRIT_CATEGORY_OPTIONS,
-          }),
-        ]),
-      }),
-      // $(FormHelp, {
-      //   children: p2.description,
-      // }),
-
-      // Category 3
-      $(FormRow, {
-        children: addkeys([
-          $(FormLabel, {
-            label: p3.title,
-            style: labelStyle,
-            wrap: true,
-          }),
-          $(InputSelect, {
-            value: spiritP3?.toString(),
-            valueSet: (i) => setSpiritP3(+i),
-            placeholder: 'Select...',
-            options: SPIRIT_CATEGORY_OPTIONS,
-          }),
-        ]),
-      }),
-      // $(FormHelp, {
-      //   children: p3.description,
-      // }),
-
-      // Category 4
-      $(FormRow, {
-        children: addkeys([
-          $(FormLabel, {
-            label: p4.title,
-            style: labelStyle,
-            wrap: true,
-          }),
-          $(InputSelect, {
-            value: spiritP4?.toString(),
-            valueSet: (i) => setSpiritP4(+i),
-            placeholder: 'Select...',
-            options: SPIRIT_CATEGORY_OPTIONS,
-          }),
-        ]),
-      }),
-      // $(FormHelp, {
-      //   children: p4.description,
-      // }),
-
-      // Category 5
-      $(FormRow, {
-        children: addkeys([
-          $(FormLabel, {
-            label: p5.title,
-            style: labelStyle,
-            wrap: true,
-          }),
-          $(InputSelect, {
-            value: spiritP5?.toString(),
-            valueSet: (i) => setSpiritP5(+i),
-            placeholder: 'Select...',
-            options: SPIRIT_CATEGORY_OPTIONS,
-          }),
-        ]),
-      }),
-      // $(FormHelp, {
-      //   children: p5.description,
-      // }),
-
-      // Comments
       $(FormRow, {
         children: addkeys([
           $(InputTextarea, {
@@ -591,9 +539,6 @@ export function renderOfficialSpiritInputs(
   })
 }
 
-/**
- * Renders submit button
- */
 export function renderSubmitButton(
   loading: boolean = false,
   onClick: () => void
@@ -605,22 +550,31 @@ export function renderSubmitButton(
   })
 }
 
-/**
- * Validates if a report form can be submitted
- * Returns error message if invalid, undefined if valid
- */
 export function validateReportForm(
   formData: ReportFormData,
   useOfficialScoring?: boolean
 ): string | undefined {
-  // Check for duplicate MVPs between main (5 pts) and secondary (3 pts) selections
+  if (!formData.fixtureId) {
+    return 'Fixture is required.'
+  }
+
+  if (!formData.teamId) {
+    return 'Team is required.'
+  }
+
+  if (!formData.againstTeamId) {
+    return 'Opposition team is required.'
+  }
+
+  if (formData.scoreFor === undefined || formData.scoreAgainst === undefined) {
+    return 'Both scores are required.'
+  }
+
   if (formData.mvpMale && formData.mvpMale === formData.mvpFemale) {
     return 'The male and female MVP cannot be the same person.'
   }
 
-  // Additional validation for official scoring
   if (useOfficialScoring) {
-    // Check for duplicated MVPs between main and secondary
     if (formData.mvpMale && formData.mvpMale === formData.mvpMale2) {
       return 'The 5-point and 3-point male MVPs cannot be the same person.'
     }
@@ -637,7 +591,6 @@ export function validateReportForm(
       return 'The 5-point female MVP and 3-point male MVP cannot be the same person.'
     }
 
-    // Check that all 5 spirit categories are filled for official scoring
     if (
       formData.spiritP1 === undefined ||
       formData.spiritP2 === undefined ||
@@ -647,21 +600,15 @@ export function validateReportForm(
     ) {
       return 'All five spirit categories must be rated for official scoring.'
     }
-  } else {
-    // Regular spirit score is required for non-official scoring
-    if (formData.spirit === undefined) {
-      return 'Spirit score is required.'
-    }
+  } else if (formData.spirit === undefined) {
+    return 'Spirit score is required.'
   }
 
   return undefined
 }
 
-/**
- * Shuffles an array in-place using the Fisher-Yates algorithm
- */
 export function shuffleArray<T>(array: T[]): T[] {
-  const newArray = [...array] // Create a copy to avoid modifying the original
+  const newArray = [...array]
   for (let i = newArray.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
     ;[newArray[i], newArray[j]] = [newArray[j], newArray[i]]

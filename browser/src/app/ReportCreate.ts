@@ -2,12 +2,13 @@ import {Poster} from '@browser/app/Poster'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUserPublic} from '@shared/schemas/ioUser'
-import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
+import {createElement as $, FC, Fragment, useEffect, useMemo, useState} from 'react'
 import {$FixtureListOfSeason} from '../endpoints/Fixture'
 import {$ReportCreate, $ReportGetFixtureAgainst} from '../endpoints/Report'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {
+  createReportFormData,
   renderFixtureSelect,
   renderMVPInputs,
   renderOfficialSpiritInputs,
@@ -15,6 +16,7 @@ import {
   renderSpiritInputs,
   renderSubmitButton,
   renderTeamHeader,
+  sanitizeReportFormMvps,
   shuffleArray,
   validateReportForm,
 } from '../utils/renderReportForm'
@@ -48,55 +50,89 @@ export const ReportCreate: FC<{
   // Check if the season uses official scoring
   const useOfficialScoring = auth.season?.useOfficialScoring === true
 
-  // Initialize the form with fields based on scoring type
-  const form = useForm({
-    teamId: auth.current?.team?.id,
-    againstTeamId: undefined as undefined | string,
-    fixtureId: undefined as undefined | string,
-    scoreFor: undefined as undefined | number,
-    scoreAgainst: undefined as undefined | number,
-    mvpMale: undefined as undefined | string,
-    mvpFemale: undefined as undefined | string,
-    mvpMale2: undefined as undefined | string,
-    mvpFemale2: undefined as undefined | string,
-    spiritP1: undefined as undefined | number,
-    spiritP2: undefined as undefined | number,
-    spiritP3: undefined as undefined | number,
-    spiritP4: undefined as undefined | number,
-    spiritP5: undefined as undefined | number,
-    spirit: undefined as undefined | number,
-    spiritComment: '',
-  })
+  const form = useForm(
+    createReportFormData({
+      teamId: auth.current?.team?.id,
+    })
+  )
+
+  useEffect(() => {
+    if (!auth.current?.team?.id || form.data.teamId === auth.current.team.id) {
+      return
+    }
+
+    form.patch({teamId: auth.current.team.id})
+  }, [auth.current?.team?.id, form.data.teamId])
 
   useEffect(() => {
     $fixtureList.fetch({seasonId: auth.season!.id}).then(fixturesSet)
   }, [])
 
   useEffect(() => {
-    if (form.data.fixtureId && auth.current?.team) {
-      $fixtureAgainst
-        .fetch({fixtureId: form.data.fixtureId, teamId: auth.current?.team.id})
-        .then((againstOptions) => againstOptionsSet(againstOptions))
+    if (!form.data.fixtureId || !form.data.teamId) {
+      againstOptionsSet(undefined)
+      return
     }
-  }, [form.data.fixtureId])
 
-  useEffect(() => {
-    if (form.data.fixtureId && form.data.teamId) {
-      $fixtureAgainst
-        .fetch({fixtureId: form.data.fixtureId, teamId: form.data.teamId})
-        .then((againstTeams) => {
-          againstOptionsSet(againstTeams)
-          if (againstTeams.length === 1) {
-            form.patch({againstTeamId: againstTeams[0].team.id})
-          }
+    let cancelled = false
+    const currentAgainstTeamId = form.data.againstTeamId
+
+    againstOptionsSet(undefined)
+
+    $fixtureAgainst
+      .fetch({fixtureId: form.data.fixtureId, teamId: form.data.teamId})
+      .then((nextAgainstOptions) => {
+        if (cancelled) return
+
+        againstOptionsSet(nextAgainstOptions)
+        const hasCurrentSelection = nextAgainstOptions.some(
+          (option) => option.team.id === currentAgainstTeamId
+        )
+
+        form.patch({
+          againstTeamId:
+            nextAgainstOptions.length === 1
+              ? nextAgainstOptions[0].team.id
+              : hasCurrentSelection
+              ? currentAgainstTeamId
+              : undefined,
         })
+      })
+
+    return () => {
+      cancelled = true
     }
   }, [form.data.fixtureId, form.data.teamId])
 
   const chosenAgainst = againstOptions?.find(
     (i) => i.team.id === form.data.againstTeamId
   )
-  const shuffledUsers = shuffleArray(chosenAgainst?.users ?? [])
+
+  useEffect(() => {
+    const nextMvps = sanitizeReportFormMvps(form.data, chosenAgainst?.users)
+
+    if (
+      nextMvps.mvpMale === form.data.mvpMale &&
+      nextMvps.mvpFemale === form.data.mvpFemale &&
+      nextMvps.mvpMale2 === form.data.mvpMale2 &&
+      nextMvps.mvpFemale2 === form.data.mvpFemale2
+    ) {
+      return
+    }
+
+    form.patch(nextMvps)
+  }, [
+    chosenAgainst,
+    form.data.mvpMale,
+    form.data.mvpFemale,
+    form.data.mvpMale2,
+    form.data.mvpFemale2,
+  ])
+
+  const shuffledUsers = useMemo(
+    () => shuffleArray(chosenAgainst?.users ?? []),
+    [chosenAgainst]
+  )
 
   const handleSubmit = () => {
     const errorMessage = validateReportForm(form.data, useOfficialScoring)

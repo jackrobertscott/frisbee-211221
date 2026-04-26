@@ -19,6 +19,7 @@ import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
 import {hsla} from '../../utils/hsla'
 import {
+  createReportFormDataFromReport,
   renderAgainstTeamSelect,
   renderFixtureSelect,
   renderMVPInputs,
@@ -27,6 +28,7 @@ import {
   renderSpiritInputs,
   renderSubmitButton,
   renderTeamSelect,
+  sanitizeReportFormMvps,
   validateReportForm,
 } from '../../utils/renderReportForm'
 import {useAuth} from '../Auth/useAuth'
@@ -308,45 +310,73 @@ const _DashboardReportsForm: FC<{
   // Check if the season uses official scoring
   const useOfficialScoring = auth.season?.useOfficialScoring === true
 
-  // Create form with the appropriate fields based on scoring type
-  const form = useForm({
-    teamId: undefined as undefined | string,
-    againstTeamId: undefined as undefined | string,
-    fixtureId: undefined as undefined | string,
-    scoreFor: undefined as undefined | number,
-    scoreAgainst: undefined as undefined | number,
-    mvpMale: undefined as undefined | string,
-    mvpFemale: undefined as undefined | string,
-    mvpMale2: undefined as undefined | string,
-    mvpFemale2: undefined as undefined | string,
-    spiritP1: undefined as undefined | number,
-    spiritP2: undefined as undefined | number,
-    spiritP3: undefined as undefined | number,
-    spiritP4: undefined as undefined | number,
-    spiritP5: undefined as undefined | number,
-    spirit: undefined as undefined | number,
-    spiritComment: '',
-    ...data, // Overlay the data passed in (if editing an existing report)
-  })
+  const form = useForm(createReportFormDataFromReport(data))
 
   useEffect(() => {
-    if (form.data.fixtureId && form.data.teamId) {
-      $fixtureAgainst
-        .fetch({fixtureId: form.data.fixtureId, teamId: form.data.teamId})
-        .then((againstTeams) => {
-          againstOptionsSet(againstTeams)
-          if (againstTeams.length === 1) {
-            form.patch({againstTeamId: againstTeams[0].team.id})
-          } else if (data?.teamAgainstId) {
-            form.patch({againstTeamId: data.teamAgainstId})
-          }
+    againstOptionsSet(undefined)
+    form.set(createReportFormDataFromReport(data))
+  }, [data?.id])
+
+  useEffect(() => {
+    if (!form.data.fixtureId || !form.data.teamId) {
+      againstOptionsSet(undefined)
+      return
+    }
+
+    let cancelled = false
+    const currentAgainstTeamId = form.data.againstTeamId
+
+    againstOptionsSet(undefined)
+
+    $fixtureAgainst
+      .fetch({fixtureId: form.data.fixtureId, teamId: form.data.teamId})
+      .then((nextAgainstOptions) => {
+        if (cancelled) return
+
+        againstOptionsSet(nextAgainstOptions)
+        const hasCurrentSelection = nextAgainstOptions.some(
+          (option) => option.team.id === currentAgainstTeamId
+        )
+
+        form.patch({
+          againstTeamId:
+            nextAgainstOptions.length === 1
+              ? nextAgainstOptions[0].team.id
+              : hasCurrentSelection
+              ? currentAgainstTeamId
+              : undefined,
         })
+      })
+
+    return () => {
+      cancelled = true
     }
   }, [form.data.fixtureId, form.data.teamId])
 
   const chosenAgainst = againstOptions?.find(
     (i) => i.team.id === form.data.againstTeamId
   )
+
+  useEffect(() => {
+    const nextMvps = sanitizeReportFormMvps(form.data, chosenAgainst?.users)
+
+    if (
+      nextMvps.mvpMale === form.data.mvpMale &&
+      nextMvps.mvpFemale === form.data.mvpFemale &&
+      nextMvps.mvpMale2 === form.data.mvpMale2 &&
+      nextMvps.mvpFemale2 === form.data.mvpFemale2
+    ) {
+      return
+    }
+
+    form.patch(nextMvps)
+  }, [
+    chosenAgainst,
+    form.data.mvpMale,
+    form.data.mvpFemale,
+    form.data.mvpMale2,
+    form.data.mvpFemale2,
+  ])
 
   const handleSubmit = () => {
     const errorMessage = validateReportForm(form.data, useOfficialScoring)
