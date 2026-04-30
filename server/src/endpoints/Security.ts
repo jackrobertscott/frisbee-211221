@@ -17,7 +17,6 @@ import {selectSafeUserFields} from './userSafe'
 import {userEmail} from './userEmail'
 
 const INVALID_LOGIN_MESSAGE = 'Email or password is incorrect.'
-
 export default new Map<string, RequestHandler>([
 
   createEndpoint({
@@ -141,7 +140,8 @@ export default new Map<string, RequestHandler>([
     ...SecurityForgotDef,
     handler: (email) => async () => {
       const user = await userEmail.maybeUser(email)
-      if (user) await userEmail.codeSendSave(user, email, 'Restore Account')
+      if (!user) throw new Error(`User with email ${email} does not exist.`)
+      await userEmail.codeSendSave(user, email, 'Restore Account')
     },
   }),
 
@@ -155,7 +155,8 @@ export default new Map<string, RequestHandler>([
         if (!userEmail.isCodeEqual(user, email, code))
           throw new Error(`Code is incorrect.`)
         if (userEmail.isCodeExpired(user, email)) {
-          await userEmail.codeSendSave(user, email, 'Verify Email')
+          const subject = user.password ? 'Restore Account' : 'Verify Email'
+          await userEmail.codeSendSave(user, email, subject)
           const message = `Your code has expired. A new code has been sent to your email.`
           throw new Error(message)
         }

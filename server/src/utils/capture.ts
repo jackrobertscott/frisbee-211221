@@ -90,6 +90,10 @@ export default {
       ? code
       : error.name === 'ValidationError'
       ? StatusCodes.UNPROCESSABLE_ENTITY
+      : error.name === 'JsonWebTokenError' ||
+        error.name === 'TokenExpiredError' ||
+        error.name === 'NotBeforeError'
+      ? StatusCodes.UNAUTHORIZED
       : error.message === 'jwt expired'
       ? StatusCodes.UNAUTHORIZED
       : StatusCodes.INTERNAL_SERVER_ERROR
