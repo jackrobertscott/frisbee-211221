@@ -11,9 +11,13 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat
 
 # Install server deps (including dev deps for the build)
-COPY server/package.json ./server/
-COPY server/package-lock.json ./server/
-RUN cd server && npm ci --no-audit --no-fund
+COPY server/package*.json ./server/
+RUN cd server && \
+  if [ -f package-lock.json ]; then \
+    npm ci --no-audit --no-fund; \
+  else \
+    npm install --no-audit --no-fund; \
+  fi
 
 # Copy sources needed for bundling
 COPY server ./server
@@ -31,9 +35,12 @@ ENV NODE_ENV=production
 WORKDIR /app/server
 
 # Install only prod dependencies
-COPY server/package.json ./
-COPY server/package-lock.json ./
-RUN npm ci --omit=dev --no-audit --no-fund
+COPY server/package*.json ./
+RUN if [ -f package-lock.json ]; then \
+    npm ci --omit=dev --no-audit --no-fund; \
+  else \
+    npm install --omit=dev --no-audit --no-fund; \
+  fi
 
 # Copy dotenv-safe example for env validation
 COPY server/.env.example ./
