@@ -18,6 +18,10 @@ export const useRouter = () => {
       history.push(path)
       window.scrollTo(0, 0)
     },
+    replace(path: string) {
+      history.replace(path)
+      window.scrollTo(0, 0)
+    },
     back() {
       history.back()
     },
