@@ -30,7 +30,7 @@ export const InputHTMLLegacy: FC<{
   minHeight,
 }) => {
   const value = _value === undefined ? '' : _value
-  const ref = useRef<HTMLElement>()
+  const ref = useRef<HTMLElement | null>(null)
   const [html] = useState(() => dompurify.sanitize(value))
   return $(FormColumn, {
     grow: true,
@@ -69,12 +69,14 @@ export const InputHTMLLegacy: FC<{
 }
 
 const _InputHTMLActions: FC<{
-  refHTML: MutableRefObject<HTMLElement | undefined>
+  refHTML: MutableRefObject<HTMLElement | null>
 }> = ({refHTML}) => {
-  const rangeRef = useRef<Range>()
+  const rangeRef = useRef<Range | null>(null)
   const rangeSave = () => {
     refHTML.current?.focus()
-    rangeRef.current = document.getSelection()?.getRangeAt(0)
+    const selection = document.getSelection()
+    rangeRef.current =
+      selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null
   }
   const rangeRestore = () => {
     refHTML.current?.focus()

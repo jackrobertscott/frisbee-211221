@@ -141,7 +141,7 @@ export const _DashboardImport: FC<{
   close: () => void
   season: TSeason
 }> = ({done, close, season}) => {
-  const ref = useRef<HTMLElement>()
+  const ref = useRef<HTMLInputElement | null>(null)
   const [csv, csvSet] = useState<File>()
   const $import = useEndpoint($PortImport)
   return $(Fragment, {

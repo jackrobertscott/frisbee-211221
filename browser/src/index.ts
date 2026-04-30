@@ -3,7 +3,7 @@ import {injectGlobal} from '@emotion/css'
 import '@fortawesome/fontawesome-free/css/all.min.css'
 import 'promise-polyfill/src/polyfill'
 import {createElement as $, StrictMode} from 'react'
-import ReactDOM from 'react-dom'
+import {createRoot} from 'react-dom/client'
 import 'whatwg-fetch'
 import {App} from './app/App'
 import {AuthProvider} from './app/Auth/AuthProvider'
@@ -57,4 +57,9 @@ const root = $(StrictMode, {
   }),
 })
 
-ReactDOM.render(root, document.getElementById('root'))
+const container = document.getElementById('root')
+if (!container) {
+  throw new Error('Root container not found')
+}
+
+createRoot(container).render(root)

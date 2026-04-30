@@ -21,8 +21,8 @@ export const Graph: FC<{
   height: _height = theme.fib[12],
 }) => {
   const media = useMedia()
-  const bgRef = useRef<HTMLCanvasElement>()
-  const cvsRef = useRef<HTMLCanvasElement>()
+  const bgRef = useRef<HTMLDivElement | null>(null)
+  const cvsRef = useRef<HTMLCanvasElement | null>(null)
   useEffect(() => {
     if (!cvsRef.current || !bgRef.current) return
     const cvs = cvsRef.current

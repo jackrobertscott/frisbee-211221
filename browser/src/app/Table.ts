@@ -1,5 +1,5 @@
 import {css} from '@emotion/css'
-import {createElement as $, FC, Fragment, ReactNode, ReactText} from 'react'
+import {createElement as $, FC, Fragment, ReactNode} from 'react'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {hsla} from '../utils/hsla'
@@ -16,7 +16,7 @@ type TFCTable<T extends string = any> = FC<{
       T,
       {
         children?: ReactNode
-        value?: ReactText
+        value?: string | number
         color?: string
         icon?: string
       }

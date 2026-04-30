@@ -1,15 +1,25 @@
-import react from '@vitejs/plugin-react'
+import babel from '@rolldown/plugin-babel'
+import react, {reactCompilerPreset} from '@vitejs/plugin-react'
 import {resolve} from 'path'
 import {defineConfig} from 'vite'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    babel({
+      presets: [reactCompilerPreset()],
+    }),
+  ],
   server: {
     port: 3000,
   },
-  esbuild: {
-    legalComments: 'none', // hide comments files + lib
-    keepNames: true, // transform function.name accessors into string literals
+  build: {
+    rolldownOptions: {
+      output: {
+        comments: false, // hide comments in bundled output
+        keepNames: true, // preserve function/class names used at runtime
+      },
+    },
   },
   resolve: {
     alias: {

@@ -1,6 +1,6 @@
 import {internalError} from '@shared/errors'
 import {useContext} from 'react'
-import * as queryString from 'query-string'
+import queryString from 'query-string'
 import {RouterContext, TRouteQuery} from './RouterContext'
 import {history} from '../../utils/history'
 

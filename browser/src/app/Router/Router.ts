@@ -1,6 +1,6 @@
 import {internalError} from '@shared/errors'
 import {createElement as $, FC, ReactNode, useEffect, useState} from 'react'
-import {pathToRegexp, Key} from 'path-to-regexp'
+import {match} from 'path-to-regexp'
 import {useMountedRef} from '../useMountedRef'
 import {TRoute, TRouteParams, TRouteQuery} from './RouterContext'
 import {RouterProvider} from './RouterProvider'
@@ -80,14 +80,7 @@ const _parseRoute = (
   path: string,
   exact?: boolean
 ): {ok: false} | {ok: true; params: TRouteParams} => {
-  const keys: Key[] = []
-  const regex = pathToRegexp(path, keys, {end: exact ?? false})
-  const result = regex.exec(location.pathname)
-  if (result === null) return {ok: false}
-  const values = result.slice(1)
-  const params = keys.reduce((all, key, index) => {
-    all[key.name] = values[index]
-    return all
-  }, {} as Record<string, string>)
-  return {ok: true, params}
+  const result = match(path, {end: exact ?? false})(location.pathname)
+  if (!result) return {ok: false}
+  return {ok: true, params: result.params as TRouteParams}
 }

@@ -35,9 +35,9 @@ export const Popup: FC<{
   maxWidth,
 }) => {
   const stack = useStack()
-  const wrapRef = useRef<HTMLElement>()
-  const popupRef = useRef<HTMLElement>()
-  const contentRef = useRef<HTMLElement>()
+  const wrapRef = useRef<HTMLDivElement | null>(null)
+  const popupRef = useRef<HTMLDivElement | null>(null)
+  const contentRef = useRef<HTMLDivElement | null>(null)
   const [box, boxSet] = useState<DOMRect>()
   const [adjust, adjustSet] = useState({x: 0, y: 0})
   const offset = {x: 0, y: 3}
