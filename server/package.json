@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "npm run typecheck",
     "start": "tsx src/index.ts"
   },
   "dependencies": {

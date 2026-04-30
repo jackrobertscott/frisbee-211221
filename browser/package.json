@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "cd ../shared && npm i && cd ../browser && tsc && vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "npm --prefix ../shared ci && npm run typecheck && vite build",
     "preview": "vite preview",
     "deploy": "vercel --prod"
   },

@@ -5,10 +5,7 @@
     "target": "ESNext",
 
     // Output
-    // "noEmit": true, // We want it to emit
-    "sourceMap": true,
-    "declaration": true,
-    "outDir": "dist",
+    "noEmit": true,
 
     // Import/Export
     "module": "ESNext",
@@ -30,7 +27,7 @@
     "paths": {
       "@server/*": ["server/src/*"],
       "@shared/*": ["shared/src/*"],
-      "torva": ["server/node_modules/torva"] // Hack to get torva to work
+      "torva": ["server/node_modules/torva"]
     }
   },
   "include": ["src", "../shared/src"],

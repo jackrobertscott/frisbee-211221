@@ -2,6 +2,10 @@
   "private": true,
   "name": "shared",
   "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "npm run typecheck"
+  },
   "dependencies": {
     "torva": "^0.4.0"
   },

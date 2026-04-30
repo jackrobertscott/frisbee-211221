@@ -6,9 +6,6 @@
 
     // Output
     "noEmit": true,
-    "sourceMap": true,
-    "declaration": true,
-    "outDir": "build",
 
     // Import/Export
     "module": "ESNext",
