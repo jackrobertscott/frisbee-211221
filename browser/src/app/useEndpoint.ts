@@ -4,7 +4,9 @@ import {TypeIoAll, TypeIoValue} from 'torva'
 import {TEndpoint} from '../utils/endpoints'
 import {throttle} from '../utils/throttle'
 import {useAuth} from './Auth/useAuth'
+import {useRouter} from './Router/useRouter'
 import {useToaster} from './Toaster/useToaster'
+import {routeLoadingEnd, routeLoadingStart} from './routeLoading'
 import {useMountedRef} from './useMountedRef'
 
 export const useEndpoint = <
@@ -17,9 +19,11 @@ export const useEndpoint = <
   timeout?: number
 ) => {
   const auth = useAuth()
+  const router = useRouter()
   const toaster = useToaster()
   const mounted = useMountedRef()
   const [loading, loadingSet] = useState(false)
+  const pathname = router.location?.pathname ?? ''
   type P = M extends true ? FormData : TypeIoValue<NonNullable<E['IN']>>
   type R = TypeIoValue<NonNullable<E['OUT']>>
   const cbNext = async (payload?: P) =>
@@ -40,6 +44,7 @@ export const useEndpoint = <
     return {
       loading,
       async fetch(payload?: P): Promise<R> {
+        routeLoadingStart(pathname)
         if (mounted.current) loadingSet(true)
         try {
           return await new Promise<R>((resolve, reject) => {
@@ -51,8 +56,9 @@ export const useEndpoint = <
           throw appError
         } finally {
           if (mounted.current) loadingSet(false)
+          routeLoadingEnd(pathname)
         }
       },
     }
-  }, [auth.current, loading])
+  }, [auth.current, loading, pathname])
 }

@@ -32,6 +32,7 @@ import {Question} from '../Question'
 import {ReportCreate} from '../ReportCreate'
 import {Router} from '../Router/Router'
 import {useRouter} from '../Router/useRouter'
+import {getRouteLoadingCount, subscribeRouteLoading} from '../routeLoading'
 import {SeasonCreate} from '../SeasonCreate'
 import {Settings} from '../Settings/Settings'
 import {TeamSetup} from '../TeamSetup'
@@ -391,8 +392,16 @@ const _DashboardRouteFrame: FC<{
   const heightRef = useRef(0)
   const pathname = router.location?.pathname ?? ''
   const pathRef = useRef(pathname)
+  const pathnameRef = useRef(pathname)
   const [lockedHeight, lockedHeightSet] = useState<number>()
   const [transitioning, transitioningSet] = useState(false)
+  const [routeLoadingCount, routeLoadingCountSet] = useState(() =>
+    getRouteLoadingCount(pathname)
+  )
+  const [sawRouteLoading, sawRouteLoadingSet] = useState(false)
+  const [graceElapsed, graceElapsedSet] = useState(false)
+
+  pathnameRef.current = pathname
 
   useLayoutEffect(() => {
     const node = frameRef.current
@@ -407,47 +416,66 @@ const _DashboardRouteFrame: FC<{
   }, [])
 
   useEffect(() => {
+    routeLoadingCountSet(getRouteLoadingCount(pathname))
+  }, [pathname])
+
+  useEffect(() => {
+    return subscribeRouteLoading(() => {
+      routeLoadingCountSet(getRouteLoadingCount(pathnameRef.current))
+    })
+  }, [])
+
+  useEffect(() => {
     if (pathRef.current === pathname) return
     pathRef.current = pathname
     if (heightRef.current < 1) return
     lockedHeightSet(heightRef.current)
     transitioningSet(true)
+    sawRouteLoadingSet(false)
+    graceElapsedSet(false)
   }, [pathname])
 
   useEffect(() => {
     if (!transitioning) return
-    let active = true
-    let frame = 0
-    let timeout = 0
+    if (routeLoadingCount > 0) sawRouteLoadingSet(true)
+  }, [routeLoadingCount, transitioning])
+
+  useEffect(() => {
+    if (!transitioning) return
+    const timeout = window.setTimeout(() => {
+      graceElapsedSet(true)
+    }, 250)
+    return () => window.clearTimeout(timeout)
+  }, [pathname, transitioning])
+
+  useEffect(() => {
+    if (!transitioning || routeLoadingCount > 0) return
+    if (!sawRouteLoading && !graceElapsed) return
+    let frameA = 0
+    let frameB = 0
 
     const release = () => {
-      if (!active) return
+      const node = frameRef.current
+      if (!node) {
+        transitioningSet(false)
+        lockedHeightSet(undefined)
+        return
+      }
+      const loading = node.querySelector('[data-route-loading="true"]')
+      if (loading) return
       transitioningSet(false)
       lockedHeightSet(undefined)
     }
 
-    const check = () => {
-      if (!active) return
-      const node = frameRef.current
-      if (!node) return release()
-      const loading = node.querySelector('[data-route-loading="true"]')
-      if (loading) {
-        frame = window.requestAnimationFrame(check)
-        return
-      }
-      release()
-    }
-
-    timeout = window.setTimeout(() => {
-      frame = window.requestAnimationFrame(check)
-    }, 0)
+    frameA = window.requestAnimationFrame(() => {
+      frameB = window.requestAnimationFrame(release)
+    })
 
     return () => {
-      active = false
-      window.clearTimeout(timeout)
-      window.cancelAnimationFrame(frame)
+      window.cancelAnimationFrame(frameA)
+      window.cancelAnimationFrame(frameB)
     }
-  }, [children, transitioning])
+  }, [children, graceElapsed, routeLoadingCount, sawRouteLoading, transitioning])
 
   return $('div', {
     ref: frameRef,
