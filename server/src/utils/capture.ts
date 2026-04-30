@@ -11,6 +11,27 @@ Sentry.init({
 })
 
 export default {
+  shouldLogDebug(error: unknown) {
+    if (!(error instanceof Error)) return true
+    const statusCode = (error as any).statusCode
+    if (statusCode === StatusCodes.NOT_FOUND) return false
+    return true
+  },
+
+  formatLogLine(pretty: {code: number; status: string; message: string; url?: string}, req?: IncomingMessage) {
+    const parts = [
+      '[error]',
+      String(pretty.code),
+      pretty.status || 'Unknown',
+      req?.method || 'UNKNOWN',
+      pretty.url || req?.url || '/',
+    ]
+    const message = String(pretty.message || '')
+      .replace(/\s+/g, ' ')
+      .trim()
+    if (message) parts.push(message)
+    return parts.join(' | ')
+  },
 
   handle(handler: RequestHandler): RequestHandler {
     return async (req, res) => {
@@ -27,7 +48,10 @@ export default {
           typeof (error as any).tarpit === 'object' &&
           (error as any).tarpit
         ) {
-          if (config.debug) console.log(error.message)
+          if (config.debug && this.shouldLogDebug(error)) {
+            const pretty = this.pretty(error, req)
+            console.log(this.formatLogLine(pretty, req))
+          }
           await tarpit.respond(res, (error as any).tarpit)
           return null
         }
@@ -36,7 +60,10 @@ export default {
           error instanceof Error &&
           (error as any).statusCode === StatusCodes.FORBIDDEN
         ) {
-          if (config.debug) console.log(error.message)
+          if (config.debug) {
+            const pretty = this.pretty(error, req)
+            console.log(this.formatLogLine(pretty, req))
+          }
           return send(res, StatusCodes.FORBIDDEN)
         }
 
@@ -45,7 +72,9 @@ export default {
         }
 
         const pretty = this.pretty(error, req)
-        if (config.debug) console.log(pretty)
+        if (config.debug && this.shouldLogDebug(error)) {
+          console.log(this.formatLogLine(pretty, req))
+        }
         if (pretty.code === StatusCodes.INTERNAL_SERVER_ERROR) {
           if (req) this.scope(req)
           process.nextTick(() => Sentry.captureException(error))
