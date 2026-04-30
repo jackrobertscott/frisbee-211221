@@ -4,13 +4,14 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
+    "type-check": "npm run typecheck",
     "build": "npm run typecheck"
   },
   "dependencies": {
     "torva": "^0.4.0"
   },
   "devDependencies": {
-    "@types/node": "^20.6.3",
-    "typescript": "^5.2.2"
+    "@types/node": "^20.19.39",
+    "typescript": "^5.9.3"
   }
 }
