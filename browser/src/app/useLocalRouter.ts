@@ -1,3 +1,4 @@
+import {internalError} from '@shared/errors'
 import {createElement as $, Fragment, ReactNode, useState} from 'react'
 
 export interface TRoute {
@@ -10,7 +11,10 @@ export const useLocalRouter = <T extends TRoute>(
   _routes: (T | false)[]
 ) => {
   const routes = _routes.filter((i) => i) as T[]
-  if (routes.length < 1) throw new Error('Router must have at least one route.')
+  if (routes.length < 1)
+    throw internalError('Router must have at least one route.', {
+      errorCode: 'router.routes_missing',
+    })
   const [pathCurrent, pathCurrentSet] = useState(fallback)
   const current = routes.find((i) => i.path === pathCurrent) ?? routes[0]
   const go = (path: string) => {

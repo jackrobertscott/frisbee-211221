@@ -1,3 +1,4 @@
+import {internalError} from '@shared/errors'
 import {hsla} from './utils/hsla'
 
 export const theme = {
@@ -25,7 +26,9 @@ export const theme = {
   },
   padify(pixels: number) {
     if (pixels < this.fontInset)
-      throw new Error('Pixels must be greater than 3.')
+      throw internalError('Pixels must be greater than 3.', {
+        errorCode: 'theme.padify_pixels_invalid',
+      })
     return `${pixels - this.fontInset}px ${pixels}px`
   },
   gtMedia(pixels: number) {

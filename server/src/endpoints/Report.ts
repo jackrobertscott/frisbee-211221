@@ -1,3 +1,4 @@
+import {badRequestError, conflictError} from '@shared/errors'
 import {
   ReportCreateDef,
   ReportDeleteDef,
@@ -68,7 +69,9 @@ export default new Map<string, RequestHandler>([
         if (!againstTeamIds.length) {
           const message =
             'Failed to find the opposition team. Your team is may not be playing in this fixture.'
-          throw new Error(message)
+          throw badRequestError(message, {
+            errorCode: 'report.matchup_invalid',
+          })
         }
         return Promise.all(
           againstTeamIds.map(async (id) => {
@@ -105,7 +108,9 @@ export default new Map<string, RequestHandler>([
         })
       ) {
         const message = `Report already submitted by ${team.name} for ${fixture.title}.`
-        throw new Error(message)
+        throw conflictError(message, {
+          errorCode: 'report.already_submitted',
+        })
       }
       let matchupIsValid = false
       for (const game of fixture.games) {
@@ -120,7 +125,9 @@ export default new Map<string, RequestHandler>([
       if (!matchupIsValid) {
         const message =
           'Failed to find the opposition team. Your team is may not be playing in this fixture.'
-        throw new Error(message)
+        throw badRequestError(message, {
+          errorCode: 'report.matchup_invalid',
+        })
       }
       return $Report.createOne({
         ...body,

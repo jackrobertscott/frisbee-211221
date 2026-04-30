@@ -1,3 +1,4 @@
+import {internalError, notFoundError} from '@shared/errors'
 import cluster from 'cluster'
 import http from 'http'
 import {RequestHandler, serve as microServe} from 'micro'
@@ -24,12 +25,17 @@ if (!config.prod) {
 
 function startServer() {
   const handler: RequestHandler = async (req, res) => {
-    if (!req.url) throw new Error('Request url required.')
+    if (!req.url)
+      throw internalError('Request url required.', {
+        errorCode: 'request.url_missing',
+      })
     const pathname = intrusion.getPathname(req.url)
     if (endpoints.has(pathname))
       // return "null" instead of "undefined" to end request
       return (await endpoints.get(pathname)!(req, res)) ?? null
-    throw new Error(`Url ${req.url} is not supported.`)
+    throw notFoundError(`Url ${req.url} is not supported.`, {
+      errorCode: 'request.route_not_found',
+    })
   }
   const server = new http.Server(
     microServe(cors()(capture.handle(prerequest(handler))))

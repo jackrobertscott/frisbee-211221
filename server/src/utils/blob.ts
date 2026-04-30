@@ -1,3 +1,9 @@
+import {
+  badRequestError,
+  internalError,
+  tooManyRequestsError,
+  toAppError,
+} from '@shared/errors'
 import os from 'os'
 import path from 'path'
 import createBusboy from 'busboy'
@@ -59,15 +65,47 @@ export const blob = {
         if (done) return
         done = true
         await cleanupFiles(filepaths)
-        reject(error instanceof Error ? error : new Error(String(error)))
+        reject(toAppError(error))
       }
 
-      req.on('aborted', () => fail(new Error('Upload was aborted.')))
+      req.on(
+        'aborted',
+        () =>
+          fail(
+            badRequestError('Upload was aborted.', {
+              errorCode: 'upload.aborted',
+            })
+          )
+      )
       req.on('error', fail)
       busboy.on('field', (fieldname, val) => fields.set(fieldname, val))
-      busboy.on('filesLimit', () => fail(new Error('Too many files were uploaded.')))
-      busboy.on('fieldsLimit', () => fail(new Error('Too many fields were uploaded.')))
-      busboy.on('partsLimit', () => fail(new Error('Too many parts were uploaded.')))
+      busboy.on(
+        'filesLimit',
+        () =>
+          fail(
+            tooManyRequestsError('Too many files were uploaded.', {
+              errorCode: 'upload.files_limit',
+            })
+          )
+      )
+      busboy.on(
+        'fieldsLimit',
+        () =>
+          fail(
+            tooManyRequestsError('Too many fields were uploaded.', {
+              errorCode: 'upload.fields_limit',
+            })
+          )
+      )
+      busboy.on(
+        'partsLimit',
+        () =>
+          fail(
+            tooManyRequestsError('Too many parts were uploaded.', {
+              errorCode: 'upload.parts_limit',
+            })
+          )
+      )
       busboy.on('error', fail)
 
       busboy.on('file', (fieldname, file, {filename, encoding, mimeType}) => {
@@ -86,7 +124,15 @@ export const blob = {
           output.on('finish', ok)
           output.on('error', no)
           file.on('error', no)
-          file.on('limit', () => no(new Error('Upload exceeded size limit.')))
+          file.on(
+            'limit',
+            () =>
+              no(
+                tooManyRequestsError('Upload exceeded size limit.', {
+                  errorCode: 'upload.size_limit',
+                })
+              )
+          )
         }).catch((error) => {
           if (!done) throw error
         })
@@ -136,7 +182,9 @@ export const blob = {
     folder: string
   }) {
     if (!config.AWSBucket)
-      throw new Error('Missing AWS bucket environment variable.')
+      throw internalError('Missing AWS bucket environment variable.', {
+        errorCode: 'blob.bucket_missing',
+      })
     const filename = random.randomString(24).concat(extension)
     const key = path.join(folder, filename)
     const bucket = config.AWSBucket

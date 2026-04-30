@@ -1,9 +1,17 @@
+import {
+  createError,
+  deserializeError,
+  serviceUnavailableError,
+} from '@shared/errors'
 import {config} from '../config'
 
 export const radio = {
 
   async send(path: string, payload?: any, token?: string) {
-    if (!config.urlServer) throw new Error('Server url not set in config.')
+    if (!config.urlServer)
+      throw serviceUnavailableError('Server url not set in config.', {
+        errorCode: 'client.server_url_missing',
+      })
     return fetch(`${config.urlServer}${path}`, {
       method: 'POST',
       body: JSON.stringify({
@@ -34,8 +42,27 @@ export const radio = {
         return i.blob()
       return i.json()
     }
-    const payload = await i.json()
-    if (payload.message) throw new Error(payload.message)
-    throw new Error('Server request failed.')
+    const contentType = i.headers.get('Content-Type') ?? ''
+    if (contentType.startsWith('application/json')) {
+      const payload = await i.json()
+      throw deserializeError(payload, {
+        statusCode: i.status,
+        message: 'Server request failed.',
+      })
+    }
+    const message = (await i.text().catch(() => '')).trim()
+    if (message) {
+      throw createError({
+        message,
+        statusCode: i.status,
+        errorCode: 'request.failed',
+      })
+    }
+    throw createError({
+      message: 'Server request failed.',
+      statusCode: i.status,
+      errorCode: 'request.failed',
+      retryable: i.status >= 500,
+    })
   },
 }

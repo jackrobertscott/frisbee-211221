@@ -1,3 +1,4 @@
+import {forbiddenError} from '@shared/errors'
 import {TUser} from '@shared/schemas/ioUser'
 import {$Member} from '../tables/$Member'
 import {$Team} from '../tables/$Team'
@@ -10,6 +11,8 @@ export const requireTeam = async (user: TUser, teamId: string) => {
     pending: false,
   })
   if (!member)
-    throw new Error(`User does not have sufficient access privileges.`)
+    throw forbiddenError(`User does not have sufficient access privileges.`, {
+      errorCode: 'team.access_forbidden',
+    })
   return [team, member] as const
 }

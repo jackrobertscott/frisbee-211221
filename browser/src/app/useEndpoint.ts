@@ -1,3 +1,4 @@
+import {getErrorMessage, toAppError} from '@shared/errors'
 import {useMemo, useRef, useState} from 'react'
 import {TypeIoAll, TypeIoValue} from 'torva'
 import {TEndpoint} from '../utils/endpoints'
@@ -44,9 +45,10 @@ export const useEndpoint = <
           return await new Promise<R>((resolve, reject) => {
             drippedCb.current(resolve, reject, payload)
           })
-        } catch (error: any) {
-          toaster.error(error?.message || 'An error occurred.')
-          throw error
+        } catch (error) {
+          const appError = toAppError(error)
+          toaster.error(getErrorMessage(appError))
+          throw appError
         } finally {
           if (mounted.current) loadingSet(false)
         }

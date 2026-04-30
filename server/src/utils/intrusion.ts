@@ -1,3 +1,4 @@
+import {forbiddenError, notFoundError} from '@shared/errors'
 import {IncomingMessage} from 'http'
 import {StatusCodes} from 'http-status-codes'
 import {ITarpitPlan} from './tarpit'
@@ -41,17 +42,6 @@ let inspectCount = 0
 const getHeaderValue = (value?: string | string[]) => {
   if (Array.isArray(value)) return value[0]
   return value
-}
-
-const createHttpError = (
-  statusCode: number,
-  message: string,
-  tarpit?: ITarpitPlan
-) => {
-  const error: any = new Error(message)
-  error.statusCode = statusCode
-  if (tarpit) error.tarpit = tarpit
-  return error
 }
 
 const isPrivateIpv4 = (value: string) => {
@@ -239,11 +229,10 @@ export default {
           state.blockedUntil
         ).toISOString()}`,
       })
-      return createHttpError(
-        StatusCodes.NOT_FOUND,
-        'Not found.',
-        createTarpitPlan({blocked: true})
-      )
+      return notFoundError('Not found.', {
+        errorCode: 'intrusion.blocked',
+        tarpit: createTarpitPlan({blocked: true}),
+      })
     }
 
     const suspiciousPath = SUSPICIOUS_PATH_PATTERNS.some((pattern) =>
@@ -277,11 +266,12 @@ export default {
         now,
       })
 
-      return createHttpError(
-        StatusCodes.NOT_FOUND,
-        'Not found.',
-        createTarpitPlan({suspiciousPath})
-      )
+      return notFoundError('Not found.', {
+        errorCode: suspiciousPath
+          ? 'intrusion.exploit_probe'
+          : 'intrusion.suspicious_request',
+        tarpit: createTarpitPlan({suspiciousPath}),
+      })
     }
 
     if (!options.originAllowed) {
@@ -294,9 +284,11 @@ export default {
         now,
       })
 
-      return createHttpError(
-        StatusCodes.FORBIDDEN,
-        `Forbidden origin "${options.origin}" attempted "${options.pathname}"`
+      return forbiddenError(
+        `Forbidden origin "${options.origin}" attempted "${options.pathname}"`,
+        {
+          errorCode: 'intrusion.origin_forbidden',
+        }
       )
     }
 

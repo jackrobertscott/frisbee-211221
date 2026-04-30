@@ -1,3 +1,4 @@
+import {badRequestError, serviceUnavailableError} from '@shared/errors'
 import {random} from '@server/utils/random'
 import {
   PortDeleteAllMockDataDef,
@@ -30,11 +31,19 @@ export default new Map<string, RequestHandler>([
       await requireUserAdmin(req)
       const [rawFiles, fields] = await blob.digestRequest(req)
       const seasonId = fields.get('seasonId')
-      if (!seasonId?.trim()) throw new Error('Season id missing from request.')
+      if (!seasonId?.trim())
+        throw badRequestError('Season id missing from request.', {
+          errorCode: 'season.id_missing',
+        })
       const season = await $Season.getOne({id: seasonId})
-      if (!rawFiles[0]) throw new Error('No file was present on the request.')
+      if (!rawFiles[0])
+        throw badRequestError('No file was present on the request.', {
+          errorCode: 'upload.file_missing',
+        })
       if (!['text/csv'].includes(rawFiles[0].mimetype))
-        throw new Error('Failed: import file type must be a CSV.')
+        throw badRequestError('Failed: import file type must be a CSV.', {
+          errorCode: 'upload.invalid_file_type',
+        })
       const csvBuffer = await blob.filepathBuffer(rawFiles[0].filepath)
       const content = csvBuffer.toString()
       const objects = _parseCSVString(content)
@@ -49,7 +58,7 @@ export default new Map<string, RequestHandler>([
         (h) => !providedHeadings.includes(h)
       )
       if (missingHeadings.length > 0) {
-        throw new Error(
+        throw badRequestError(
           `Missing required headings: ${missingHeadings.join(', ')}`
         )
       }
@@ -66,7 +75,7 @@ export default new Map<string, RequestHandler>([
         (h) => !allowedHeadings.includes(h)
       )
       if (unexpectedHeadings.length > 0) {
-        throw new Error(
+        throw badRequestError(
           `Unexpected headings found: ${unexpectedHeadings.join(', ')}`
         )
       }
@@ -80,7 +89,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...PortExportDef,
     handler: () => async (req) => {
-      throw new Error('Please ask admin (Jack) to enable export feature')
+      throw serviceUnavailableError('Please ask admin (Jack) to enable export feature', {
+        errorCode: 'port.export_disabled',
+      })
       const [user] = await requireUserAdmin(req)
       const all = await Promise.all([
         $Fixture.getMany({}),
@@ -137,7 +148,9 @@ export default new Map<string, RequestHandler>([
     handler: (body) => async (req) => {
       await requireUserAdmin(req)
       if (!body.seasonId?.trim())
-        throw new Error('Season id missing from request.')
+        throw badRequestError('Season id missing from request.', {
+          errorCode: 'season.id_missing',
+        })
       const season = await $Season.getOne({id: body.seasonId})
 
       const teams = [] as {

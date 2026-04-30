@@ -1,13 +1,13 @@
+import {forbiddenError} from '@shared/errors'
 import {IncomingMessage} from 'http'
-import {StatusCodes} from 'http-status-codes'
 import {requireUser} from './requireUser'
 
 export const requireUserAdmin = async (req: IncomingMessage) => {
   const [user, session] = await requireUser(req)
   if (!user.admin) {
-    const error: any = new Error(`Failed because user is not an admin.`)
-    error.statusCode = StatusCodes.FORBIDDEN
-    throw error
+    throw forbiddenError(`Failed because user is not an admin.`, {
+      errorCode: 'auth.admin_required',
+    })
   }
   return [user, session] as const
 }

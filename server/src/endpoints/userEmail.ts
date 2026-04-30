@@ -1,3 +1,9 @@
+import {
+  badRequestError,
+  conflictError,
+  internalError,
+  notFoundError,
+} from '@shared/errors'
 import {TUser, TUserEmail} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
 import {$User} from '../tables/$User'
@@ -35,7 +41,10 @@ export const userEmail = {
   },
 
   primary(user: TUser) {
-    if (!user.emails?.length) throw new Error('User is missing emails array.')
+    if (!user.emails?.length)
+      throw internalError('User is missing emails array.', {
+        errorCode: 'user.emails_missing',
+      })
     return user.emails.find((i) => i.primary) ?? user.emails[0]
   },
 
@@ -45,9 +54,13 @@ export const userEmail = {
 
   async add(user: TUser, email: string) {
     if (userEmail.get(user, email))
-      throw new Error('Email already exists on this user.')
+      throw conflictError('Email already exists on this user.', {
+        errorCode: 'user.email_exists',
+      })
     if (await userEmail.maybeUser(email))
-      throw new Error('Another account already has this email.')
+      throw conflictError('Another account already has this email.', {
+        errorCode: 'user.email_exists',
+      })
     const i = userEmail.create(email)
     const rawCode = await userEmail.codeSend(i.value, user.firstName, 'Verify Email')
     i.code = hash.digest(normalizeCode(rawCode))
@@ -58,18 +71,29 @@ export const userEmail = {
   async remove(user: TUser, email: string) {
     let emails = user.emails ? [...user.emails] : []
     const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
-    if (index === -1) throw new Error('Email does not exist on user.')
+    if (index === -1)
+      throw notFoundError('Email does not exist on user.', {
+        errorCode: 'user.email_not_found',
+      })
     if (emails[index].primary)
-      throw new Error('Primary email can not be deleted.')
+      throw badRequestError('Primary email can not be deleted.', {
+        errorCode: 'user.email_primary_delete_forbidden',
+      })
     emails.splice(index, 1)
-    if (emails.length < 1) throw new Error('User must have at least one email.')
+    if (emails.length < 1)
+      throw badRequestError('User must have at least one email.', {
+        errorCode: 'user.email_required',
+      })
     return $User.updateOne({id: user.id}, {emails})
   },
 
   async verify(user: TUser, email: string) {
     let emails = user.emails ? [...user.emails] : []
     const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
-    if (index === -1) throw new Error('Email does not exist on user.')
+    if (index === -1)
+      throw notFoundError('Email does not exist on user.', {
+        errorCode: 'user.email_not_found',
+      })
     const data = emails[index]
     emails.splice(index, 1, {...data, verified: true})
     return $User.updateOne({id: user.id}, {emails})
@@ -78,7 +102,10 @@ export const userEmail = {
   async primarySet(user: TUser, email: string) {
     let emails = user.emails ? [...user.emails] : []
     const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
-    if (index === -1) throw new Error('Email does not exist on user.')
+    if (index === -1)
+      throw notFoundError('Email does not exist on user.', {
+        errorCode: 'user.email_not_found',
+      })
     emails = emails.map((i) => ({...i, primary: false}))
     const data = emails[index]
     emails.splice(index, 1, {...data, primary: true})
@@ -114,7 +141,10 @@ export const userEmail = {
   async codeSave(user: TUser, email: string, code: string) {
     let emails = user.emails ? [...user.emails] : []
     const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
-    if (index === -1) throw new Error('Email does not exist on user.')
+    if (index === -1)
+      throw notFoundError('Email does not exist on user.', {
+        errorCode: 'user.email_not_found',
+      })
     const data = emails[index]
     emails.splice(index, 1, {
       ...data,
@@ -126,7 +156,10 @@ export const userEmail = {
 
   isCodeEqual(user: TUser, email: string, code: string) {
     const data = userEmail.get(user, email)
-    if (!data) throw new Error('Email does not exist on user.')
+    if (!data)
+      throw notFoundError('Email does not exist on user.', {
+        errorCode: 'user.email_not_found',
+      })
     const normalizedCode = normalizeCode(code)
     return isHashedCode(data.code)
       ? hash.equals(normalizedCode, data.code)
@@ -135,7 +168,10 @@ export const userEmail = {
 
   isCodeExpired(user: TUser, email: string) {
     const data = userEmail.get(user, email)
-    if (!data) throw new Error('Email does not exist on user.')
+    if (!data)
+      throw notFoundError('Email does not exist on user.', {
+        errorCode: 'user.email_not_found',
+      })
     const now = dayjs()
     const expiry = dayjs(data.createdOn).add(10, 'minutes')
     return dayjs(now).isAfter(expiry)
@@ -147,9 +183,15 @@ export const userEmail = {
 
   async migrate(user: TUser) {
     const raw: any = await $User.getOne({id: user.id})
-    if (!userEmail.isOld(raw)) throw new Error('User has already migrated.')
+    if (!userEmail.isOld(raw))
+      throw conflictError('User has already migrated.', {
+        errorCode: 'user.already_migrated',
+      })
     if (raw.emails?.length) return $User.updateOne({id: user.id}, {email: null})
-    if (!raw.email) throw new Error('User is missing legacy email.')
+    if (!raw.email)
+      throw internalError('User is missing legacy email.', {
+        errorCode: 'user.legacy_email_missing',
+      })
     const fallback = userEmail.create(raw.email)
     const data: TUserEmail = {
       value: raw.email,

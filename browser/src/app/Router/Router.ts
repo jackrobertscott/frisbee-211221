@@ -1,3 +1,4 @@
+import {internalError} from '@shared/errors'
 import {createElement as $, FC, ReactNode, useEffect, useState} from 'react'
 import {pathToRegexp, Key} from 'path-to-regexp'
 import {useMountedRef} from '../useMountedRef'
@@ -22,9 +23,15 @@ export const Router: FC<{
   const router = useRouter()
   const mountedRef = useMountedRef()
   const location = router.location
-  if (!location) throw new Error('Router context is not setup.')
+  if (!location)
+    throw internalError('Router context is not setup.', {
+      errorCode: 'router.context_missing',
+    })
   const routes = _routes.filter(Boolean) as TRoute[]
-  if (routes.length < 1) throw new Error('Router must have at least one route.')
+  if (routes.length < 1)
+    throw internalError('Router must have at least one route.', {
+      errorCode: 'router.routes_missing',
+    })
   // ...
   const _getCurrent = () => {
     for (const route of routes) {

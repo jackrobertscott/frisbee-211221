@@ -1,3 +1,5 @@
+import {internalError} from '@shared/errors'
+
 export const throttle = {
   // Execute callback then set status to waiting for the given timeout
   // time period. All attempts to execute the callback while the status
@@ -53,7 +55,10 @@ export const throttle = {
     timeout: number,
     cb: (...args: any[]) => Promise<T>
   ) => {
-    if (max < 1) throw new Error('Dribble max can not be less than 1')
+    if (max < 1)
+      throw internalError('Dribble max can not be less than 1', {
+        errorCode: 'throttle.dribble_max_invalid',
+      })
     let waiting = false
     let queue: Array<() => void> = []
     return (...args: any[]): Promise<T> => {

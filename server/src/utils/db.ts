@@ -1,3 +1,4 @@
+import {notFoundError} from '@shared/errors'
 import {Document, Filter, FindOptions, WithId} from 'mongodb'
 import {TypeIoAll, TypeIoValue} from 'torva'
 import mongo from './mongo'
@@ -45,7 +46,11 @@ export const db = {
 
       async getOne(query: Filter<V>): Promise<V> {
         const data = await this.maybeOne(query)
-        if (!data) throw new Error(`Failed to get ${options.key}.`)
+        if (!data)
+          throw notFoundError(`Failed to get ${options.key}.`, {
+            errorCode: 'db.record_not_found',
+            meta: {table: options.key},
+          })
         return data
       },
 
@@ -93,7 +98,11 @@ export const db = {
 
       async updateOne(query: Filter<V>, value: Partial<V>): Promise<V> {
         const current = await this.maybeOne(query)
-        if (!current) throw Error('Failed to find document.')
+        if (!current)
+          throw notFoundError('Failed to find document.', {
+            errorCode: 'db.record_not_found',
+            meta: {table: options.key},
+          })
         const i = options.schema.validate({...current, ...value})
         if (!i.ok) throw i.error
         const collection = await mongo.collection(options.key)

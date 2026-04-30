@@ -1,3 +1,4 @@
+import {forbiddenError} from '@shared/errors'
 import {
   CommentListOfPostDef,
   CommentCreateDef,
@@ -51,7 +52,9 @@ export default new Map<string, RequestHandler>([
         if (!user.admin && comment.userId !== user.id) {
           const message =
             'User did not create this comment and therefore can not update it.'
-          throw new Error(message)
+          throw forbiddenError(message, {
+            errorCode: 'comment.update_forbidden',
+          })
         }
         return $Comment.updateOne(
           {id: commentId},
@@ -70,7 +73,9 @@ export default new Map<string, RequestHandler>([
         if (!user.admin && comment.userId !== user.id) {
           const message =
             'User did not create this comment and therefore can not delete it.'
-          throw new Error(message)
+          throw forbiddenError(message, {
+            errorCode: 'comment.delete_forbidden',
+          })
         }
         await $Comment.deleteOne({id: commentId})
       },

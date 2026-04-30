@@ -1,3 +1,4 @@
+import {forbiddenError} from '@shared/errors'
 import {
   PostCreateDef,
   PostDeleteDef,
@@ -76,7 +77,9 @@ export default new Map<string, RequestHandler>([
         const [user] = await requireUser(req)
         const post = await $Post.getOne({id: postId})
         if (post.userId !== user.id && !user.admin)
-          throw new Error('Failed: you can only update your own posts.')
+          throw forbiddenError('Failed: you can only update your own posts.', {
+            errorCode: 'post.update_forbidden',
+          })
         body.content = DOMPurify.sanitize(body.content)
         return $Post.updateOne(
           {id: postId},
@@ -93,7 +96,9 @@ export default new Map<string, RequestHandler>([
         const [user] = await requireUser(req)
         const post = await $Post.getOne({id: postId})
         if (post.userId !== user.id && !user.admin)
-          throw new Error('Failed: you can only delete your own posts.')
+          throw forbiddenError('Failed: you can only delete your own posts.', {
+            errorCode: 'post.delete_forbidden',
+          })
         await $Post.deleteOne({id: postId})
       },
   }),

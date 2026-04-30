@@ -1,3 +1,4 @@
+import {badRequestError, serviceUnavailableError} from '@shared/errors'
 import {
   FixtureAdjustMultipleDef,
   FixtureCreateDef,
@@ -98,7 +99,9 @@ export default new Map<string, RequestHandler>([
       //   }
       // },
       async () => {
-        throw new Error('Fixture snapshot is disabled')
+        throw serviceUnavailableError('Fixture snapshot is disabled', {
+          errorCode: 'fixture.snapshot_disabled',
+        })
       },
   }),
 
@@ -168,9 +171,13 @@ export default new Map<string, RequestHandler>([
       const teams = await $Team.getMany({seasonId: season.id})
       const teamsInvalid = teams.filter((i) => typeof i.division !== 'number')
       if (teamsInvalid.length)
-        throw new Error('Every team needs a division number')
+        throw badRequestError('Every team needs a division number', {
+          errorCode: 'fixture.division_missing',
+        })
       if (body.slots.length * 2 < teams.length - 1)
-        throw new Error('Not enough slots have been added')
+        throw badRequestError('Not enough slots have been added', {
+          errorCode: 'fixture.slots_insufficient',
+        })
 
       // Get existing fixtures to determine starting round
       const existingFixtures = await $Fixture.getMany(
@@ -285,8 +292,11 @@ export default new Map<string, RequestHandler>([
         let allPairings: Array<string[]> = []
         teamOrder.forEach((divisionTeams) => {
           if (divisionTeams.length % 2 !== 0) {
-            throw new Error(
-              'Fixture generation failed: each division must contain an even number of teams to create valid round-robin matchups. Please add or remove a team in the affected division.'
+            throw badRequestError(
+              'Fixture generation failed: each division must contain an even number of teams to create valid round-robin matchups. Please add or remove a team in the affected division.',
+              {
+                errorCode: 'fixture.uneven_division',
+              }
             )
           }
           // Use the actual round index in the sequence (startingRound + r)
@@ -466,8 +476,11 @@ function enforceRestrictedTeamTimeSlots(
     }
 
     if (swapIndex === -1) {
-      throw new Error(
-        'Unable to schedule restricted team without a 6 in the time slot. Please add a slot without 6 or adjust other games.'
+      throw badRequestError(
+        'Unable to schedule restricted team without a 6 in the time slot. Please add a slot without 6 or adjust other games.',
+        {
+          errorCode: 'fixture.restricted_slot_unavailable',
+        }
       )
     }
 

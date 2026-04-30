@@ -1,3 +1,4 @@
+import {badRequestError, conflictError} from '@shared/errors'
 import {UserChangePasswordDef, UserCreateDef, UserCurrentChangePasswordDef, UserCurrentEmailAddDef, UserCurrentEmailCodeResendDef, UserCurrentEmailPrimarySetDef, UserCurrentEmailRemoveDef, UserCurrentEmailVerifyDef, UserCurrentUpdateDef, UserListDef, UserListManyByIdDef, UserMergeDef, UserToggleAdminDef, UserUpdateDef} from '@shared/endpoints/UserDef'
 import {RequestHandler} from 'micro'
 import {$Comment} from '../tables/$Comment'
@@ -50,11 +51,15 @@ export default new Map<string, RequestHandler>([
       async (req) => {
         const [user] = await requireUser(req)
         if (!userEmail.isCodeEqual(user, email, code))
-          throw new Error(`Code is incorrect.`)
+          throw badRequestError(`Code is incorrect.`, {
+            errorCode: 'user.code_invalid',
+          })
         if (userEmail.isCodeExpired(user, email)) {
           await userEmail.codeSendSave(user, email, 'Verify Email')
           const message = `Your code has expired. A new code has been sent to your email.`
-          throw new Error(message)
+          throw badRequestError(message, {
+            errorCode: 'user.code_expired',
+          })
         }
         return selectSafeUserFields(await userEmail.verify(user, email))
       },
@@ -96,9 +101,14 @@ export default new Map<string, RequestHandler>([
     ...UserCurrentChangePasswordDef,
     handler: (body) => async (req) => {
       let [user] = await requireUser(req)
-      if (!user.password) throw new Error('User does not have a password.')
+      if (!user.password)
+        throw badRequestError('User does not have a password.', {
+          errorCode: 'user.password_missing',
+        })
       if (!(await hash.compare(body.oldPassword, user.password)))
-        throw new Error('Old password is incorrect.')
+        throw badRequestError('Old password is incorrect.', {
+          errorCode: 'user.old_password_invalid',
+        })
       user = await $User.updateOne(
         {id: user.id},
         {password: await hash.encrypt(body.newPassword)}
@@ -148,7 +158,9 @@ export default new Map<string, RequestHandler>([
       async (req) => {
         await requireUserAdmin(req)
         if (await userEmail.maybeUser(email))
-          throw new Error(`User already exists with email "${email}".`)
+          throw conflictError(`User already exists with email "${email}".`, {
+            errorCode: 'user.email_exists',
+          })
         const user = await $User.createOne({
           ...body,
           emails: [userEmail.create(email, true)],

@@ -1,3 +1,9 @@
+import {
+  badRequestError,
+  conflictError,
+  notFoundError,
+  unauthorizedError,
+} from '@shared/errors'
 import {SecurityCurrentDef, SecurityForgotDef, SecurityLoginDef, SecurityLoginGoogleDef, SecurityLogoutDef, SecuritySignUpDef, SecurityStatusDef, SecurityVerifyDef} from '@shared/endpoints/SecurityDef'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {TSession} from '@shared/schemas/ioSession'
@@ -48,7 +54,10 @@ export default new Map<string, RequestHandler>([
         if (!season && user?.lastSeasonId)
           season = await $Season.maybeOne({id: user.lastSeasonId})
         season ??= await $Season.maybeOne({}, {sort: {createdOn: -1}})
-        if (!season) throw new Error()
+        if (!season)
+          throw notFoundError('No season is available.', {
+            errorCode: 'season.not_found',
+          })
         return {
           season,
           auth:
@@ -89,9 +98,14 @@ export default new Map<string, RequestHandler>([
       ({seasonId, email, password, userAgent}) =>
       async () => {
         const user = await userEmail.maybeUser(email)
-        if (!user?.password?.trim().length) throw new Error(INVALID_LOGIN_MESSAGE)
+        if (!user?.password?.trim().length)
+          throw unauthorizedError(INVALID_LOGIN_MESSAGE, {
+            errorCode: 'auth.invalid_login',
+          })
         if (!(await hash.compare(password, user.password))) {
-          throw new Error(INVALID_LOGIN_MESSAGE)
+          throw unauthorizedError(INVALID_LOGIN_MESSAGE, {
+            errorCode: 'auth.invalid_login',
+          })
         }
         const session = await gatekeeper.createUserSession(user, userAgent)
         return _addTeamOfSeason(user, session, seasonId)
@@ -108,7 +122,9 @@ export default new Map<string, RequestHandler>([
         const user = await userEmail.maybeUser(userInfo.email)
         if (!user) {
           const message = `There are no accounts with the email ${userInfo.email}. Please sign up before logging in with Google.`
-          throw new Error(message)
+          throw notFoundError(message, {
+            errorCode: 'auth.google_account_missing',
+          })
         }
         const session = await gatekeeper.createUserSession(user, userAgent)
         return _addTeamOfSeason(user, session, seasonId)
@@ -121,9 +137,13 @@ export default new Map<string, RequestHandler>([
       ({seasonId, userAgent, email, firstName, termsAccepted, ...body}) =>
       async () => {
         if (!termsAccepted)
-          throw new Error('Please accept our terms to create an account.')
+          throw badRequestError('Please accept our terms to create an account.', {
+            errorCode: 'auth.terms_required',
+          })
         if (await userEmail.maybeUser(email))
-          throw new Error(`User already exists with email "${email}".`)
+          throw conflictError(`User already exists with email "${email}".`, {
+            errorCode: 'user.email_exists',
+          })
         const code = await userEmail.codeSend(email, firstName, 'Verify Email')
         const user = await $User.createOne({
           ...body,
@@ -140,7 +160,10 @@ export default new Map<string, RequestHandler>([
     ...SecurityForgotDef,
     handler: (email) => async () => {
       const user = await userEmail.maybeUser(email)
-      if (!user) throw new Error(`User with email ${email} does not exist.`)
+      if (!user)
+        throw notFoundError(`User with email ${email} does not exist.`, {
+          errorCode: 'user.not_found',
+        })
       await userEmail.codeSendSave(user, email, 'Restore Account')
     },
   }),
@@ -151,18 +174,27 @@ export default new Map<string, RequestHandler>([
       ({seasonId, email, code, newPassword, userAgent}) =>
       async () => {
         let user = await userEmail.maybeUser(email)
-        if (!user) throw new Error(`User with email ${email} does not exist.`)
+        if (!user)
+          throw notFoundError(`User with email ${email} does not exist.`, {
+            errorCode: 'user.not_found',
+          })
         if (!userEmail.isCodeEqual(user, email, code))
-          throw new Error(`Code is incorrect.`)
+          throw badRequestError(`Code is incorrect.`, {
+            errorCode: 'user.code_invalid',
+          })
         if (userEmail.isCodeExpired(user, email)) {
           const subject = user.password ? 'Restore Account' : 'Verify Email'
           await userEmail.codeSendSave(user, email, subject)
           const message = `Your code has expired. A new code has been sent to your email.`
-          throw new Error(message)
+          throw badRequestError(message, {
+            errorCode: 'user.code_expired',
+          })
         }
         if (newPassword.trim().length || !user.password) {
           if (newPassword.length < 5)
-            throw new Error('Password must be at least 5 characters long.')
+            throw badRequestError('Password must be at least 5 characters long.', {
+              errorCode: 'user.password_too_short',
+            })
           const password = await hash.encrypt(newPassword)
           user = await $User.updateOne({id: user.id}, {password})
         }

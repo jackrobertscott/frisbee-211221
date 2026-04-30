@@ -1,3 +1,4 @@
+import {conflictError, forbiddenError} from '@shared/errors'
 import {MemberAcceptOrDeclineDef, MemberCreateDef, MemberDeleteDef, MemberListOfTeamDef, MemberListOfUserDef, MemberRemoveDef, MemberRequestCreateDef, MemberSetCaptainDef} from '@shared/endpoints/MemberDef'
 import {TMember} from '@shared/schemas/ioMember'
 import {RequestHandler} from 'micro'
@@ -76,7 +77,9 @@ export default new Map<string, RequestHandler>([
         if (!userCurrent.admin) {
           const [, memberCurrent] = await requireTeam(userCurrent, teamId)
           if (!memberCurrent.captain)
-            throw new Error('Failed: only the team captain can add members.')
+            throw forbiddenError('Failed: only the team captain can add members.', {
+              errorCode: 'member.captain_required',
+            })
         }
         const team = await $Team.getOne({id: teamId})
         let user = await userEmail.maybeUser(email)
@@ -94,7 +97,9 @@ export default new Map<string, RequestHandler>([
         })
         if (member) {
           if (member.teamId !== team.id)
-            throw new Error('User is already a member of another team.')
+            throw conflictError('User is already a member of another team.', {
+              errorCode: 'member.already_on_other_team',
+            })
           return $Member.updateOne(
             {id: member.id},
             {pending: false, updatedOn: new Date().toISOString()}
@@ -130,7 +135,9 @@ export default new Map<string, RequestHandler>([
       if (!user.admin) {
         const [, member] = await requireTeam(user, memberDelete.teamId)
         if (!member.captain && member.id !== memberDelete.id)
-          throw new Error('Failed: only the team captain can delete members.')
+          throw forbiddenError('Failed: only the team captain can delete members.', {
+            errorCode: 'member.captain_required',
+          })
       }
       await $Member.deleteOne({id: memberId})
     },
@@ -144,11 +151,15 @@ export default new Map<string, RequestHandler>([
       const member = await $Member.maybeOne({userId: user.id, teamId: team.id})
       if (member) {
         const message = 'You have already requested membership to this team.'
-        throw new Error(message)
+        throw conflictError(message, {
+          errorCode: 'member.request_exists',
+        })
       }
       if (await $Member.count({userId: user.id, seasonId: team.seasonId})) {
         const message = 'You have already requested membership to another team.'
-        throw new Error(message)
+        throw conflictError(message, {
+          errorCode: 'member.request_exists',
+        })
       }
       return $Member.createOne({
         seasonId: team.seasonId,
@@ -169,7 +180,9 @@ export default new Map<string, RequestHandler>([
         if (!member.captain) {
           const message =
             'Failed: only the team captain can accept or deny members.'
-          throw new Error(message)
+          throw forbiddenError(message, {
+            errorCode: 'member.captain_required',
+          })
         }
       }
       if (body.accept) {
@@ -186,13 +199,17 @@ export default new Map<string, RequestHandler>([
       const [user] = await requireUser(req)
       const memberNewCaptain = await $Member.getOne({id: memberId})
       if (memberNewCaptain.captain)
-        throw new Error('This member is already the captain of the team.')
+        throw conflictError('This member is already the captain of the team.', {
+          errorCode: 'member.already_captain',
+        })
       if (!user.admin) {
         const [_, member] = await requireTeam(user, memberNewCaptain.teamId)
         if (!member.captain) {
           const message =
             'Failed: only the team captain can perform this action.'
-          throw new Error(message)
+          throw forbiddenError(message, {
+            errorCode: 'member.captain_required',
+          })
         }
       }
       try {

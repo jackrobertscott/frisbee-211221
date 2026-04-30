@@ -1,4 +1,4 @@
-import {StatusCodes} from 'http-status-codes'
+import {methodNotAllowedError, notFoundError} from '@shared/errors'
 import {RequestHandler} from 'micro'
 import config from '../config'
 import endpoints from '../endpoints'
@@ -38,15 +38,15 @@ export default (handler: RequestHandler): RequestHandler => {
     if (threat) throw threat
 
     if (!knownRoute) {
-      const e: any = new Error('Not found.')
-      e.statusCode = StatusCodes.NOT_FOUND
-      throw e
+      throw notFoundError('Not found.', {
+        errorCode: 'request.route_not_found',
+      })
     }
 
     if (req.method !== 'POST') {
-      const e: any = new Error('Server only accepts POST requests.')
-      e.statusCode = StatusCodes.METHOD_NOT_ALLOWED
-      throw e
+      throw methodNotAllowedError('Server only accepts POST requests.', {
+        errorCode: 'request.method_not_allowed',
+      })
     }
 
     return handler(req, res)

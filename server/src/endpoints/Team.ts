@@ -1,3 +1,4 @@
+import {badRequestError, conflictError, forbiddenError} from '@shared/errors'
 import {TeamCreateDef, TeamCurrentCreateDef, TeamCurrentUpdateDef, TeamDeleteDef, TeamListOfSeasonDef, TeamUpdateDef} from '@shared/endpoints/TeamDef'
 import {RequestHandler} from 'micro'
 import {$Member} from '../tables/$Member'
@@ -39,9 +40,13 @@ export default new Map<string, RequestHandler>([
       const [user] = await requireUser(req)
       const season = await $Season.getOne({id: body.seasonId})
       if (!season.signUpOpen)
-        throw new Error('Season is not currently open for new team sign ups.')
+        throw badRequestError('Season is not currently open for new team sign ups.', {
+          errorCode: 'team.signup_closed',
+        })
       if (await $Member.count({userId: user.id, seasonId: season.id}))
-        throw new Error('User is already a member of another team.')
+        throw conflictError('User is already a member of another team.', {
+          errorCode: 'member.already_on_other_team',
+        })
       const team = await $Team.createOne(body)
       const member = await $Member.createOne({
         userId: user.id,
@@ -66,7 +71,9 @@ export default new Map<string, RequestHandler>([
         const [user] = await requireUser(req)
         const [team, member] = await requireTeam(user, teamId)
         if (member.pending)
-          throw new Error('Pending members cannot update team information.')
+          throw forbiddenError('Pending members cannot update team information.', {
+            errorCode: 'team.pending_member_forbidden',
+          })
         return $Team.updateOne(
           {id: team.id},
           {...body, updatedOn: new Date().toISOString()}

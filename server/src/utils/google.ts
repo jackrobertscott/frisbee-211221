@@ -1,3 +1,4 @@
+import {serviceUnavailableError} from '@shared/errors'
 import axios from 'axios'
 import config from '../config'
 
@@ -17,7 +18,10 @@ export const getGoogleAccessToken = async (
   })
   // const { access_token, expires_in, token_type, refresh_token } = data
   if (typeof data.access_token !== 'string')
-    throw new Error('Failed to get Google access token.')
+    throw serviceUnavailableError('Failed to get Google access token.', {
+      errorCode: 'google.access_token_failed',
+      retryable: true,
+    })
   return data
 }
 
@@ -38,6 +42,9 @@ export const getGoogleUserInfo = async (
   })
   // const { id, email, given_name, family_name } = data
   if (typeof data.email !== 'string')
-    throw new Error('Failed to get user email from Google.')
+    throw serviceUnavailableError('Failed to get user email from Google.', {
+      errorCode: 'google.user_info_failed',
+      retryable: true,
+    })
   return data
 }

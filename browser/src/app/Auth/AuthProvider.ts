@@ -1,3 +1,4 @@
+import {internalError} from '@shared/errors'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {createElement as $, FC, ReactNode, useEffect, useState} from 'react'
 import {$SecurityCurrent, $SecurityLogout} from '../../endpoints/Security'
@@ -41,17 +42,25 @@ export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
       },
       userSet: (user) => {
         if (!current)
-          throw new Error('Can not set user because user not logged in.')
+          throw internalError('Can not set user because user not logged in.', {
+            errorCode: 'auth.user_set_without_current',
+          })
         if (current.user?.id !== user.id)
-          throw new Error('User does not match current user.')
+          throw internalError('User does not match current user.', {
+            errorCode: 'auth.user_mismatch',
+          })
         currentSet({...current, user})
       },
       teamSet: (team) => {
         if (!current)
-          throw new Error('Can not set team because user not logged in.')
+          throw internalError('Can not set team because user not logged in.', {
+            errorCode: 'auth.team_set_without_current',
+          })
         if (team === undefined) return currentSet({...current, team})
         if (season?.id !== team.seasonId)
-          throw new Error('Team does not match current season.')
+          throw internalError('Team does not match current season.', {
+            errorCode: 'auth.team_season_mismatch',
+          })
         currentSet({...current, team})
       },
       seasonSet: (data, noReload) => {
