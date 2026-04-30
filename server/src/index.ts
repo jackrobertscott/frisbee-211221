@@ -1,7 +1,10 @@
 import cluster from 'cluster'
 import http from 'http'
 import {RequestHandler, serve as microServe} from 'micro'
-import os from 'os'
+import {
+  attachWorkerClusterLifecycle,
+  startPrimaryCluster,
+} from './clusterAutoscaler'
 import config from './config'
 import endpoints from './endpoints'
 import capture from './utils/capture'
@@ -9,15 +12,11 @@ import cors from './utils/cors'
 import intrusion from './utils/intrusion'
 import prerequest from './utils/prerequest'
 
-const MAX_CLUSTER_WORKERS = Math.min(os.cpus().length, 2)
-
 if (!config.prod) {
   startServer()
 } else {
   if (cluster.isPrimary) {
-    for (let i = 0; i < MAX_CLUSTER_WORKERS; i++) {
-      cluster.fork()
-    }
+    startPrimaryCluster()
   } else {
     startServer()
   }
@@ -35,6 +34,7 @@ function startServer() {
   const server = new http.Server(
     microServe(cors()(capture.handle(prerequest(handler))))
   )
+  attachWorkerClusterLifecycle(server)
   server.listen(config.port, () => {
     const cid = cluster.worker ? `WORKER ${cluster.worker.id}` : 'MASTER'
     const envName = config.prod ? 'PROD' : 'DEV'
