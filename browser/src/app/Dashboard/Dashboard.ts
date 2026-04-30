@@ -2,7 +2,16 @@ import {config} from '@browser/config'
 import {initials} from '@browser/utils/initials'
 import {css} from '@emotion/css'
 import {TSeason} from '@shared/schemas/ioSeason'
-import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
+import {
+  createElement as $,
+  FC,
+  Fragment,
+  ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 import {$SeasonList} from '../../endpoints/Season'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
@@ -22,6 +31,7 @@ import {Popup} from '../Popup'
 import {Question} from '../Question'
 import {ReportCreate} from '../ReportCreate'
 import {Router} from '../Router/Router'
+import {useRouter} from '../Router/useRouter'
 import {SeasonCreate} from '../SeasonCreate'
 import {Settings} from '../Settings/Settings'
 import {TeamSetup} from '../TeamSetup'
@@ -280,7 +290,7 @@ export const Dashboard: FC = () => {
                             },
                           }),
                           children: addkeys([
-                            $(Fragment, {children}),
+                            $(_DashboardRouteFrame, {children}),
                             $(Fragment, {
                               children:
                                 media.width < bpSmall &&
@@ -370,6 +380,82 @@ export const Dashboard: FC = () => {
           }),
       }),
     ]),
+  })
+}
+
+const _DashboardRouteFrame: FC<{
+  children: ReactNode
+}> = ({children}) => {
+  const router = useRouter()
+  const frameRef = useRef<HTMLDivElement>(null)
+  const heightRef = useRef(0)
+  const pathname = router.location?.pathname ?? ''
+  const pathRef = useRef(pathname)
+  const [lockedHeight, lockedHeightSet] = useState<number>()
+  const [transitioning, transitioningSet] = useState(false)
+
+  useLayoutEffect(() => {
+    const node = frameRef.current
+    if (!node) return
+    const measure = () => {
+      heightRef.current = node.getBoundingClientRect().height
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (pathRef.current === pathname) return
+    pathRef.current = pathname
+    if (heightRef.current < 1) return
+    lockedHeightSet(heightRef.current)
+    transitioningSet(true)
+  }, [pathname])
+
+  useEffect(() => {
+    if (!transitioning) return
+    let active = true
+    let frame = 0
+    let timeout = 0
+
+    const release = () => {
+      if (!active) return
+      transitioningSet(false)
+      lockedHeightSet(undefined)
+    }
+
+    const check = () => {
+      if (!active) return
+      const node = frameRef.current
+      if (!node) return release()
+      const loading = node.querySelector('[data-route-loading="true"]')
+      if (loading) {
+        frame = window.requestAnimationFrame(check)
+        return
+      }
+      release()
+    }
+
+    timeout = window.setTimeout(() => {
+      frame = window.requestAnimationFrame(check)
+    }, 0)
+
+    return () => {
+      active = false
+      window.clearTimeout(timeout)
+      window.cancelAnimationFrame(frame)
+    }
+  }, [children, transitioning])
+
+  return $('div', {
+    ref: frameRef,
+    className: css({
+      height: lockedHeight,
+      overflow: transitioning ? 'hidden' : undefined,
+    }),
+    children,
   })
 }
 
