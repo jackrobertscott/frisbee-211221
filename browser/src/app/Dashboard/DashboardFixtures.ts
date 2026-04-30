@@ -21,6 +21,7 @@ import {useMedia} from '../Media/useMedia'
 import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useEndpoint} from '../useEndpoint'
+import {useDashboardRouteReady} from './useDashboardRouteReady'
 
 export const DashboardFixtures: FC = () => {
   const auth = useAuth()
@@ -33,6 +34,7 @@ export const DashboardFixtures: FC = () => {
   const [generating, generatingSet] = useState(false)
   const [adjusting, adjustingSet] = useState(false)
   const [openfxs, openfxsSet] = useState<string[]>([])
+  useDashboardRouteReady(teams !== undefined && fixtures !== undefined)
   const reload = () => {
     const seasonId = auth.season!.id
     $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))

@@ -7,7 +7,6 @@ export const Spinner: FC<{
   size?: number
 }> = ({size}) => {
   return $('div', {
-    'data-route-loading': 'true',
     className: css({
       flexGrow: 1,
       display: 'flex',

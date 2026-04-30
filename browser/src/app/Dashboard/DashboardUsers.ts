@@ -36,6 +36,7 @@ import {UserMerge} from '../UserMerge'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
 import {useSling} from '../useThrottle'
+import {useDashboardRouteReady} from './useDashboardRouteReady'
 
 export const DashboardUsers: FC = () => {
   const auth = useAuth()
@@ -46,6 +47,7 @@ export const DashboardUsers: FC = () => {
   const [creating, creatingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
   const current = currentId && users?.find((i) => currentId === i.id)
+  useDashboardRouteReady(users !== undefined)
   const userList = () =>
     $userList.fetch({...pager.data, search}).then((i) => {
       usersSet(i.users)

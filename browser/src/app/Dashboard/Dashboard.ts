@@ -32,7 +32,6 @@ import {Question} from '../Question'
 import {ReportCreate} from '../ReportCreate'
 import {Router} from '../Router/Router'
 import {useRouter} from '../Router/useRouter'
-import {getRouteLoadingCount, subscribeRouteLoading} from '../routeLoading'
 import {SeasonCreate} from '../SeasonCreate'
 import {Settings} from '../Settings/Settings'
 import {TeamSetup} from '../TeamSetup'
@@ -45,6 +44,10 @@ import {DashboardPort} from './DashboardPort'
 import {DashboardReports} from './DashboardReports'
 import {DashboardTeams} from './DashboardTeams'
 import {DashboardUsers} from './DashboardUsers'
+import {
+  DashboardRouteReadyProvider,
+  useDashboardRouteReadyState,
+} from './useDashboardRouteReady'
 
 export const Dashboard: FC = () => {
   const auth = useAuth()
@@ -76,22 +79,6 @@ export const Dashboard: FC = () => {
               },
             }),
             children: addkeys([
-              // $('div', {
-              //   className: css({
-              //     position: 'relative',
-              //     marginRight: 'auto',
-              //     marginLeft: theme.fib[6],
-              //     marginBottom: -theme.fib[5],
-              //     marginTop: -theme.fib[3],
-              //   }),
-              //   children: $('img', {
-              //     src: faceofwillPng,
-              //     className: css({
-              //       height: theme.fib[9],
-              //       rotate: '-15deg',
-              //     }),
-              //   }),
-              // }),
               $('div', {
                 className: css({
                   flexGrow: 1,
@@ -100,221 +87,217 @@ export const Dashboard: FC = () => {
                   border: theme.border(),
                   background: theme.bg.string(),
                 }),
-                children: addkeys([
-                  $(TopBar, {
-                    children: addkeys([
-                      $(Fragment, {
-                        children: isSmall
-                          ? addkeys([
-                              $(TopBarBadge, {
-                                icon: 'bars',
-                                click: () => openSet(true),
-                              }),
-                              $(TopBarBadge, {grow: true}),
-                            ])
-                          : $(TopBarBadge, {
-                              grow: true,
-                              label: config.title,
-                            }),
-                      }),
-                      $(Fragment, {
-                        children: auth.current
-                          ? auth.current.team
-                            ? $(TopBarBadge, {
-                                label: isSmall
-                                  ? initials(auth.current.team.name)
-                                  : auth.current.team.name,
-                                // background: hsla.digest(auth.current.team.color),
-                              })
+                children: $(DashboardRouteReadyProvider, {
+                  children: addkeys([
+                    $(TopBar, {
+                      children: addkeys([
+                        $(Fragment, {
+                          children: isSmall
+                            ? addkeys([
+                                $(TopBarBadge, {
+                                  icon: 'bars',
+                                  click: () => openSet(true),
+                                }),
+                                $(TopBarBadge, {grow: true}),
+                              ])
                             : $(TopBarBadge, {
-                                label: 'Join A Team',
-                                click: () => teamSetupSet(true),
-                              })
-                          : $(TopBarBadge, {
-                              label: 'Login / Sign Up',
-                              click: () => go.to('/auth/welcome'),
-                            }),
-                      }),
-                      $(_DashboardSeasonBadge),
-                      $(Fragment, {
-                        children:
-                          auth.current &&
-                          addkeys([
-                            $(TopBarBadge, {
-                              icon: 'cog',
-                              tooltip: 'Settings',
-                              click: () => settingsSet(true),
-                            }),
-                            $(TopBarBadge, {
-                              icon: 'power-off',
-                              tooltip: 'Logout',
-                              click: () => logoutSet(true),
-                            }),
-                          ]),
-                      }),
-                    ]),
-                  }),
-                  $(Router, {
-                    fallback: '/fixtures',
-                    routes: [
-                      {
-                        path: '/fixtures',
-                        label: 'Fixtures',
-                        render: () => $(DashboardFixtures),
-                      },
-                      {
-                        path: '/ladder',
-                        label: 'Ladder',
-                        render: () => $(DashboardLadder),
-                      },
-                      // {
-                      //   path: '/forum',
-                      //   label: 'Forum',
-                      //   render: () => $(DashboardForum),
-                      // },
-                      auth.isAdmin() && {
-                        path: '/reports',
-                        label: 'Reports',
-                        render: () => $(DashboardReports),
-                      },
-                      {
-                        path: '/teams',
-                        label: 'Teams',
-                        render: () => $(DashboardTeams),
-                      },
-                      auth.isAdmin() && {
-                        path: '/users',
-                        label: 'Users',
-                        render: () => $(DashboardUsers),
-                      },
-                      auth.isAdmin() && {
-                        path: '/port',
-                        label: 'Port',
-                        render: () => $(DashboardPort),
-                      },
-                    ],
-                    render: (children, context) =>
-                      addkeys([
+                                grow: true,
+                                label: config.title,
+                              }),
+                        }),
+                        $(Fragment, {
+                          children: auth.current
+                            ? auth.current.team
+                              ? $(TopBarBadge, {
+                                  label: isSmall
+                                    ? initials(auth.current.team.name)
+                                    : auth.current.team.name,
+                                })
+                              : $(TopBarBadge, {
+                                  label: 'Join A Team',
+                                  click: () => teamSetupSet(true),
+                                })
+                            : $(TopBarBadge, {
+                                label: 'Login / Sign Up',
+                                click: () => go.to('/auth/welcome'),
+                              }),
+                        }),
+                        $(_DashboardSeasonBadge),
                         $(Fragment, {
                           children:
-                            (open || !isSmall) &&
-                            $(MenuBarShadow, {
-                              click: () => openSet(false),
-                              deactivated: !isSmall,
-                              children: $(MenuBar, {
-                                horizon: !isSmall,
-                                strongBorder: true,
-                                children: addkeys([
-                                  $(Fragment, {
-                                    children:
-                                      isSmall &&
-                                      $('div', {
-                                        className: css({
-                                          height: theme.fib[8],
-                                        }),
-                                      }),
-                                  }),
-                                  $(Fragment, {
-                                    children: context.routes.map((route) => {
-                                      return $(MenuBarOption, {
-                                        key: route.path,
-                                        label: route.label ?? '?',
-                                        click: () => {
-                                          go.to(route.path)
-                                          if (open) openSet(false)
-                                        },
-                                        active:
-                                          route.path === context.current?.path,
-                                      })
-                                    }),
-                                  }),
-                                  config.leagueKey === 'marlow' &&
-                                    $(MenuBarOption, {
-                                      icon: 'external-link-alt',
-                                      label: 'Shop',
-                                      click: () => {
-                                        const linkUrl =
-                                          'https://marlow-street-ultimate.square.site/s/shop?fbclid=IwAR21rulDg_KiLtXACWJmW1bm08W0xoVqRHLie3L12-bg0_0Rtqu8ObB2LDs'
-                                        const a = document.createElement('a')
-                                        a.href = linkUrl
-                                        a.target = '_blank'
-                                        a.rel = 'noopener noreferrer'
-                                        a.click()
-                                        a.remove()
-                                      },
-                                    }),
-                                  $(Fragment, {
-                                    children: !isSmall && $(MenuBarSpacer),
-                                  }),
-                                  $(Fragment, {
-                                    children: $(MenuBarOption, {
-                                      label: 'Report Score',
-                                      font: theme.bgHighlight.compliment(),
-                                      background: theme.bgHighlight,
-                                      click: () => {
-                                        if (auth.current) {
-                                          if (auth.current.team) {
-                                            reportingSet(true)
-                                            openSet(false)
-                                          } else {
-                                            const message =
-                                              'Please join a team to submit a score report.'
-                                            toaster.notify(message)
-                                            teamSetupSet(true)
-                                          }
-                                        } else {
-                                          const message =
-                                            'Please sign in to submit a score report.'
-                                          toaster.notify(message)
-                                          go.to('/auth')
-                                        }
-                                      },
-                                    }),
-                                  }),
-                                  $(Fragment, {
-                                    children: isSmall && $(MenuBarSpacer),
-                                  }),
-                                ]),
+                            auth.current &&
+                            addkeys([
+                              $(TopBarBadge, {
+                                icon: 'cog',
+                                tooltip: 'Settings',
+                                click: () => settingsSet(true),
                               }),
-                            }),
-                        }),
-                        $('div', {
-                          className: css({
-                            display: 'flex',
-                            flexDirection: 'column',
-                            flexGrow: 1,
-                            [theme.ltMedia(bpSmall)]: {
-                              overflow: 'auto',
-                            },
-                            '& > *': {
-                              animation: `150ms linear ${fadein}`,
-                            },
-                          }),
-                          children: addkeys([
-                            $(_DashboardRouteFrame, {children}),
-                            $(Fragment, {
-                              children:
-                                media.width < bpSmall &&
-                                $('div', {
-                                  children: $(_DashboardFooter),
-                                  className: css({
-                                    flexGrow: 1,
-                                    width: '100%',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    padding: theme.fib[6],
-                                    borderTop: theme.border(),
-                                    '& > *:not(:last-child)': {
-                                      marginBottom: theme.fib[5],
-                                    },
-                                  }),
-                                }),
-                            }),
-                          ]),
+                              $(TopBarBadge, {
+                                icon: 'power-off',
+                                tooltip: 'Logout',
+                                click: () => logoutSet(true),
+                              }),
+                            ]),
                         }),
                       ]),
-                  }),
-                ]),
+                    }),
+                    $(Router, {
+                      fallback: '/fixtures',
+                      routes: [
+                        {
+                          path: '/fixtures',
+                          label: 'Fixtures',
+                          render: () => $(DashboardFixtures),
+                        },
+                        {
+                          path: '/ladder',
+                          label: 'Ladder',
+                          render: () => $(DashboardLadder),
+                        },
+                        auth.isAdmin() && {
+                          path: '/reports',
+                          label: 'Reports',
+                          render: () => $(DashboardReports),
+                        },
+                        {
+                          path: '/teams',
+                          label: 'Teams',
+                          render: () => $(DashboardTeams),
+                        },
+                        auth.isAdmin() && {
+                          path: '/users',
+                          label: 'Users',
+                          render: () => $(DashboardUsers),
+                        },
+                        auth.isAdmin() && {
+                          path: '/port',
+                          label: 'Port',
+                          render: () => $(DashboardPort),
+                        },
+                      ],
+                      render: (children, context) =>
+                        addkeys([
+                          $(Fragment, {
+                            children:
+                              (open || !isSmall) &&
+                              $(MenuBarShadow, {
+                                click: () => openSet(false),
+                                deactivated: !isSmall,
+                                children: $(MenuBar, {
+                                  horizon: !isSmall,
+                                  strongBorder: true,
+                                  children: addkeys([
+                                    $(Fragment, {
+                                      children:
+                                        isSmall &&
+                                        $('div', {
+                                          className: css({
+                                            height: theme.fib[8],
+                                          }),
+                                        }),
+                                    }),
+                                    $(Fragment, {
+                                      children: context.routes.map((route) => {
+                                        return $(MenuBarOption, {
+                                          key: route.path,
+                                          label: route.label ?? '?',
+                                          click: () => {
+                                            go.to(route.path)
+                                            if (open) openSet(false)
+                                          },
+                                          active:
+                                            route.path === context.current?.path,
+                                        })
+                                      }),
+                                    }),
+                                    config.leagueKey === 'marlow' &&
+                                      $(MenuBarOption, {
+                                        icon: 'external-link-alt',
+                                        label: 'Shop',
+                                        click: () => {
+                                          const linkUrl =
+                                            'https://marlow-street-ultimate.square.site/s/shop?fbclid=IwAR21rulDg_KiLtXACWJmW1bm08W0xoVqRHLie3L12-bg0_0Rtqu8ObB2LDs'
+                                          const a = document.createElement('a')
+                                          a.href = linkUrl
+                                          a.target = '_blank'
+                                          a.rel = 'noopener noreferrer'
+                                          a.click()
+                                          a.remove()
+                                        },
+                                      }),
+                                    $(Fragment, {
+                                      children: !isSmall && $(MenuBarSpacer),
+                                    }),
+                                    $(Fragment, {
+                                      children: $(MenuBarOption, {
+                                        label: 'Report Score',
+                                        font: theme.bgHighlight.compliment(),
+                                        background: theme.bgHighlight,
+                                        click: () => {
+                                          if (auth.current) {
+                                            if (auth.current.team) {
+                                              reportingSet(true)
+                                              openSet(false)
+                                            } else {
+                                              toaster.notify(
+                                                'Please join a team to submit a score report.'
+                                              )
+                                              teamSetupSet(true)
+                                            }
+                                          } else {
+                                            toaster.notify(
+                                              'Please sign in to submit a score report.'
+                                            )
+                                            go.to('/auth')
+                                          }
+                                        },
+                                      }),
+                                    }),
+                                    $(Fragment, {
+                                      children: isSmall && $(MenuBarSpacer),
+                                    }),
+                                  ]),
+                                }),
+                              }),
+                          }),
+                          $('div', {
+                            className: css({
+                              display: 'flex',
+                              flexDirection: 'column',
+                              flexGrow: 1,
+                              [theme.ltMedia(bpSmall)]: {
+                                overflow: 'auto',
+                              },
+                              '& > *': {
+                                animation: `150ms linear ${fadein}`,
+                              },
+                            }),
+                            children: addkeys([
+                              $(_DashboardRouteFrame, {children}),
+                              $(Fragment, {
+                                children:
+                                  media.width < bpSmall &&
+                                  $('div', {
+                                    children: $(_DashboardFooter),
+                                    className: css({
+                                      flexGrow: 1,
+                                      width: '100%',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      padding: theme.fib[6],
+                                      borderTop: theme.border(),
+                                      '& > *:not(:last-child)': {
+                                        marginBottom: theme.fib[5],
+                                      },
+                                    }),
+                                  }),
+                              }),
+                            ]),
+                          }),
+                        ]),
+                    }),
+                  ]),
+                }),
               }),
             ]),
           }),
@@ -388,20 +371,13 @@ const _DashboardRouteFrame: FC<{
   children: ReactNode
 }> = ({children}) => {
   const router = useRouter()
+  const routeReady = useDashboardRouteReadyState()
   const frameRef = useRef<HTMLDivElement>(null)
   const heightRef = useRef(0)
   const pathname = router.location?.pathname ?? ''
   const pathRef = useRef(pathname)
-  const pathnameRef = useRef(pathname)
   const [lockedHeight, lockedHeightSet] = useState<number>()
   const [transitioning, transitioningSet] = useState(false)
-  const [routeLoadingCount, routeLoadingCountSet] = useState(() =>
-    getRouteLoadingCount(pathname)
-  )
-  const [sawRouteLoading, sawRouteLoadingSet] = useState(false)
-  const [graceElapsed, graceElapsedSet] = useState(false)
-
-  pathnameRef.current = pathname
 
   useLayoutEffect(() => {
     const node = frameRef.current
@@ -416,66 +392,31 @@ const _DashboardRouteFrame: FC<{
   }, [])
 
   useEffect(() => {
-    routeLoadingCountSet(getRouteLoadingCount(pathname))
-  }, [pathname])
-
-  useEffect(() => {
-    return subscribeRouteLoading(() => {
-      routeLoadingCountSet(getRouteLoadingCount(pathnameRef.current))
-    })
-  }, [])
-
-  useEffect(() => {
     if (pathRef.current === pathname) return
     pathRef.current = pathname
     if (heightRef.current < 1) return
     lockedHeightSet(heightRef.current)
     transitioningSet(true)
-    sawRouteLoadingSet(false)
-    graceElapsedSet(false)
   }, [pathname])
 
   useEffect(() => {
     if (!transitioning) return
-    if (routeLoadingCount > 0) sawRouteLoadingSet(true)
-  }, [routeLoadingCount, transitioning])
-
-  useEffect(() => {
-    if (!transitioning) return
-    const timeout = window.setTimeout(() => {
-      graceElapsedSet(true)
-    }, 250)
-    return () => window.clearTimeout(timeout)
-  }, [pathname, transitioning])
-
-  useEffect(() => {
-    if (!transitioning || routeLoadingCount > 0) return
-    if (!sawRouteLoading && !graceElapsed) return
+    if (routeReady[pathname] !== true) return
     let frameA = 0
     let frameB = 0
 
-    const release = () => {
-      const node = frameRef.current
-      if (!node) {
+    frameA = window.requestAnimationFrame(() => {
+      frameB = window.requestAnimationFrame(() => {
         transitioningSet(false)
         lockedHeightSet(undefined)
-        return
-      }
-      const loading = node.querySelector('[data-route-loading="true"]')
-      if (loading) return
-      transitioningSet(false)
-      lockedHeightSet(undefined)
-    }
-
-    frameA = window.requestAnimationFrame(() => {
-      frameB = window.requestAnimationFrame(release)
+      })
     })
 
     return () => {
       window.cancelAnimationFrame(frameA)
       window.cancelAnimationFrame(frameB)
     }
-  }, [children, graceElapsed, routeLoadingCount, sawRouteLoading, transitioning])
+  }, [children, pathname, routeReady, transitioning])
 
   return $('div', {
     ref: frameRef,
