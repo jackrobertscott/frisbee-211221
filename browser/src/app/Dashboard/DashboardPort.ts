@@ -31,9 +31,6 @@ export const DashboardPort: FC = () => {
     children: addkeys([
       $(Form, {
         background: theme.bgAdmin,
-        className: css({
-          flexGrow: 0,
-        }),
         children: $('div', {
           className: css({
             display: 'flex',
