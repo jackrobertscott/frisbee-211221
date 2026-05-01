@@ -4,12 +4,12 @@ export const download = {
     const url = window.URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.target = '_blank'
     anchor.download = filename
+    anchor.rel = 'noopener'
     anchor.style.display = 'none'
     document.body.appendChild(anchor)
     anchor.click()
     anchor.remove()
-    window.setTimeout(() => window.URL.revokeObjectURL(url), 0)
+    window.setTimeout(() => window.URL.revokeObjectURL(url), 60_000)
   },
 }

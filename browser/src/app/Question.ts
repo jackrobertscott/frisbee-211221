@@ -16,6 +16,7 @@ export const Question: FC<{
     key?: string
     label: string
     click: () => void
+    disabled?: boolean
     background?: THSLA
   }>
 }> = ({title, description, close, options}) => {
@@ -47,11 +48,12 @@ export const Question: FC<{
             marginRight: theme.fib[5],
           },
         }),
-        children: options.map(({key, label, click, background}) => {
+        children: options.map(({key, label, click, disabled, background}) => {
           return $(FormBadge, {
             key: key ?? label,
             label,
             click,
+            disabled,
             background,
             grow: true,
           })

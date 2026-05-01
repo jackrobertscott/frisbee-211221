@@ -1,7 +1,7 @@
 import {css} from '@emotion/css'
-import {TSeason} from '@shared/schemas/ioSeason'
 import dayjs from 'dayjs'
 import {createElement as $, ChangeEvent, FC, Fragment, useRef, useState} from 'react'
+import {TSeason} from '@shared/schemas/ioSeason'
 import {$PortExport, $PortImport} from '../../endpoints/Port'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
@@ -59,7 +59,7 @@ export const DashboardPort: FC = () => {
             $(FormBadge, {
               grow: true,
               icon: 'upload',
-              label: 'Export CSV',
+              label: 'Export Data',
               background: theme.bgAdminButton,
               click: () => exportingSet(true),
             }),
@@ -98,22 +98,24 @@ export const DashboardPort: FC = () => {
           $(Question, {
             close: () => exportingSet(false),
             title: 'Export',
-            description: 'Are you sure you wish to export all app data?',
+            description:
+              'Export all app data as a zip archive containing JSON backups, CSV copies, and a manifest?',
             options: [
-              {label: 'Cancel', click: () => exportingSet(false)},
+              {
+                label: 'Cancel',
+                click: () => exportingSet(false),
+                disabled: $export.loading,
+              },
               {
                 label: $export.loading ? 'Loading' : 'Export',
-                click: () =>
-                  $export.fetch({}).then((blob) => {
-                    const seasonSlug = (auth.season?.name ?? 'all-seasons')
-                      .toLowerCase()
-                      .replace(/[^a-z0-9]+/g, '-')
-                      .replace(/^-+|-+$/g, '')
-                    const filename = `${seasonSlug || 'all-seasons'}-export-${dayjs().format('YYYYMMDD-HHmmss')}.zip`
-                    download.blob(blob as Blob, filename)
-                    toaster.notify('Export downloaded.')
-                    exportingSet(false)
-                  }),
+                disabled: $export.loading,
+                click: async () => {
+                  const blob = await $export.fetch({})
+                  const filename = `frisbee-export-${dayjs().format('YYYY-MM-DD-HHmmss')}.zip`
+                  download.blob(blob as Blob, filename)
+                  toaster.notify('Export downloaded.')
+                  exportingSet(false)
+                },
               },
             ],
           }),
