@@ -96,18 +96,21 @@ export const DashboardPort: FC = () => {
     children: addkeys([
       $(Form, {
         background: theme.bgAdmin,
+        className: css({
+          flexGrow: 0,
+        }),
         children: $('div', {
           className: css({
             display: 'flex',
-            '& > *:not(:last-child)': {
-              marginRight: theme.fib[5],
-              [theme.ltMedia(theme.fib[14])]: {
-                marginRight: 0,
-                marginBottom: theme.fib[5],
-              },
-            },
+            gap: theme.fib[5],
             [theme.ltMedia(theme.fib[14])]: {
               flexDirection: 'column',
+            },
+            '& > *': {
+              flexShrink: 0,
+              [theme.gtMedia(theme.fib[14])]: {
+                flexBasis: 0,
+              }
             },
           }),
           children: addkeys([
@@ -128,7 +131,7 @@ export const DashboardPort: FC = () => {
             $(FormBadge, {
               grow: true,
               icon: 'magic',
-              label: 'Generate Mock Data',
+              label: 'Create Mock Data',
               background: theme.bgAdminButton,
               click: () => generatingSet(true),
             }),
@@ -144,6 +147,9 @@ export const DashboardPort: FC = () => {
       }),
       $(Form, {
         background: theme.bgMinor,
+        className: css({
+          borderTop: theme.border(),
+        }),
         children: addkeys([
           $(FormRow, {
             children: addkeys([
@@ -180,7 +186,7 @@ export const DashboardPort: FC = () => {
                     lastConnectedOn: {
                       value: account.lastConnectedOn
                         ? dayjs(account.lastConnectedOn).format(
-                            'DD/MM/YY h:mma'
+                            'DD/MM/YY h:mma',
                           )
                         : 'Never',
                     },
@@ -266,7 +272,7 @@ export const DashboardPort: FC = () => {
             gamedayAccountSet: (account) => {
               if (!account) {
                 gamedayAccountsSet((existing) =>
-                  existing?.filter((item) => item.id !== currentGameday.id)
+                  existing?.filter((item) => item.id !== currentGameday.id),
                 )
                 currentGamedayIdSet(undefined)
                 toaster.notify('GameDay account deleted.')
@@ -274,8 +280,8 @@ export const DashboardPort: FC = () => {
               }
               gamedayAccountsSet((existing) =>
                 existing?.map((item) =>
-                  item.id === account.id ? account : item
-                )
+                  item.id === account.id ? account : item,
+                ),
               )
               toaster.notify('GameDay account updated.')
             },
@@ -336,10 +342,11 @@ const _DashboardPortGamedayView: FC<{
         saveLabel: 'Save Changes',
         onConnected: (account) => gamedayAccountSet(account),
         onSave: (value) =>
-          $update.fetch({
-            gamedayAccountSettingsId: gamedayAccount.id,
-            ...value,
-          })
+          $update
+            .fetch({
+              gamedayAccountSettingsId: gamedayAccount.id,
+              ...value,
+            })
             .then((account) => {
               gamedayAccountSet(account)
               return account
@@ -405,7 +412,7 @@ const _DashboardPortGamedayForm: FC<{
   const form = useForm(defaults)
   const $connect = useEndpoint($GamedayAccountSettingsConnect)
   const [connectedOn, connectedOnSet] = useState<string | undefined>(
-    lastConnectedOn
+    lastConnectedOn,
   )
   const [saving, savingSet] = useState(false)
   const isDifferent = !objectify.compareKeys(defaults, form.data, [
@@ -417,20 +424,14 @@ const _DashboardPortGamedayForm: FC<{
     !!form.data.tokenUrl.trim() &&
     !!form.data.apiBaseUrl.trim() &&
     !!form.data.clientId.trim() &&
-    (
-      Boolean(hasStoredOauthClientSecret) ||
-      !!form.data.oauthClientSecret.trim()
-    ) &&
+    (Boolean(hasStoredOauthClientSecret) ||
+      !!form.data.oauthClientSecret.trim()) &&
     !!form.data.grantType.trim()
 
   const payload = () => ({
     ...form.data,
-    ...(gamedayAccountSettingsId
-      ? {gamedayAccountSettingsId}
-      : {}),
-    ...(form.data.oauthClientSecret.trim()
-      ? {}
-      : {oauthClientSecret: ''}),
+    ...(gamedayAccountSettingsId ? {gamedayAccountSettingsId} : {}),
+    ...(form.data.oauthClientSecret.trim() ? {} : {oauthClientSecret: ''}),
   })
 
   const fieldSet =
@@ -585,7 +586,7 @@ const _DashboardPortGamedayForm: FC<{
                       : theme.bgDisabled,
                     label: connectedOn
                       ? `Connected ${dayjs(connectedOn).format(
-                          'DD/MM/YY h:mma'
+                          'DD/MM/YY h:mma',
                         )}`
                       : hasStoredOauthClientSecret
                         ? 'Stored secret, not revalidated'
