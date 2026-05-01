@@ -42,9 +42,6 @@ RUN if [ -f package-lock.json ]; then \
     npm install --omit=dev --no-audit --no-fund; \
   fi
 
-# Copy dotenv-safe example for env validation
-COPY server/.env.example ./
-
 # Copy built JS from builder
 COPY --from=builder /app/server/dist ./dist
 

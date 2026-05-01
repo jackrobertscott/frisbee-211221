@@ -4,7 +4,7 @@ import {
   notFoundError,
   unauthorizedError,
 } from '@shared/errors'
-import {SecurityCurrentDef, SecurityForgotDef, SecurityLoginDef, SecurityLoginGoogleDef, SecurityLogoutDef, SecuritySignUpDef, SecurityStatusDef, SecurityVerifyDef} from '@shared/endpoints/SecurityDef'
+import {SecurityCurrentDef, SecurityForgotDef, SecurityLoginDef, SecurityLogoutDef, SecuritySignUpDef, SecurityStatusDef, SecurityVerifyDef} from '@shared/endpoints/SecurityDef'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {TSession} from '@shared/schemas/ioSession'
 import {TTeam} from '@shared/schemas/ioTeam'
@@ -17,7 +17,6 @@ import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
 import gatekeeper from '../utils/gatekeeper'
-import {getGoogleAccessToken, getGoogleUserInfo} from '../utils/google'
 import hash from '../utils/hash'
 import {selectSafeUserFields} from './userSafe'
 import {userEmail} from './userEmail'
@@ -105,25 +104,6 @@ export default new Map<string, RequestHandler>([
         if (!(await hash.compare(password, user.password))) {
           throw unauthorizedError(INVALID_LOGIN_MESSAGE, {
             errorCode: 'auth.invalid_login',
-          })
-        }
-        const session = await gatekeeper.createUserSession(user, userAgent)
-        return _addTeamOfSeason(user, session, seasonId)
-      },
-  }),
-
-  createEndpoint({
-    ...SecurityLoginGoogleDef,
-    handler:
-      ({seasonId, code, userAgent}) =>
-      async () => {
-        const {access_token} = await getGoogleAccessToken(code)
-        const userInfo = await getGoogleUserInfo(access_token)
-        const user = await userEmail.maybeUser(userInfo.email)
-        if (!user) {
-          const message = `There are no accounts with the email ${userInfo.email}. Please sign up before logging in with Google.`
-          throw notFoundError(message, {
-            errorCode: 'auth.google_account_missing',
           })
         }
         const session = await gatekeeper.createUserSession(user, userAgent)

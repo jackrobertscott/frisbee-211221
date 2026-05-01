@@ -2,7 +2,6 @@ import {
   SecurityCurrentDef,
   SecurityForgotDef,
   SecurityLoginDef,
-  SecurityLoginGoogleDef,
   SecurityLogoutDef,
   SecuritySignUpDef,
   SecurityStatusDef,
@@ -15,8 +14,6 @@ export const $SecurityCurrent = createEndpoint(SecurityCurrentDef)
 export const $SecurityStatus = createEndpoint(SecurityStatusDef)
 
 export const $SecurityLogin = createEndpoint(SecurityLoginDef)
-
-export const $SecurityLoginGoogle = createEndpoint(SecurityLoginGoogleDef)
 
 export const $SecuritySignUp = createEndpoint(SecuritySignUpDef)
 

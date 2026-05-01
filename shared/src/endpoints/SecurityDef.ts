@@ -47,16 +47,6 @@ export const SecurityLoginDef = {
   result: ioAuthPayload,
 } satisfies TEndpointDef
 
-export const SecurityLoginGoogleDef = {
-  path: '/SecurityLoginGoogle',
-  payload: io.object({
-    seasonId: io.optional(io.string()),
-    code: io.string().trim(),
-    userAgent: io.optional(io.string()),
-  }),
-  result: ioAuthPayload,
-} satisfies TEndpointDef
-
 export const SecuritySignUpDef = {
   path: '/SecuritySignUp',
   payload: io.object({

@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/node'
 import {
   HTTP_STATUS,
   getErrorStatusCode,
@@ -10,10 +9,6 @@ import {IncomingMessage} from 'http'
 import {RequestHandler, send} from 'micro'
 import config from '../config'
 import tarpit from './tarpit'
-
-Sentry.init({
-  dsn: config.sentryDSN,
-})
 
 export default {
   shouldLogDebug(error: unknown) {
@@ -65,10 +60,6 @@ export default {
         if (config.debug && this.shouldLogDebug(error)) {
           console.log(this.formatLogLine(pretty, req))
         }
-        if (pretty.statusCode === HTTP_STATUS.INTERNAL_SERVER_ERROR) {
-          if (req) this.scope(req)
-          process.nextTick(() => Sentry.captureException(error))
-        }
         send(res, pretty.statusCode, pretty)
       }
     }
@@ -85,13 +76,5 @@ export default {
       ...pretty,
       url: req.url,
     }
-  },
-
-  scope(req: IncomingMessage) {
-    // Sentry.configureScope((scope: Sentry.Scope) => {
-    //   scope.addEventProcessor(async (event: Sentry.Event) => {
-    //     return Sentry.Handlers.parseRequest(event, req)
-    //   })
-    // })
   },
 }
