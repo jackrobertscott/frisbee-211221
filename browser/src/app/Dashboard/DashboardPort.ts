@@ -21,6 +21,7 @@ import {
 import {$PortExport, $PortImport} from '../../endpoints/Port'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
+import {download} from '../../utils/download'
 import {objectify} from '../../utils/objectify'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
@@ -222,9 +223,14 @@ export const DashboardPort: FC = () => {
               {
                 label: $export.loading ? 'Loading' : 'Export',
                 click: () =>
-                  $export.fetch({}).then(({email}) => {
-                    const message = `An email has been sent "${email}" containing a link to the export.`
-                    toaster.notify(message)
+                  $export.fetch({}).then((blob) => {
+                    const seasonSlug = (auth.season?.name ?? 'all-seasons')
+                      .toLowerCase()
+                      .replace(/[^a-z0-9]+/g, '-')
+                      .replace(/^-+|-+$/g, '')
+                    const filename = `${seasonSlug || 'all-seasons'}-export-${dayjs().format('YYYYMMDD-HHmmss')}.zip`
+                    download.blob(blob as Blob, filename)
+                    toaster.notify('Export downloaded.')
                     exportingSet(false)
                   }),
               },

@@ -11,9 +11,7 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1039.0",
     "@aws-sdk/client-sesv2": "^3.1039.0",
-    "@aws-sdk/s3-request-presigner": "^3.1039.0",
     "adm-zip": "^0.5.17",
     "axios": "^1.15.2",
     "bcryptjs": "^3.0.3",

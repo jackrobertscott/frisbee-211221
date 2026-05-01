@@ -1,6 +1,5 @@
 import {
   badRequestError,
-  internalError,
   tooManyRequestsError,
   toAppError,
 } from '@shared/errors'
@@ -8,24 +7,8 @@ import os from 'os'
 import path from 'path'
 import createBusboy from 'busboy'
 import fs from 'fs-extra'
-import config from '../config'
 import {IncomingMessage} from 'http'
 import {random} from './random'
-import {S3Client, PutObjectCommand, GetObjectCommand} from '@aws-sdk/client-s3'
-import {getSignedUrl} from '@aws-sdk/s3-request-presigner'
-
-const credentials =
-  config.S3_ACCESS_KEY_ID && config.S3_SECRET_ACCESS_KEY
-    ? {
-        accessKeyId: config.S3_ACCESS_KEY_ID,
-        secretAccessKey: config.S3_SECRET_ACCESS_KEY,
-      }
-    : undefined
-
-const s3Client = new S3Client({
-  region: config.S3_BUCKET_REGION,
-  credentials,
-})
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 const MAX_UPLOAD_FILES = 1
@@ -177,45 +160,5 @@ export const blob = {
     } finally {
       await fs.remove(filepath).catch(() => {})
     }
-  },
-
-  async uploadBuffer({
-    body,
-    mimetype,
-    extension,
-    folder,
-  }: {
-    body: Buffer
-    mimetype: string
-    extension: string
-    folder: string
-  }) {
-    if (!config.S3_BUCKET)
-      throw internalError('Missing S3 bucket environment variable.', {
-        errorCode: 'blob.bucket_missing',
-      })
-    const filename = random.randomString(24).concat(extension)
-    const key = path.join(folder, filename)
-    const bucket = config.S3_BUCKET
-    await s3Client.send(
-      new PutObjectCommand({
-        Key: key,
-        Bucket: bucket,
-        ContentType: mimetype,
-        Body: body,
-      })
-    )
-    return {
-      key,
-      bucket,
-      mimetype,
-      extension,
-      filename,
-    }
-  },
-
-  async getObjectUrl(key: string, bucket: string = config.S3_BUCKET) {
-    const command = new GetObjectCommand({Key: key, Bucket: bucket})
-    return getSignedUrl(s3Client, command)
   },
 }

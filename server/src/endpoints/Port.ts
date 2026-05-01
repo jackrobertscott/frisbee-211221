@@ -1,4 +1,4 @@
-import {badRequestError, serviceUnavailableError} from '@shared/errors'
+import {badRequestError} from '@shared/errors'
 import {random} from '@server/utils/random'
 import {
   PortDeleteAllMockDataDef,
@@ -9,15 +9,17 @@ import {
 import {TUser, TUserEmail} from '@shared/schemas/ioUser'
 import AdmZip from 'adm-zip'
 import {RequestHandler} from 'micro'
+import {$Comment} from '../tables/$Comment'
 import {$Fixture} from '../tables/$Fixture'
+import {$GamedayAccountSettings} from '../tables/$GamedayAccountSettings'
 import {$Member} from '../tables/$Member'
+import {$Post} from '../tables/$Post'
 import {$Report} from '../tables/$Report'
 import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
 import {blob} from '../utils/blob'
 import {createEndpoint} from '../utils/endpoints'
-import {mail} from '../utils/mail'
 import mongo from '../utils/mongo'
 import {regex} from '../utils/regex'
 import {requireUserAdmin} from './requireUserAdmin'
@@ -88,58 +90,59 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...PortExportDef,
-    handler: () => async (req) => {
-      throw serviceUnavailableError('Please ask admin (Jack) to enable export feature', {
-        errorCode: 'port.export_disabled',
-      })
+    handler: () => async (req, res) => {
       const [user] = await requireUserAdmin(req)
-      const all = await Promise.all([
-        $Fixture.getMany({}),
-        $Member.getMany({}),
-        $Report.getMany({}),
-        $Season.getMany({}),
-        $Team.getMany({}),
-        $User.getMany({}),
-      ])
-      const [
-        fixturesCsv,
-        membersCsv,
-        reportsCsv,
-        seasonsCsv,
-        teamsCsv,
-        usersCsv,
-      ] = all.map((i) => _csvify(i))
+      const generatedOn = new Date().toISOString()
+      const datasets = await _loadExportDatasets()
+      const manifest = {
+        formatVersion: 2,
+        generatedOn,
+        generatedBy: {
+          userId: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
+        includedCollections: datasets.map((dataset) => ({
+          name: dataset.name,
+          filename: dataset.filename,
+          records: dataset.records.length,
+          sensitivity: dataset.sensitivity,
+          description: dataset.description,
+        })),
+        excludedCollections: [
+          {
+            name: 'sessions',
+            reason:
+              'Authentication sessions are intentionally excluded because they are ephemeral credentials, not durable application data.',
+          },
+        ],
+      }
+
       const zip = new AdmZip()
-      zip.addFile('exports/fixtures.csv', Buffer.from(fixturesCsv, 'utf8'))
-      zip.addFile('exports/members.csv', Buffer.from(membersCsv, 'utf8'))
-      zip.addFile('exports/reports.csv', Buffer.from(reportsCsv, 'utf8'))
-      zip.addFile('exports/seasons.csv', Buffer.from(seasonsCsv, 'utf8'))
-      zip.addFile('exports/teams.csv', Buffer.from(teamsCsv, 'utf8'))
-      zip.addFile('exports/users.csv', Buffer.from(usersCsv, 'utf8'))
-      const data = await blob.uploadBuffer({
-        body: zip.toBuffer(),
-        mimetype: 'application/zip',
-        extension: '.zip',
-        folder: 'frisbee/exports',
-      })
-      const url = await blob.getObjectUrl(data.key, data.bucket)
-      const email = userEmail.primary(user).value
-      await mail.send({
-        to: [email],
-        subject: `Your Export Is Ready`,
-        html: `
-          Hey ${user.firstName},<br/><br/>
-          Here is a link to your export:</br></br>
-          <a href="${url}">${url}</a></br></br>
-          The link above will <strong>expire</strong> soon.</br></br>
-          Have a nice day.
-        `
-          .split('\n')
-          .map((i) => i.trim())
-          .join('\n')
-          .trim(),
-      })
-      return {email}
+      zip.addFile('README.txt', Buffer.from(_exportReadme(manifest), 'utf8'))
+      zip.addFile('manifest.json', Buffer.from(_jsonify(manifest), 'utf8'))
+
+      for (const dataset of datasets) {
+        zip.addFile(
+          `json/${dataset.filename}.json`,
+          Buffer.from(_jsonify(dataset.records), 'utf8')
+        )
+        zip.addFile(
+          `csv/${dataset.filename}.csv`,
+          Buffer.from(_csvify(dataset.records), 'utf8')
+        )
+      }
+
+      const zipBuffer = zip.toBuffer()
+      const filename = _exportFilename(generatedOn)
+      res.statusCode = 200
+      res.setHeader('Cache-Control', 'no-store, max-age=0')
+      res.setHeader('Content-Disposition', `attachment; filename=\"${filename}\"`)
+      res.setHeader('Content-Length', String(zipBuffer.byteLength))
+      res.setHeader('Content-Type', 'application/zip')
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+      res.end(zipBuffer)
+      return null
     },
   }),
 
@@ -465,27 +468,166 @@ const _tokenify = (text: string) => {
 }
 
 const _csvify = (objects: any[]) => {
-  const headings: string[] = []
-  for (const obj of objects) {
-    for (const key in obj) {
-      if (!headings.includes(key)) headings.push(key)
-    }
+  const headings = [...new Set(objects.flatMap((obj) => Object.keys(obj ?? {})))].sort()
+  if (!headings.length) return ''
+  const rows = objects.map((obj) =>
+    headings.map((heading) => _csvEscape(_csvValue(obj?.[heading]))).join(',')
+  )
+  return [headings.map(_csvEscape).join(','), ...rows].join('\n').concat('\n')
+}
+
+const _jsonify = (value: unknown) => JSON.stringify(value, null, 2).concat('\n')
+
+const _csvValue = (value: unknown) => {
+  if (value === undefined || value === null) return ''
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  return JSON.stringify(value) ?? ''
+}
+
+const _csvEscape = (value: string) => `"${value.replace(/"/g, '""')}"`
+
+const _exportFilename = (generatedOn: string) => {
+  const stamp = generatedOn.replace(/[:.]/g, '-')
+  return `frisbee-export-${stamp}.zip`
+}
+
+const _exportReadme = (manifest: {
+  formatVersion: number
+  generatedOn: string
+  generatedBy: {
+    userId: string
+    firstName: string
+    lastName: string
   }
-  const rows: string[] = []
-  for (const obj of objects) {
-    let row = ''
-    for (const key of headings) {
-      let value = JSON.stringify(obj[key])
-      if (typeof obj[key] === 'string') row += value + ','
-      else {
-        value = value !== undefined ? value.replace(/\"/g, '""') : ''
-        row += `"${value}"` + ','
-      }
-    }
-    rows.push(row)
+  includedCollections: Array<{
+    name: string
+    filename: string
+    records: number
+    sensitivity: string
+    description: string
+  }>
+  excludedCollections: Array<{
+    name: string
+    reason: string
+  }>
+}) => {
+  const lines = [
+    'Frisbee export package',
+    '',
+    `Generated on: ${manifest.generatedOn}`,
+    `Generated by: ${manifest.generatedBy.firstName} ${manifest.generatedBy.lastName} (${manifest.generatedBy.userId})`,
+    `Format version: ${manifest.formatVersion}`,
+    '',
+    'Contents:',
+    ...manifest.includedCollections.map(
+      (collection) =>
+        `- ${collection.name}: ${collection.records} records (${collection.filename}.json, ${collection.filename}.csv)`
+    ),
+  ]
+  if (manifest.excludedCollections.length) {
+    lines.push('', 'Excluded:')
+    lines.push(
+      ...manifest.excludedCollections.map(
+        (collection) => `- ${collection.name}: ${collection.reason}`
+      )
+    )
   }
-  let csv = ''
-  for (const heading of headings) csv += heading + ','
-  for (const row of rows) csv += '\n' + row
-  return csv
+  lines.push(
+    '',
+    'JSON files are the authoritative backup format.',
+    'CSV files are included as convenience exports for spreadsheet use.'
+  )
+  return lines.join('\n').concat('\n')
+}
+
+const _loadExportDatasets = async () => {
+  const sort = {createdOn: 1 as const, id: 1 as const}
+  const [
+    comments,
+    fixtures,
+    gamedayAccountSettings,
+    members,
+    posts,
+    reports,
+    seasons,
+    teams,
+    users,
+  ] = await Promise.all([
+    $Comment.getMany({}, {sort}),
+    $Fixture.getMany({}, {sort}),
+    $GamedayAccountSettings.getMany({}, {sort}),
+    $Member.getMany({}, {sort}),
+    $Post.getMany({}, {sort}),
+    $Report.getMany({}, {sort}),
+    $Season.getMany({}, {sort}),
+    $Team.getMany({}, {sort}),
+    $User.getMany({}, {sort}),
+  ])
+
+  return [
+    {
+      name: 'comments',
+      filename: 'comments',
+      description: 'Forum comments and replies.',
+      sensitivity: 'standard',
+      records: comments,
+    },
+    {
+      name: 'fixtures',
+      filename: 'fixtures',
+      description: 'Scheduled fixtures and embedded game slots.',
+      sensitivity: 'standard',
+      records: fixtures,
+    },
+    {
+      name: 'gamedayAccountSettings',
+      filename: 'gameday-account-settings.private',
+      description: 'GameDay integration settings, including encrypted client secret values.',
+      sensitivity: 'sensitive',
+      records: gamedayAccountSettings,
+    },
+    {
+      name: 'members',
+      filename: 'members',
+      description: 'User-to-team membership records.',
+      sensitivity: 'standard',
+      records: members,
+    },
+    {
+      name: 'posts',
+      filename: 'posts',
+      description: 'Forum posts.',
+      sensitivity: 'standard',
+      records: posts,
+    },
+    {
+      name: 'reports',
+      filename: 'reports',
+      description: 'Match reports, including scoring and spirit data.',
+      sensitivity: 'standard',
+      records: reports,
+    },
+    {
+      name: 'seasons',
+      filename: 'seasons',
+      description: 'Season configuration and final results.',
+      sensitivity: 'standard',
+      records: seasons,
+    },
+    {
+      name: 'teams',
+      filename: 'teams',
+      description: 'Team records and contact details.',
+      sensitivity: 'standard',
+      records: teams,
+    },
+    {
+      name: 'users',
+      filename: 'users.private',
+      description: 'User accounts, including password hashes and email verification state.',
+      sensitivity: 'sensitive',
+      records: users,
+    },
+  ]
 }

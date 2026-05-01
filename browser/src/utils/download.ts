@@ -10,5 +10,6 @@ export const download = {
     document.body.appendChild(anchor)
     anchor.click()
     anchor.remove()
+    window.setTimeout(() => window.URL.revokeObjectURL(url), 0)
   },
 }

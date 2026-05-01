@@ -8,9 +8,7 @@ export const PortImportDef = {
 
 export const PortExportDef = {
   path: '/PortExport',
-  result: io.object({
-    email: io.string(),
-  }),
+  result: io.any(),
 } satisfies TEndpointDef
 
 export const PortMockGenerateDef = {
