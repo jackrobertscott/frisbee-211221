@@ -47,7 +47,7 @@ const GAMEDAY_DEFAULTS = {
   tokenUrl: '',
   apiBaseUrl: '',
   clientId: '',
-  clientSecret: '',
+  oauthClientSecret: '',
   grantType: 'client_credentials',
   scope: '',
 }
@@ -58,7 +58,7 @@ const GAMEDAY_COMPARE_KEYS = [
   'tokenUrl',
   'apiBaseUrl',
   'clientId',
-  'clientSecret',
+  'oauthClientSecret',
   'grantType',
   'scope',
 ] as const
@@ -322,7 +322,7 @@ const _DashboardPortGamedayView: FC<{
           tokenUrl: gamedayAccount.tokenUrl,
           apiBaseUrl: gamedayAccount.apiBaseUrl,
           clientId: gamedayAccount.clientId,
-          clientSecret: gamedayAccount.clientSecret,
+          oauthClientSecret: '',
           grantType: gamedayAccount.grantType,
           scope: gamedayAccount.scope ?? '',
         },
@@ -330,6 +330,8 @@ const _DashboardPortGamedayView: FC<{
         createdOn: gamedayAccount.createdOn,
         updatedOn: gamedayAccount.updatedOn,
         lastConnectedOn: gamedayAccount.lastConnectedOn,
+        gamedayAccountSettingsId: gamedayAccount.id,
+        hasStoredOauthClientSecret: gamedayAccount.hasOauthClientSecret,
         deleteClick: () => deletingSet(true),
         saveLabel: 'Save Changes',
         onSave: (value) =>
@@ -379,6 +381,8 @@ const _DashboardPortGamedayForm: FC<{
   createdOn?: string
   updatedOn?: string
   lastConnectedOn?: string
+  gamedayAccountSettingsId?: string
+  hasStoredOauthClientSecret?: boolean
   deleteClick?: () => void
   onSave: (value: TGamedayForm) => Promise<TGamedayAccountSettings>
 }> = ({
@@ -389,6 +393,8 @@ const _DashboardPortGamedayForm: FC<{
   createdOn,
   updatedOn,
   lastConnectedOn,
+  gamedayAccountSettingsId,
+  hasStoredOauthClientSecret,
   deleteClick,
   onSave,
 }) => {
@@ -408,8 +414,21 @@ const _DashboardPortGamedayForm: FC<{
     !!form.data.tokenUrl.trim() &&
     !!form.data.apiBaseUrl.trim() &&
     !!form.data.clientId.trim() &&
-    !!form.data.clientSecret.trim() &&
+    (
+      Boolean(hasStoredOauthClientSecret) ||
+      !!form.data.oauthClientSecret.trim()
+    ) &&
     !!form.data.grantType.trim()
+
+  const payload = () => ({
+    ...form.data,
+    ...(gamedayAccountSettingsId
+      ? {gamedayAccountSettingsId}
+      : {}),
+    ...(form.data.oauthClientSecret.trim()
+      ? {}
+      : {oauthClientSecret: ''}),
+  })
 
   const fieldSet =
     <K extends keyof TGamedayForm>(key: K) =>
@@ -419,7 +438,7 @@ const _DashboardPortGamedayForm: FC<{
     }
 
   const connect = () =>
-    $connect.fetch(form.data).then((data) => {
+    $connect.fetch(payload()).then((data) => {
       connectedOnSet(data.connectedOn)
       toaster.notify('GameDay OAuth account connected.')
     })
@@ -521,8 +540,11 @@ const _DashboardPortGamedayForm: FC<{
                   $(FormLabel, {label: 'Client Secret'}),
                   $(InputString, {
                     type: 'password',
-                    value: form.data.clientSecret,
-                    valueSet: fieldSet('clientSecret'),
+                    value: form.data.oauthClientSecret,
+                    valueSet: fieldSet('oauthClientSecret'),
+                    placeholder: hasStoredOauthClientSecret
+                      ? 'Leave blank to keep stored secret'
+                      : undefined,
                   }),
                 ]),
               }),
@@ -561,7 +583,9 @@ const _DashboardPortGamedayForm: FC<{
                       ? `Connected ${dayjs(connectedOn).format(
                           'DD/MM/YY h:mma'
                         )}`
-                      : 'Not connected',
+                      : hasStoredOauthClientSecret
+                        ? 'Stored secret, not revalidated'
+                        : 'Not connected',
                   }),
                 ]),
               }),

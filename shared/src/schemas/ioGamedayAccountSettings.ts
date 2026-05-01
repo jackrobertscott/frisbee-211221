@@ -10,10 +10,10 @@ export const ioGamedayAccountSettings = io.object({
   tokenUrl: io.string(),
   apiBaseUrl: io.string(),
   clientId: io.string(),
-  clientSecret: io.string(),
   grantType: io.string(),
   scope: io.optional(io.string().emptyok()),
   lastConnectedOn: io.optional(io.date()),
+  hasOauthClientSecret: io.boolean(),
 })
 
 export type TGamedayAccountSettings = TypeIoValue<

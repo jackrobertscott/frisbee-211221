@@ -6,11 +6,62 @@ import {
   GamedayAccountSettingsUpdateDef,
 } from '@shared/endpoints/GamedayDef'
 import {RequestHandler} from 'micro'
-import {$GamedayAccountSettings} from '../tables/$GamedayAccountSettings'
+import {
+  $GamedayAccountSettings,
+  TGamedayAccountSettingsRecord,
+} from '../tables/$GamedayAccountSettings'
+import {badRequestError} from '@shared/errors'
 import {$Season} from '../tables/$Season'
 import {createEndpoint} from '../utils/endpoints'
 import {gameday} from '../utils/gameday'
+import {secretBox} from '../utils/secretBox'
 import {requireUserAdmin} from './requireUserAdmin'
+
+const toSafeGamedayAccount = (account: TGamedayAccountSettingsRecord) => ({
+  id: account.id,
+  createdOn: account.createdOn,
+  updatedOn: account.updatedOn,
+  seasonId: account.seasonId,
+  name: account.name,
+  organisationId: account.organisationId,
+  tokenUrl: account.tokenUrl,
+  apiBaseUrl: account.apiBaseUrl,
+  clientId: account.clientId,
+  grantType: account.grantType,
+  scope: account.scope,
+  lastConnectedOn: account.lastConnectedOn,
+  hasOauthClientSecret: Boolean(account.encryptedOauthClientSecret.trim()),
+})
+
+const getStoredOauthClientSecret = async (
+  account: TGamedayAccountSettingsRecord
+) => {
+  if (!account.encryptedOauthClientSecret.trim())
+    throw badRequestError('GameDay OAuth client secret is required.', {
+      errorCode: 'gameday.oauth_client_secret_missing',
+    })
+  return secretBox.decrypt(account.encryptedOauthClientSecret)
+}
+
+const buildConnectionInput = async (
+  body: {
+    organisationId: string
+    tokenUrl: string
+    apiBaseUrl: string
+    clientId: string
+    oauthClientSecret?: string
+    grantType: string
+    scope?: string
+  },
+  account?: TGamedayAccountSettingsRecord
+) => ({
+  ...body,
+  oauthClientSecret: body.oauthClientSecret?.trim()
+    ? body.oauthClientSecret.trim()
+    : account
+      ? await getStoredOauthClientSecret(account)
+      : '',
+})
 
 export default new Map<string, RequestHandler>([
 
@@ -19,10 +70,11 @@ export default new Map<string, RequestHandler>([
     handler: (body: any) => async (req) => {
       await requireUserAdmin(req)
       await $Season.getOne({id: body.seasonId})
-      return $GamedayAccountSettings.getMany(
+      const accounts = await $GamedayAccountSettings.getMany(
         {seasonId: body.seasonId},
         {sort: {createdOn: -1}}
       )
+      return accounts.map(toSafeGamedayAccount)
     },
   }),
 
@@ -30,8 +82,19 @@ export default new Map<string, RequestHandler>([
     ...GamedayAccountSettingsConnectDef,
     handler: (body: any) => async (req) => {
       await requireUserAdmin(req)
+      const current = body.gamedayAccountSettingsId
+        ? await $GamedayAccountSettings.getOne({
+            id: body.gamedayAccountSettingsId,
+          })
+        : undefined
+      const connection = await buildConnectionInput(body, current)
+      if (!connection.oauthClientSecret.trim()) {
+        throw badRequestError('GameDay OAuth client secret is required.', {
+          errorCode: 'gameday.oauth_client_secret_missing',
+        })
+      }
       try {
-        const data = await gameday.connect(body)
+        const data = await gameday.connect(connection)
         return {connectedOn: data.connectedOn}
       } catch (error) {
         throw gameday.digestError(error)
@@ -41,35 +104,51 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...GamedayAccountSettingsCreateDef,
-    handler: ({seasonId, ...body}: any) => async (req) => {
+    handler: ({seasonId, oauthClientSecret, ...body}: any) => async (req) => {
       await requireUserAdmin(req)
       await $Season.getOne({id: seasonId})
+      const connection = await buildConnectionInput({
+        ...body,
+        oauthClientSecret,
+      })
       let connectedOn = new Date().toISOString()
       try {
-        connectedOn = (await gameday.connect(body)).connectedOn
+        connectedOn = (await gameday.connect(connection)).connectedOn
       } catch (error) {
         throw gameday.digestError(error)
       }
       return $GamedayAccountSettings.createOne({
         seasonId,
         ...body,
+        encryptedOauthClientSecret: secretBox.encrypt(
+          connection.oauthClientSecret
+        ),
         lastConnectedOn: connectedOn,
-      })
+      }).then(toSafeGamedayAccount)
     },
   }),
 
   createEndpoint({
     ...GamedayAccountSettingsUpdateDef,
     handler:
-      ({gamedayAccountSettingsId, ...body}: any) =>
+      ({gamedayAccountSettingsId, oauthClientSecret, ...body}: any) =>
       async (req) => {
         await requireUserAdmin(req)
         const current = await $GamedayAccountSettings.getOne({
           id: gamedayAccountSettingsId,
         })
+        const connection = await buildConnectionInput(
+          {...body, oauthClientSecret},
+          current
+        )
+        if (!connection.oauthClientSecret.trim()) {
+          throw badRequestError('GameDay OAuth client secret is required.', {
+            errorCode: 'gameday.oauth_client_secret_missing',
+          })
+        }
         let connectedOn = new Date().toISOString()
         try {
-          connectedOn = (await gameday.connect(body)).connectedOn
+          connectedOn = (await gameday.connect(connection)).connectedOn
         } catch (error) {
           throw gameday.digestError(error)
         }
@@ -77,10 +156,13 @@ export default new Map<string, RequestHandler>([
           {id: current.id},
           {
             ...body,
+            encryptedOauthClientSecret: oauthClientSecret?.trim()
+              ? secretBox.encrypt(oauthClientSecret.trim())
+              : current.encryptedOauthClientSecret,
             lastConnectedOn: connectedOn,
             updatedOn: new Date().toISOString(),
           }
-        )
+        ).then(toSafeGamedayAccount)
       },
   }),
 

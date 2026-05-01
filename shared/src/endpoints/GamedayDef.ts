@@ -8,14 +8,9 @@ const ioGamedayConnectionShape = {
   tokenUrl: io.string().trim(),
   apiBaseUrl: io.string().trim(),
   clientId: io.string().trim(),
-  clientSecret: io.string().trim(),
   grantType: io.string().trim(),
   scope: io.optional(io.string().trim().emptyok()),
 }
-
-const ioGamedayConnectionFields = io.object({
-  ...ioGamedayConnectionShape,
-})
 
 export const GamedayAccountSettingsListOfSeasonDef = {
   path: '/GamedayAccountSettingsListOfSeason',
@@ -27,7 +22,11 @@ export const GamedayAccountSettingsListOfSeasonDef = {
 
 export const GamedayAccountSettingsConnectDef = {
   path: '/GamedayAccountSettingsConnect',
-  payload: ioGamedayConnectionFields,
+  payload: io.object({
+    gamedayAccountSettingsId: io.optional(io.string().trim()),
+    ...ioGamedayConnectionShape,
+    oauthClientSecret: io.optional(io.string().trim().emptyok()),
+  }),
   result: io.object({
     connectedOn: io.date(),
   }),
@@ -38,6 +37,7 @@ export const GamedayAccountSettingsCreateDef = {
   payload: io.object({
     seasonId: io.string().trim(),
     ...ioGamedayConnectionShape,
+    oauthClientSecret: io.string().trim(),
   }),
   result: ioGamedayAccountSettings,
 } satisfies TEndpointDef
@@ -47,6 +47,7 @@ export const GamedayAccountSettingsUpdateDef = {
   payload: io.object({
     gamedayAccountSettingsId: io.string().trim(),
     ...ioGamedayConnectionShape,
+    oauthClientSecret: io.optional(io.string().trim().emptyok()),
   }),
   result: ioGamedayAccountSettings,
 } satisfies TEndpointDef

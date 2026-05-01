@@ -34,6 +34,8 @@ const config: {
   AWSBucket: string
   AWSBucketRegion: string
   AWSFromEmail: string
+  gamedaySecretKey: string
+  gamedayAllowedHosts?: string
   sentryDSN?: string
   googleClientId?: string
   googleClientSecret?: string
@@ -53,6 +55,8 @@ const config: {
   AWSBucket: env.AWS_BUCKET,
   AWSBucketRegion: env.AWS_BUCKET_REGION,
   AWSFromEmail: env.AWS_FROM_EMAIL,
+  gamedaySecretKey: env.GAMEDAY_SECRET_KEY || env.JWT_SECRET,
+  gamedayAllowedHosts: env.GAMEDAY_ALLOWED_HOSTS,
   // sentryDSN: env.SENTRY_DSN,
   // googleClientId: env.GOOGLE_CLIENT_ID,
   // googleClientSecret: env.GOOGLE_CLIENT_SECRET,
