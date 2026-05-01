@@ -109,11 +109,10 @@ export type TypeIoValue<T extends TypeIo_> = T extends TypeIo_<string, infer X>
 
 export const ensure = {
   date: (data: any): data is Date =>
-    Boolean(data instanceof Date && data.getDate && !isNaN(data.getDate())),
+    Boolean(data instanceof Date && Number.isFinite(data.getTime())),
   object: (data: any): data is object =>
     Boolean(typeof data === 'object' && !Array.isArray(data) && data !== null),
-  array: (data: any): data is any[] =>
-    Boolean(typeof data === 'object' && data.length && Array.isArray(data)),
+  array: (data: any): data is any[] => Array.isArray(data),
 }
 
 export const regex = {
@@ -121,23 +120,29 @@ export const regex = {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   },
   from(value = '') {
-    return new RegExp(this.escape(value), 'i')
+    return new RegExp(regex.escape(value), 'i')
   },
   normalize(value = '') {
-    return new RegExp(`^${this.escape(value.trim())}$`, 'i')
+    return new RegExp(`^${regex.escape(value.trim())}$`, 'i')
   },
   startsWith(value = '') {
-    return new RegExp(`^${this.escape(value.trim())}`, 'i')
+    return new RegExp(`^${regex.escape(value.trim())}`, 'i')
   },
   endsWith(value = '') {
-    return new RegExp(`${this.escape(value.trim())}$`, 'i')
+    return new RegExp(`${regex.escape(value.trim())}$`, 'i')
   },
   email() {
     return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
   },
   hsla() {
-    return /^hsla\((\d+),\s*([\d.]+)%,\s*([\d.]+)%,\s*(\d*(?:\.\d+)?)\)$/
+    return /^hsla\(\s*(-?\d+(?:\.\d+)?)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*,\s*(\d*(?:\.\d+)?)\s*\)$/
   },
+}
+
+const getValueType = (value: unknown) => {
+  if (value === null) return 'null'
+  if (Array.isArray(value)) return 'array'
+  return typeof value
 }
 
 export function ioAny(): TypeIoAny {
@@ -193,9 +198,26 @@ export function ioColor(): TypeIoColor {
     validate(value) {
       if (typeof value !== 'string')
         return {ok: false, error: `Color value is not a string.`}
-      if (!regex.hsla().test(value))
+      const normalizedValue = value.trim()
+      const match = regex.hsla().exec(normalizedValue)
+      if (!match)
         return {ok: false, error: `Value is not a valid hsla string.`}
-      return {ok: true, value}
+      const [, hue, saturation, lightness, alpha] = match
+      const channels = {
+        hue: Number(hue),
+        saturation: Number(saturation),
+        lightness: Number(lightness),
+        alpha: Number(alpha),
+      }
+      if (!Number.isFinite(channels.hue))
+        return {ok: false, error: `Hue must be a finite number.`}
+      if (channels.saturation < 0 || channels.saturation > 100)
+        return {ok: false, error: `Saturation must be between 0 and 100.`}
+      if (channels.lightness < 0 || channels.lightness > 100)
+        return {ok: false, error: `Lightness must be between 0 and 100.`}
+      if (channels.alpha < 0 || channels.alpha > 1)
+        return {ok: false, error: `Alpha must be between 0 and 1.`}
+      return {ok: true, value: normalizedValue}
     },
   }
 }
@@ -266,8 +288,8 @@ export function ioNumber(): TypeIoNumber {
     validate(value) {
       if (typeof value !== 'number')
         return {ok: false, error: `Value is not a number.`}
-      if (isNaN(value))
-        return {ok: false, error: `Value provided is NaN (not a number).`}
+      if (!Number.isFinite(value))
+        return {ok: false, error: `Value must be a finite number.`}
       return {ok: true, value}
     },
   }
@@ -286,8 +308,11 @@ export function ioObject<
       }) as TypeIoObject<Omit<F, keyof X> & X>
     },
     validate(value) {
-      if (typeof value !== 'object')
-        return {ok: false, error: `Value is not a object.`}
+      if (!ensure.object(value))
+        return {
+          ok: false,
+          error: `Expect type "object" but got "${getValueType(value)}".`,
+        }
       try {
         return {
           ok: true,
@@ -344,15 +369,20 @@ export function ioString(options?: TypeIoStringOptions): TypeIoString {
     validate(value) {
       if (typeof value !== 'string')
         return {ok: false, error: `String value is not a string.`}
-      if (!options?.emptyok && !value.trim().length)
+      let normalizedValue = value
+      if (options?.trim) normalizedValue = normalizedValue.trim()
+      if (options?.nowhitespace)
+        normalizedValue = normalizedValue.replace(/\s+/g, '')
+      if (!options?.emptyok && !normalizedValue.length)
         return {ok: false, error: `Value can not be empty.`}
-      if (options?.regex && !options.regex.test(value))
-        return {ok: false, error: `Value does not match regular expression.`}
-      if (options?.email && !regex.email().test(value))
+      if (options?.regex) {
+        options.regex.lastIndex = 0
+        if (!options.regex.test(normalizedValue))
+          return {ok: false, error: `Value does not match regular expression.`}
+      }
+      if (options?.email && !regex.email().test(normalizedValue))
         return {ok: false, error: `Value is not a valid email.`}
-      if (options?.trim) value = value.trim()
-      if (options?.nowhitespace) value = value.split(' ').join('')
-      return {ok: true, value}
+      return {ok: true, value: normalizedValue}
     },
   }
 }
