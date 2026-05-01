@@ -51,6 +51,10 @@ export const Dashboard: FC = () => {
       $(Center, {
         padding: isSmall ? 0 : theme.fib[6],
         breakpoint: bpSmall,
+        className: css({
+          height: '100%',
+          gap: theme.fib[5],
+        }),
         children: addkeys([
           $('div', {
             className: css({
@@ -60,11 +64,6 @@ export const Dashboard: FC = () => {
               width: theme.fib[14] + theme.fib[10],
               height: '100%',
               minHeight: 0,
-              [theme.ltMedia(bpSmall)]: {
-                flexGrow: 1,
-                overflowY: 'auto',
-                overflowX: 'hidden',
-              },
             }),
             children: addkeys([
               $('div', {
@@ -229,13 +228,13 @@ export const Dashboard: FC = () => {
                                             openSet(false)
                                           } else {
                                             toaster.notify(
-                                              'Please join a team to submit a score report.'
+                                              'Please join a team to submit a score report.',
                                             )
                                             teamSetupSet(true)
                                           }
                                         } else {
                                           toaster.notify(
-                                            'Please sign in to submit a score report.'
+                                            'Please sign in to submit a score report.',
                                           )
                                           go.to('/auth')
                                         }
@@ -296,7 +295,6 @@ export const Dashboard: FC = () => {
                 className: css({
                   display: 'flex',
                   justifyContent: 'center',
-                  padding: theme.fib[6],
                   '& > *:not(:last-child)': {
                     marginRight: theme.fib[5],
                   },

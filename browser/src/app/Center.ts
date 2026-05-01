@@ -1,4 +1,4 @@
-import {css} from '@emotion/css'
+import {css, cx} from '@emotion/css'
 import {createElement as $, FC, ReactNode} from 'react'
 import {theme} from '../theme'
 
@@ -7,7 +7,8 @@ export const Center: FC<{
   click?: (event: MouseEvent) => void
   breakpoint?: number
   padding?: number
-}> = ({children, click, breakpoint = theme.fib[12], padding}) => {
+  className?: string
+}> = ({children, click, breakpoint = theme.fib[12], padding, className: _className}) => {
   return $('div', {
     onClick: click,
     className: css({
@@ -25,19 +26,22 @@ export const Center: FC<{
     children: $('div', {
       children,
       onClick: click,
-      className: css({
-        width: '100%',
-        maxHeight: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        overflowY: 'auto',
-        padding,
-        [theme.ltMedia(breakpoint)]: {
-          flexGrow: 1,
-          justifyContent: 'end',
-        },
-      }),
+      className: cx(
+        css({
+          width: '100%',
+          maxHeight: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          overflowY: 'auto',
+          padding,
+          [theme.ltMedia(breakpoint)]: {
+            flexGrow: 1,
+            justifyContent: 'end',
+          },
+        }),
+        _className,
+      ),
     }),
   })
 }
