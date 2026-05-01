@@ -1,15 +1,24 @@
 import {SESv2Client, SendEmailCommand} from '@aws-sdk/client-sesv2'
 import config from '../config'
 
+const credentials =
+  config.SES_ACCESS_KEY_ID && config.SES_SECRET_ACCESS_KEY
+    ? {
+        accessKeyId: config.SES_ACCESS_KEY_ID,
+        secretAccessKey: config.SES_SECRET_ACCESS_KEY,
+      }
+    : undefined
+
 const client = new SESv2Client({
-  region: 'us-east-1',
+  region: config.SES_REGION,
+  credentials,
 })
 
 export const mail = {
 
   async send({
     to,
-    from = `${config.APP_NAME} <${config.AWS_FROM_EMAIL}>`,
+    from = `${config.APP_NAME} <${config.SES_FROM_EMAIL}>`,
     subject,
     text,
     html,

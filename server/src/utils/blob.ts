@@ -14,8 +14,17 @@ import {random} from './random'
 import {S3Client, PutObjectCommand, GetObjectCommand} from '@aws-sdk/client-s3'
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner'
 
+const credentials =
+  config.S3_ACCESS_KEY_ID && config.S3_SECRET_ACCESS_KEY
+    ? {
+        accessKeyId: config.S3_ACCESS_KEY_ID,
+        secretAccessKey: config.S3_SECRET_ACCESS_KEY,
+      }
+    : undefined
+
 const s3Client = new S3Client({
-  region: config.AWS_BUCKET_REGION,
+  region: config.S3_BUCKET_REGION,
+  credentials,
 })
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
@@ -181,13 +190,13 @@ export const blob = {
     extension: string
     folder: string
   }) {
-    if (!config.AWS_BUCKET)
-      throw internalError('Missing AWS bucket environment variable.', {
+    if (!config.S3_BUCKET)
+      throw internalError('Missing S3 bucket environment variable.', {
         errorCode: 'blob.bucket_missing',
       })
     const filename = random.randomString(24).concat(extension)
     const key = path.join(folder, filename)
-    const bucket = config.AWS_BUCKET
+    const bucket = config.S3_BUCKET
     await s3Client.send(
       new PutObjectCommand({
         Key: key,
@@ -205,7 +214,7 @@ export const blob = {
     }
   },
 
-  async getObjectUrl(key: string, bucket: string = config.AWS_BUCKET) {
+  async getObjectUrl(key: string, bucket: string = config.S3_BUCKET) {
     const command = new GetObjectCommand({Key: key, Bucket: bucket})
     return getSignedUrl(s3Client, command)
   },
