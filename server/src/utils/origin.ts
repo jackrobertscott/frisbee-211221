@@ -9,12 +9,12 @@ const normalizeOrigin = (value?: string) => {
   }
 }
 
-const allowedOrigin = normalizeOrigin(config.urlClient)
+const allowedOrigin = normalizeOrigin(config.URL_CLIENT)
 
 export const origin = {
   normalize: normalizeOrigin,
   allowed() {
-    return allowedOrigin ?? config.urlClient
+    return allowedOrigin ?? config.URL_CLIENT
   },
   isAllowed(value?: string) {
     const normalized = normalizeOrigin(value)

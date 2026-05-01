@@ -5,17 +5,17 @@ let cachedClient: MongoClient
 
 export default {
 
-  async database(db: string = config.mongodbName) {
+  async database(db: string = config.MONGODB_DB) {
     return (await this.client()).db(db)
   },
 
-  async collection(name: string, db: string = config.mongodbName) {
+  async collection(name: string, db: string = config.MONGODB_DB) {
     return (await this.client()).db(db).collection(name)
   },
 
   async client() {
     if (!cachedClient)
-      cachedClient = await MongoClient.connect(config.mongodbUri)
+      cachedClient = await MongoClient.connect(config.MONGODB_URI)
     return cachedClient
   },
 

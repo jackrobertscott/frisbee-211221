@@ -9,7 +9,7 @@ export const mail = {
 
   async send({
     to,
-    from = `${config.appName} <${config.AWSFromEmail}>`,
+    from = `${config.APP_NAME} <${config.AWS_FROM_EMAIL}>`,
     subject,
     text,
     html,

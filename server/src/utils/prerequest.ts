@@ -15,7 +15,7 @@ export default (handler: RequestHandler): RequestHandler => {
     switch (pathname) {
       case '/':
         return {
-          env: config.debug ? config.env : undefined,
+          env: config.DEBUG ? config.NODE_ENV : undefined,
           now: new Date().toISOString(),
         }
       case '/robots.txt':

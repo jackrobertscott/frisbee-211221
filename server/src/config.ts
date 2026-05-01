@@ -29,6 +29,7 @@ const envSchema = io.object({
   AWS_FROM_EMAIL: io.string().emptyok().trim(),
   GAMEDAY_SECRET_KEY: io.optional(io.string().emptyok().trim()),
   GAMEDAY_ALLOWED_HOSTS: io.optional(io.string().emptyok().trim()),
+  RESTRICTED_TEAM_ID: io.optional(io.string().emptyok().trim()),
 })
 
 const rawEnv = {
@@ -48,6 +49,7 @@ const rawEnv = {
   AWS_FROM_EMAIL: process.env.AWS_FROM_EMAIL,
   GAMEDAY_SECRET_KEY: process.env.GAMEDAY_SECRET_KEY,
   GAMEDAY_ALLOWED_HOSTS: process.env.GAMEDAY_ALLOWED_HOSTS,
+  RESTRICTED_TEAM_ID: process.env.RESTRICTED_TEAM_ID,
 }
 
 const envResult = envSchema.validate(rawEnv as any)
@@ -64,42 +66,12 @@ if (!portResult.ok || !Number.isInteger(portResult.value) || portResult.value <=
 
 const env = envResult.value
 
-const config: {
-  env: string
-  prod: boolean
-  debug: boolean
-  port: number
-  appName: string
-  urlClient: string
-  mongodbUri: string
-  mongodbName: string
-  stripeSecretKey: string
-  jwtSecret: string
-  AWSAccessKeyId: string
-  AWSAccessKeySecret: string
-  AWSBucket: string
-  AWSBucketRegion: string
-  AWSFromEmail: string
-  gamedaySecretKey: string
-  gamedayAllowedHosts?: string
-} = {
-  env: env.NODE_ENV || 'development',
-  prod: !env.URL_CLIENT?.startsWith('http://localhost'),
-  debug: env.DEBUG === 'true' || env.NODE_ENV !== 'production',
-  port: portResult.value,
-  appName: env.APP_NAME,
-  urlClient: env.URL_CLIENT,
-  mongodbUri: env.MONGODB_URI,
-  mongodbName: env.MONGODB_DB,
-  stripeSecretKey: env.STRIPE_SECRET_KEY,
-  jwtSecret: env.JWT_SECRET,
-  AWSAccessKeyId: env.AWS_ACCESS_KEY_ID,
-  AWSAccessKeySecret: env.AWS_SECRET_ACCESS_KEY,
-  AWSBucket: env.AWS_BUCKET,
-  AWSBucketRegion: env.AWS_BUCKET_REGION,
-  AWSFromEmail: env.AWS_FROM_EMAIL,
-  gamedaySecretKey: env.GAMEDAY_SECRET_KEY || env.JWT_SECRET,
-  gamedayAllowedHosts: env.GAMEDAY_ALLOWED_HOSTS,
+const config = {
+  ...env,
+  NODE_ENV: env.NODE_ENV || 'development',
+  DEBUG: env.DEBUG === 'true' || env.NODE_ENV !== 'production',
+  PORT: portResult.value,
+  GAMEDAY_SECRET_KEY: env.GAMEDAY_SECRET_KEY || env.JWT_SECRET,
 }
 
 export default config

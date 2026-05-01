@@ -48,7 +48,7 @@ export default {
       } catch (error) {
         const appError = toAppError(error)
         if (typeof appError.tarpit === 'object' && appError.tarpit) {
-          if (config.debug && this.shouldLogDebug(error)) {
+          if (config.DEBUG && this.shouldLogDebug(error)) {
             const pretty = this.pretty(error, req)
             console.log(this.formatLogLine(pretty, req))
           }
@@ -57,7 +57,7 @@ export default {
         }
 
         const pretty = this.pretty(error, req)
-        if (config.debug && this.shouldLogDebug(error)) {
+        if (config.DEBUG && this.shouldLogDebug(error)) {
           console.log(this.formatLogLine(pretty, req))
         }
         send(res, pretty.statusCode, pretty)
@@ -67,10 +67,10 @@ export default {
 
   pretty(error: unknown, req: IncomingMessage) {
     const pretty = serializeError(error, {
-      redactInternalMessage: !config.debug,
-      includeDetails: config.debug,
-      includeMeta: config.debug,
-      includeStackLines: config.debug,
+      redactInternalMessage: !config.DEBUG,
+      includeDetails: config.DEBUG,
+      includeMeta: config.DEBUG,
+      includeStackLines: config.DEBUG,
     })
     return {
       ...pretty,

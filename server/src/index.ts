@@ -13,7 +13,7 @@ import cors from './utils/cors'
 import intrusion from './utils/intrusion'
 import prerequest from './utils/prerequest'
 
-if (!config.prod) {
+if (config.URL_CLIENT.startsWith('http://localhost')) {
   startServer()
 } else {
   if (cluster.isPrimary) {
@@ -41,9 +41,9 @@ function startServer() {
     microServe(cors()(capture.handle(prerequest(handler))))
   )
   attachWorkerClusterLifecycle(server)
-  server.listen(config.port, () => {
+  server.listen(config.PORT, () => {
     const cid = cluster.worker ? `WORKER ${cluster.worker.id}` : 'MASTER'
-    const envName = config.prod ? 'PROD' : 'DEV'
-    console.log(`Started: ${envName} ${cid} ${config.port}`)
+    const envName = config.URL_CLIENT.startsWith('http://localhost') ? 'DEV' : 'PROD'
+    console.log(`Started: ${envName} ${cid} ${config.PORT}`)
   })
 }

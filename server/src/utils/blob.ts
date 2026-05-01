@@ -15,7 +15,7 @@ import {S3Client, PutObjectCommand, GetObjectCommand} from '@aws-sdk/client-s3'
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner'
 
 const s3Client = new S3Client({
-  region: config.AWSBucketRegion,
+  region: config.AWS_BUCKET_REGION,
 })
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
@@ -181,13 +181,13 @@ export const blob = {
     extension: string
     folder: string
   }) {
-    if (!config.AWSBucket)
+    if (!config.AWS_BUCKET)
       throw internalError('Missing AWS bucket environment variable.', {
         errorCode: 'blob.bucket_missing',
       })
     const filename = random.randomString(24).concat(extension)
     const key = path.join(folder, filename)
-    const bucket = config.AWSBucket
+    const bucket = config.AWS_BUCKET
     await s3Client.send(
       new PutObjectCommand({
         Key: key,
@@ -205,7 +205,7 @@ export const blob = {
     }
   },
 
-  async getObjectUrl(key: string, bucket: string = config.AWSBucket) {
+  async getObjectUrl(key: string, bucket: string = config.AWS_BUCKET) {
     const command = new GetObjectCommand({Key: key, Bucket: bucket})
     return getSignedUrl(s3Client, command)
   },

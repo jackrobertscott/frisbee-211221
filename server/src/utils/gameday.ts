@@ -14,7 +14,7 @@ const GAMEDAY_REQUEST_TIMEOUT_MS = 10000
 // `GAMEDAY_ALLOWED_HOSTS` is a comma-separated list of hostnames such as
 // `api.gameday.app,auth.gameday.app,*.gameday.com`. Entries must be bare
 // hostnames only: no scheme, path, port, or query string.
-const allowedHostPatterns = (config.gamedayAllowedHosts ?? '')
+const allowedHostPatterns = (config.GAMEDAY_ALLOWED_HOSTS ?? '')
   .split(',')
   .map((value) => value.trim().toLowerCase())
   .filter(Boolean)

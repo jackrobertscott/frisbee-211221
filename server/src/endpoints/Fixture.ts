@@ -14,6 +14,7 @@ import {RequestHandler} from 'micro'
 import {$Fixture} from '../tables/$Fixture'
 import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
+import config from '../config'
 import {createEndpoint} from '../utils/endpoints'
 import {random} from '../utils/random'
 import {requireUserAdmin} from './requireUserAdmin'
@@ -317,7 +318,7 @@ export default new Map<string, RequestHandler>([
 //     })
 //     page = await browser.newPage()
 //     await page.setViewport({width: 987, height: 987})
-//     const url = `${config.urlClient}/?fixtureId=${fixtureId}`
+//     const url = `${config.URL_CLIENT}/?fixtureId=${fixtureId}`
 //     await page.goto(url, {
 //       waitUntil: ['networkidle0', 'networkidle2'],
 //     })
@@ -726,7 +727,7 @@ function shuffleArray(array: any[]): any[] {
 }
 
 // Team-time restriction: optionally prevent a specific team from any slot containing '6'
-const RESTRICTED_TEAM_ID = process.env.RESTRICTED_TEAM_ID
+const RESTRICTED_TEAM_ID = config.RESTRICTED_TEAM_ID
 
 function containsSix(s?: string) {
   return typeof s === 'string' && s.includes('6')

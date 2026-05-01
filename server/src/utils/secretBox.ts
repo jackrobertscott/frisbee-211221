@@ -12,7 +12,7 @@ const IV_BYTES = 12
 const VERSION = 'v1'
 
 const getKey = () =>
-  createHash('sha256').update(config.gamedaySecretKey).digest()
+  createHash('sha256').update(config.GAMEDAY_SECRET_KEY).digest()
 
 const toBase64Url = (value: Buffer) => value.toString('base64url')
 

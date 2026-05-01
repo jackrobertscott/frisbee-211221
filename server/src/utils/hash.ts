@@ -16,7 +16,7 @@ export default {
   },
 
   digest(value: string) {
-    return createHmac('sha256', config.jwtSecret).update(value).digest('hex')
+    return createHmac('sha256', config.JWT_SECRET).update(value).digest('hex')
   },
 
   equals(value: string, expected: string) {
