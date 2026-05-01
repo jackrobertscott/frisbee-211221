@@ -25,7 +25,6 @@ const envSchema = io.object({
   SES_SECRET_ACCESS_KEY: io.string().emptyok().trim(),
   SES_REGION: io.optional(io.string().emptyok().trim()),
   SES_FROM_EMAIL: io.string().emptyok().trim(),
-  RESTRICTED_TEAM_ID: io.optional(io.string().emptyok().trim()),
 })
 
 const rawEnv = {
@@ -41,7 +40,6 @@ const rawEnv = {
   SES_SECRET_ACCESS_KEY: process.env.SES_SECRET_ACCESS_KEY,
   SES_REGION: process.env.SES_REGION,
   SES_FROM_EMAIL: process.env.SES_FROM_EMAIL,
-  RESTRICTED_TEAM_ID: process.env.RESTRICTED_TEAM_ID,
 }
 
 const envResult = envSchema.validate(rawEnv as any)
