@@ -11,7 +11,6 @@ import AdmZip from 'adm-zip'
 import {RequestHandler} from 'micro'
 import {$Comment} from '../tables/$Comment'
 import {$Fixture} from '../tables/$Fixture'
-import {$GamedayAccountSettings} from '../tables/$GamedayAccountSettings'
 import {$Member} from '../tables/$Member'
 import {$Post} from '../tables/$Post'
 import {$Report} from '../tables/$Report'
@@ -546,7 +545,6 @@ const _loadExportDatasets = async () => {
   const [
     comments,
     fixtures,
-    gamedayAccountSettings,
     members,
     posts,
     reports,
@@ -556,7 +554,6 @@ const _loadExportDatasets = async () => {
   ] = await Promise.all([
     $Comment.getMany({}, {sort}),
     $Fixture.getMany({}, {sort}),
-    $GamedayAccountSettings.getMany({}, {sort}),
     $Member.getMany({}, {sort}),
     $Post.getMany({}, {sort}),
     $Report.getMany({}, {sort}),
@@ -579,13 +576,6 @@ const _loadExportDatasets = async () => {
       description: 'Scheduled fixtures and embedded game slots.',
       sensitivity: 'standard',
       records: fixtures,
-    },
-    {
-      name: 'gamedayAccountSettings',
-      filename: 'gameday-account-settings.private',
-      description: 'GameDay integration settings, including encrypted client secret values.',
-      sensitivity: 'sensitive',
-      records: gamedayAccountSettings,
     },
     {
       name: 'members',

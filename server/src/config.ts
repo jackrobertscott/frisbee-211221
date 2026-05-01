@@ -25,8 +25,6 @@ const envSchema = io.object({
   SES_SECRET_ACCESS_KEY: io.string().emptyok().trim(),
   SES_REGION: io.optional(io.string().emptyok().trim()),
   SES_FROM_EMAIL: io.string().emptyok().trim(),
-  GAMEDAY_SECRET_KEY: io.optional(io.string().emptyok().trim()),
-  GAMEDAY_ALLOWED_HOSTS: io.optional(io.string().emptyok().trim()),
   RESTRICTED_TEAM_ID: io.optional(io.string().emptyok().trim()),
 })
 
@@ -43,8 +41,6 @@ const rawEnv = {
   SES_SECRET_ACCESS_KEY: process.env.SES_SECRET_ACCESS_KEY,
   SES_REGION: process.env.SES_REGION,
   SES_FROM_EMAIL: process.env.SES_FROM_EMAIL,
-  GAMEDAY_SECRET_KEY: process.env.GAMEDAY_SECRET_KEY,
-  GAMEDAY_ALLOWED_HOSTS: process.env.GAMEDAY_ALLOWED_HOSTS,
   RESTRICTED_TEAM_ID: process.env.RESTRICTED_TEAM_ID,
 }
 
@@ -68,7 +64,6 @@ const config = {
   NODE_ENV: env.NODE_ENV || 'development',
   DEBUG: env.DEBUG === 'true' || env.NODE_ENV !== 'production',
   PORT: portResult.value,
-  GAMEDAY_SECRET_KEY: env.GAMEDAY_SECRET_KEY || env.JWT_SECRET,
 }
 
 export default config

@@ -4,7 +4,6 @@ import Member from './Member'
 import Post from './Post'
 import Report from './Report'
 import Fixture from './Fixture'
-import Gameday from './Gameday'
 import Season from './Season'
 import Security from './Security'
 import Team from './Team'
@@ -14,7 +13,6 @@ import Port from './Port'
 export default new Map<string, RequestHandler>([
   ...Comment.entries(),
   ...Fixture.entries(),
-  ...Gameday.entries(),
   ...Member.entries(),
   ...Port.entries(),
   ...Post.entries(),
