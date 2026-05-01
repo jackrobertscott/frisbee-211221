@@ -1,4 +1,4 @@
-import {io, TypeIoValue} from 'torva'
+import {io, TypeIoValue} from '@shared/torva'
 
 export const ioUserEmail = io.object({
   value: io.string(),

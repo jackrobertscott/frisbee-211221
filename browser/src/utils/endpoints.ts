@@ -1,4 +1,4 @@
-import {TypeIoAll, TypeIoValue} from 'torva'
+import {TypeIoAll, TypeIoValue} from '@shared/torva'
 import {radio} from './radio'
 
 export interface TEndpoint<

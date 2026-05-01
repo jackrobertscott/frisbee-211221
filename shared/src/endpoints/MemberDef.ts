@@ -2,7 +2,7 @@ import {ioMember} from '@shared/schemas/ioMember'
 import {ioTeam} from '@shared/schemas/ioTeam'
 import {ioUserPublic} from '@shared/schemas/ioUser'
 import {TEndpointDef} from '@shared/utils/endpointDef'
-import {io} from 'torva'
+import {io} from '@shared/torva'
 
 export const MemberListOfUserDef = {
   path: '/MemberListOfUser',

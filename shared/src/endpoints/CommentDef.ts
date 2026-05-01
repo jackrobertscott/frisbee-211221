@@ -1,7 +1,7 @@
 import {ioComment} from '@shared/schemas/ioComment'
 import {ioUserPublic} from '@shared/schemas/ioUser'
 import {TEndpointDef} from '@shared/utils/endpointDef'
-import {io} from 'torva'
+import {io} from '@shared/torva'
 
 export const CommentListOfPostDef = {
   path: '/CommentListOfPost',

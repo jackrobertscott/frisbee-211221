@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv'
 import path from 'path'
-import {io} from 'torva'
+import {io} from '@shared/torva'
 import {fileURLToPath} from 'url'
 
 const envFile =

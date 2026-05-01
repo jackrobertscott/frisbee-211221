@@ -1,4 +1,4 @@
-import {TypeIoValue} from 'torva'
+import {TypeIoValue} from '@shared/torva'
 
 export type TEndpointDef = {
   path: string

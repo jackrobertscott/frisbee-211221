@@ -1,5 +1,5 @@
 import {TEndpointDef} from '@shared/utils/endpointDef'
-import {io} from 'torva'
+import {io} from '@shared/torva'
 
 export const PortImportDef = {
   path: '/PortImport',

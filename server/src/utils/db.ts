@@ -1,6 +1,6 @@
 import {notFoundError} from '@shared/errors'
 import {Document, Filter, FindOptions, WithId} from 'mongodb'
-import {TypeIoAll, TypeIoValue} from 'torva'
+import {TypeIoAll, TypeIoValue} from '@shared/torva'
 import mongo from './mongo'
 import {Simplify} from './types'
 

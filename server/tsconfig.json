@@ -27,8 +27,7 @@
     "baseUrl": "..",
     "paths": {
       "@server/*": ["server/src/*"],
-      "@shared/*": ["shared/src/*"],
-      "torva": ["server/node_modules/torva"]
+      "@shared/*": ["shared/src/*"]
     }
   },
   "include": ["src", "../shared/src"],

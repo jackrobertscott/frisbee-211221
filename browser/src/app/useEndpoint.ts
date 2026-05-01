@@ -1,6 +1,6 @@
 import {getErrorMessage, toAppError} from '@shared/errors'
 import {useMemo, useRef, useState} from 'react'
-import {TypeIoAll, TypeIoValue} from 'torva'
+import {TypeIoAll, TypeIoValue} from '@shared/torva'
 import {TEndpoint} from '../utils/endpoints'
 import {throttle} from '../utils/throttle'
 import {useAuth} from './Auth/useAuth'

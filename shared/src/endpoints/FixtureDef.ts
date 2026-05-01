@@ -1,7 +1,7 @@
 import {ioFixture, ioFixtureGame} from '@shared/schemas/ioFixture'
 import {ioTeam} from '@shared/schemas/ioTeam'
 import {TEndpointDef} from '@shared/utils/endpointDef'
-import {io} from 'torva'
+import {io} from '@shared/torva'
 
 export const FixtureListOfSeasonDef = {
   path: '/FixtureListOfSeason',

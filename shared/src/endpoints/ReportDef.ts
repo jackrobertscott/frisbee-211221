@@ -3,7 +3,7 @@ import {ioReport} from '@shared/schemas/ioReport'
 import {ioTeam} from '@shared/schemas/ioTeam'
 import {ioUserPublic} from '@shared/schemas/ioUser'
 import {TEndpointDef} from '@shared/utils/endpointDef'
-import {io} from 'torva'
+import {io} from '@shared/torva'
 
 export const ReportListOfFixtureDef = {
   path: '/ReportListOfFixture',

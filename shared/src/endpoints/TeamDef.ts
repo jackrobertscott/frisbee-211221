@@ -1,7 +1,7 @@
 import {ioMember} from '@shared/schemas/ioMember'
 import {ioTeam} from '@shared/schemas/ioTeam'
 import {TEndpointDef} from '@shared/utils/endpointDef'
-import {io} from 'torva'
+import {io} from '@shared/torva'
 
 export const TeamListOfSeasonDef = {
   path: '/TeamListOfSeason',

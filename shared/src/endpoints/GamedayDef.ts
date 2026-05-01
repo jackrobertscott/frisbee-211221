@@ -1,6 +1,6 @@
 import {ioGamedayAccountSettings} from '@shared/schemas/ioGamedayAccountSettings'
 import {TEndpointDef} from '@shared/utils/endpointDef'
-import {io} from 'torva'
+import {io} from '@shared/torva'
 
 const ioGamedayConnectionShape = {
   name: io.string().trim(),

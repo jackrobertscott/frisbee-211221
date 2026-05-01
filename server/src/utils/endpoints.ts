@@ -4,7 +4,7 @@ import {
   validationError,
 } from '@shared/errors'
 import {json, RequestHandler} from 'micro'
-import {TypeIoAll, TypeIoValue} from 'torva'
+import {TypeIoAll, TypeIoValue} from '@shared/torva'
 import {origin} from './origin'
 
 export const createEndpoint = <P extends TypeIoAll>({

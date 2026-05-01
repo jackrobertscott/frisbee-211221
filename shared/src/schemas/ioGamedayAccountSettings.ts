@@ -1,4 +1,4 @@
-import {io, TypeIoValue} from 'torva'
+import {io, TypeIoValue} from '@shared/torva'
 
 export const ioGamedayAccountSettings = io.object({
   id: io.string(),
