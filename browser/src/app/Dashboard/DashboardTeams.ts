@@ -24,7 +24,6 @@ import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
 import {useSling} from '../useThrottle'
-import {useDashboardRouteReady} from './useDashboardRouteReady'
 
 export const DashboardTeams: FC = () => {
   const auth = useAuth()
@@ -36,7 +35,6 @@ export const DashboardTeams: FC = () => {
   const [currentId, currentIdSet] = useState<string>()
   const current = currentId && teams?.find((i) => i.id === currentId)
   const seasonId = auth.season!.id
-  useDashboardRouteReady(teams !== undefined)
   const teamList = () =>
     $teamList.fetch({...pager.data, seasonId, search}).then((i) => {
       teamsSet(i.teams)

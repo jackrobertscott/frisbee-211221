@@ -28,7 +28,6 @@ import {Table} from '../Table'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {MissingReportsModal} from './MissingReportsModal'
-import {useDashboardRouteReady} from './useDashboardRouteReady'
 
 export const DashboardLadder: FC = () => {
   const auth = useAuth()
@@ -36,14 +35,13 @@ export const DashboardLadder: FC = () => {
   const $fixtureUpdate = useEndpoint($FixtureUpdate)
   const $teamList = useEndpoint($TeamListOfSeason)
   const $fixtureList = useEndpoint($FixtureListOfSeason)
-  const [teams, teamsSet] = useState<TTeam[]>()
+  const [teams, teamsSet] = useState<TTeam[]>([])
   const [fixtures, fixturesSet] = useState<TFixture[]>()
   const [editing, editingSet] = useState<TFixture>()
   const [openrnds, openrndsSet] = useState<string[]>([])
   const [addingFinal, addingFinalSet] = useState(false)
   const [showingMissingReports, showingMissingReportsSet] = useState(false)
   const tally = tallyChart(fixtures ?? [])
-  useDashboardRouteReady(teams !== undefined && fixtures !== undefined)
   const reload = () => {
     const seasonId = auth.season!.id
     $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))
@@ -52,9 +50,9 @@ export const DashboardLadder: FC = () => {
   useEffect(() => reload(), [])
   const finalResultsAndTeam = auth.season?.finalResults
     ?.filter((i) => i.position !== undefined)
-    .map((i) => [i, (teams ?? []).find((t) => t.id === i.teamId)] as const)
-  const teamsUndivided = (teams ?? []).filter((i) => typeof i.division !== 'number')
-  const divisions = (teams ?? [])
+    .map((i) => [i, teams.find((t) => t.id === i.teamId)] as const)
+  const teamsUndivided = teams.filter((i) => typeof i.division !== 'number')
+  const divisions = teams
     .reduce((all, next) => {
       if (!next.division) return all
       if (!all.includes(next.division)) all.push(next.division)
@@ -136,7 +134,7 @@ export const DashboardLadder: FC = () => {
               return $(_LadderDivision, {
                 key: division.toString(),
                 label: `Div ${division}`,
-                teams: (teams ?? []).filter((i) => i.division === division),
+                teams: teams.filter((i) => i.division === division),
                 tally,
               })
             }),
@@ -214,7 +212,7 @@ export const DashboardLadder: FC = () => {
           auth.season &&
           addingFinal &&
           $(FinalResultsForm, {
-            teams: teams ?? [],
+            teams,
             divisions,
             season: auth.season,
             close: () => addingFinalSet(false),

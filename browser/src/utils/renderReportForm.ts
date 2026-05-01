@@ -111,6 +111,10 @@ export function sanitizeReportFormMvps(
   formData: Pick<ReportFormData, ReportMvpField>,
   users: TUserPublic[] | undefined
 ): Pick<ReportFormData, ReportMvpField> {
+  if (users === undefined) {
+    return formData
+  }
+
   const usersById = new Map(users?.map((user) => [user.id, user]) ?? [])
   const getValidUserId = (field: ReportMvpField, userId: string | undefined) => {
     if (!userId) {

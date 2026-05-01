@@ -22,7 +22,6 @@ import {Question} from '../Question'
 import {useToaster} from '../Toaster/useToaster'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
-import {useDashboardRouteReady} from './useDashboardRouteReady'
 
 export const DashboardPort: FC = () => {
   const auth = useAuth()
@@ -32,7 +31,6 @@ export const DashboardPort: FC = () => {
   const [generating, generatingSet] = useState(false)
   const [deleting, deletingSet] = useState(false)
   const $export = useEndpoint($PortExport)
-  useDashboardRouteReady(true)
   return $(Fragment, {
     children: addkeys([
       $(Form, {

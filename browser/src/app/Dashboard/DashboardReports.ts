@@ -46,7 +46,6 @@ import {useToaster} from '../Toaster/useToaster'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
-import {useDashboardRouteReady} from './useDashboardRouteReady'
 
 export const DashboardReports: FC = () => {
   const auth = useAuth()
@@ -65,9 +64,6 @@ export const DashboardReports: FC = () => {
   const [currentId, currentIdSet] = useState<string>()
   const current = currentId && _reports?.find((i) => i.id === currentId)
   const seasonId = auth.season!.id
-  useDashboardRouteReady(
-    teams !== undefined && fixtures !== undefined && _reports !== undefined
-  )
   const reportList = () =>
     $reportList.fetch({seasonId}).then((i) => {
       reportsSet(i.reports)
