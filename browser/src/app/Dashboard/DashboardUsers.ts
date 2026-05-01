@@ -14,7 +14,6 @@ import {addkeys} from '../../utils/addkeys'
 import {GENDER_OPTIONS} from '../../utils/constants'
 import {go} from '../../utils/go'
 import {objectify} from '../../utils/objectify'
-import {userEmails} from '../../utils/userEmails'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
@@ -308,18 +307,13 @@ export const _DashboardUsersView: FC<{
                 children: addkeys([
                   $(FormLabel, {label: 'Emails'}),
                   $(Fragment, {
-                    children: !user.emails?.length
-                      ? $(InputString, {
-                          disabled: true,
-                          value: userEmails.primary(user) ?? '[unknown]',
-                        })
-                      : user.emails.map((i) => {
-                          return $(InputString, {
-                            key: i.value,
-                            disabled: true,
-                            value: i.value,
-                          })
-                        }),
+                    children: user.emails.map((i) => {
+                      return $(InputString, {
+                        key: i.value,
+                        disabled: true,
+                        value: i.value,
+                      })
+                    }),
                   }),
                 ]),
               }),

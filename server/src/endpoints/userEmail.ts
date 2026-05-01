@@ -1,10 +1,9 @@
 import {
   badRequestError,
   conflictError,
-  internalError,
   notFoundError,
 } from '@shared/errors'
-import {TUser, TUserEmail} from '@shared/schemas/ioUser'
+import {TUser} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
 import {$User} from '../tables/$User'
 import hash from '../utils/hash'
@@ -21,12 +20,7 @@ export const userEmail = {
 
   async maybeUser(email: string) {
     const emailNormalized = regex.normalize(email)
-    let user = await $User.maybeOne({'emails.value': emailNormalized})
-    if (!user) {
-      user = await $User.maybeOne({email: emailNormalized})
-      if (user) user = await userEmail.migrate(user)
-    }
-    return user
+    return $User.maybeOne({'emails.value': emailNormalized})
   },
 
   create(email: string, primary: boolean = false, code?: string) {
@@ -41,15 +35,11 @@ export const userEmail = {
   },
 
   primary(user: TUser) {
-    if (!user.emails?.length)
-      throw internalError('User is missing emails array.', {
-        errorCode: 'user.emails_missing',
-      })
     return user.emails.find((i) => i.primary) ?? user.emails[0]
   },
 
   get(user: TUser, email: string) {
-    return user.emails?.find((i) => regex.normalize(email).test(i.value))
+    return user.emails.find((i) => regex.normalize(email).test(i.value))
   },
 
   async add(user: TUser, email: string) {
@@ -64,12 +54,12 @@ export const userEmail = {
     const i = userEmail.create(email)
     const rawCode = await userEmail.codeSend(i.value, user.firstName, 'Verify Email')
     i.code = hash.digest(normalizeCode(rawCode))
-    const emails = user.emails ? [...user.emails, i] : [i]
+    const emails = [...user.emails, i]
     return $User.updateOne({id: user.id}, {emails})
   },
 
   async remove(user: TUser, email: string) {
-    let emails = user.emails ? [...user.emails] : []
+    const emails = [...user.emails]
     const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
     if (index === -1)
       throw notFoundError('Email does not exist on user.', {
@@ -88,7 +78,7 @@ export const userEmail = {
   },
 
   async verify(user: TUser, email: string) {
-    let emails = user.emails ? [...user.emails] : []
+    const emails = [...user.emails]
     const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
     if (index === -1)
       throw notFoundError('Email does not exist on user.', {
@@ -100,7 +90,7 @@ export const userEmail = {
   },
 
   async primarySet(user: TUser, email: string) {
-    let emails = user.emails ? [...user.emails] : []
+    let emails = [...user.emails]
     const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
     if (index === -1)
       throw notFoundError('Email does not exist on user.', {
@@ -139,7 +129,7 @@ export const userEmail = {
   },
 
   async codeSave(user: TUser, email: string, code: string) {
-    let emails = user.emails ? [...user.emails] : []
+    const emails = [...user.emails]
     const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
     if (index === -1)
       throw notFoundError('Email does not exist on user.', {
@@ -175,31 +165,5 @@ export const userEmail = {
     const now = dayjs()
     const expiry = dayjs(data.createdOn).add(10, 'minutes')
     return dayjs(now).isAfter(expiry)
-  },
-
-  isOld(user: TUser) {
-    return !user.emails?.length || !!user.email
-  },
-
-  async migrate(user: TUser) {
-    const raw: any = await $User.getOne({id: user.id})
-    if (!userEmail.isOld(raw))
-      throw conflictError('User has already migrated.', {
-        errorCode: 'user.already_migrated',
-      })
-    if (raw.emails?.length) return $User.updateOne({id: user.id}, {email: null})
-    if (!raw.email)
-      throw internalError('User is missing legacy email.', {
-        errorCode: 'user.legacy_email_missing',
-      })
-    const fallback = userEmail.create(raw.email)
-    const data: TUserEmail = {
-      value: raw.email,
-      verified: raw.emailVerified ?? fallback.verified,
-      createdOn: raw.emailCodeCreatedOn ?? fallback.createdOn,
-      code: raw.emailCode ?? fallback.code,
-      primary: true,
-    }
-    return $User.updateOne({id: user.id}, {email: null, emails: [data]})
   },
 }

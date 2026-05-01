@@ -42,9 +42,7 @@ export default new Map<string, RequestHandler>([
             maybeSession &&
             gatekeeper.isSessionValid(auth, maybeSession)
           ) {
-            user = userEmail.isOld(maybeUser)
-              ? await userEmail.migrate(maybeUser)
-              : maybeUser
+            user = maybeUser
             session = maybeSession
           }
         }

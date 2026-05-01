@@ -8,7 +8,6 @@ import {
 } from './clusterAutoscaler'
 import config from './config'
 import endpoints from './endpoints'
-import {runStartupMigrations} from './migrations/runStartupMigrations'
 import capture from './utils/capture'
 import cors from './utils/cors'
 import intrusion from './utils/intrusion'
@@ -21,13 +20,11 @@ void bootstrap().catch((error) => {
 
 async function bootstrap() {
   if (config.URL_CLIENT.startsWith('http://localhost')) {
-    await runStartupMigrations()
     startServer()
     return
   }
 
   if (cluster.isPrimary) {
-    await runStartupMigrations()
     startPrimaryCluster()
     return
   }

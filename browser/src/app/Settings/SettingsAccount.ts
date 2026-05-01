@@ -40,6 +40,7 @@ export const SettingsAccount: FC = () => {
     firstName: '',
     lastName: '',
     ...auth.current?.user,
+    emails: auth.current?.user.emails ?? [],
   })
   return $(Form, {
     children: addkeys([
@@ -86,7 +87,7 @@ export const SettingsAccount: FC = () => {
             ]),
           }),
           $(Fragment, {
-            children: form.data.emails?.map((i) => {
+            children: form.data.emails.map((i) => {
               return $(FormRow, {
                 key: i.value,
                 children: addkeys([

@@ -391,14 +391,12 @@ const _createUsersFromObjects = async (
   const loadDBUsers = () => {
     const csvEmails = userCSVEmailList.map(regex.normalize)
     return $User.getMany({
-      $or: [{email: {$in: csvEmails}}, {'emails.value': {$in: csvEmails}}],
+      'emails.value': {$in: csvEmails},
     })
   }
   let userDBList = await loadDBUsers()
   const allUserEmails = (user: TUser) =>
-    [user.email, ...(user.emails ?? []).map((i) => i.value)]
-      .filter((x) => x?.trim())
-      .map((i) => i?.toLowerCase().trim()) as string[]
+    user.emails.map((i) => i.value.toLowerCase().trim())
   const userDBEmailList = userDBList.flatMap(allUserEmails)
   const userCSVNewList = userCSVList.filter((i) => {
     return !userDBEmailList.includes(i._email.toLowerCase().trim())

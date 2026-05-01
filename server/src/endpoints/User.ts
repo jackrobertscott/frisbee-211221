@@ -129,7 +129,7 @@ export default new Map<string, RequestHandler>([
             $or: [
               {firstName: regexSearch},
               {lastName: regexSearch},
-              {email: regexSearch},
+              {'emails.value': regexSearch},
             ],
           },
           {
@@ -207,8 +207,6 @@ export default new Map<string, RequestHandler>([
           $Member.getMany({userId: user2Id}),
         ])
         await mongo.transaction(async () => {
-          if (userEmail.isOld(user1)) user1 = await userEmail.migrate(user1)
-          if (userEmail.isOld(user2)) user2 = await userEmail.migrate(user2)
           // members
           const taskMembers = u2Members.map(async (u2m) => {
             const u1mOverlap = u1Members.find((u1m) => {
