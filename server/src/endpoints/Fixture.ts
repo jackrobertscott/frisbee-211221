@@ -211,57 +211,20 @@ export default new Map<string, RequestHandler>([
         if (roundNumbers.length > 0) {
           startingRound = Math.max(...roundNumbers)
 
-          // Validate that existing fixtures match round robin pattern
-          // We need to reverse-engineer the team order from existing fixtures
           for (const [division, divisionTeams] of divisions.entries()) {
-            const divTeamSet = new Set(divisionTeams)
-
-            // Try to find the team order by analyzing the first round
-            const firstRound = existingFixtures.find((f) =>
-              f.title.match(/Round\s+1/i)
+            const roundGames = getDivisionRoundGames(
+              existingFixtures,
+              new Set(divisionTeams)
             )
-
-            if (firstRound) {
-              // Extract teams from this division in the first round
-              const divisionGames = firstRound.games.filter(
-                (g) => divTeamSet.has(g.team1Id) && divTeamSet.has(g.team2Id)
+            if (roundGames.size > 0) {
+              teamOrder.set(
+                division,
+                reconstructDivisionTeamOrder(
+                  divisionTeams,
+                  roundGames,
+                  body.roundCount
+                )
               )
-
-              // Reconstruct the team order from the first round games
-              // In round robin, the first team is fixed, others rotate
-              if (divisionGames.length > 0) {
-                const reconstructedOrder: string[] = []
-
-                // The team order can be reconstructed from the pairings
-                // For round 0: pairs are (teams[0], teams[n-1]), (teams[1], teams[n-2]), etc.
-                // We can work backwards from this
-                const pairings = divisionGames.map((g) => [
-                  g.team1Id,
-                  g.team2Id,
-                ])
-
-                if (pairings.length > 0) {
-                  // Extract all unique teams from pairings
-                  const teamsInPairings = new Set<string>()
-                  pairings.forEach(([t1, t2]) => {
-                    teamsInPairings.add(t1)
-                    teamsInPairings.add(t2)
-                  })
-
-                  // Use the existing team order if we can't determine it exactly
-                  // The shuffling was random anyway, so we'll use a deterministic order
-                  reconstructedOrder.push(...Array.from(teamsInPairings).sort())
-
-                  // Add any missing teams from the division
-                  divisionTeams.forEach((t) => {
-                    if (!reconstructedOrder.includes(t)) {
-                      reconstructedOrder.push(t)
-                    }
-                  })
-
-                  teamOrder.set(division, reconstructedOrder)
-                }
-              }
             }
           }
         }
@@ -389,7 +352,10 @@ export default new Map<string, RequestHandler>([
 //   }
 // }
 
-function getRoundRobinPairings(teams: string[], round: number): string[][] {
+export function getRoundRobinPairings(
+  teams: string[],
+  round: number
+): string[][] {
   // Support odd team counts by adding a bye placeholder.
   const hasBye = teams.length % 2 !== 0
   const byeId = '__BYE__'
@@ -423,6 +389,332 @@ function getRoundRobinPairings(teams: string[], round: number): string[][] {
     pairings.push([homeTeam, awayTeam])
   }
   return pairings
+}
+
+function extractRoundNumber(title: string): number | null {
+  const match = title.match(/Round\s+(\d+)/i)
+  if (!match) return null
+  return parseInt(match[1], 10)
+}
+
+function normalizePairing([team1Id, team2Id]: string[]): string {
+  return [team1Id, team2Id].sort().join('::')
+}
+
+function serializePairings(pairings: string[][]): string {
+  return pairings.map(normalizePairing).sort().join('|')
+}
+
+function buildCanonicalOrderFromRoundPairings(pairings: string[][]): string[] {
+  const normalizedPairings = pairings
+    .map(([team1Id, team2Id]) => [team1Id, team2Id].sort())
+    .sort((pairA, pairB) =>
+      normalizePairing(pairA).localeCompare(normalizePairing(pairB))
+    )
+
+  const leftTeams = normalizedPairings.map(([team1Id]) => team1Id)
+  const rightTeams = normalizedPairings
+    .map(([, team2Id]) => team2Id)
+    .reverse()
+
+  return leftTeams.concat(rightTeams)
+}
+
+function getRoundOpponentMap(pairings: string[][]): Map<string, string> {
+  const opponents = new Map<string, string>()
+  pairings.forEach(([team1Id, team2Id]) => {
+    opponents.set(team1Id, team2Id)
+    opponents.set(team2Id, team1Id)
+  })
+  return opponents
+}
+
+function setOrderPosition(
+  order: Array<string | undefined>,
+  index: number,
+  teamId: string,
+  usedTeams: Set<string>
+): boolean {
+  const existing = order[index]
+  if (existing !== undefined) return existing === teamId
+  if (usedTeams.has(teamId)) return false
+  order[index] = teamId
+  usedTeams.add(teamId)
+  return true
+}
+
+function reconstructOrderFromFirstTwoRounds(
+  fixedTeamId: string,
+  roundOneOpponents: Map<string, string>,
+  roundTwoOpponents: Map<string, string>,
+  teamCount: number
+): string[] | null {
+  const order = new Array<string | undefined>(teamCount)
+  const usedTeams = new Set<string>()
+
+  if (!setOrderPosition(order, 0, fixedTeamId, usedTeams)) return null
+  const roundTwoOpponent = roundTwoOpponents.get(fixedTeamId)
+  const roundOneOpponent = roundOneOpponents.get(fixedTeamId)
+  if (!roundTwoOpponent || !roundOneOpponent) return null
+  if (!setOrderPosition(order, 1, roundTwoOpponent, usedTeams)) return null
+  if (!setOrderPosition(order, teamCount - 1, roundOneOpponent, usedTeams))
+    return null
+
+  for (let i = 1; i < teamCount / 2; i++) {
+    const leftTeam = order[i]
+    const rightSourceTeam = order[teamCount - i]
+    if (!leftTeam || !rightSourceTeam) return null
+
+    const mirroredTeam = roundOneOpponents.get(leftTeam)
+    if (!mirroredTeam) return null
+    if (!setOrderPosition(order, teamCount - 1 - i, mirroredTeam, usedTeams))
+      return null
+
+    const nextTeam = roundTwoOpponents.get(rightSourceTeam)
+    if (!nextTeam) return null
+    if (i + 1 < teamCount) {
+      if (!setOrderPosition(order, i + 1, nextTeam, usedTeams)) return null
+    }
+  }
+
+  if (usedTeams.size !== teamCount) return null
+  if (order.some((teamId) => teamId === undefined)) return null
+
+  return order as string[]
+}
+
+export function getDivisionRoundGames(
+  fixtures: TFixture[],
+  divisionTeamSet: Set<string>
+): Map<number, string[][]> {
+  const roundGames = new Map<number, string[][]>()
+
+  fixtures.forEach((fixture) => {
+    const roundNumber = extractRoundNumber(fixture.title)
+    if (roundNumber === null) return
+
+    const divisionGames = fixture.games
+      .filter(
+        (game) =>
+          divisionTeamSet.has(game.team1Id) && divisionTeamSet.has(game.team2Id)
+      )
+      .map((game) => [game.team1Id, game.team2Id])
+
+    if (divisionGames.length === 0) return
+    const existingGames = roundGames.get(roundNumber) ?? []
+    roundGames.set(roundNumber, existingGames.concat(divisionGames))
+  })
+
+  return roundGames
+}
+
+export function reconstructDivisionTeamOrder(
+  divisionTeams: string[],
+  roundGames: Map<number, string[][]>,
+  futureRoundCount: number
+): string[] {
+  if (divisionTeams.length % 2 !== 0) {
+    throw badRequestError(
+      'Fixture generation failed: each division must contain an even number of teams to create valid round-robin matchups. Please add or remove a team in the affected division.',
+      {
+        errorCode: 'fixture.uneven_division',
+      }
+    )
+  }
+
+  const roundNumbers = Array.from(roundGames.keys()).sort((a, b) => a - b)
+  if (roundNumbers[0] !== 1) {
+    throw badRequestError(
+      'Fixture generation failed: existing round-robin fixtures must start at Round 1.',
+      {
+        errorCode: 'fixture.round_robin_invalid',
+      }
+    )
+  }
+
+  const highestRound = roundNumbers[roundNumbers.length - 1]
+  for (let roundNumber = 1; roundNumber <= highestRound; roundNumber++) {
+    if (!roundGames.has(roundNumber)) {
+      throw badRequestError(
+        `Fixture generation failed: existing round-robin fixtures are missing Round ${roundNumber}.`,
+        {
+          errorCode: 'fixture.round_robin_invalid',
+        }
+      )
+    }
+  }
+
+  const divisionTeamSet = new Set(divisionTeams)
+  const expectedGamesPerRound = divisionTeams.length / 2
+  const observedRounds = new Map<number, string>()
+  const opponentMaps = new Map<number, Map<string, string>>()
+
+  roundGames.forEach((pairings, roundNumber) => {
+    if (pairings.length !== expectedGamesPerRound) {
+      throw badRequestError(
+        `Fixture generation failed: Round ${roundNumber} does not contain the expected number of division games.`,
+        {
+          errorCode: 'fixture.round_robin_invalid',
+        }
+      )
+    }
+
+    const teamsInRound = new Set<string>()
+    pairings.forEach(([team1Id, team2Id]) => {
+      if (!divisionTeamSet.has(team1Id) || !divisionTeamSet.has(team2Id)) {
+        throw badRequestError(
+          `Fixture generation failed: Round ${roundNumber} includes a team outside the current division.`,
+          {
+            errorCode: 'fixture.round_robin_invalid',
+          }
+        )
+      }
+      if (team1Id === team2Id) {
+        throw badRequestError(
+          `Fixture generation failed: Round ${roundNumber} includes a team playing itself.`,
+          {
+            errorCode: 'fixture.round_robin_invalid',
+          }
+        )
+      }
+      if (teamsInRound.has(team1Id) || teamsInRound.has(team2Id)) {
+        throw badRequestError(
+          `Fixture generation failed: Round ${roundNumber} schedules the same team more than once in this division.`,
+          {
+            errorCode: 'fixture.round_robin_invalid',
+          }
+        )
+      }
+      teamsInRound.add(team1Id)
+      teamsInRound.add(team2Id)
+    })
+
+    if (teamsInRound.size !== divisionTeams.length) {
+      throw badRequestError(
+        `Fixture generation failed: Round ${roundNumber} is missing division teams.`,
+        {
+          errorCode: 'fixture.round_robin_invalid',
+        }
+      )
+    }
+
+    observedRounds.set(roundNumber, serializePairings(pairings))
+    opponentMaps.set(roundNumber, getRoundOpponentMap(pairings))
+  })
+
+  const roundOnePairings = roundGames.get(1)
+  if (!roundOnePairings) {
+    throw badRequestError(
+      'Fixture generation failed: existing round-robin fixtures must include Round 1.',
+      {
+        errorCode: 'fixture.round_robin_invalid',
+      }
+    )
+  }
+  const roundOneOpponents = opponentMaps.get(1)
+  if (!roundOneOpponents) {
+    throw badRequestError(
+      'Fixture generation failed: existing round-robin fixtures must include Round 1.',
+      {
+        errorCode: 'fixture.round_robin_invalid',
+      }
+    )
+  }
+
+  let matchCount = 0
+  let resolvedOrder: string[] | undefined
+  let resolvedSignature: string | undefined
+  let resolvedOrderKey: string | undefined
+  const roundsToValidate = Math.max(1, futureRoundCount)
+
+  function buildFutureSignature(order: string[]): string {
+    const futureRounds: string[] = []
+    for (
+      let roundIndex = highestRound;
+      roundIndex < highestRound + roundsToValidate;
+      roundIndex++
+    ) {
+      futureRounds.push(serializePairings(getRoundRobinPairings(order, roundIndex)))
+    }
+    return futureRounds.join('||')
+  }
+
+  function validateCandidate(order: string[]): boolean {
+    for (const [roundNumber, signature] of observedRounds.entries()) {
+      const candidate = serializePairings(
+        getRoundRobinPairings(order, roundNumber - 1)
+      )
+      if (candidate !== signature) return false
+    }
+    return true
+  }
+
+  function registerCandidate(order: string[]) {
+    if (!validateCandidate(order)) return
+    matchCount += 1
+    const futureSignature = buildFutureSignature(order)
+    const orderKey = order.join('::')
+    if (resolvedOrder === undefined) {
+      resolvedOrder = order
+      resolvedSignature = futureSignature
+      resolvedOrderKey = orderKey
+      return
+    }
+
+    if (!resolvedSignature || !resolvedOrderKey) {
+      resolvedOrder = order
+      resolvedSignature = futureSignature
+      resolvedOrderKey = orderKey
+      return
+    }
+
+    if (
+      futureSignature < resolvedSignature ||
+      (futureSignature === resolvedSignature && orderKey < resolvedOrderKey)
+    ) {
+      resolvedOrder = order
+      resolvedSignature = futureSignature
+      resolvedOrderKey = orderKey
+    }
+  }
+
+  if (divisionTeams.length === 2) {
+    const [team1Id, team2Id] = roundOnePairings[0]
+    registerCandidate([team1Id, team2Id])
+  } else if (highestRound === 1) {
+    registerCandidate(buildCanonicalOrderFromRoundPairings(roundOnePairings))
+  } else {
+    const roundTwoOpponents = opponentMaps.get(2)
+    if (!roundTwoOpponents) {
+      throw badRequestError(
+        'Fixture generation failed: existing round-robin fixtures are missing Round 2.',
+        {
+          errorCode: 'fixture.round_robin_invalid',
+        }
+      )
+    }
+
+    divisionTeams.forEach((fixedTeamId) => {
+      const candidateOrder = reconstructOrderFromFirstTwoRounds(
+        fixedTeamId,
+        roundOneOpponents,
+        roundTwoOpponents,
+        divisionTeams.length
+      )
+      if (candidateOrder) registerCandidate(candidateOrder)
+    })
+  }
+
+  if (matchCount === 0 || !resolvedOrder) {
+    throw badRequestError(
+      'Fixture generation failed: existing fixtures do not match the expected round-robin pattern.',
+      {
+        errorCode: 'fixture.round_robin_invalid',
+      }
+    )
+  }
+
+  return resolvedOrder
 }
 
 function shuffleArray(array: any[]): any[] {
