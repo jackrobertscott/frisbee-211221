@@ -29,6 +29,7 @@ export const GamedayAccountSettingsConnectDef = {
   }),
   result: io.object({
     connectedOn: io.date(),
+    account: io.optional(ioGamedayAccountSettings),
   }),
 } satisfies TEndpointDef
 

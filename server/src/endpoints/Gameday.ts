@@ -34,7 +34,7 @@ const toSafeGamedayAccount = (account: TGamedayAccountSettingsRecord) => ({
 })
 
 const getStoredOauthClientSecret = async (
-  account: TGamedayAccountSettingsRecord
+  account: TGamedayAccountSettingsRecord,
 ) => {
   if (!account.encryptedOauthClientSecret.trim())
     throw badRequestError('GameDay OAuth client secret is required.', {
@@ -53,7 +53,7 @@ const buildConnectionInput = async (
     grantType: string
     scope?: string
   },
-  account?: TGamedayAccountSettingsRecord
+  account?: TGamedayAccountSettingsRecord,
 ) => ({
   ...body,
   oauthClientSecret: body.oauthClientSecret?.trim()
@@ -64,7 +64,6 @@ const buildConnectionInput = async (
 })
 
 export default new Map<string, RequestHandler>([
-
   createEndpoint({
     ...GamedayAccountSettingsListOfSeasonDef,
     handler: (body: any) => async (req) => {
@@ -72,7 +71,7 @@ export default new Map<string, RequestHandler>([
       await $Season.getOne({id: body.seasonId})
       const accounts = await $GamedayAccountSettings.getMany(
         {seasonId: body.seasonId},
-        {sort: {createdOn: -1}}
+        {sort: {createdOn: -1}},
       )
       return accounts.map(toSafeGamedayAccount)
     },
@@ -95,7 +94,14 @@ export default new Map<string, RequestHandler>([
       }
       try {
         const data = await gameday.connect(connection)
-        return {connectedOn: data.connectedOn}
+        if (!current) return {connectedOn: data.connectedOn}
+        const account = await $GamedayAccountSettings
+          .updateOne({id: current.id}, {lastConnectedOn: data.connectedOn})
+          .then(toSafeGamedayAccount)
+        return {
+          connectedOn: data.connectedOn,
+          account,
+        }
       } catch (error) {
         throw gameday.digestError(error)
       }
@@ -104,28 +110,32 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...GamedayAccountSettingsCreateDef,
-    handler: ({seasonId, oauthClientSecret, ...body}: any) => async (req) => {
-      await requireUserAdmin(req)
-      await $Season.getOne({id: seasonId})
-      const connection = await buildConnectionInput({
-        ...body,
-        oauthClientSecret,
-      })
-      let connectedOn = new Date().toISOString()
-      try {
-        connectedOn = (await gameday.connect(connection)).connectedOn
-      } catch (error) {
-        throw gameday.digestError(error)
-      }
-      return $GamedayAccountSettings.createOne({
-        seasonId,
-        ...body,
-        encryptedOauthClientSecret: secretBox.encrypt(
-          connection.oauthClientSecret
-        ),
-        lastConnectedOn: connectedOn,
-      }).then(toSafeGamedayAccount)
-    },
+    handler:
+      ({seasonId, oauthClientSecret, ...body}: any) =>
+      async (req) => {
+        await requireUserAdmin(req)
+        await $Season.getOne({id: seasonId})
+        const connection = await buildConnectionInput({
+          ...body,
+          oauthClientSecret,
+        })
+        let connectedOn = new Date().toISOString()
+        try {
+          connectedOn = (await gameday.connect(connection)).connectedOn
+        } catch (error) {
+          throw gameday.digestError(error)
+        }
+        return $GamedayAccountSettings
+          .createOne({
+            seasonId,
+            ...body,
+            encryptedOauthClientSecret: secretBox.encrypt(
+              connection.oauthClientSecret,
+            ),
+            lastConnectedOn: connectedOn,
+          })
+          .then(toSafeGamedayAccount)
+      },
   }),
 
   createEndpoint({
@@ -139,7 +149,7 @@ export default new Map<string, RequestHandler>([
         })
         const connection = await buildConnectionInput(
           {...body, oauthClientSecret},
-          current
+          current,
         )
         if (!connection.oauthClientSecret.trim()) {
           throw badRequestError('GameDay OAuth client secret is required.', {
@@ -152,17 +162,19 @@ export default new Map<string, RequestHandler>([
         } catch (error) {
           throw gameday.digestError(error)
         }
-        return $GamedayAccountSettings.updateOne(
-          {id: current.id},
-          {
-            ...body,
-            encryptedOauthClientSecret: oauthClientSecret?.trim()
-              ? secretBox.encrypt(oauthClientSecret.trim())
-              : current.encryptedOauthClientSecret,
-            lastConnectedOn: connectedOn,
-            updatedOn: new Date().toISOString(),
-          }
-        ).then(toSafeGamedayAccount)
+        return $GamedayAccountSettings
+          .updateOne(
+            {id: current.id},
+            {
+              ...body,
+              encryptedOauthClientSecret: oauthClientSecret?.trim()
+                ? secretBox.encrypt(oauthClientSecret.trim())
+                : current.encryptedOauthClientSecret,
+              lastConnectedOn: connectedOn,
+              updatedOn: new Date().toISOString(),
+            },
+          )
+          .then(toSafeGamedayAccount)
       },
   }),
 

@@ -334,6 +334,7 @@ const _DashboardPortGamedayView: FC<{
         hasStoredOauthClientSecret: gamedayAccount.hasOauthClientSecret,
         deleteClick: () => deletingSet(true),
         saveLabel: 'Save Changes',
+        onConnected: (account) => gamedayAccountSet(account),
         onSave: (value) =>
           $update.fetch({
             gamedayAccountSettingsId: gamedayAccount.id,
@@ -384,6 +385,7 @@ const _DashboardPortGamedayForm: FC<{
   gamedayAccountSettingsId?: string
   hasStoredOauthClientSecret?: boolean
   deleteClick?: () => void
+  onConnected?: (account: TGamedayAccountSettings) => void
   onSave: (value: TGamedayForm) => Promise<TGamedayAccountSettings>
 }> = ({
   title,
@@ -396,6 +398,7 @@ const _DashboardPortGamedayForm: FC<{
   gamedayAccountSettingsId,
   hasStoredOauthClientSecret,
   deleteClick,
+  onConnected,
   onSave,
 }) => {
   const toaster = useToaster()
@@ -440,6 +443,7 @@ const _DashboardPortGamedayForm: FC<{
   const connect = () =>
     $connect.fetch(payload()).then((data) => {
       connectedOnSet(data.connectedOn)
+      if (data.account) onConnected?.(data.account)
       toaster.notify('GameDay OAuth account connected.')
     })
 
