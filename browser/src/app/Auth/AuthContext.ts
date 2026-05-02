@@ -26,6 +26,7 @@ export interface TAuthContext {
   current?: TAuth
   login: (data: TAuthPayload) => void
   logout: () => void
+  invalidate: () => void
   userSet: (user: TUserSafe) => void
   teamSet: (team?: TTeam) => void
   seasonSet: (season: TSeason, noReload?: boolean) => void
@@ -36,6 +37,7 @@ export const AuthContext = createContext<TAuthContext>({
   loaded: false,
   login: contextNoop('login'),
   logout: contextNoop('logout'),
+  invalidate: contextNoop('invalidate'),
   userSet: contextNoop('userSet'),
   teamSet: contextNoop('teamSet'),
   seasonSet: contextNoop('seasonSet'),

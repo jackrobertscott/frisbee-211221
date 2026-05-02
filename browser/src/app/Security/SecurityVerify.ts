@@ -15,6 +15,7 @@ import {Link} from '../Link'
 import {useToaster} from '../Toaster/useToaster'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
+import {useLocalState} from '../useLocalState'
 
 export const SecurityVerify: FC<{
   email?: string
@@ -22,6 +23,7 @@ export const SecurityVerify: FC<{
 }> = ({email: _email, status}) => {
   const auth = useAuth()
   const toaster = useToaster()
+  const [, savedEmailSet] = useLocalState('frisbee.savedEmail', '')
   const $send = useEndpoint($SecurityForgot)
   const $verify = useEndpoint($SecurityVerify)
   const form = useForm({
@@ -32,6 +34,7 @@ export const SecurityVerify: FC<{
   })
   const submit = () =>
     $verify.fetch({...form.data, seasonId: auth.season?.id}).then((data) => {
+      savedEmailSet(form.data.email)
       auth.login(data)
       go.to('/')
     })

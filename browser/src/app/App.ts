@@ -35,12 +35,14 @@ export const App: FC = () => {
 
 const _AppGuard: FC = () => {
   const auth = useAuth()
+  const router = useRouter()
+  const pathname = router.location?.pathname ?? ''
   if (!auth.loaded) return $(_AppLoading)
   if (!auth.season && !auth.current) return $(Security)
   return $(Router, {
     fallback: '/',
     routes: [
-      !auth.current && {
+      (!auth.current || pathname.startsWith('/auth')) && {
         path: '/auth',
         render: () => $(Security),
       },

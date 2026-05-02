@@ -119,8 +119,9 @@ export const SecuritySignUp: FC<{
               gender: form.data.gender!,
               seasonId: auth.season?.id,
             })
-            .then(() => {
+            .then((data) => {
               savedEmailSet(form.data.email)
+              auth.login(data)
               const url =
                 '/auth/verify?email=' +
                 encodeURIComponent(form.data.email) +

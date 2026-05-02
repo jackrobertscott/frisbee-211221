@@ -1,4 +1,4 @@
-import {getErrorMessage, toAppError} from '@shared/errors'
+import {getErrorMessage, hasStatusCode, toAppError} from '@shared/errors'
 import {useMemo, useRef, useState} from 'react'
 import {TypeIoAll, TypeIoValue} from '@shared/torva'
 import {TEndpoint} from '../utils/endpoints'
@@ -47,6 +47,13 @@ export const useEndpoint = <
           })
         } catch (error) {
           const appError = toAppError(error)
+          if (
+            auth.current?.token &&
+            hasStatusCode(appError, 401) &&
+            appError.errorCode !== 'auth.invalid_login'
+          ) {
+            auth.invalidate()
+          }
           toaster.error(getErrorMessage(appError))
           throw appError
         } finally {

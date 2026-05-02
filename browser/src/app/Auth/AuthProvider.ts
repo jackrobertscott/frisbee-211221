@@ -1,4 +1,4 @@
-import {internalError} from '@shared/errors'
+import {hasStatusCode, internalError} from '@shared/errors'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {createElement as $, FC, ReactNode, useEffect, useState} from 'react'
 import {$SecurityCurrent, $SecurityLogout} from '../../endpoints/Security'
@@ -15,16 +15,17 @@ export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
     created: payload.session.createdOn,
     userId: payload.user.id,
   })
+  const invalidate = () => currentSet(undefined)
   useEffect(() => {
     $SecurityCurrent
       .fetch({seasonId: season?.id}, current?.token)
       .then((data) => {
         seasonSet(data.season)
         if (data.auth) currentSet(digestAuthPayload(data.auth))
+        else if (current?.token) invalidate()
       })
-      .catch(() => {
-        seasonSet(undefined)
-        currentSet(undefined)
+      .catch((error) => {
+        if (current?.token && hasStatusCode(error, 401)) invalidate()
       })
       .finally(() => loadedSet(true))
   }, [])
@@ -40,6 +41,7 @@ export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
         $SecurityLogout.fetch(undefined, current?.token)
         window.location.href = '/'
       },
+      invalidate,
       userSet: (user) => {
         if (!current)
           throw internalError('Can not set user because user not logged in.', {

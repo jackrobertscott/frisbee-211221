@@ -138,7 +138,7 @@ export const Security: FC = () => {
                 description: 'Create an account to get started.',
                 render: () =>
                   $(SecuritySignUp, {
-                    email: status?.email,
+                    email: status?.email ?? savedEmail,
                     savedEmailSet,
                   }),
               },
@@ -149,7 +149,7 @@ export const Security: FC = () => {
                   'A password recovery code will be sent to your email.',
                 render: () =>
                   $(SecurityForgot, {
-                    ...router.query,
+                    email: router.query.email ?? savedEmail,
                   }),
               },
               {
@@ -158,7 +158,8 @@ export const Security: FC = () => {
                 description: 'Check you inbox for the code.',
                 render: () =>
                   $(SecurityVerify, {
-                    ...router.query,
+                    email: router.query.email ?? savedEmail,
+                    status: router.query.status,
                   }),
               },
             ],
