@@ -178,12 +178,14 @@ export default new Map<string, RequestHandler>([
         division: number
       }[]
 
+      const teamNames = _mockTeamNames(body.teams)
+
       while (teams.length < body.teams) {
         teams.push({
           id: random.generateId(),
           isMock: true,
           seasonId: season.id,
-          name: _mockTeamName(teams.length),
+          name: teamNames[teams.length],
           color: `hsla(${Math.floor(Math.random() * 36) * 10}, 100%, 65%, 1)`,
           division: 1,
         })
@@ -276,19 +278,81 @@ export default new Map<string, RequestHandler>([
   }),
 ])
 
-const MOCK_ANIMALS = [
-  'Falcon',
-  'Otter',
-  'Puma',
-  'Shark',
-  'Wolf',
-  'Eagle',
-  'Panther',
-  'Fox',
-  'Raven',
-  'Lynx',
-  'Tiger',
-  'Bear',
+const MOCK_TEAM_DISTRICTS = [
+  'North Coast',
+  'South Bay',
+  'River City',
+  'Red Rock',
+  'High Plains',
+  'Twin Pines',
+  'Harbor Point',
+  'East Ridge',
+  'West End',
+  'Gold Valley',
+  'Cedar Grove',
+  'Silver Lake',
+  'Blue Summit',
+  'Iron Range',
+  'Desert Run',
+  'Pine Harbor',
+  'Storm Creek',
+  'Sunset Hills',
+  'Lakeview',
+  'Granite Point',
+  'Shadow Ridge',
+  'Wild Coast',
+  'Copper Canyon',
+  'Frost Hollow',
+]
+
+const MOCK_TEAM_MODIFIERS = [
+  'Crimson',
+  'Electric',
+  'Iron',
+  'Midnight',
+  'Solar',
+  'Rapid',
+  'Storm',
+  'Golden',
+  'Steel',
+  'Wildfire',
+  'Shadow',
+  'Arctic',
+  'Coastal',
+  'Thunder',
+  'Neon',
+  'Granite',
+  'Blackwater',
+  'Velocity',
+  'Royal',
+  'Fireline',
+]
+
+const MOCK_TEAM_MASCOTS = [
+  'Falcons',
+  'Cyclones',
+  'Wolves',
+  'Breakers',
+  'Vipers',
+  'Rangers',
+  'Titans',
+  'Barracudas',
+  'Comets',
+  'Outlaws',
+  'Raiders',
+  'Rhinos',
+  'Stags',
+  'Coyotes',
+  'Ravens',
+  'Mavericks',
+  'Chargers',
+  'Firebirds',
+  'Hawks',
+  'Griffins',
+  'Pirates',
+  'Sentinels',
+  'Royals',
+  'Stormhawks',
 ]
 
 const MOCK_FIRST_NAMES = [
@@ -325,12 +389,48 @@ const _pick = (values: string[]) => values[Math.floor(Math.random() * values.len
 
 const _slugify = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '.')
 
+const _shuffle = <T>(values: T[]) => {
+  const copy = [...values]
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+  return copy
+}
 
-const _mockTeamName = (index: number) => {
-  const animal = MOCK_ANIMALS[index % MOCK_ANIMALS.length]
-  const base = `${animal}s`
-  const cycle = Math.floor(index / MOCK_ANIMALS.length)
-  return cycle > 0 ? `${base} ${cycle + 1}` : base
+const _mockTeamNames = (count: number) => {
+  const pool = new Set<string>()
+
+  for (const district of MOCK_TEAM_DISTRICTS) {
+    for (const mascot of MOCK_TEAM_MASCOTS) {
+      pool.add(`${district} ${mascot}`)
+    }
+  }
+
+  for (const modifier of MOCK_TEAM_MODIFIERS) {
+    for (const mascot of MOCK_TEAM_MASCOTS) {
+      pool.add(`${modifier} ${mascot}`)
+    }
+  }
+
+  for (const district of MOCK_TEAM_DISTRICTS) {
+    for (const modifier of MOCK_TEAM_MODIFIERS) {
+      for (const mascot of MOCK_TEAM_MASCOTS) {
+        pool.add(`${district} ${modifier} ${mascot}`)
+      }
+    }
+  }
+
+  const names = _shuffle([...pool])
+  if (names.length >= count) return names.slice(0, count)
+
+  const extras = [] as string[]
+  while (names.length + extras.length < count) {
+    const base = names[(names.length + extras.length) % names.length]
+    const cycle = Math.floor((names.length + extras.length) / names.length) + 1
+    extras.push(`${base} ${cycle}`)
+  }
+  return [...names, ...extras]
 }
 
 const _randFirstName = () => _pick(MOCK_FIRST_NAMES)
