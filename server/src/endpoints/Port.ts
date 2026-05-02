@@ -413,14 +413,6 @@ const _mockTeamNames = (count: number) => {
     }
   }
 
-  for (const district of MOCK_TEAM_DISTRICTS) {
-    for (const modifier of MOCK_TEAM_MODIFIERS) {
-      for (const mascot of MOCK_TEAM_MASCOTS) {
-        pool.add(`${district} ${modifier} ${mascot}`)
-      }
-    }
-  }
-
   const names = _shuffle([...pool])
   if (names.length >= count) return names.slice(0, count)
 
