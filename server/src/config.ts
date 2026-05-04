@@ -42,7 +42,7 @@ const envResult = envSchema.validate({
   IS_PRODUCTION: process.env.NODE_ENV === 'production',
   DEBUG: process.env.DEBUG === 'true',
   PORT: process.env.PORT,
-  SESSION_TTL_DAYS: process.env.SESSION_TTL_DAYS ?? '30',
+  SESSION_TTL_DAYS: process.env.SESSION_TTL_DAYS ?? 90,
 } as any)
 
 if (!envResult.ok) {
