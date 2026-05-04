@@ -6,7 +6,6 @@ import {
   PortImportDef,
   PortMockGenerateDef,
 } from '@shared/endpoints/PortDef'
-import {TMember} from '@shared/schemas/ioMember'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUser, TUserEmail} from '@shared/schemas/ioUser'
@@ -34,9 +33,79 @@ type TExportDataset = {
   sensitivity: string
   records: TExportRecord[]
   csvRecords?: TExportRecord[]
+  fieldOrder: TExportFieldOrder
 }
 
 type TExportFileType = 'csv' | 'json'
+
+type TExportFieldOrder = string[]
+
+const EXPORT_FIELD_ORDER = {
+  fixtureGames: [
+    'seasonName',
+    'fixtureTitle',
+    'fixtureDate',
+    'grading',
+    'fixtureCreatedByName',
+    'fixtureCreatedByEmail',
+    'gameTime',
+    'gamePlace',
+    'team1Name',
+    'team1Score',
+    'team2Name',
+    'team2Score',
+  ],
+  seasonFinalResults: ['seasonName', 'position', 'teamName'],
+  seasons: ['name', 'signUpOpen', 'isHidden', 'useOfficialScoring'],
+  reports: [
+    'seasonName',
+    'fixtureTitle',
+    'fixtureDate',
+    'teamName',
+    'againstTeamName',
+    'submittedByName',
+    'submittedByEmail',
+    'scoreFor',
+    'scoreAgainst',
+    'mvpMaleName',
+    'mvpMaleEmail',
+    'mvpMale2Name',
+    'mvpMale2Email',
+    'mvpFemaleName',
+    'mvpFemaleEmail',
+    'mvpFemale2Name',
+    'mvpFemale2Email',
+    'spirit',
+    'spiritP1',
+    'spiritP2',
+    'spiritP3',
+    'spiritP4',
+    'spiritP5',
+    'spiritComment',
+  ],
+  memberships: [
+    'seasonName',
+    'teamName',
+    'userName',
+    'userEmail',
+    'captain',
+    'pending',
+  ],
+  teams: ['seasonName', 'name', 'division', 'color', 'email', 'phone'],
+  userEmails: ['userName', 'userPrimaryEmail', 'email', 'verified', 'primary', 'createdOn'],
+  users: [
+    'name',
+    'firstName',
+    'lastName',
+    'primaryEmail',
+    'gender',
+    'admin',
+    'termsAccepted',
+    'lastSeasonName',
+    'avatarUrl',
+    'bio',
+  ],
+} satisfies Record<string, TExportFieldOrder>
 
 export default new Map<string, RequestHandler>([
 
@@ -114,8 +183,8 @@ export default new Map<string, RequestHandler>([
       for (const dataset of datasets) {
         const content =
           fileType === 'json'
-            ? _jsonify(dataset.records)
-            : _csvify(dataset.csvRecords ?? dataset.records)
+            ? _jsonify(dataset.records, dataset.fieldOrder)
+            : _csvify(dataset.csvRecords ?? dataset.records, dataset.fieldOrder)
         zip.addFile(
           `${dataset.filename}.${fileType}`,
           Buffer.from(content, 'utf8')
@@ -551,16 +620,20 @@ const _tokenify = (text: string) => {
   return tokens
 }
 
-const _csvify = (objects: any[]) => {
-  const headings = [...new Set(objects.flatMap((obj) => Object.keys(obj ?? {})))].sort()
+const _csvify = (objects: TExportRecord[], fieldOrder: TExportFieldOrder) => {
+  const orderedObjects = objects.map((object) => _orderExportRecord(object, fieldOrder))
+  const headings = _orderedHeadings(orderedObjects, fieldOrder)
   if (!headings.length) return ''
-  const rows = objects.map((obj) =>
+  const rows = orderedObjects.map((obj) =>
     headings.map((heading) => _csvEscape(_csvValue(obj?.[heading]))).join(',')
   )
   return [headings.map(_csvEscape).join(','), ...rows].join('\n').concat('\n')
 }
 
-const _jsonify = (value: unknown) => JSON.stringify(value, null, 2).concat('\n')
+const _jsonify = (records: TExportRecord[], fieldOrder: TExportFieldOrder) => {
+  const orderedRecords = records.map((record) => _orderExportRecord(record, fieldOrder))
+  return JSON.stringify(orderedRecords, null, 2).concat('\n')
+}
 
 const _csvValue = (value: unknown) => {
   if (value === undefined || value === null) return ''
@@ -574,6 +647,43 @@ const _csvEscape = (value: string) => `"${value.replace(/"/g, '""')}"`
 const _exportFilename = (generatedOn: string, fileType: TExportFileType) => {
   const stamp = generatedOn.replace(/[:.]/g, '-')
   return `frisbee-export-${fileType}-${stamp}.zip`
+}
+
+const _orderedHeadings = (records: TExportRecord[], preferredKeys: string[]) => {
+  const headings = [] as string[]
+  const seen = new Set<string>()
+  const add = (key: string) => {
+    if (seen.has(key)) return
+    seen.add(key)
+    headings.push(key)
+  }
+
+  for (const key of preferredKeys) {
+    if (records.some((record) => key in (record ?? {}))) add(key)
+  }
+
+  for (const record of records) {
+    for (const key of Object.keys(record ?? {})) add(key)
+  }
+
+  return headings
+}
+
+const _orderExportRecord = (
+  record: TExportRecord,
+  fieldOrder: TExportFieldOrder
+): TExportRecord => {
+  const ordered = {} as TExportRecord
+  const seen = new Set<string>()
+  const assign = (key: string) => {
+    if (!(key in record) || seen.has(key)) return
+    seen.add(key)
+    ordered[key] = record[key]
+  }
+
+  for (const key of fieldOrder) assign(key)
+  for (const key of Object.keys(record)) assign(key)
+  return ordered
 }
 
 const _loadExportDatasets = async (): Promise<TExportDataset[]> => {
@@ -599,134 +709,75 @@ const _loadExportDatasets = async (): Promise<TExportDataset[]> => {
   const teamsById = new Map(teams.map((team) => [team.id, team]))
   const usersById = new Map(users.map((user) => [user.id, user]))
 
-  const teamMembersByTeam = new Map<string, TMember[]>()
-  const teamMembersByUser = new Map<string, TMember[]>()
-  for (const member of members) {
-    const teamList = teamMembersByTeam.get(member.teamId) ?? []
-    teamList.push(member)
-    teamMembersByTeam.set(member.teamId, teamList)
-
-    const userList = teamMembersByUser.get(member.userId) ?? []
-    userList.push(member)
-    teamMembersByUser.set(member.userId, userList)
-  }
-
   const exportSeasons = seasons.map((season) => {
-    const seasonTeams = teams
-      .filter((team) => team.seasonId === season.id)
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((team) => team.name)
-
     return _compactRecord({
       name: season.name,
       signUpOpen: season.signUpOpen,
       isHidden: season.isHidden,
       useOfficialScoring: season.useOfficialScoring,
-      teams: seasonTeams,
-      finalResults: season.finalResults
-        ?.map((result) => ({
-          teamName: _teamLabel(teamsById.get(result.teamId)),
-          position: result.position,
-        }))
-        .sort((a, b) => {
-          const aPosition = a.position ?? Number.MAX_SAFE_INTEGER
-          const bPosition = b.position ?? Number.MAX_SAFE_INTEGER
-          return aPosition - bPosition || a.teamName.localeCompare(b.teamName)
-        }),
     })
   })
-  const exportSeasonsCsv = exportSeasons.map((season) =>
-    _compactRecord({
-      ...season,
-      teams: _joinHumanList(season.teams as string[] | undefined),
-      finalResults: _joinHumanList(
-        (season.finalResults as
-          | Array<{teamName: string; position?: number | null}>
-          | undefined)?.map((result) =>
-          result.position === undefined || result.position === null
-            ? result.teamName
-            : `${result.position}. ${result.teamName}`
-        )
-      ),
+  const exportSeasonFinalResults = seasons
+    .flatMap((season) =>
+      (season.finalResults ?? []).map((result) =>
+        _compactRecord({
+          seasonName: season.name,
+          position: result.position,
+          teamName: _teamLabel(teamsById.get(result.teamId)),
+        })
+      )
+    )
+    .sort((a, b) => {
+      const aPosition =
+        typeof a.position === 'number' ? a.position : Number.MAX_SAFE_INTEGER
+      const bPosition =
+        typeof b.position === 'number' ? b.position : Number.MAX_SAFE_INTEGER
+      return (
+        (a.seasonName ?? '').localeCompare(b.seasonName ?? '') ||
+        aPosition - bPosition ||
+        (a.teamName ?? '').localeCompare(b.teamName ?? '')
+      )
     })
-  )
 
   const exportUsers = users.map((user) => {
-    const memberships = (teamMembersByUser.get(user.id) ?? [])
-      .map((member) => {
-        const team = teamsById.get(member.teamId)
-        const season = seasonsById.get(member.seasonId) ?? (team ? seasonsById.get(team.seasonId) : undefined)
-        return {
-          seasonName: _seasonLabel(season),
-          teamName: _teamLabel(team),
-          captain: !!member.captain,
-          pending: member.pending,
-        }
-      })
-      .sort((a, b) => {
-        return (
-          a.seasonName.localeCompare(b.seasonName) ||
-          a.teamName.localeCompare(b.teamName)
-        )
-      })
-
     return _compactRecord({
       name: _userName(user),
       firstName: user.firstName,
       lastName: user.lastName,
       primaryEmail: _primaryEmail(user),
-      emails: _sortUserEmails(user.emails).map((email) => email.value),
       gender: user.gender,
       admin: user.admin,
-      avatarUrl: user.avatarUrl,
-      bio: user.bio,
       termsAccepted: user.termsAccepted,
       lastSeasonName: user.lastSeasonId
         ? _seasonLabel(seasonsById.get(user.lastSeasonId))
         : undefined,
-      memberships,
+      avatarUrl: user.avatarUrl,
+      bio: user.bio,
     })
   })
-  const exportUsersCsv = exportUsers.map((user) =>
-    _compactRecord({
-      ...user,
-      emails: _joinHumanList(user.emails as string[] | undefined),
-      memberships: _joinHumanList(
-        (user.memberships as
-          | Array<{
-              seasonName: string
-              teamName: string
-              captain: boolean
-              pending: boolean
-            }>
-          | undefined)?.map((membership) =>
-          _appendFlags(`${membership.seasonName} / ${membership.teamName}`, [
-            membership.captain ? 'captain' : undefined,
-            membership.pending ? 'pending' : undefined,
-          ])
-        )
-      ),
+  const exportUserEmails = users
+    .flatMap((user) =>
+      _sortUserEmails(user.emails).map((email) =>
+        _compactRecord({
+          userName: _userName(user),
+          userPrimaryEmail: _primaryEmail(user),
+          email: email.value,
+          verified: email.verified,
+          primary: email.primary,
+          createdOn: email.createdOn,
+        })
+      )
+    )
+    .sort((a, b) => {
+      return (
+        (a.userName ?? '').localeCompare(b.userName ?? '') ||
+        (a.userPrimaryEmail ?? '').localeCompare(b.userPrimaryEmail ?? '') ||
+        (a.email ?? '').localeCompare(b.email ?? '')
+      )
     })
-  )
 
   const exportTeams = teams.map((team) => {
     const season = seasonsById.get(team.seasonId)
-    const members = (teamMembersByTeam.get(team.id) ?? [])
-      .map((member) => {
-        const user = usersById.get(member.userId)
-        return {
-          userName: _userLabel(user),
-          userEmail: _primaryEmail(user),
-          captain: !!member.captain,
-          pending: member.pending,
-        }
-      })
-      .sort((a, b) => {
-        return (
-          (a.userName ?? '').localeCompare(b.userName ?? '') ||
-          (a.userEmail ?? '').localeCompare(b.userEmail ?? '')
-        )
-      })
 
     return _compactRecord({
       seasonName: _seasonLabel(season),
@@ -735,29 +786,8 @@ const _loadExportDatasets = async (): Promise<TExportDataset[]> => {
       color: team.color,
       phone: team.phone,
       email: team.email,
-      members,
     })
   })
-  const exportTeamsCsv = exportTeams.map((team) =>
-    _compactRecord({
-      ...team,
-      members: _joinHumanList(
-        (team.members as
-          | Array<{
-              userName: string
-              userEmail?: string
-              captain: boolean
-              pending: boolean
-            }>
-          | undefined)?.map((member) =>
-          _appendFlags(_personLabel(member.userName, member.userEmail), [
-            member.captain ? 'captain' : undefined,
-            member.pending ? 'pending' : undefined,
-          ])
-        )
-      ),
-    })
-  )
 
   const exportMemberships = members
     .map((member) => {
@@ -854,14 +884,24 @@ const _loadExportDatasets = async (): Promise<TExportDataset[]> => {
         'Fixture game rows with season, user, and team relationships represented by names and email addresses.',
       sensitivity: 'standard',
       records: exportFixtureGames,
+      fieldOrder: EXPORT_FIELD_ORDER.fixtureGames,
+    },
+    {
+      name: 'season final results',
+      filename: 'season-final-results',
+      description:
+        'Season final result rows with one row per season placing and the related team represented by name.',
+      sensitivity: 'standard',
+      records: exportSeasonFinalResults,
+      fieldOrder: EXPORT_FIELD_ORDER.seasonFinalResults,
     },
     {
       name: 'seasons',
       filename: 'seasons',
-      description: 'Season records with teams and final results represented by team names.',
+      description: 'Season records without nested team or final result details.',
       sensitivity: 'standard',
       records: exportSeasons,
-      csvRecords: exportSeasonsCsv,
+      fieldOrder: EXPORT_FIELD_ORDER.seasons,
     },
     {
       name: 'reports',
@@ -870,6 +910,7 @@ const _loadExportDatasets = async (): Promise<TExportDataset[]> => {
         'Match reports with season, fixture, team, submitter, and MVP relationships represented by names and email addresses.',
       sensitivity: 'standard',
       records: exportReports,
+      fieldOrder: EXPORT_FIELD_ORDER.reports,
     },
     {
       name: 'memberships',
@@ -878,22 +919,32 @@ const _loadExportDatasets = async (): Promise<TExportDataset[]> => {
         'User-to-team membership records with season, team, and user relationships represented by names and email addresses.',
       sensitivity: 'standard',
       records: exportMemberships,
+      fieldOrder: EXPORT_FIELD_ORDER.memberships,
     },
     {
       name: 'teams',
       filename: 'teams',
-      description: 'Team records with season and membership relationships represented by names and email addresses.',
+      description: 'Team records without nested membership details.',
       sensitivity: 'standard',
       records: exportTeams,
-      csvRecords: exportTeamsCsv,
+      fieldOrder: EXPORT_FIELD_ORDER.teams,
+    },
+    {
+      name: 'user emails',
+      filename: 'user-emails',
+      description:
+        'User email rows with one row per email address and the related user represented by name and primary email.',
+      sensitivity: 'standard',
+      records: exportUserEmails,
+      fieldOrder: EXPORT_FIELD_ORDER.userEmails,
     },
     {
       name: 'users',
       filename: 'users',
-      description: 'User records with season and team memberships represented by names and email addresses.',
+      description: 'User records without nested email or membership details.',
       sensitivity: 'standard',
       records: exportUsers,
-      csvRecords: exportUsersCsv,
+      fieldOrder: EXPORT_FIELD_ORDER.users,
     },
   ]
 }
@@ -921,22 +972,6 @@ const _sortUserEmails = (emails: TUserEmail[]) => {
     if (a.primary === b.primary) return a.value.localeCompare(b.value)
     return a.primary ? -1 : 1
   })
-}
-
-const _joinHumanList = (values?: Array<string | undefined>) => {
-  const items = (values ?? [])
-    .map((value) => value?.trim())
-    .filter((value): value is string => !!value)
-  return items.length ? items.join('; ') : undefined
-}
-
-const _appendFlags = (label: string, flags: Array<string | undefined>) => {
-  const activeFlags = flags.filter((flag): flag is string => !!flag)
-  return activeFlags.length ? `${label} (${activeFlags.join(', ')})` : label
-}
-
-const _personLabel = (name: string, email?: string) => {
-  return email ? `${name} <${email}>` : name
 }
 
 const _seasonLabel = (season?: TSeason) => season?.name ?? 'Unknown season'
