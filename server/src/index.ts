@@ -8,8 +8,6 @@ import {
 } from './clusterAutoscaler'
 import config from './config'
 import endpoints from './endpoints'
-import {backfillUserEnumValues} from './startup/backfillUserEnumValues'
-import {backfillUserEmails} from './startup/backfillUserEmails'
 import capture from './utils/capture'
 import cors from './utils/cors'
 import intrusion from './utils/intrusion'
@@ -22,15 +20,11 @@ void bootstrap().catch((error) => {
 
 async function bootstrap() {
   if (!config.IS_PRODUCTION) {
-    await backfillUserEnumValues()
-    await backfillUserEmails()
     startServer()
     return
   }
 
   if (cluster.isPrimary) {
-    await backfillUserEnumValues()
-    await backfillUserEmails()
     startPrimaryCluster()
     return
   }
