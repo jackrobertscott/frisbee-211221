@@ -30,7 +30,7 @@ export const ioUser = io.object({
   lastName: io.string(),
   gender: io.string(),
   password: io.optional(io.string()),
-  emails: io.array(ioUserEmail),
+  emails: io.array(ioUserEmail), // this array may be empty for some old users that were imported without an email
   avatarUrl: io.optional(io.string().trim()),
   bio: io.optional(io.string().trim()),
   termsAccepted: io.boolean(),

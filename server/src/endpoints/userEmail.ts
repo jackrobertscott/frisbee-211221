@@ -19,6 +19,25 @@ const isHashedCode = (value: string) => /^[a-f0-9]{64}$/i.test(value)
 
 export const userEmail = {
 
+  isValueValid(email: string) {
+    return regex.email().test(email.trim())
+  },
+
+  sanitize(emails: unknown): TUser['emails'] {
+    if (!Array.isArray(emails)) return []
+    const sanitized = emails.reduce<TUser['emails']>((all, item) => {
+      if (!item || typeof item !== 'object') return all
+      const email = item as TUser['emails'][number]
+      const value = typeof email.value === 'string' ? email.value.trim() : ''
+      if (!value || !userEmail.isValueValid(value)) return all
+      all.push({...email, value})
+      return all
+    }, [])
+    if (sanitized.length && !sanitized.some((i) => i.primary))
+      sanitized[0] = {...sanitized[0], primary: true}
+    return sanitized
+  },
+
   async maybeUser(email: string) {
     const emailNormalized = regex.normalize(email)
     return $User.maybeOne({'emails.value': emailNormalized})
@@ -27,7 +46,7 @@ export const userEmail = {
   create(email: string, primary: boolean = false, code?: string) {
     const rawCode = normalizeCode(code ?? random.randomString(8))
     return {
-      value: email,
+      value: email.trim(),
       verified: false,
       code: hash.digest(rawCode),
       createdOn: new Date().toISOString(),
@@ -66,15 +85,14 @@ export const userEmail = {
       throw notFoundError('Email does not exist on user.', {
         errorCode: 'user.email_not_found',
       })
-    if (emails[index].primary)
-      throw badRequestError('Primary email can not be deleted.', {
-        errorCode: 'user.email_primary_delete_forbidden',
-      })
-    emails.splice(index, 1)
-    if (emails.length < 1)
-      throw badRequestError('User must have at least one email.', {
+    if (emails.length <= 1)
+      throw badRequestError('User must retain at least one email.', {
         errorCode: 'user.email_required',
       })
+    const wasPrimary = emails[index].primary
+    emails.splice(index, 1)
+    if (wasPrimary && emails.length && !emails.some((i) => i.primary))
+      emails[0] = {...emails[0], primary: true}
     return $User.updateOne({id: user.id}, {emails})
   },
 

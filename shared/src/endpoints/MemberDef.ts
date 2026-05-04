@@ -26,7 +26,7 @@ export const MemberCreateDef = {
   path: '/MemberCreate',
   payload: io.object({
     teamId: io.string(),
-    email: io.string(),
+    email: io.string().email().trim(),
     firstName: io.optional(io.string()),
     lastName: io.optional(io.string()),
     gender: io.optional(io.string()),

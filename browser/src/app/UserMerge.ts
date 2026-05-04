@@ -22,6 +22,8 @@ import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useSling} from './useThrottle'
 
+const userEmailLabel = (user: TUserSafe) => userEmails.primary(user) ?? '[no email]'
+
 export const UserMerge: FC<{
   user: TUserSafe
   userSet: (user: TUserSafe) => void
@@ -64,7 +66,7 @@ export const UserMerge: FC<{
                             style: {overflow: 'hidden'},
                             label: `${user1.firstName} ${
                               user1.lastName
-                            } <${userEmails.primary(user1)}>`,
+                            } <${userEmailLabel(user1)}>`,
                           }),
                         ]),
                       }),
@@ -85,7 +87,7 @@ export const UserMerge: FC<{
                             style: {overflow: 'hidden'},
                             label: `${user2.firstName} ${
                               user2.lastName
-                            } <${userEmails.primary(user2)}>`,
+                            } <${userEmailLabel(user2)}>`,
                           }),
                           $(FormBadge, {
                             icon: 'times',
@@ -109,9 +111,7 @@ export const UserMerge: FC<{
           $(Question, {
             close: () => checkSet(false),
             title: 'Merge',
-            description: `Are you sure you wish to merge <${userEmails.primary(
-              user2
-            )}> into <${userEmails.primary(user1)}>?`,
+            description: `Are you sure you wish to merge <${userEmailLabel(user2)}> into <${userEmailLabel(user1)}>?`,
             options: [
               {label: 'Cancel', click: () => checkSet(false)},
               {

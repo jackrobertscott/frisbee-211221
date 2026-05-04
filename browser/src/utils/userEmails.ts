@@ -3,7 +3,6 @@ import {TUserSafe} from '@shared/schemas/ioUser'
 export const userEmails = {
 
   primary(user: TUserSafe) {
-    const {value} = user.emails.find((i) => i.primary) ?? user.emails[0]
-    return value
+    return user.emails.find((i) => i.primary)?.value ?? user.emails[0]?.value
   },
 }

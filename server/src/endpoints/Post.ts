@@ -55,9 +55,9 @@ export default new Map<string, RequestHandler>([
         const userCaptains = await $User.getMany({
           id: {$in: memberCaptains.map((i) => i.userId)},
         })
-        const toEmailTasks = userCaptains.map((i) => userEmail.primary(i))
-        const toEmailPayloads = await Promise.all(toEmailTasks)
-        const toEmails = toEmailPayloads.map((i) => i.value).filter((i) => i)
+        const toEmails = userCaptains
+          .map((i) => userEmail.primary(i)?.value)
+          .filter((i): i is string => Boolean(i))
         if (toEmails.length)
           await mail.send({
             to: toEmails,

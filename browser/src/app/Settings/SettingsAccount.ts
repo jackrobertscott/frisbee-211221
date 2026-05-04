@@ -42,6 +42,7 @@ export const SettingsAccount: FC = () => {
     ...auth.current?.user,
     emails: auth.current?.user.emails ?? [],
   })
+  const canRemoveEmail = form.data.emails.length > 1
   return $(Form, {
     children: addkeys([
       $(FormRow, {
@@ -112,12 +113,11 @@ export const SettingsAccount: FC = () => {
                         }),
                   }),
                   $(Fragment, {
-                    children:
-                      !i.primary &&
-                      $(FormBadge, {
-                        icon: 'trash-alt',
-                        click: () => removingSet(i.value),
-                      }),
+                    children: $(FormBadge, {
+                      disabled: !canRemoveEmail,
+                      icon: 'trash-alt',
+                      click: () => canRemoveEmail && removingSet(i.value),
+                    }),
                   }),
                 ]),
               })
@@ -171,8 +171,10 @@ export const SettingsAccount: FC = () => {
             options: [
               {label: 'Cancel', click: () => removingSet(undefined)},
               {
+                disabled: !canRemoveEmail || $emailRemove.loading,
                 label: $emailRemove.loading ? 'Loading' : 'Delete',
                 click: () =>
+                  canRemoveEmail &&
                   $emailRemove.fetch({email: removing}).then((user) => {
                     form.patch({emails: user.emails})
                     auth.userSet(user)
