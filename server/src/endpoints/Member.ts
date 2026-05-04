@@ -1,5 +1,5 @@
 import {conflictError, forbiddenError} from '@shared/errors'
-import {MemberAcceptOrDeclineDef, MemberCreateDef, MemberDeleteDef, MemberListOfTeamDef, MemberListOfUserDef, MemberRemoveDef, MemberRequestCreateDef, MemberSetCaptainDef} from '@shared/endpoints/MemberDef'
+import {MemberAcceptOrDeclineDef, MemberCreateDef, MemberListOfTeamDef, MemberListOfUserDef, MemberRemoveDef, MemberRequestCreateDef, MemberSetCaptainDef} from '@shared/endpoints/MemberDef'
 import {TMember} from '@shared/schemas/ioMember'
 import {RequestHandler} from 'micro'
 import {$Member} from '../tables/$Member'
@@ -45,25 +45,6 @@ export default new Map<string, RequestHandler>([
         current: memberCurrent,
         members,
         users: users.map(selectPublicUserFields),
-      }
-    },
-  }),
-
-  createEndpoint({
-    ...MemberDeleteDef,
-    handler: (teamId) => async (req) => {
-      const [user] = await requireUser(req)
-      let memberCurrent: TMember | undefined
-      if (!user.admin) [, memberCurrent] = await requireTeam(user, teamId)
-      // pending and non-pending
-      const members = await $Member.getMany({teamId})
-      const users = await $User.getMany({
-        id: {$in: members.map((i) => i.userId)},
-      })
-      return {
-        current: memberCurrent,
-        members,
-        users,
       }
     },
   }),

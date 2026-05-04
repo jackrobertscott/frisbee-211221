@@ -71,12 +71,15 @@ export default new Map<string, RequestHandler>([
     ...SecurityStatusDef,
     handler:
       ({email}) =>
-      async () => {
+      async (req) => {
         const user = await userEmail.maybeUser(email)
         let data: {status: string; email: string; firstName?: string}
         if (!user) {
           data = {status: 'unknown', email}
         } else if (!user.password) {
+          const ip = intrusion.getClientIp(req)
+          await authAttemptLimit.assertAllowed('delivery', email, ip)
+          await authAttemptLimit.consume('delivery', email, ip)
           data = {status: 'password', email, firstName: user.firstName}
           await userEmail.codeSendSave(user, email, 'Verify Email')
         } else {
@@ -97,21 +100,21 @@ export default new Map<string, RequestHandler>([
       ({seasonId, email, password, userAgent}) =>
       async (req) => {
         const ip = intrusion.getClientIp(req)
-        authAttemptLimit.assertAllowed('login', email, ip)
+        await authAttemptLimit.assertAllowed('login', email, ip)
         const user = await userEmail.maybeUser(email)
         if (!user?.password?.trim().length) {
-          authAttemptLimit.registerFailure('login', email, ip)
+          await authAttemptLimit.registerFailure('login', email, ip)
           throw unauthorizedError(INVALID_LOGIN_MESSAGE, {
             errorCode: 'auth.invalid_login',
           })
         }
         if (!(await hash.compare(password, user.password))) {
-          authAttemptLimit.registerFailure('login', email, ip)
+          await authAttemptLimit.registerFailure('login', email, ip)
           throw unauthorizedError(INVALID_LOGIN_MESSAGE, {
             errorCode: 'auth.invalid_login',
           })
         }
-        authAttemptLimit.reset('login', email, ip)
+        await authAttemptLimit.reset('login', email, ip)
         const session = await gatekeeper.createUserSession(user, userAgent)
         return _addTeamOfSeason(user, session, seasonId)
       },
@@ -144,13 +147,12 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...SecurityForgotDef,
-    handler: (email) => async () => {
+    handler: (email) => async (req) => {
+      const ip = intrusion.getClientIp(req)
+      await authAttemptLimit.assertAllowed('delivery', email, ip)
+      await authAttemptLimit.consume('delivery', email, ip)
       const user = await userEmail.maybeUser(email)
-      if (!user)
-        throw notFoundError(`User with email ${email} does not exist.`, {
-          errorCode: 'user.not_found',
-        })
-      await userEmail.codeSendSave(user, email, 'Restore Account')
+      if (user) await userEmail.codeSendSave(user, email, 'Restore Account')
     },
   }),
 
@@ -160,21 +162,23 @@ export default new Map<string, RequestHandler>([
       ({seasonId, email, code, newPassword, userAgent}) =>
       async (req) => {
         const ip = intrusion.getClientIp(req)
-        authAttemptLimit.assertAllowed('verify', email, ip)
+        await authAttemptLimit.assertAllowed('verify', email, ip)
         let user = await userEmail.maybeUser(email)
         if (!user) {
-          authAttemptLimit.registerFailure('verify', email, ip)
-          throw notFoundError(`User with email ${email} does not exist.`, {
-            errorCode: 'user.not_found',
+          await authAttemptLimit.registerFailure('verify', email, ip)
+          throw badRequestError(`Code is incorrect.`, {
+            errorCode: 'user.code_invalid',
           })
         }
         if (!userEmail.isCodeEqual(user, email, code)) {
-          authAttemptLimit.registerFailure('verify', email, ip)
+          await authAttemptLimit.registerFailure('verify', email, ip)
           throw badRequestError(`Code is incorrect.`, {
             errorCode: 'user.code_invalid',
           })
         }
         if (userEmail.isCodeExpired(user, email)) {
+          await authAttemptLimit.assertAllowed('delivery', email, ip)
+          await authAttemptLimit.consume('delivery', email, ip)
           const subject = user.password ? 'Restore Account' : 'Verify Email'
           await userEmail.codeSendSave(user, email, subject)
           const message = `Your code has expired. A new code has been sent to your email.`
@@ -191,7 +195,7 @@ export default new Map<string, RequestHandler>([
           user = await $User.updateOne({id: user.id}, {password})
         }
         user = await userEmail.verify(user, email)
-        authAttemptLimit.reset('verify', email, ip)
+        await authAttemptLimit.reset('verify', email, ip)
         const session = await gatekeeper.createUserSession(user, userAgent)
         return _addTeamOfSeason(user, session, seasonId)
       },

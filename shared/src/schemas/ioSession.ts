@@ -4,6 +4,7 @@ export const ioSession = io.object({
   id: io.string(),
   createdOn: io.date(),
   updatedOn: io.date(),
+  expiresOn: io.date(),
   token: io.string(),
   userId: io.string(),
   ended: io.optional(io.boolean()),

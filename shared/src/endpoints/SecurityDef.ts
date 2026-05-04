@@ -27,7 +27,7 @@ export const SecurityCurrentDef = {
 export const SecurityStatusDef = {
   path: '/SecurityStatus',
   payload: io.object({
-    email: io.string(),
+    email: io.string().email().trim(),
   }),
   result: io.object({
     status: io.enum(['unknown', 'password', 'unverified', 'good']),
@@ -40,7 +40,7 @@ export const SecurityLoginDef = {
   path: '/SecurityLogin',
   payload: io.object({
     seasonId: io.optional(io.string()),
-    email: io.string(),
+    email: io.string().email().trim(),
     password: io.string(),
     userAgent: io.optional(io.string()),
   }),
@@ -63,14 +63,14 @@ export const SecuritySignUpDef = {
 
 export const SecurityForgotDef = {
   path: '/SecurityForgot',
-  payload: io.string(),
+  payload: io.string().email().trim(),
 } satisfies TEndpointDef
 
 export const SecurityVerifyDef = {
   path: '/SecurityVerify',
   payload: io.object({
     seasonId: io.optional(io.string()),
-    email: io.string().email(),
+    email: io.string().email().trim(),
     code: io.string(),
     newPassword: io.string(),
     userAgent: io.optional(io.string()),

@@ -109,6 +109,7 @@ export const Security: FC = () => {
                   $(SecurityStatus, {
                     email: savedEmail,
                     statusSet: (data) => {
+                      savedEmailSet(data.email)
                       statusSet(data)
                       if (data.status === 'good') go.to('/auth/login')
                       else if (data.status === 'unknown') go.to('/auth/sign-up')

@@ -95,7 +95,11 @@ export const SecurityVerify: FC<{
         click: () =>
           $send
             .fetch(form.data.email)
-            .then(() => toaster.notify('Please check your email inbox.')),
+            .then(() =>
+              toaster.notify(
+                'If an account exists for this email, check your inbox for the code.'
+              )
+            ),
       }),
       $(Link, {
         font: theme.fontMinor,

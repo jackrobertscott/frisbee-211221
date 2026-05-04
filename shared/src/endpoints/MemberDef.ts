@@ -58,9 +58,3 @@ export const MemberSetCaptainDef = {
   payload: io.string(),
   result: ioMember,
 } satisfies TEndpointDef
-
-// This one only appears in the server-side code
-export const MemberDeleteDef = {
-  path: '/MemberDelete',
-  payload: io.string(),
-} satisfies TEndpointDef

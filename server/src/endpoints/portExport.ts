@@ -20,6 +20,7 @@ export type TExportFileType = 'csv' | 'json'
 type TExportDatasetDef = {
   filename: string
   fields: readonly string[]
+  sortRecords?: boolean
   build: (context: TExportContext) => TExportRecord[]
 }
 
@@ -41,17 +42,17 @@ const EXPORT_DATASETS = [
     filename: 'fixture-games',
     fields: [
       'seasonName',
-      'fixtureTitle',
       'fixtureDate',
-      'grading',
-      'fixtureCreatedByName',
-      'fixtureCreatedByEmail',
+      'fixtureTitle',
       'gameTime',
       'gamePlace',
       'team1Name',
       'team1Score',
       'team2Name',
       'team2Score',
+      'grading',
+      'fixtureCreatedByName',
+      'fixtureCreatedByEmail',
     ],
     build: ({fixtures, seasonsById, teamsById, usersById}) => {
       return fixtures.flatMap((fixture) => {
@@ -76,23 +77,21 @@ const EXPORT_DATASETS = [
   },
   {
     filename: 'season-final-results',
+    sortRecords: true,
     fields: ['seasonName', 'position', 'teamName'],
     build: ({seasons, teamsById}) => {
-      return _sortExportRecords(
-        seasons.flatMap((season) =>
-          (season.finalResults ?? []).map((result) => ({
-            seasonName: season.name,
-            position: result.position,
-            teamName: _teamLabel(teamsById.get(result.teamId)),
-          }))
-        ),
-        ['seasonName', 'position', 'teamName']
+      return seasons.flatMap((season) =>
+        (season.finalResults ?? []).map((result) => ({
+          seasonName: season.name,
+          position: result.position,
+          teamName: _teamLabel(teamsById.get(result.teamId)),
+        })),
       )
     },
   },
   {
     filename: 'seasons',
-    fields: ['name', 'signUpOpen', 'isHidden', 'useOfficialScoring'],
+    fields: ['name', 'signUpOpen', 'useOfficialScoring', 'isHidden'],
     build: ({seasons}) => {
       return seasons.map((season) => ({
         name: season.name,
@@ -106,14 +105,19 @@ const EXPORT_DATASETS = [
     filename: 'reports',
     fields: [
       'seasonName',
-      'fixtureTitle',
       'fixtureDate',
+      'fixtureTitle',
       'teamName',
       'againstTeamName',
-      'submittedByName',
-      'submittedByEmail',
       'scoreFor',
       'scoreAgainst',
+      'spirit',
+      'spiritP1',
+      'spiritP2',
+      'spiritP3',
+      'spiritP4',
+      'spiritP5',
+      'spiritComment',
       'mvpMaleName',
       'mvpMaleEmail',
       'mvpMale2Name',
@@ -122,20 +126,17 @@ const EXPORT_DATASETS = [
       'mvpFemaleEmail',
       'mvpFemale2Name',
       'mvpFemale2Email',
-      'spirit',
-      'spiritP1',
-      'spiritP2',
-      'spiritP3',
-      'spiritP4',
-      'spiritP5',
-      'spiritComment',
+      'submittedByName',
+      'submittedByEmail',
     ],
     build: ({fixturesById, reports, seasonsById, teamsById, usersById}) => {
       return reports.map((report) => {
         const fixture = fixturesById.get(report.fixtureId)
         const team = teamsById.get(report.teamId)
         const againstTeam = teamsById.get(report.teamAgainstId)
-        const submittedBy = report.userId ? usersById.get(report.userId) : undefined
+        const submittedBy = report.userId
+          ? usersById.get(report.userId)
+          : undefined
         const season =
           (fixture ? seasonsById.get(fixture.seasonId) : undefined) ??
           (team ? seasonsById.get(team.seasonId) : undefined)
@@ -150,7 +151,9 @@ const EXPORT_DATASETS = [
           submittedByEmail: _primaryEmail(submittedBy),
           scoreFor: report.scoreFor,
           scoreAgainst: report.scoreAgainst,
-          mvpMaleName: report.mvpMale ? _userLabel(usersById.get(report.mvpMale)) : undefined,
+          mvpMaleName: report.mvpMale
+            ? _userLabel(usersById.get(report.mvpMale))
+            : undefined,
           mvpMaleEmail: _primaryEmail(usersById.get(report.mvpMale ?? '')),
           mvpMale2Name: report.mvpMale2
             ? _userLabel(usersById.get(report.mvpMale2))
@@ -163,7 +166,9 @@ const EXPORT_DATASETS = [
           mvpFemale2Name: report.mvpFemale2
             ? _userLabel(usersById.get(report.mvpFemale2))
             : undefined,
-          mvpFemale2Email: _primaryEmail(usersById.get(report.mvpFemale2 ?? '')),
+          mvpFemale2Email: _primaryEmail(
+            usersById.get(report.mvpFemale2 ?? ''),
+          ),
           spirit: report.spirit,
           spiritP1: report.spiritP1,
           spiritP2: report.spiritP2,
@@ -177,32 +182,37 @@ const EXPORT_DATASETS = [
   },
   {
     filename: 'memberships',
-    fields: ['seasonName', 'teamName', 'userName', 'userEmail', 'captain', 'pending'],
+    sortRecords: true,
+    fields: [
+      'seasonName',
+      'teamName',
+      'userName',
+      'userEmail',
+      'captain',
+      'pending',
+    ],
     build: ({members, seasonsById, teamsById, usersById}) => {
-      return _sortExportRecords(
-        members.map((member) => {
-          const team = teamsById.get(member.teamId)
-          const season =
-            seasonsById.get(member.seasonId) ??
-            (team ? seasonsById.get(team.seasonId) : undefined)
-          const user = usersById.get(member.userId)
+      return members.map((member) => {
+        const team = teamsById.get(member.teamId)
+        const season =
+          seasonsById.get(member.seasonId) ??
+          (team ? seasonsById.get(team.seasonId) : undefined)
+        const user = usersById.get(member.userId)
 
-          return {
-            seasonName: _seasonLabel(season),
-            teamName: _teamLabel(team),
-            userName: user ? _userLabel(user) : undefined,
-            userEmail: _primaryEmail(user),
-            captain: !!member.captain,
-            pending: member.pending,
-          }
-        }),
-        ['seasonName', 'teamName', 'userName', 'userEmail']
-      )
+        return {
+          seasonName: _seasonLabel(season),
+          teamName: _teamLabel(team),
+          userName: user ? _userLabel(user) : undefined,
+          userEmail: _primaryEmail(user),
+          captain: !!member.captain,
+          pending: member.pending,
+        }
+      })
     },
   },
   {
     filename: 'teams',
-    fields: ['seasonName', 'name', 'division', 'color', 'email', 'phone'],
+    fields: ['name', 'seasonName', 'division', 'color', 'email', 'phone'],
     build: ({seasonsById, teams}) => {
       return teams.map((team) => ({
         seasonName: _seasonLabel(seasonsById.get(team.seasonId)),
@@ -216,20 +226,25 @@ const EXPORT_DATASETS = [
   },
   {
     filename: 'user-emails',
-    fields: ['userName', 'userPrimaryEmail', 'email', 'verified', 'primary', 'createdOn'],
+    sortRecords: true,
+    fields: [
+      'userName',
+      'email',
+      'primary',
+      'verified',
+      'createdOn',
+      'userPrimaryEmail',
+    ],
     build: ({users}) => {
-      return _sortExportRecords(
-        users.flatMap((user) =>
-          _sortUserEmails(user.emails).map((email) => ({
-            userName: _userName(user),
-            userPrimaryEmail: _primaryEmail(user),
-            email: email.value,
-            verified: email.verified,
-            primary: email.primary,
-            createdOn: email.createdOn,
-          }))
-        ),
-        ['userName', 'userPrimaryEmail', 'email']
+      return users.flatMap((user) =>
+        _sortUserEmails(user.emails).map((email) => ({
+          userName: _userName(user),
+          userPrimaryEmail: _primaryEmail(user),
+          email: email.value,
+          verified: email.verified,
+          primary: email.primary,
+          createdOn: email.createdOn,
+        })),
       )
     },
   },
@@ -241,11 +256,11 @@ const EXPORT_DATASETS = [
       'lastName',
       'primaryEmail',
       'gender',
+      'lastSeasonName',
+      'bio',
+      'avatarUrl',
       'admin',
       'termsAccepted',
-      'lastSeasonName',
-      'avatarUrl',
-      'bio',
     ],
     build: ({seasonsById, users}) => {
       return users.map((user) => ({
@@ -272,7 +287,9 @@ export const createExportArchive = async (fileType: TExportFileType) => {
   const zip = new AdmZip()
 
   for (const dataset of EXPORT_DATASETS) {
-    const records = dataset.build(context)
+    const records = dataset.sortRecords
+      ? _sortExportRecords(dataset.build(context), dataset.fields)
+      : dataset.build(context)
     const content = _serializeExportRecords(records, dataset.fields, fileType)
     zip.addFile(`${dataset.filename}.${fileType}`, Buffer.from(content, 'utf8'))
   }
@@ -286,9 +303,11 @@ export const createExportArchive = async (fileType: TExportFileType) => {
 const _serializeExportRecords = (
   records: TExportRecord[],
   fields: readonly string[],
-  fileType: TExportFileType
+  fileType: TExportFileType,
 ) => {
-  return fileType === 'json' ? _jsonify(records, fields) : _csvify(records, fields)
+  return fileType === 'json'
+    ? _jsonify(records, fields)
+    : _csvify(records, fields)
 }
 
 const _csvify = (records: TExportRecord[], fields: readonly string[]) => {
@@ -297,9 +316,9 @@ const _csvify = (records: TExportRecord[], fields: readonly string[]) => {
   const rows = records.map((record) =>
     headings
       .map((heading) =>
-        _csvEscape(_csvValue(heading in record ? record[heading] : undefined))
+        _csvEscape(_csvValue(heading in record ? record[heading] : undefined)),
       )
-      .join(',')
+      .join(','),
   )
   return [headings.map(_csvEscape).join(','), ...rows].join('\n').concat('\n')
 }
@@ -310,14 +329,19 @@ const _jsonify = (records: TExportRecord[], fields: readonly string[]) => {
     Object.fromEntries(
       headings.map((heading) => [
         heading,
-        heading in record && record[heading] !== undefined ? record[heading] : null,
-      ])
-    )
+        heading in record && record[heading] !== undefined
+          ? record[heading]
+          : null,
+      ]),
+    ),
   )
   return JSON.stringify(orderedRecords, null, 2).concat('\n')
 }
 
-const _orderedHeadings = (records: TExportRecord[], fields: readonly string[]) => {
+const _orderedHeadings = (
+  records: TExportRecord[],
+  fields: readonly string[],
+) => {
   const headings = [...fields]
   const seen = new Set(headings)
 
@@ -335,7 +359,8 @@ const _orderedHeadings = (records: TExportRecord[], fields: readonly string[]) =
 const _csvValue = (value: unknown) => {
   if (value === undefined || value === null) return ''
   if (typeof value === 'string') return value
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  if (typeof value === 'number' || typeof value === 'boolean')
+    return String(value)
   return JSON.stringify(value) ?? ''
 }
 
@@ -348,14 +373,16 @@ const _exportFilename = (generatedOn: string, fileType: TExportFileType) => {
 
 const _loadExportContext = async (): Promise<TExportContext> => {
   const sort = {createdOn: 1 as const, id: 1 as const}
-  const [fixtures, members, reports, seasons, teams, users] = await Promise.all([
-    $Fixture.getMany({}, {sort}),
-    $Member.getMany({}, {sort}),
-    $Report.getMany({}, {sort}),
-    $Season.getMany({}, {sort}),
-    $Team.getMany({}, {sort}),
-    $User.getMany({}, {sort}),
-  ])
+  const [fixtures, members, reports, seasons, teams, users] = await Promise.all(
+    [
+      $Fixture.getMany({}, {sort}),
+      $Member.getMany({}, {sort}),
+      $Report.getMany({}, {sort}),
+      $Season.getMany({}, {sort}),
+      $Team.getMany({}, {sort}),
+      $User.getMany({}, {sort}),
+    ],
+  )
 
   return {
     fixtures,
@@ -371,7 +398,10 @@ const _loadExportContext = async (): Promise<TExportContext> => {
   }
 }
 
-const _sortExportRecords = (records: TExportRecord[], fields: readonly string[]) => {
+const _sortExportRecords = (
+  records: TExportRecord[],
+  fields: readonly string[],
+) => {
   return [...records].sort((left, right) => {
     for (const field of fields) {
       const diff = _compareExportValues(left[field], right[field])
@@ -384,7 +414,8 @@ const _sortExportRecords = (records: TExportRecord[], fields: readonly string[])
 const _compareExportValues = (left: unknown, right: unknown) => {
   if (typeof left === 'number' || typeof right === 'number') {
     const leftValue = typeof left === 'number' ? left : Number.MAX_SAFE_INTEGER
-    const rightValue = typeof right === 'number' ? right : Number.MAX_SAFE_INTEGER
+    const rightValue =
+      typeof right === 'number' ? right : Number.MAX_SAFE_INTEGER
     return leftValue - rightValue
   }
 
@@ -392,7 +423,10 @@ const _compareExportValues = (left: unknown, right: unknown) => {
 }
 
 const _userName = (user?: Pick<TUser, 'firstName' | 'lastName'>) => {
-  const name = [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim()
+  const name = [user?.firstName, user?.lastName]
+    .filter(Boolean)
+    .join(' ')
+    .trim()
   return name || 'Unknown user'
 }
 

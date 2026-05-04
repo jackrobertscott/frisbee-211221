@@ -9,6 +9,9 @@ export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
   const [loaded, loadedSet] = useState(false)
   const [season, seasonSet] = useLocalState<TSeason | undefined>('season')
   const [current, currentSet] = useLocalState<TAuth | undefined>('auth')
+  const currentSessionExpired =
+    current?.session?.expiresOn !== undefined &&
+    new Date(current.session.expiresOn).valueOf() <= Date.now()
   const digestAuthPayload = (payload: TAuthPayload): TAuth => ({
     ...payload,
     token: payload.session.token,
@@ -17,15 +20,19 @@ export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
   })
   const invalidate = () => currentSet(undefined)
   useEffect(() => {
+    if (currentSessionExpired) {
+      invalidate()
+    }
+    const token = currentSessionExpired ? undefined : current?.token
     $SecurityCurrent
-      .fetch({seasonId: season?.id}, current?.token)
+      .fetch({seasonId: season?.id}, token)
       .then((data) => {
         seasonSet(data.season)
         if (data.auth) currentSet(digestAuthPayload(data.auth))
-        else if (current?.token) invalidate()
+        else if (token) invalidate()
       })
       .catch((error) => {
-        if (current?.token && hasStatusCode(error, 401)) invalidate()
+        if (token && hasStatusCode(error, 401)) invalidate()
       })
       .finally(() => loadedSet(true))
   }, [])

@@ -1,19 +1,14 @@
 import {tooManyRequestsError} from '@shared/errors'
+import {TAuthAttemptLimit} from '@shared/schemas/ioAuthAttemptLimit'
+import {$AuthAttemptLimit} from '../tables/$AuthAttemptLimit'
 
 const WINDOW_MS = 15 * 60 * 1000
 const BLOCK_MS = 15 * 60 * 1000
-const PRUNE_INTERVAL = 256
 const STATE_RETENTION_MS = WINDOW_MS + BLOCK_MS
 
-type TAttemptKind = 'login' | 'verify'
+type TAttemptKind = 'login' | 'verify' | 'delivery'
 type TAttemptScope = 'account' | 'client'
-
-interface IAttemptState {
-  attempts: number
-  windowStartedAt: number
-  blockedUntil: number
-  lastSeenAt: number
-}
+type TAttemptState = Omit<TAuthAttemptLimit, 'createdOn' | 'updatedOn'>
 
 const LIMITS: Record<
   TAttemptKind,
@@ -40,71 +35,116 @@ const LIMITS: Record<
       client: 5,
     },
   },
+  delivery: {
+    message:
+      'Too many security code requests. Please try again in 15 minutes.',
+    errorCode: 'user.code_delivery_rate_limited',
+    maxAttemptsByScope: {
+      account: 3,
+      client: 6,
+    },
+  },
 }
-
-const stateByKey = new Map<string, IAttemptState>()
-
-let readCount = 0
 
 const normalize = (value: string) => value.trim().toLowerCase()
 
-const prune = (now: number) => {
-  for (const [key, state] of stateByKey.entries()) {
-    const idleMs = now - state.lastSeenAt
-    if (state.blockedUntil <= now && idleMs > STATE_RETENTION_MS) {
-      stateByKey.delete(key)
-    }
-  }
-}
-
-const getState = (key: string, now: number) => {
-  readCount += 1
-  if (readCount % PRUNE_INTERVAL === 0) prune(now)
-
-  const current = stateByKey.get(key)
-  if (!current) {
-    const fresh: IAttemptState = {
-      attempts: 0,
-      windowStartedAt: now,
-      blockedUntil: 0,
-      lastSeenAt: now,
-    }
-    stateByKey.set(key, fresh)
-    return fresh
-  }
-
-  if (current.blockedUntil <= now && now - current.windowStartedAt >= WINDOW_MS) {
-    current.attempts = 0
-    current.windowStartedAt = now
-  }
-
-  current.lastSeenAt = now
-  return current
-}
-
-const getKeys = (kind: TAttemptKind, email: string, ip: string) => {
+const getStates = (kind: TAttemptKind, email: string, ip: string) => {
   const normalizedEmail = normalize(email)
   const normalizedIp = normalize(ip || 'unknown')
   return [
     {
+      id: `${kind}:account:${normalizedEmail}`,
+      kind,
       scope: 'account' as const,
-      key: `${kind}:account:${normalizedEmail}`,
+      email: normalizedEmail,
     },
     {
+      id: `${kind}:client:${normalizedIp}:${normalizedEmail}`,
+      kind,
       scope: 'client' as const,
-      key: `${kind}:client:${normalizedIp}:${normalizedEmail}`,
+      email: normalizedEmail,
+      ip: normalizedIp,
     },
   ]
 }
 
-export default {
-  assertAllowed(kind: TAttemptKind, email: string, ip: string) {
-    const now = Date.now()
-    const config = LIMITS[kind]
+const createInitialState = (
+  state: ReturnType<typeof getStates>[number],
+  now: number
+): TAttemptState => {
+  return {
+    id: state.id,
+    kind: state.kind,
+    scope: state.scope,
+    email: state.email,
+    ...(state.ip ? {ip: state.ip} : {}),
+    attempts: 0,
+    windowStartedAt: now,
+    blockedUntil: 0,
+    lastSeenAt: now,
+  }
+}
 
-    for (const {key} of getKeys(kind, email, ip)) {
-      const state = getState(key, now)
-      if (state.blockedUntil > now) {
+const getCurrentState = (
+  current: TAuthAttemptLimit | undefined,
+  stateDef: ReturnType<typeof getStates>[number],
+  now: number
+): TAttemptState => {
+  const state = current ?? createInitialState(stateDef, now)
+  if (state.blockedUntil <= now && now - state.windowStartedAt >= WINDOW_MS) {
+    return {
+      ...state,
+      attempts: 0,
+      windowStartedAt: now,
+      lastSeenAt: now,
+    }
+  }
+  return {
+    ...state,
+    lastSeenAt: now,
+  }
+}
+
+const saveState = async (
+  current: TAuthAttemptLimit | undefined,
+  state: TAttemptState
+) => {
+  if (current) {
+    await $AuthAttemptLimit.updateOne({id: state.id}, state)
+    return
+  }
+  await $AuthAttemptLimit.createOne(state)
+}
+
+const prune = async (now: number) => {
+  const cutoff = now - STATE_RETENTION_MS
+  await $AuthAttemptLimit.deleteMany({
+    blockedUntil: {$lte: now},
+    lastSeenAt: {$lt: cutoff},
+  })
+}
+
+let lastPrunedAt = 0
+
+const pruneMaybe = async (now: number) => {
+  if (now - lastPrunedAt < STATE_RETENTION_MS) return
+  lastPrunedAt = now
+  await prune(now)
+}
+
+export default {
+  async assertAllowed(kind: TAttemptKind, email: string, ip: string) {
+    const now = Date.now()
+    await pruneMaybe(now)
+    const config = LIMITS[kind]
+    const states = getStates(kind, email, ip)
+    const current = await $AuthAttemptLimit.getMany({
+      id: {$in: states.map((i) => i.id)},
+    })
+
+    for (const {id} of states) {
+      const state = current.find((i) => i.id === id)
+      if (state && state.blockedUntil > now) {
         throw tooManyRequestsError(config.message, {
           errorCode: config.errorCode,
         })
@@ -112,30 +152,47 @@ export default {
     }
   },
 
-  registerFailure(kind: TAttemptKind, email: string, ip: string) {
+  async registerFailure(kind: Extract<TAttemptKind, 'login' | 'verify'>, email: string, ip: string) {
     const now = Date.now()
     const config = LIMITS[kind]
 
-    for (const {key, scope} of getKeys(kind, email, ip)) {
-      const state = getState(key, now)
+    for (const stateDef of getStates(kind, email, ip)) {
+      const current = await $AuthAttemptLimit.maybeOne({id: stateDef.id})
+      const state = getCurrentState(current, stateDef, now)
       if (state.blockedUntil > now) continue
 
-      if (now - state.windowStartedAt >= WINDOW_MS) {
-        state.attempts = 0
-        state.windowStartedAt = now
-      }
-
       state.attempts += 1
-      if (state.attempts >= config.maxAttemptsByScope[scope]) {
+      if (state.attempts >= config.maxAttemptsByScope[stateDef.scope]) {
         state.attempts = 0
         state.blockedUntil = now + BLOCK_MS
       }
+
+      await saveState(current, state)
     }
   },
 
-  reset(kind: TAttemptKind, email: string, ip: string) {
-    for (const {key} of getKeys(kind, email, ip)) {
-      stateByKey.delete(key)
+  async consume(kind: Extract<TAttemptKind, 'delivery'>, email: string, ip: string) {
+    const now = Date.now()
+    const config = LIMITS[kind]
+
+    for (const stateDef of getStates(kind, email, ip)) {
+      const current = await $AuthAttemptLimit.maybeOne({id: stateDef.id})
+      const state = getCurrentState(current, stateDef, now)
+      if (state.blockedUntil > now) continue
+
+      state.attempts += 1
+      if (state.attempts >= config.maxAttemptsByScope[stateDef.scope]) {
+        state.attempts = 0
+        state.blockedUntil = now + BLOCK_MS
+      }
+
+      await saveState(current, state)
     }
+  },
+
+  async reset(kind: Extract<TAttemptKind, 'login' | 'verify'>, email: string, ip: string) {
+    await $AuthAttemptLimit.deleteMany({
+      id: {$in: getStates(kind, email, ip).map((i) => i.id)},
+    })
   },
 }
