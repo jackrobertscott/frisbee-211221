@@ -55,10 +55,28 @@ const EXPORT_DATASETS = [
       'fixtureCreatedByEmail',
     ],
     build: ({fixtures, seasonsById, teamsById, usersById}) => {
-      return fixtures.flatMap((fixture) => {
+      return [...fixtures].sort((left, right) => {
+        const leftSeasonName = _seasonLabel(seasonsById.get(left.seasonId))
+        const rightSeasonName = _seasonLabel(seasonsById.get(right.seasonId))
+        const seasonDiff = leftSeasonName.localeCompare(rightSeasonName)
+        if (seasonDiff) return seasonDiff
+        const dateDiff = String(left.date ?? '').localeCompare(
+          String(right.date ?? ''),
+        )
+        if (dateDiff) return dateDiff
+        return String(left.title ?? '').localeCompare(String(right.title ?? ''))
+      }).flatMap((fixture) => {
         const season = seasonsById.get(fixture.seasonId)
         const createdBy = usersById.get(fixture.userId)
-        return fixture.games.map((game) => ({
+        return [...fixture.games].sort((left, right) => {
+          const team1Diff = _teamLabel(teamsById.get(left.team1Id)).localeCompare(
+            _teamLabel(teamsById.get(right.team1Id)),
+          )
+          if (team1Diff) return team1Diff
+          return _teamLabel(teamsById.get(left.team2Id)).localeCompare(
+            _teamLabel(teamsById.get(right.team2Id)),
+          )
+        }).map((game) => ({
           seasonName: _seasonLabel(season),
           fixtureTitle: fixture.title,
           fixtureDate: _humanReadableDate(fixture.date),
@@ -72,26 +90,6 @@ const EXPORT_DATASETS = [
           team2Name: _teamLabel(teamsById.get(game.team2Id)),
           team2Score: game.team2Score,
         }))
-      }).sort((a, b) => {
-        const seasonDiff = a.seasonName.localeCompare(b.seasonName)
-        if (seasonDiff) return seasonDiff
-        const dateDiff = String(a.fixtureDate ?? '').localeCompare(
-          String(b.fixtureDate ?? ''),
-        )
-        if (dateDiff) return dateDiff
-        const fixtureDiff = String(a.fixtureTitle ?? '').localeCompare(
-          String(b.fixtureTitle ?? ''),
-        )
-        if (fixtureDiff) return fixtureDiff
-        const team1Diff = String(a.team1Name ?? '').localeCompare(
-          String(b.team1Name ?? ''),
-        )
-        if (team1Diff) return team1Diff
-        const team2Diff = String(a.team2Name ?? '').localeCompare(
-          String(b.team2Name ?? ''),
-        )
-        if (team2Diff) return team2Diff
-        return 0
       })
     },
   },
@@ -156,7 +154,36 @@ const EXPORT_DATASETS = [
       'submittedByEmail',
     ],
     build: ({fixturesById, reports, seasonsById, teamsById, usersById}) => {
-      return reports.map((report) => {
+      return [...reports].sort((left, right) => {
+        const leftFixture = fixturesById.get(left.fixtureId)
+        const leftTeam = teamsById.get(left.teamId)
+        const leftSeason =
+          (leftFixture ? seasonsById.get(leftFixture.seasonId) : undefined) ??
+          (leftTeam ? seasonsById.get(leftTeam.seasonId) : undefined)
+        const rightFixture = fixturesById.get(right.fixtureId)
+        const rightTeam = teamsById.get(right.teamId)
+        const rightSeason =
+          (rightFixture ? seasonsById.get(rightFixture.seasonId) : undefined) ??
+          (rightTeam ? seasonsById.get(rightTeam.seasonId) : undefined)
+
+        const seasonDiff = _seasonLabel(leftSeason).localeCompare(
+          _seasonLabel(rightSeason),
+        )
+        if (seasonDiff) return seasonDiff
+        const dateDiff = String(leftFixture?.date ?? '').localeCompare(
+          String(rightFixture?.date ?? ''),
+        )
+        if (dateDiff) return dateDiff
+        const fixtureDiff = String(leftFixture?.title ?? '').localeCompare(
+          String(rightFixture?.title ?? ''),
+        )
+        if (fixtureDiff) return fixtureDiff
+        const teamDiff = _teamLabel(leftTeam).localeCompare(_teamLabel(rightTeam))
+        if (teamDiff) return teamDiff
+        return _teamLabel(teamsById.get(left.teamAgainstId)).localeCompare(
+          _teamLabel(teamsById.get(right.teamAgainstId)),
+        )
+      }).map((report) => {
         const fixture = fixturesById.get(report.fixtureId)
         const team = teamsById.get(report.teamId)
         const againstTeam = teamsById.get(report.teamAgainstId)
@@ -203,24 +230,6 @@ const EXPORT_DATASETS = [
           spiritP5: report.spiritP5,
           spiritComment: report.spiritComment,
         }
-      }).sort((a, b) => {
-        const seasonDiff = a.seasonName.localeCompare(b.seasonName)
-        if (seasonDiff) return seasonDiff
-        const dateDiff = String(a.fixtureDate ?? '').localeCompare(
-          String(b.fixtureDate ?? ''),
-        )
-        if (dateDiff) return dateDiff
-        const fixtureDiff = String(a.fixtureTitle ?? '').localeCompare(
-          String(b.fixtureTitle ?? ''),
-        )
-        if (fixtureDiff) return fixtureDiff
-        const teamDiff = String(a.teamName ?? '').localeCompare(
-          String(b.teamName ?? ''),
-        )
-        if (teamDiff) return teamDiff
-        return String(a.againstTeamName ?? '').localeCompare(
-          String(b.againstTeamName ?? ''),
-        )
       })
     },
   },
@@ -318,6 +327,7 @@ const EXPORT_DATASETS = [
       'firstName',
       'lastName',
       'primaryEmail',
+      'primaryEmailVerified',
       'gender',
       'admin',
       'termsAccepted',
@@ -328,7 +338,7 @@ const EXPORT_DATASETS = [
         firstName: user.firstName,
         lastName: user.lastName,
         primaryEmail: _primaryEmail(user),
-        primaryEmailVerified: _primaryEmailVerified(user),
+        primaryEmailVerified: _primaryEmailVerified(user) ? 'Yes' : '',
         gender: user.gender,
         admin: user.admin ? 'Yes' : '',
         termsAccepted: user.termsAccepted ? 'Yes' : '',

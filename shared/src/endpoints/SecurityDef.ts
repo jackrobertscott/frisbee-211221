@@ -2,6 +2,7 @@ import {ioSeason} from '@shared/schemas/ioSeason'
 import {ioSession} from '@shared/schemas/ioSession'
 import {ioTeam} from '@shared/schemas/ioTeam'
 import {ioUserSafe} from '@shared/schemas/ioUser'
+import {ioUserGender} from '@shared/schemas/ioUserGender'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
@@ -54,7 +55,7 @@ export const SecuritySignUpDef = {
     email: io.string().email().trim(),
     firstName: io.string(),
     lastName: io.string(),
-    gender: io.string(),
+    gender: ioUserGender,
     termsAccepted: io.boolean(),
     userAgent: io.optional(io.string()),
   }),

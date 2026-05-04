@@ -1,4 +1,5 @@
 import {ioUserPublic, ioUserSafe} from '@shared/schemas/ioUser'
+import {ioUserGender} from '@shared/schemas/ioUserGender'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
@@ -7,7 +8,7 @@ export const UserCurrentUpdateDef = {
   payload: io.object({
     firstName: io.optional(io.string()),
     lastName: io.optional(io.string()),
-    gender: io.optional(io.string()),
+    gender: io.optional(ioUserGender),
     avatarUrl: io.optional(io.string()),
   }),
   result: ioUserSafe,
@@ -90,7 +91,7 @@ export const UserCreateDef = {
     email: io.string().email().trim(),
     firstName: io.string(),
     lastName: io.string(),
-    gender: io.string(),
+    gender: ioUserGender,
     termsAccepted: io.boolean(),
   }),
   result: ioUserSafe,
@@ -102,7 +103,7 @@ export const UserUpdateDef = {
     userId: io.string(),
     firstName: io.optional(io.string()),
     lastName: io.optional(io.string()),
-    gender: io.optional(io.string()),
+    gender: io.optional(ioUserGender),
     avatarUrl: io.optional(io.string()),
   }),
   result: ioUserSafe,

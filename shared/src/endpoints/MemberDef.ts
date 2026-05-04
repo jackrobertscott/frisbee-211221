@@ -1,5 +1,6 @@
 import {ioMember} from '@shared/schemas/ioMember'
 import {ioTeam} from '@shared/schemas/ioTeam'
+import {ioUserGender} from '@shared/schemas/ioUserGender'
 import {ioUserPublic} from '@shared/schemas/ioUser'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
@@ -29,7 +30,7 @@ export const MemberCreateDef = {
     email: io.string().email().trim(),
     firstName: io.optional(io.string()),
     lastName: io.optional(io.string()),
-    gender: io.optional(io.string()),
+    gender: io.optional(ioUserGender),
   }),
   result: ioMember,
 } satisfies TEndpointDef

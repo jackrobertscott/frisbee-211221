@@ -6,6 +6,7 @@ import {
   PortImportDef,
   PortMockGenerateDef,
 } from '@shared/endpoints/PortDef'
+import {normalizeUserGender, TUserGender} from '@shared/schemas/ioUserGender'
 import {TUser, TUserEmail} from '@shared/schemas/ioUser'
 import {RequestHandler} from 'micro'
 import {$Member} from '../tables/$Member'
@@ -22,7 +23,6 @@ import {requireUserAdmin} from './requireUserAdmin'
 import {userEmail} from './userEmail'
 
 export default new Map<string, RequestHandler>([
-
   createEndpoint({
     ...PortImportDef,
     handler: () => async (req) => {
@@ -53,11 +53,11 @@ export default new Map<string, RequestHandler>([
       ]
       const providedHeadings = objects.length > 0 ? Object.keys(objects[0]) : []
       const missingHeadings = requiredHeadings.filter(
-        (h) => !providedHeadings.includes(h)
+        (h) => !providedHeadings.includes(h),
       )
       if (missingHeadings.length > 0) {
         throw badRequestError(
-          `Missing required headings: ${missingHeadings.join(', ')}`
+          `Missing required headings: ${missingHeadings.join(', ')}`,
         )
       }
       const allowedHeadings = [
@@ -70,11 +70,11 @@ export default new Map<string, RequestHandler>([
         'gender',
       ]
       const unexpectedHeadings = providedHeadings.filter(
-        (h) => !allowedHeadings.includes(h)
+        (h) => !allowedHeadings.includes(h),
       )
       if (unexpectedHeadings.length > 0) {
         throw badRequestError(
-          `Unexpected headings found: ${unexpectedHeadings.join(', ')}`
+          `Unexpected headings found: ${unexpectedHeadings.join(', ')}`,
         )
       }
       await mongo.transaction(async () => {
@@ -93,7 +93,7 @@ export default new Map<string, RequestHandler>([
       res.setHeader('Cache-Control', 'no-store, max-age=0')
       res.setHeader(
         'Content-Disposition',
-        `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`
+        `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
       )
       res.setHeader('Content-Length', String(buffer.byteLength))
       res.setHeader('Content-Type', 'application/zip')
@@ -143,7 +143,7 @@ export default new Map<string, RequestHandler>([
         firstName: string
         lastName: string
         termsAccepted: boolean
-        gender: string
+        gender: TUserGender
         emails: TUserEmail[]
       }[]
 
@@ -163,12 +163,13 @@ export default new Map<string, RequestHandler>([
           const lastName = _randLastName()
           const email = _randEmail(firstName, lastName)
           if (!teamUsers.some((u) => u.emails[0].value === email)) {
+            const gender: TUserGender = Math.random() > 0.5 ? 'male' : 'female'
             const user = {
               id: random.generateId(),
               isMock: true,
               firstName,
               lastName,
-              gender: Math.random() > 0.5 ? 'male' : 'female',
+              gender,
               termsAccepted: true,
               emails: [
                 {
@@ -331,9 +332,11 @@ const MOCK_LAST_NAMES = [
   'Hall',
 ]
 
-const _pick = (values: string[]) => values[Math.floor(Math.random() * values.length)]
+const _pick = (values: string[]) =>
+  values[Math.floor(Math.random() * values.length)]
 
-const _slugify = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '.')
+const _slugify = (value: string) =>
+  value.toLowerCase().replace(/[^a-z0-9]+/g, '.')
 
 const _shuffle = <T>(values: T[]) => {
   const copy = [...values]
@@ -381,7 +384,7 @@ const _randEmail = (firstName: string, lastName: string) => {
 
 const _createTeamsFromObjects = async (
   objects: Record<string, string>[],
-  seasonId: string
+  seasonId: string,
 ) => {
   const teamCSVMap = new Map(
     objects.map((i) => {
@@ -395,7 +398,7 @@ const _createTeamsFromObjects = async (
           color: 'hsla(0, 0%, 100%, 1)',
         },
       ]
-    })
+    }),
   )
   const teamCSVList = [...teamCSVMap.values()]
   const teamCSVNameList = [...teamCSVMap.keys()]
@@ -412,20 +415,28 @@ const _createTeamsFromObjects = async (
 
 const _createUsersFromObjects = async (
   objects: Record<string, string>[],
-  seasonId: string
+  seasonId: string,
 ) => {
   const userCSVEmailList = [] as string[]
   let userCSVList = objects
-    .map((i) => ({
-      _team: i.team_name,
-      _captain: i.type === 'team',
-      _email: i.email_address,
-      firstName: i.first_name,
-      lastName: i.last_name,
-      gender: i.gender,
-      termsAccepted: false,
-      emails: [userEmail.create(i.email_address, true)],
-    }))
+    .map((i, index) => {
+      const gender = normalizeUserGender(i.gender)
+      if (!gender)
+        throw badRequestError(
+          `Failed: row ${index + 2} has invalid gender "${i.gender}".`,
+          {errorCode: 'upload.invalid_gender'},
+        )
+      return {
+        _team: i.team_name,
+        _captain: i.type === 'team',
+        _email: i.email_address,
+        firstName: i.first_name,
+        lastName: i.last_name,
+        gender,
+        termsAccepted: false,
+        emails: [userEmail.create(i.email_address, true)],
+      }
+    })
     .filter((i) => {
       if (userCSVEmailList.includes(i._email)) return false
       userCSVEmailList.push(i._email)
@@ -486,10 +497,13 @@ const _parseCSVString = (csv: string) => {
   const cols = _tokenify(head)
   for (const row of body) {
     const tokens = _tokenify(row)
-    const insert = cols.reduce((all, key, index) => {
-      all[key] = tokens[index]
-      return all
-    }, {} as Record<string, string>)
+    const insert = cols.reduce(
+      (all, key, index) => {
+        all[key] = tokens[index]
+        return all
+      },
+      {} as Record<string, string>,
+    )
     data.push(insert)
   }
   return data
