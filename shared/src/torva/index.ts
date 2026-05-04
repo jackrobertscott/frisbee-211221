@@ -34,7 +34,20 @@ export interface TypeIoLazy<T extends TypeIoAll = TypeIoAll>
 export interface TypeIoNull<T extends TypeIoAll = TypeIoAll>
   extends TypeIo_<'null', TypeIoValue<T> | null> {}
 
-export interface TypeIoNumber extends TypeIo_<'number', number> {}
+export interface TypeIoNumberOptions {
+  coerce?: boolean
+  integer?: boolean
+  min?: number
+  max?: number
+}
+
+export interface TypeIoNumber extends TypeIo_<'number', number> {
+  coerce(): TypeIoNumber
+  integer(): TypeIoNumber
+  min(value: number): TypeIoNumber
+  max(value: number): TypeIoNumber
+  positive(): TypeIoNumber
+}
 
 export type IncludeOfType<X, T> = {
   [K in keyof X as T extends X[K] ? K : never]: X[K]
@@ -282,15 +295,50 @@ export function ioNull<T extends TypeIoAll = TypeIoAll>(ofType: T): TypeIoNull<T
   }
 }
 
-export function ioNumber(): TypeIoNumber {
+export function ioNumber(options?: TypeIoNumberOptions): TypeIoNumber {
   return {
     _type: 'number',
+    coerce() {
+      return ioNumber({...options, coerce: true})
+    },
+    integer() {
+      return ioNumber({...options, integer: true})
+    },
+    min(value) {
+      return ioNumber({...options, min: value})
+    },
+    max(value) {
+      return ioNumber({...options, max: value})
+    },
+    positive() {
+      return ioNumber({...options, min: Math.max(options?.min ?? 1, 1)})
+    },
     validate(value) {
-      if (typeof value !== 'number')
+      const rawValue = value as unknown
+      let normalizedValue = rawValue
+      if (options?.coerce && typeof rawValue === 'string') {
+        const trimmedValue = rawValue.trim()
+        if (!trimmedValue.length)
+          return {ok: false, error: `Value can not be empty.`}
+        normalizedValue = Number(trimmedValue)
+      }
+      if (typeof normalizedValue !== 'number')
         return {ok: false, error: `Value is not a number.`}
-      if (!Number.isFinite(value))
+      if (!Number.isFinite(normalizedValue))
         return {ok: false, error: `Value must be a finite number.`}
-      return {ok: true, value}
+      if (options?.integer && !Number.isInteger(normalizedValue))
+        return {ok: false, error: `Value must be an integer.`}
+      if (options?.min !== undefined && normalizedValue < options.min)
+        return {
+          ok: false,
+          error: `Value must be greater than or equal to ${options.min}.`,
+        }
+      if (options?.max !== undefined && normalizedValue > options.max)
+        return {
+          ok: false,
+          error: `Value must be less than or equal to ${options.max}.`,
+        }
+      return {ok: true, value: normalizedValue}
     },
   }
 }
