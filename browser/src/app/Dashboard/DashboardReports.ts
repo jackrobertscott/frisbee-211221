@@ -103,6 +103,11 @@ export const DashboardReports: FC = () => {
       cancelled = true
     }
   }, [_reports])
+  const submitterLabel = (report: TReport) => {
+    const submitter = submitters?.find((i) => i.id === report.userId)
+    if (submitter) return `${submitter.firstName} ${submitter.lastName}`.trim()
+    return report.userId ?? '...'
+  }
   const reports = _reports?.slice(pager.skip, pager.skip + pager.limit)
   return $(Fragment, {
     children: addkeys([
@@ -141,7 +146,8 @@ export const DashboardReports: FC = () => {
                       label: 'MVPs',
                       grow: 1.5,
                     },
-                    comment: {label: 'Comment', grow: 4},
+                    comment: {label: 'Comment', grow: 5},
+                    submitter: {label: 'Submitted by', grow: 3},
                   },
                   body: reports.map((report) => {
                     const fixture = fixtures?.find((i) => {
@@ -197,6 +203,9 @@ export const DashboardReports: FC = () => {
                             label: report.spiritComment.trim() || '...',
                             wrap: true,
                           }),
+                        },
+                        submitter: {
+                          value: submitterLabel(report),
                         },
                         createdOn: {
                           value: dayjs(report.createdOn).format('DD/MM/YYYY'),
