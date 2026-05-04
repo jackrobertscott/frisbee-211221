@@ -1,4 +1,5 @@
 import {TUserSafe} from '@shared/schemas/ioUser'
+import {TUserGender} from '@shared/schemas/ioUserGender'
 import {createElement as $, FC, Fragment, useState} from 'react'
 import {
   $UserCurrentEmailAdd,
@@ -66,7 +67,7 @@ export const SettingsAccount: FC = () => {
       $(FormRow, {
         children: addkeys([
           $(FormLabel, {label: 'Gender'}),
-          $(InputSelect, {
+          $(InputSelect<TUserGender>, {
             value: form.data.gender,
             valueSet: form.link('gender'),
             options: GENDER_OPTIONS,

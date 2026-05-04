@@ -1,5 +1,6 @@
 import {css} from '@emotion/css'
 import {TUserSafe} from '@shared/schemas/ioUser'
+import {TUserGender} from '@shared/schemas/ioUserGender'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {
@@ -152,7 +153,7 @@ export const _DashboardUsersCreate: FC<{
     firstName: '',
     lastName: '',
     email: '',
-    gender: undefined as undefined | string,
+    gender: undefined as undefined | TUserGender,
     termsAccepted: false,
   })
   return $(Modal, {
@@ -193,7 +194,7 @@ export const _DashboardUsersCreate: FC<{
           $(FormRow, {
             children: addkeys([
               $(FormLabel, {label: 'Gender'}),
-              $(InputSelect, {
+              $(InputSelect<TUserGender>, {
                 value: form.data.gender,
                 valueSet: form.link('gender'),
                 options: GENDER_OPTIONS,
@@ -296,7 +297,7 @@ export const _DashboardUsersView: FC<{
               $(FormRow, {
                 children: addkeys([
                   $(FormLabel, {label: 'Gender'}),
-                  $(InputSelect, {
+                  $(InputSelect<TUserGender>, {
                     value: form.data.gender,
                     valueSet: form.link('gender'),
                     options: GENDER_OPTIONS,

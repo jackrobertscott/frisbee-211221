@@ -1,5 +1,7 @@
+import {TUserGender} from '@shared/schemas/ioUserGender'
+
 export const GENDER_OPTIONS: Array<{
-  key: string
+  key: TUserGender
   label: string
 }> = [
   {key: 'male', label: 'Male'},

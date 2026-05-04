@@ -1,3 +1,4 @@
+import {TUserGender} from '@shared/schemas/ioUserGender'
 import {createElement as $, FC} from 'react'
 import {$SecuritySignUp} from '../../endpoints/Security'
 import {theme} from '../../theme'
@@ -29,7 +30,7 @@ export const SecuritySignUp: FC<{
   const form = useForm({
     firstName: '',
     lastName: '',
-    gender: undefined as undefined | string,
+    gender: undefined as undefined | TUserGender,
     email: _email ?? '',
     termsAccepted: false,
     userAgent: navigator.userAgent,
@@ -63,7 +64,7 @@ export const SecuritySignUp: FC<{
       $(FormRow, {
         children: addkeys([
           $(FormLabel, {label: 'Gender'}),
-          $(InputSelect, {
+          $(InputSelect<TUserGender>, {
             value: form.data.gender,
             valueSet: form.link('gender'),
             options: GENDER_OPTIONS,

@@ -1,5 +1,5 @@
 import {css} from '@emotion/css'
-import {createElement as $, FC, useState} from 'react'
+import {createElement as $, useState} from 'react'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {hsla} from '../../utils/hsla'
@@ -7,22 +7,24 @@ import {FormMenu} from '../Form/FormMenu'
 import {Icon} from '../Icon'
 import {Popup} from '../Popup'
 
-export interface TSelectOption {
-  key: string
+export interface TSelectOption<T extends string = string> {
+  key: T
   label: string
   icon?: string
   color?: string
 }
 
-export const InputSelect: FC<{
-  value?: string
-  valueSet?: (value: string) => void
-  options: TSelectOption[]
+interface TInputSelectProps<T extends string = string> {
+  value?: T
+  valueSet?: (value: T) => void
+  options: TSelectOption<T>[]
   placeholder?: string
   disabled?: boolean
   minWidth?: number
   position?: 'above' | 'below'
-}> = ({
+}
+
+export const InputSelect = <T extends string = string>({
   value,
   valueSet,
   options,
@@ -30,7 +32,7 @@ export const InputSelect: FC<{
   disabled,
   minWidth,
   position,
-}) => {
+}: TInputSelectProps<T>) => {
   const [open, openSet] = useState(false)
   const current = options.find((i) => i.key === value)
   const bg = disabled

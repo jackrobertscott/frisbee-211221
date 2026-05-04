@@ -1,6 +1,7 @@
 import {TMember} from '@shared/schemas/ioMember'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUserPublic} from '@shared/schemas/ioUser'
+import {TUserGender} from '@shared/schemas/ioUserGender'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {
   $MemberAcceptOrDecline,
@@ -230,7 +231,7 @@ const _TeamMembersViewCreate: FC<{
     email: '',
     firstName: '',
     lastName: '',
-    gender: undefined as undefined | string,
+    gender: undefined as undefined | TUserGender,
   })
   return $(Modal, {
     children: addkeys([
@@ -279,7 +280,7 @@ const _TeamMembersViewCreate: FC<{
           $(FormRow, {
             children: addkeys([
               $(FormLabel, {label: 'Gender'}),
-              $(InputSelect, {
+              $(InputSelect<TUserGender>, {
                 value: form.data.gender,
                 valueSet: form.link('gender'),
                 options: GENDER_OPTIONS,
