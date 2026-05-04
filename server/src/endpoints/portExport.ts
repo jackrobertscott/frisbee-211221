@@ -37,6 +37,11 @@ type TExportContext = {
   usersById: Map<string, TUser>
 }
 
+const SEASON_NAME_COLLATOR = new Intl.Collator('en', {
+  numeric: true,
+  sensitivity: 'base',
+})
+
 const EXPORT_DATASETS = [
   {
     filename: 'fixture-games',
@@ -58,7 +63,7 @@ const EXPORT_DATASETS = [
       return [...fixtures].sort((left, right) => {
         const leftSeasonName = _seasonLabel(seasonsById.get(left.seasonId))
         const rightSeasonName = _seasonLabel(seasonsById.get(right.seasonId))
-        const seasonDiff = leftSeasonName.localeCompare(rightSeasonName)
+        const seasonDiff = _compareSeasonNames(leftSeasonName, rightSeasonName)
         if (seasonDiff) return seasonDiff
         const dateDiff = String(left.date ?? '').localeCompare(
           String(right.date ?? ''),
@@ -105,7 +110,7 @@ const EXPORT_DATASETS = [
           teamName: _teamLabel(teamsById.get(result.teamId)),
         })),
       ).sort((a, b) => {
-        const seasonDiff = a.seasonName.localeCompare(b.seasonName)
+        const seasonDiff = _compareSeasonNames(a.seasonName, b.seasonName)
         if (seasonDiff) return seasonDiff
         const teamDiff = String(a.teamName ?? '').localeCompare(String(b.teamName ?? ''))
         if (teamDiff) return teamDiff
@@ -122,7 +127,7 @@ const EXPORT_DATASETS = [
         signUpOpen: season.signUpOpen ? 'Yes' : '',
         isHidden: season.isHidden ? 'Yes' : '',
         scoringSystem: season.useOfficialScoring ? 'Official' : 'Simple',
-      })).sort((a, b) => a.name.localeCompare(b.name))
+      })).sort((a, b) => _compareSeasonNames(a.name, b.name))
     },
   },
   {
@@ -156,17 +161,20 @@ const EXPORT_DATASETS = [
     build: ({fixturesById, reports, seasonsById, teamsById, usersById}) => {
       return [...reports].sort((left, right) => {
         const leftFixture = fixturesById.get(left.fixtureId)
+        const leftGame = _fixtureGameForReport(leftFixture, left)
         const leftTeam = teamsById.get(left.teamId)
         const leftSeason =
           (leftFixture ? seasonsById.get(leftFixture.seasonId) : undefined) ??
           (leftTeam ? seasonsById.get(leftTeam.seasonId) : undefined)
         const rightFixture = fixturesById.get(right.fixtureId)
+        const rightGame = _fixtureGameForReport(rightFixture, right)
         const rightTeam = teamsById.get(right.teamId)
         const rightSeason =
           (rightFixture ? seasonsById.get(rightFixture.seasonId) : undefined) ??
           (rightTeam ? seasonsById.get(rightTeam.seasonId) : undefined)
 
-        const seasonDiff = _seasonLabel(leftSeason).localeCompare(
+        const seasonDiff = _compareSeasonNames(
+          _seasonLabel(leftSeason),
           _seasonLabel(rightSeason),
         )
         if (seasonDiff) return seasonDiff
@@ -178,6 +186,14 @@ const EXPORT_DATASETS = [
           String(rightFixture?.title ?? ''),
         )
         if (fixtureDiff) return fixtureDiff
+        const timeDiff = String(leftGame?.time ?? '').localeCompare(
+          String(rightGame?.time ?? ''),
+        )
+        if (timeDiff) return timeDiff
+        const placeDiff = String(leftGame?.place ?? '').localeCompare(
+          String(rightGame?.place ?? ''),
+        )
+        if (placeDiff) return placeDiff
         const teamDiff = _teamLabel(leftTeam).localeCompare(_teamLabel(rightTeam))
         if (teamDiff) return teamDiff
         return _teamLabel(teamsById.get(left.teamAgainstId)).localeCompare(
@@ -261,7 +277,7 @@ const EXPORT_DATASETS = [
           pending: member.pending ? 'Pending' : '',
         }
       }).sort((a, b) => {
-        const seasonDiff = a.seasonName.localeCompare(b.seasonName)
+        const seasonDiff = _compareSeasonNames(a.seasonName, b.seasonName)
         if (seasonDiff) return seasonDiff
         const teamDiff = String(a.teamName ?? '').localeCompare(String(b.teamName ?? ''))
         if (teamDiff) return teamDiff
@@ -283,7 +299,7 @@ const EXPORT_DATASETS = [
         email: team.email,
         phone: team.phone,
       })).sort((a, b) => {
-        const seasonDiff = a.seasonName.localeCompare(b.seasonName)
+        const seasonDiff = _compareSeasonNames(a.seasonName, b.seasonName)
         if (seasonDiff) return seasonDiff
         const divisionDiff = String(a.division ?? '').localeCompare(String(b.division ?? ''))
         if (divisionDiff) return divisionDiff
@@ -484,14 +500,30 @@ const _sortExportRecords = (
 ) => {
   return [...records].sort((left, right) => {
     for (const field of fields) {
-      const diff = _compareExportValues(left[field], right[field])
+      const diff = _compareExportValues(field, left[field], right[field])
       if (diff) return diff
     }
     return 0
   })
 }
 
-const _compareExportValues = (left: unknown, right: unknown) => {
+const _fixtureGameForReport = (fixture: TFixture | undefined, report: TReport) =>
+  fixture?.games.find(
+    (game) =>
+      (game.team1Id === report.teamId &&
+        game.team2Id === report.teamAgainstId) ||
+      (game.team1Id === report.teamAgainstId &&
+        game.team2Id === report.teamId),
+  )
+
+const _compareExportValues = (
+  field: string,
+  left: unknown,
+  right: unknown,
+) => {
+  if (field === 'seasonName') {
+    return _compareSeasonNames(left, right)
+  }
   if (typeof left === 'number' || typeof right === 'number') {
     const leftValue = typeof left === 'number' ? left : Number.MAX_SAFE_INTEGER
     const rightValue =
@@ -528,6 +560,9 @@ const _sortUserEmails = (emails: TUserEmail[]) => {
     return a.primary ? -1 : 1
   })
 }
+
+const _compareSeasonNames = (left: unknown, right: unknown) =>
+  SEASON_NAME_COLLATOR.compare(String(left ?? ''), String(right ?? ''))
 
 const _seasonLabel = (season?: TSeason) => season?.name ?? 'Unknown season'
 
