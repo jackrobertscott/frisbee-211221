@@ -61,8 +61,8 @@ const EXPORT_DATASETS = [
         return fixture.games.map((game) => ({
           seasonName: _seasonLabel(season),
           fixtureTitle: fixture.title,
-          fixtureDate: fixture.date,
-          grading: fixture.grading,
+          fixtureDate: _humanReadableDate(fixture.date),
+          grading: fixture.grading ? 'Yes' : '',
           fixtureCreatedByName: _userLabel(createdBy),
           fixtureCreatedByEmail: _primaryEmail(createdBy),
           gameTime: game.time,
@@ -72,6 +72,26 @@ const EXPORT_DATASETS = [
           team2Name: _teamLabel(teamsById.get(game.team2Id)),
           team2Score: game.team2Score,
         }))
+      }).sort((a, b) => {
+        const seasonDiff = a.seasonName.localeCompare(b.seasonName)
+        if (seasonDiff) return seasonDiff
+        const dateDiff = String(a.fixtureDate ?? '').localeCompare(
+          String(b.fixtureDate ?? ''),
+        )
+        if (dateDiff) return dateDiff
+        const fixtureDiff = String(a.fixtureTitle ?? '').localeCompare(
+          String(b.fixtureTitle ?? ''),
+        )
+        if (fixtureDiff) return fixtureDiff
+        const team1Diff = String(a.team1Name ?? '').localeCompare(
+          String(b.team1Name ?? ''),
+        )
+        if (team1Diff) return team1Diff
+        const team2Diff = String(a.team2Name ?? '').localeCompare(
+          String(b.team2Name ?? ''),
+        )
+        if (team2Diff) return team2Diff
+        return 0
       })
     },
   },
@@ -86,19 +106,25 @@ const EXPORT_DATASETS = [
           position: result.position,
           teamName: _teamLabel(teamsById.get(result.teamId)),
         })),
-      )
+      ).sort((a, b) => {
+        const seasonDiff = a.seasonName.localeCompare(b.seasonName)
+        if (seasonDiff) return seasonDiff
+        const teamDiff = String(a.teamName ?? '').localeCompare(String(b.teamName ?? ''))
+        if (teamDiff) return teamDiff
+        return 0
+      })
     },
   },
   {
     filename: 'seasons',
-    fields: ['name', 'signUpOpen', 'useOfficialScoring', 'isHidden'],
+    fields: ['name', 'signUpOpen', 'scoringSystem', 'isHidden'],
     build: ({seasons}) => {
       return seasons.map((season) => ({
         name: season.name,
-        signUpOpen: season.signUpOpen,
-        isHidden: season.isHidden,
-        useOfficialScoring: season.useOfficialScoring,
-      }))
+        signUpOpen: season.signUpOpen ? 'Yes' : '',
+        isHidden: season.isHidden ? 'Yes' : '',
+        scoringSystem: season.useOfficialScoring ? 'Official' : 'Simple',
+      })).sort((a, b) => a.name.localeCompare(b.name))
     },
   },
   {
@@ -111,7 +137,7 @@ const EXPORT_DATASETS = [
       'againstTeamName',
       'scoreFor',
       'scoreAgainst',
-      'spirit',
+      'spiritSimple',
       'spiritP1',
       'spiritP2',
       'spiritP3',
@@ -144,7 +170,7 @@ const EXPORT_DATASETS = [
         return {
           seasonName: _seasonLabel(season),
           fixtureTitle: fixture?.title,
-          fixtureDate: fixture?.date,
+          fixtureDate: _humanReadableDate(fixture?.date),
           teamName: _teamLabel(team),
           againstTeamName: _teamLabel(againstTeam),
           submittedByName: submittedBy ? _userLabel(submittedBy) : undefined,
@@ -169,7 +195,7 @@ const EXPORT_DATASETS = [
           mvpFemale2Email: _primaryEmail(
             usersById.get(report.mvpFemale2 ?? ''),
           ),
-          spirit: report.spirit,
+          spiritSimple: report.spirit,
           spiritP1: report.spiritP1,
           spiritP2: report.spiritP2,
           spiritP3: report.spiritP3,
@@ -177,6 +203,24 @@ const EXPORT_DATASETS = [
           spiritP5: report.spiritP5,
           spiritComment: report.spiritComment,
         }
+      }).sort((a, b) => {
+        const seasonDiff = a.seasonName.localeCompare(b.seasonName)
+        if (seasonDiff) return seasonDiff
+        const dateDiff = String(a.fixtureDate ?? '').localeCompare(
+          String(b.fixtureDate ?? ''),
+        )
+        if (dateDiff) return dateDiff
+        const fixtureDiff = String(a.fixtureTitle ?? '').localeCompare(
+          String(b.fixtureTitle ?? ''),
+        )
+        if (fixtureDiff) return fixtureDiff
+        const teamDiff = String(a.teamName ?? '').localeCompare(
+          String(b.teamName ?? ''),
+        )
+        if (teamDiff) return teamDiff
+        return String(a.againstTeamName ?? '').localeCompare(
+          String(b.againstTeamName ?? ''),
+        )
       })
     },
   },
@@ -204,15 +248,23 @@ const EXPORT_DATASETS = [
           teamName: _teamLabel(team),
           userName: user ? _userLabel(user) : undefined,
           userEmail: _primaryEmail(user),
-          captain: !!member.captain,
-          pending: member.pending,
+          captain: member.captain ? 'Yes' : '',
+          pending: member.pending ? 'Pending' : '',
         }
+      }).sort((a, b) => {
+        const seasonDiff = a.seasonName.localeCompare(b.seasonName)
+        if (seasonDiff) return seasonDiff
+        const teamDiff = String(a.teamName ?? '').localeCompare(String(b.teamName ?? ''))
+        if (teamDiff) return teamDiff
+        const userDiff = String(a.userName ?? '').localeCompare(String(b.userName ?? ''))
+        if (userDiff) return userDiff
+        return String(a.userEmail ?? '').localeCompare(String(b.userEmail ?? ''))
       })
     },
   },
   {
     filename: 'teams',
-    fields: ['name', 'seasonName', 'division', 'color', 'email', 'phone'],
+    fields: ['seasonName', 'name', 'division', 'color', 'email', 'phone'],
     build: ({seasonsById, teams}) => {
       return teams.map((team) => ({
         seasonName: _seasonLabel(seasonsById.get(team.seasonId)),
@@ -221,7 +273,13 @@ const EXPORT_DATASETS = [
         color: team.color,
         email: team.email,
         phone: team.phone,
-      }))
+      })).sort((a, b) => {
+        const seasonDiff = a.seasonName.localeCompare(b.seasonName)
+        if (seasonDiff) return seasonDiff
+        const divisionDiff = String(a.division ?? '').localeCompare(String(b.division ?? ''))
+        if (divisionDiff) return divisionDiff
+        return a.name.localeCompare(b.name)
+      })
     },
   },
   {
@@ -241,42 +299,45 @@ const EXPORT_DATASETS = [
           userName: _userName(user),
           userPrimaryEmail: _primaryEmail(user),
           email: email.value,
-          verified: email.verified,
-          primary: email.primary,
-          createdOn: email.createdOn,
+          verified: email.verified ? 'Yes' : '',
+          primary: email.primary ? 'Yes' : '',
+          createdOn: _humanReadableDate(email.createdOn),
         })),
-      )
+      ).sort((a, b) => {
+        const userDiff = String(a.userName ?? '').localeCompare(String(b.userName ?? ''))
+        if (userDiff) return userDiff
+        const emailDiff = String(a.email ?? '').localeCompare(String(b.email ?? ''))
+        if (emailDiff) return emailDiff
+        return 0
+    })
     },
   },
   {
     filename: 'users',
     fields: [
-      'name',
       'firstName',
       'lastName',
       'primaryEmail',
       'gender',
-      'lastSeasonName',
-      'bio',
-      'avatarUrl',
       'admin',
       'termsAccepted',
+      'createdOn',
     ],
-    build: ({seasonsById, users}) => {
+    build: ({users}) => {
       return users.map((user) => ({
-        name: _userName(user),
         firstName: user.firstName,
         lastName: user.lastName,
         primaryEmail: _primaryEmail(user),
+        primaryEmailVerified: _primaryEmailVerified(user),
         gender: user.gender,
-        admin: user.admin,
-        termsAccepted: user.termsAccepted,
-        lastSeasonName: user.lastSeasonId
-          ? _seasonLabel(seasonsById.get(user.lastSeasonId))
-          : undefined,
-        avatarUrl: user.avatarUrl,
-        bio: user.bio,
-      }))
+        admin: user.admin ? 'Yes' : '',
+        termsAccepted: user.termsAccepted ? 'Yes' : '',
+        createdOn: _humanReadableDate(user.createdOn),
+      })).sort((a, b) => {
+        const nameDiff = String(a.firstName ?? '').localeCompare(String(b.firstName ?? ''))
+        if (nameDiff) return nameDiff
+        return String(a.lastName ?? '').localeCompare(String(b.lastName ?? ''))
+      })
     },
   },
 ] satisfies readonly TExportDatasetDef[]
@@ -320,7 +381,9 @@ const _csvify = (records: TExportRecord[], fields: readonly string[]) => {
       )
       .join(','),
   )
-  return [headings.map(_csvEscape).join(','), ...rows].join('\n').concat('\n')
+  return [headings.map(_csvHeading).map(_csvEscape).join(','), ...rows]
+    .join('\n')
+    .concat('\n')
 }
 
 const _jsonify = (records: TExportRecord[], fields: readonly string[]) => {
@@ -365,6 +428,13 @@ const _csvValue = (value: unknown) => {
 }
 
 const _csvEscape = (value: string) => `"${value.replace(/"/g, '""')}"`
+
+const _csvHeading = (value: string) =>
+  value
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+    .replace(/([a-z\d])([A-Z])/g, '$1_$2')
+    .replace(/[^A-Za-z\d]+/g, '_')
+    .toUpperCase()
 
 const _exportFilename = (generatedOn: string, fileType: TExportFileType) => {
   const stamp = generatedOn.replace(/[:.]/g, '-')
@@ -437,6 +507,11 @@ const _primaryEmail = (user?: TUser) => {
   return userEmail.primary(user)?.value
 }
 
+const _primaryEmailVerified = (user?: TUser) => {
+  if (!user) return undefined
+  return userEmail.primary(user)?.verified
+}
+
 const _sortUserEmails = (emails: TUserEmail[]) => {
   return [...emails].sort((a, b) => {
     if (a.primary === b.primary) return a.value.localeCompare(b.value)
@@ -447,3 +522,9 @@ const _sortUserEmails = (emails: TUserEmail[]) => {
 const _seasonLabel = (season?: TSeason) => season?.name ?? 'Unknown season'
 
 const _teamLabel = (team?: TTeam) => team?.name ?? 'Unknown team'
+
+const _humanReadableDate = (dateStr?: string) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return isNaN(date.getTime()) ? dateStr : date.toLocaleDateString('en-AU')
+}
