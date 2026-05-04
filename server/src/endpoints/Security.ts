@@ -16,8 +16,10 @@ import {$Session} from '../tables/$Session'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
+import authAttemptLimit from '../utils/authAttemptLimit'
 import gatekeeper from '../utils/gatekeeper'
 import hash from '../utils/hash'
+import intrusion from '../utils/intrusion'
 import {selectSafeUserFields} from './userSafe'
 import {userEmail} from './userEmail'
 
@@ -93,17 +95,23 @@ export default new Map<string, RequestHandler>([
     ...SecurityLoginDef,
     handler:
       ({seasonId, email, password, userAgent}) =>
-      async () => {
+      async (req) => {
+        const ip = intrusion.getClientIp(req)
+        authAttemptLimit.assertAllowed('login', email, ip)
         const user = await userEmail.maybeUser(email)
-        if (!user?.password?.trim().length)
-          throw unauthorizedError(INVALID_LOGIN_MESSAGE, {
-            errorCode: 'auth.invalid_login',
-          })
-        if (!(await hash.compare(password, user.password))) {
+        if (!user?.password?.trim().length) {
+          authAttemptLimit.registerFailure('login', email, ip)
           throw unauthorizedError(INVALID_LOGIN_MESSAGE, {
             errorCode: 'auth.invalid_login',
           })
         }
+        if (!(await hash.compare(password, user.password))) {
+          authAttemptLimit.registerFailure('login', email, ip)
+          throw unauthorizedError(INVALID_LOGIN_MESSAGE, {
+            errorCode: 'auth.invalid_login',
+          })
+        }
+        authAttemptLimit.reset('login', email, ip)
         const session = await gatekeeper.createUserSession(user, userAgent)
         return _addTeamOfSeason(user, session, seasonId)
       },
@@ -150,16 +158,22 @@ export default new Map<string, RequestHandler>([
     ...SecurityVerifyDef,
     handler:
       ({seasonId, email, code, newPassword, userAgent}) =>
-      async () => {
+      async (req) => {
+        const ip = intrusion.getClientIp(req)
+        authAttemptLimit.assertAllowed('verify', email, ip)
         let user = await userEmail.maybeUser(email)
-        if (!user)
+        if (!user) {
+          authAttemptLimit.registerFailure('verify', email, ip)
           throw notFoundError(`User with email ${email} does not exist.`, {
             errorCode: 'user.not_found',
           })
-        if (!userEmail.isCodeEqual(user, email, code))
+        }
+        if (!userEmail.isCodeEqual(user, email, code)) {
+          authAttemptLimit.registerFailure('verify', email, ip)
           throw badRequestError(`Code is incorrect.`, {
             errorCode: 'user.code_invalid',
           })
+        }
         if (userEmail.isCodeExpired(user, email)) {
           const subject = user.password ? 'Restore Account' : 'Verify Email'
           await userEmail.codeSendSave(user, email, subject)
@@ -177,6 +191,7 @@ export default new Map<string, RequestHandler>([
           user = await $User.updateOne({id: user.id}, {password})
         }
         user = await userEmail.verify(user, email)
+        authAttemptLimit.reset('verify', email, ip)
         const session = await gatekeeper.createUserSession(user, userAgent)
         return _addTeamOfSeason(user, session, seasonId)
       },
