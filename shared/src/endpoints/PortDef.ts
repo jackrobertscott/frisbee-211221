@@ -8,6 +8,9 @@ export const PortImportDef = {
 
 export const PortExportDef = {
   path: '/PortExport',
+  payload: io.object({
+    fileType: io.enum(['csv', 'json']),
+  }),
   result: io.any(),
 } satisfies TEndpointDef
 

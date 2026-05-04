@@ -9,14 +9,17 @@ import {download} from '../../utils/download'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
+import {FormLabel} from '../Form/FormLabel'
+import {FormRow} from '../Form/FormRow'
+import {InputSelect} from '../Input/InputSelect'
 import {MockDeleteConfirmation} from '../MockDeleteConfirmation'
 import {MockGenerate} from '../MockGenerate'
 import {Modal} from '../Modal'
 import {Poster} from '../Poster'
-import {Question} from '../Question'
 import {useToaster} from '../Toaster/useToaster'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
+import {useForm} from '../useForm'
 
 export const DashboardPort: FC = () => {
   const auth = useAuth()
@@ -92,29 +95,11 @@ export const DashboardPort: FC = () => {
       $(Fragment, {
         children:
           exporting &&
-          $(Question, {
+          $(_DashboardExport, {
             close: () => exportingSet(false),
-            title: 'Export',
-            description:
-              'Export all app data as a zip archive containing JSON backups, CSV copies, and a manifest?',
-            options: [
-              {
-                label: 'Cancel',
-                click: () => exportingSet(false),
-                disabled: $export.loading,
-              },
-              {
-                label: $export.loading ? 'Loading' : 'Export',
-                disabled: $export.loading,
-                click: async () => {
-                  const blob = await $export.fetch({})
-                  const filename = `frisbee-export-${dayjs().format('YYYY-MM-DD-HHmmss')}.zip`
-                  download.blob(blob as Blob, filename)
-                  toaster.notify('Export downloaded.')
-                  exportingSet(false)
-                },
-              },
-            ],
+            done: () => exportingSet(false),
+            exportEndpoint: $export,
+            toasterNotify: toaster.notify,
           }),
       }),
       $(Fragment, {
@@ -134,6 +119,89 @@ export const DashboardPort: FC = () => {
             close: () => deletingSet(false),
             done: () => deletingSet(false),
           }),
+      }),
+    ]),
+  })
+}
+
+export const _DashboardExport: FC<{
+  close: () => void
+  done: () => void
+  exportEndpoint: {
+    loading: boolean
+    fetch: (payload: {fileType: 'csv' | 'json'}) => Promise<unknown>
+  }
+  toasterNotify: (text: string) => void
+}> = ({close, done, exportEndpoint, toasterNotify}) => {
+  const form = useForm<{
+    fileType: 'csv' | 'json'
+  }>({
+    fileType: 'csv',
+  })
+
+  return $(Modal, {
+    width: theme.fib[12],
+    children: addkeys([
+      $(TopBar, {
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: 'Export',
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
+      }),
+      $(Form, {
+        background: theme.bgMinor,
+        children: addkeys([
+          $(Poster, {
+            title: 'Export Data',
+            description:
+              'Export all app data as a flat zip archive containing only the selected file type.',
+          }),
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {
+                label: 'File Type',
+              }),
+              $(InputSelect, {
+                value: form.data.fileType,
+                valueSet: (value) => form.link('fileType')(value as 'csv' | 'json'),
+                options: [
+                  {key: 'csv', label: 'CSV'},
+                  {key: 'json', label: 'JSON'},
+                ],
+              }),
+            ]),
+          }),
+          $(FormRow, {
+            children: addkeys([
+              $(FormBadge, {
+                grow: true,
+                label: 'Cancel',
+                click: close,
+                disabled: exportEndpoint.loading,
+              }),
+              $(FormBadge, {
+                grow: true,
+                label: exportEndpoint.loading ? 'Loading' : 'Export',
+                disabled: exportEndpoint.loading,
+                click: async () => {
+                  const blob = await exportEndpoint.fetch({
+                    fileType: form.data.fileType,
+                  })
+                  const filename = `frisbee-export-${form.data.fileType}-${dayjs().format('YYYY-MM-DD-HHmmss')}.zip`
+                  download.blob(blob as Blob, filename)
+                  toasterNotify('Export downloaded.')
+                  done()
+                },
+              }),
+            ]),
+          }),
+        ]),
       }),
     ]),
   })
