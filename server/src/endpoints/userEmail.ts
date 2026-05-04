@@ -5,6 +5,7 @@ import {
 } from '@shared/errors'
 import {TUser} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
+import config from '../config'
 import {$User} from '../tables/$User'
 import hash from '../utils/hash'
 import {mail} from '../utils/mail'
@@ -110,6 +111,12 @@ export const userEmail = {
   async codeSend(email: string, firstName: string, subject: string) {
     const code = normalizeCode(random.randomString(8))
     const codeSliced = `${code.slice(0, 4)}-${code.slice(4, 8)}`
+    if (!config.IS_PRODUCTION) {
+      console.log(
+        `[security-code] ${subject} ${email} ${codeSliced} (email delivery skipped in development)`
+      )
+      return code
+    }
     await mail.send({
       to: [email],
       subject: subject,

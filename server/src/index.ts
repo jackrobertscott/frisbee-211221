@@ -19,7 +19,7 @@ void bootstrap().catch((error) => {
 })
 
 async function bootstrap() {
-  if (config.URL_CLIENT.startsWith('http://localhost')) {
+  if (!config.IS_PRODUCTION) {
     startServer()
     return
   }
@@ -53,7 +53,7 @@ function startServer() {
   attachWorkerClusterLifecycle(server)
   server.listen(config.PORT, () => {
     const cid = cluster.worker ? `WORKER ${cluster.worker.id}` : 'MASTER'
-    const envName = config.URL_CLIENT.startsWith('http://localhost') ? 'DEV' : 'PROD'
+    const envName = config.IS_PRODUCTION ? 'PROD' : 'DEV'
     console.log(`Started: ${envName} ${cid} ${config.PORT}`)
   })
 }

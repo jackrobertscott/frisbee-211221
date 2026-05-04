@@ -50,17 +50,24 @@ if (!envResult.ok) {
 
 const portResult = io.number().validate(Number(envResult.value.PORT))
 
-if (!portResult.ok || !Number.isInteger(portResult.value) || portResult.value <= 0) {
-  throw new Error('Invalid server environment: [PORT]: Value must be a positive integer.')
+if (
+  !portResult.ok ||
+  !Number.isInteger(portResult.value) ||
+  portResult.value <= 0
+) {
+  throw new Error(
+    'Invalid server environment: [PORT]: Value must be a positive integer.',
+  )
 }
 
 const env = envResult.value
+const {NODE_ENV: _nodeEnv, DEBUG: _debug, PORT: _port, ...configEnv} = env
 
 const config = {
-  ...env,
+  ...configEnv,
   // Dockerfile injects NODE_ENV=production
-  NODE_ENV: env.NODE_ENV || 'development',
-  DEBUG: env.DEBUG === 'true' || env.NODE_ENV !== 'production',
+  IS_PRODUCTION: env.NODE_ENV === 'production',
+  DEBUG: env.DEBUG === 'true',
   PORT: portResult.value,
 }
 
