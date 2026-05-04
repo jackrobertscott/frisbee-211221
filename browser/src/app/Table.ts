@@ -112,8 +112,12 @@ const _TableCell: FC<{
       flexShrink: 0,
       flexGrow: grow,
       flexDirection: 'column',
+      alignSelf: 'stretch',
       minWidth: theme.fib[8] * grow,
       overflow: 'hidden',
+      '& > *': {
+        flexGrow: 1,
+      },
       '& div': {
         borderBottom: 'none',
       },
