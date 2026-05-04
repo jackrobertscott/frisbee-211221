@@ -36,6 +36,7 @@ import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
 import {FormColumn} from '../Form/FormColumn'
 import {FormLabel} from '../Form/FormLabel'
+import {FormRow} from '../Form/FormRow'
 import {Modal} from '../Modal'
 import {Pager} from '../Pager/Pager'
 import {usePager} from '../Pager/usePager'
@@ -453,9 +454,15 @@ const _DashboardReportsForm: FC<{
             background: theme.bgMinor,
             children: addkeys([
               submittedBy &&
-                $(FormLabel, {
-                  label: `Submitted by: ${submittedBy}`,
-                  background: theme.bg,
+                $(FormRow, {
+                  children: addkeys([
+                    $(FormLabel, {label: 'Submitted by'}),
+                    $(FormLabel, {
+                      label: submittedBy,
+                      background: theme.bgDisabled,
+                      grow: true,
+                    }),
+                  ]),
                 }),
               renderFixtureSelect(
                 form.data.fixtureId,
