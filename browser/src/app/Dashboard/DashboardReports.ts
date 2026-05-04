@@ -53,12 +53,14 @@ export const DashboardReports: FC = () => {
   const toaster = useToaster()
   const $teamList = useEndpoint($TeamListOfSeason)
   const $reportList = useEndpoint($ReportListOfSeason)
+  const $userList = useEndpoint($UserListManyById)
   const $reportCreate = useEndpoint($ReportCreate)
   const $reportUpdate = useEndpoint($ReportUpdate)
   const $reportDelete = useEndpoint($ReportDelete)
   const [teams, teamsSet] = useState<TTeam[]>()
   const [fixtures, fixturesSet] = useState<TFixture[]>()
   const [_reports, reportsSet] = useState<TReport[]>()
+  const [submitters, submittersSet] = useState<TUserPublic[]>()
   const [creating, creatingSet] = useState(false)
   const [deleting, deletingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
@@ -79,6 +81,27 @@ export const DashboardReports: FC = () => {
       teamList()
     }
   }, [auth.current, seasonId])
+  useEffect(() => {
+    if (!_reports) return
+
+    const userIds = Array.from(
+      new Set(_reports.map((report) => report.userId).filter(Boolean))
+    ) as string[]
+
+    if (!userIds.length) {
+      submittersSet([])
+      return
+    }
+
+    let cancelled = false
+    $userList.fetch({userIds}).then((users) => {
+      if (!cancelled) submittersSet(users)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [_reports])
   const reports = _reports?.slice(pager.skip, pager.skip + pager.limit)
   return $(Fragment, {
     children: addkeys([
@@ -251,6 +274,7 @@ export const DashboardReports: FC = () => {
             teams,
             fixtures,
             data: current,
+            submitter: submitters?.find((i) => i.id === current.userId),
             options: [{label: 'Delete', click: () => deletingSet(true)}],
             loading: $reportUpdate.loading,
             dataSet: (data: any) =>
@@ -294,9 +318,20 @@ const _DashboardReportsForm: FC<{
   loading?: boolean
   options?: {label: string; click: () => void}[]
   data?: Partial<TReport>
+  submitter?: TUserPublic
   dataSet: (data: Partial<TReport>) => void
   close: () => void
-}> = ({title, teams, fixtures, loading, options, data, dataSet, close}) => {
+}> = ({
+  title,
+  teams,
+  fixtures,
+  loading,
+  options,
+  data,
+  submitter,
+  dataSet,
+  close,
+}) => {
   const auth = useAuth()
   const toaster = useToaster()
   const $fixtureAgainst = useEndpoint($ReportGetFixtureAgainst)
@@ -382,6 +417,12 @@ const _DashboardReportsForm: FC<{
     dataSet(form.data)
   }
 
+  const submittedBy = submitter
+    ? `${submitter.firstName} ${submitter.lastName}`.trim()
+    : data?.userId
+    ? data.userId
+    : undefined
+
   return $(Fragment, {
     children: addkeys([
       $(Modal, {
@@ -411,6 +452,11 @@ const _DashboardReportsForm: FC<{
           $(Form, {
             background: theme.bgMinor,
             children: addkeys([
+              submittedBy &&
+                $(FormLabel, {
+                  label: `Submitted by: ${submittedBy}`,
+                  background: theme.bg,
+                }),
               renderFixtureSelect(
                 form.data.fixtureId,
                 form.link('fixtureId'),
