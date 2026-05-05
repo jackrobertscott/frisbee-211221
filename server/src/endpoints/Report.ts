@@ -6,7 +6,9 @@ import {
   ReportListOfFixtureDef,
   ReportListOfSeasonDef,
   ReportMissingListDef,
+  ReportSearchOfSeasonDef,
   ReportUpdateDef,
+  TReportSearchRow,
 } from '@shared/endpoints/ReportDef'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {validateOfficialSpiritComment} from '@shared/utils/reportValidation'
@@ -18,6 +20,8 @@ import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
+import mongo from '../utils/mongo'
+import {regex} from '../utils/regex'
 import {requireAccess} from './requireAccess'
 import {requireTeam} from './requireTeam'
 
@@ -35,6 +39,164 @@ function assertOfficialSpiritComment(
       errorCode: 'report.spirit_comment_required',
     })
   }
+}
+
+function createReportSearchPipeline({
+  seasonId,
+  search,
+  limit,
+  skip,
+}: {
+  seasonId: string
+  search?: string
+  limit?: number
+  skip?: number
+}) {
+  const trimmedSearch = search?.trim()
+  const pipeline: Record<string, any>[] = [
+    {
+      $lookup: {
+        from: 'fixture',
+        localField: 'fixtureId',
+        foreignField: 'id',
+        as: 'fixture',
+      },
+    },
+    {$unwind: '$fixture'},
+    {$match: {'fixture.seasonId': seasonId}},
+    {
+      $lookup: {
+        from: 'team',
+        localField: 'teamId',
+        foreignField: 'id',
+        as: 'team',
+      },
+    },
+    {
+      $unwind: {
+        path: '$team',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: 'team',
+        localField: 'teamAgainstId',
+        foreignField: 'id',
+        as: 'againstTeam',
+      },
+    },
+    {
+      $unwind: {
+        path: '$againstTeam',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: 'user',
+        localField: 'userId',
+        foreignField: 'id',
+        as: 'submitter',
+      },
+    },
+    {
+      $unwind: {
+        path: '$submitter',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $addFields: {
+        submitterName: {
+          $trim: {
+            input: {
+              $concat: [
+                {$ifNull: ['$submitter.firstName', '']},
+                ' ',
+                {$ifNull: ['$submitter.lastName', '']},
+              ],
+            },
+          },
+        },
+      },
+    },
+  ]
+
+  if (trimmedSearch) {
+    const searchRegex = regex.escape(trimmedSearch)
+    pipeline.push({
+      $match: {
+        $or: [
+          {'fixture.title': {$regex: searchRegex, $options: 'i'}},
+          {'team.name': {$regex: searchRegex, $options: 'i'}},
+          {'againstTeam.name': {$regex: searchRegex, $options: 'i'}},
+          {submitterName: {$regex: searchRegex, $options: 'i'}},
+          {userId: {$regex: searchRegex, $options: 'i'}},
+          {spiritComment: {$regex: searchRegex, $options: 'i'}},
+        ],
+      },
+    })
+  }
+
+  pipeline.push({
+    $facet: {
+      meta: [{$count: 'count'}],
+      reports: [
+        {$sort: {createdOn: -1}},
+        ...(skip ? [{$skip: skip}] : []),
+        ...(limit !== undefined ? [{$limit: limit}] : []),
+        {
+          $project: {
+            _id: 0,
+            report: {
+              id: '$id',
+              createdOn: '$createdOn',
+              updatedOn: '$updatedOn',
+              teamId: '$teamId',
+              teamAgainstId: '$teamAgainstId',
+              fixtureId: '$fixtureId',
+              userId: {$ifNull: ['$userId', '$$REMOVE']},
+              scoreFor: '$scoreFor',
+              scoreAgainst: '$scoreAgainst',
+              mvpMale: {$ifNull: ['$mvpMale', '$$REMOVE']},
+              mvpMale2: {$ifNull: ['$mvpMale2', '$$REMOVE']},
+              mvpFemale: {$ifNull: ['$mvpFemale', '$$REMOVE']},
+              mvpFemale2: {$ifNull: ['$mvpFemale2', '$$REMOVE']},
+              spirit: {$ifNull: ['$spirit', '$$REMOVE']},
+              spiritComment: '$spiritComment',
+              spiritP1: {$ifNull: ['$spiritP1', '$$REMOVE']},
+              spiritP2: {$ifNull: ['$spiritP2', '$$REMOVE']},
+              spiritP3: {$ifNull: ['$spiritP3', '$$REMOVE']},
+              spiritP4: {$ifNull: ['$spiritP4', '$$REMOVE']},
+              spiritP5: {$ifNull: ['$spiritP5', '$$REMOVE']},
+            },
+            fixtureTitle: {$ifNull: ['$fixture.title', '$fixtureId']},
+            teamName: {$ifNull: ['$team.name', '$teamId']},
+            teamColor: {$ifNull: ['$team.color', '$$REMOVE']},
+            againstName: {$ifNull: ['$againstTeam.name', '$teamAgainstId']},
+            againstColor: {$ifNull: ['$againstTeam.color', '$$REMOVE']},
+            submitterName: {
+              $cond: [
+                {$gt: [{$strLenCP: '$submitterName'}, 0]},
+                '$submitterName',
+                {$ifNull: ['$userId', '...']},
+              ],
+            },
+          },
+        },
+      ],
+    },
+  })
+
+  pipeline.push({
+    $project: {
+      count: {$ifNull: [{$arrayElemAt: ['$meta.count', 0]}, 0]},
+      reports: '$reports',
+    },
+  })
+
+  return pipeline
 }
 
 export default new Map<string, RequestHandler>([
@@ -62,6 +224,21 @@ export default new Map<string, RequestHandler>([
           $Report.getMany(query, {sort: {createdOn: -1}}),
         ])
         return {count, reports, fixtures}
+      },
+  }),
+
+  createEndpoint({
+    ...ReportSearchOfSeasonDef,
+    handler:
+      ({seasonId, search, limit, skip}, access) =>
+      async (req) => {
+        await requireAccess(req, access)
+        await $Season.getOne({id: seasonId})
+        const collection = await mongo.collection('report')
+        const [result] = (await collection
+          .aggregate(createReportSearchPipeline({seasonId, search, limit, skip}))
+          .toArray()) as Array<{count: number; reports: TReportSearchRow[]}>
+        return result ?? {count: 0, reports: []}
       },
   }),
 

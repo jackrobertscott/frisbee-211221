@@ -1,20 +1,21 @@
 import {authPoint} from '@shared/auth/authAccess'
+import {TReportSearchRow} from '@shared/endpoints/ReportDef'
 import {css} from '@emotion/css'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TReport} from '@shared/schemas/ioReport'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUserPublic} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
-import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
+import {createElement as $, FC, Fragment, useEffect, useRef, useState} from 'react'
+import {$FixtureListOfSeason} from '../../endpoints/Fixture'
 import {
   $ReportCreate,
   $ReportDelete,
   $ReportGetFixtureAgainst,
-  $ReportListOfSeason,
+  $ReportSearchOfSeason,
   $ReportUpdate,
 } from '../../endpoints/Report'
 import {$TeamListOfSeason} from '../../endpoints/Team'
-import {$UserListManyById} from '../../endpoints/User'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
@@ -37,6 +38,7 @@ import {FormBadge} from '../Form/FormBadge'
 import {FormColumn} from '../Form/FormColumn'
 import {FormLabel} from '../Form/FormLabel'
 import {FormRow} from '../Form/FormRow'
+import {InputString} from '../Input/InputString'
 import {Modal} from '../Modal'
 import {Pager} from '../Pager/Pager'
 import {usePager} from '../Pager/usePager'
@@ -47,75 +49,78 @@ import {useToaster} from '../Toaster/useToaster'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
+import {useSling} from '../useThrottle'
 import {MissingReportsControl} from './MissingReportsModal'
 
 export const DashboardReports: FC = () => {
   const auth = useAuth()
   const pager = usePager()
   const toaster = useToaster()
+  const $fixtureList = useEndpoint($FixtureListOfSeason)
   const $teamList = useEndpoint($TeamListOfSeason)
-  const $reportList = useEndpoint($ReportListOfSeason)
-  const $userList = useEndpoint($UserListManyById)
+  const $reportSearch = useEndpoint($ReportSearchOfSeason)
   const $reportCreate = useEndpoint($ReportCreate)
   const $reportUpdate = useEndpoint($ReportUpdate)
   const $reportDelete = useEndpoint($ReportDelete)
   const [teams, teamsSet] = useState<TTeam[]>()
   const [fixtures, fixturesSet] = useState<TFixture[]>()
-  const [_reports, reportsSet] = useState<TReport[]>()
-  const [submitters, submittersSet] = useState<TUserPublic[]>()
+  const [search, searchSet] = useState('')
+  const [reportRows, reportRowsSet] = useState<TReportSearchRow[]>()
   const [creating, creatingSet] = useState(false)
   const [deleting, deletingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
-  const current = currentId && _reports?.find((i) => i.id === currentId)
+  const reportListRequestId = useRef(0)
+  const current = currentId
+    ? reportRows?.find((i) => i.report.id === currentId)
+    : undefined
+  const currentReport = current?.report
   const seasonId = auth.season!.id
-  const reportList = () =>
-    $reportList.fetch({seasonId}).then((i) => {
-      reportsSet(i.reports)
-      fixturesSet(i.fixtures)
+  const reportList = () => {
+    const requestId = ++reportListRequestId.current
+    return $reportSearch.fetch({...pager.data, seasonId, search}).then((i) => {
+      if (requestId !== reportListRequestId.current) return
+      reportRowsSet(i.reports)
       pager.totalSet(i.count)
     })
+  }
+  const reportListDelay = useSling(500, reportList)
+  const fixtureList = () =>
+    $fixtureList.fetch({seasonId}).then((i) => fixturesSet(i))
   const teamList = () =>
     seasonId && $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))
   useEffect(() => {
-    if (!auth.can(authPoint.reportManage)) go.to('/')
-    else {
-      reportList()
-      teamList()
-    }
-  }, [auth.current, seasonId])
-  useEffect(() => {
-    if (!_reports) return
-
-    const userIds = Array.from(
-      new Set(_reports.map((report) => report.userId).filter(Boolean))
-    ) as string[]
-
-    if (!userIds.length) {
-      submittersSet([])
+    if (!auth.can(authPoint.reportManage)) {
+      go.to('/')
       return
     }
 
-    let cancelled = false
-    $userList.fetch({userIds}).then((users) => {
-      if (!cancelled) submittersSet(users)
-    })
+    fixtureList()
+    teamList()
+  }, [auth.current, seasonId])
+  useEffect(() => {
+    if (!auth.can(authPoint.reportManage)) return
+    reportList()
+  }, [pager.data, seasonId])
 
-    return () => {
-      cancelled = true
+  useEffect(() => {
+    if (!auth.can(authPoint.reportManage) || reportRows === undefined) {
+      return
     }
-  }, [_reports])
-  const submitterLabel = (report: TReport) => {
-    const submitter = submitters?.find((i) => i.id === report.userId)
-    if (submitter) return `${submitter.firstName} ${submitter.lastName}`.trim()
-    return report.userId ?? '...'
-  }
-  const reports = _reports?.slice(pager.skip, pager.skip + pager.limit)
+
+    if (pager.skip !== 0) {
+      pager.dataSet({...pager.data, skip: 0})
+      return
+    }
+
+    reportListDelay()
+  }, [search])
+
   return $(Fragment, {
     children: addkeys([
       $(Form, {
         background: theme.bgAdmin,
         children:
-          reports === undefined
+          reportRows === undefined
             ? $(Spinner)
             : addkeys([
                 $('div', {
@@ -124,14 +129,21 @@ export const DashboardReports: FC = () => {
                     gap: theme.fib[5],
                   }),
                   children: addkeys([
+                    $(InputString, {
+                      value: search,
+                      valueSet: searchSet,
+                      placeholder: 'Search',
+                    }),
+                    $('div', {
+                      children: $(MissingReportsControl, {
+                        seasonId,
+                      }),
+                    }),
                     $(FormBadge, {
-                      grow: true,
                       label: 'Create Report',
+                      noshrink: true,
                       background: theme.bgAdminButton,
                       click: () => creatingSet(true),
-                    }),
-                    $(MissingReportsControl, {
-                      seasonId,
                     }),
                   ]),
                 }),
@@ -151,28 +163,20 @@ export const DashboardReports: FC = () => {
                     comment: {label: 'Comment', grow: 5},
                     submitter: {label: 'Submitted by', grow: 3},
                   },
-                  body: reports.map((report) => {
-                    const fixture = fixtures?.find((i) => {
-                      return i.id === report.fixtureId
-                    })
-                    const teamBy = teams?.find((i) => {
-                      return i.id === report.teamId
-                    })
-                    const teamAgainst = teams?.find((i) => {
-                      return i.id === report.teamAgainstId
-                    })
+                  body: reportRows.map((row) => {
+                    const report = row.report
                     return {
-                      key: report.id,
-                      click: () => currentIdSet(report.id),
+                      key: row.report.id,
+                      click: () => currentIdSet(row.report.id),
                       data: {
-                        fixture: {value: fixture?.title ?? report.fixtureId},
+                        fixture: {value: row.fixtureTitle},
                         by: {
-                          value: teamBy?.name ?? report.teamId,
-                          color: teamBy?.color,
+                          value: row.teamName,
+                          color: row.teamColor,
                         },
                         against: {
-                          value: teamAgainst?.name ?? report.teamAgainstId,
-                          color: teamAgainst?.color,
+                          value: row.againstName,
+                          color: row.againstColor,
                         },
                         spirit: {
                           value: auth.season?.useOfficialScoring
@@ -181,7 +185,7 @@ export const DashboardReports: FC = () => {
                               (report.spiritP3 ?? 0) +
                               (report.spiritP4 ?? 0) +
                               (report.spiritP5 ?? 0)
-                            : report.spirit ?? 0,
+                            : (report.spirit ?? 0),
                         },
                         mvps: {
                           children: $(FormLabel, {
@@ -193,11 +197,11 @@ export const DashboardReports: FC = () => {
                                 report.mvpMale2
                                 ? 'check'
                                 : report.mvpFemale && report.mvpMale // At least primary MVPs are selected
-                                ? 'exclamation-circle'
-                                : 'times'
+                                  ? 'exclamation-circle'
+                                  : 'times'
                               : report.mvpFemale && report.mvpMale
-                              ? 'check'
-                              : 'times',
+                                ? 'check'
+                                : 'times',
                           }),
                         },
                         comment: {
@@ -207,7 +211,7 @@ export const DashboardReports: FC = () => {
                           }),
                         },
                         submitter: {
-                          value: submitterLabel(report),
+                          value: row.submitterName,
                         },
                         createdOn: {
                           value: dayjs(report.createdOn).format('DD/MM/YYYY'),
@@ -218,7 +222,7 @@ export const DashboardReports: FC = () => {
                 }),
                 $(Pager, {
                   ...pager,
-                  count: reports?.length,
+                  count: reportRows?.length,
                 }),
               ]),
       }),
@@ -243,29 +247,31 @@ export const DashboardReports: FC = () => {
       }),
       $(Fragment, {
         children:
-          current &&
+          currentReport &&
           teams !== undefined &&
           fixtures !== undefined &&
           $(_DashboardReportsForm, {
             title: 'Edit Report',
             teams,
             fixtures,
-            data: current,
-            submitter: submitters?.find((i) => i.id === current.userId),
+            data: currentReport,
+            submitter: current.submitterName,
             options: [{label: 'Delete', click: () => deletingSet(true)}],
             loading: $reportUpdate.loading,
             dataSet: (data: any) =>
-              $reportUpdate.fetch({...data, reportId: current.id}).then(() => {
-                toaster.notify('Report updated.')
-                reportList()
-              }),
+              $reportUpdate
+                .fetch({...data, reportId: currentReport.id})
+                .then(() => {
+                  toaster.notify('Report updated.')
+                  reportList()
+                }),
             close: () => currentIdSet(undefined),
           }),
       }),
       $(Fragment, {
         children:
           deleting &&
-          current &&
+          currentReport &&
           $(Question, {
             title: 'Delete Report',
             description: `Are you sure you wish to permanently delete this report?`,
@@ -275,7 +281,7 @@ export const DashboardReports: FC = () => {
               {
                 label: $reportDelete.loading ? 'Loading' : 'Delete',
                 click: () =>
-                  $reportDelete.fetch({reportId: current.id}).then(() => {
+                  $reportDelete.fetch({reportId: currentReport.id}).then(() => {
                     currentIdSet(undefined)
                     deletingSet(false)
                     reportList()
@@ -295,7 +301,7 @@ const _DashboardReportsForm: FC<{
   loading?: boolean
   options?: {label: string; click: () => void}[]
   data?: Partial<TReport>
-  submitter?: TUserPublic
+  submitter?: string
   dataSet: (data: Partial<TReport>) => void
   close: () => void
 }> = ({
@@ -343,7 +349,7 @@ const _DashboardReportsForm: FC<{
 
         againstOptionsSet(nextAgainstOptions)
         const hasCurrentSelection = nextAgainstOptions.some(
-          (option) => option.team.id === currentAgainstTeamId
+          (option) => option.team.id === currentAgainstTeamId,
         )
 
         form.patch({
@@ -351,8 +357,8 @@ const _DashboardReportsForm: FC<{
             nextAgainstOptions.length === 1
               ? nextAgainstOptions[0].team.id
               : hasCurrentSelection
-              ? currentAgainstTeamId
-              : undefined,
+                ? currentAgainstTeamId
+                : undefined,
         })
       })
 
@@ -362,7 +368,7 @@ const _DashboardReportsForm: FC<{
   }, [form.data.fixtureId, form.data.teamId])
 
   const chosenAgainst = againstOptions?.find(
-    (i) => i.team.id === form.data.againstTeamId
+    (i) => i.team.id === form.data.againstTeamId,
   )
 
   useEffect(() => {
@@ -394,11 +400,7 @@ const _DashboardReportsForm: FC<{
     dataSet(form.data)
   }
 
-  const submittedBy = submitter
-    ? `${submitter.firstName} ${submitter.lastName}`.trim()
-    : data?.userId
-    ? data.userId
-    : undefined
+  const submittedBy = submitter ?? data?.userId
 
   return $(Fragment, {
     children: addkeys([
@@ -444,7 +446,7 @@ const _DashboardReportsForm: FC<{
                 form.data.fixtureId,
                 form.link('fixtureId'),
                 fixtures,
-                !!data?.fixtureId
+                !!data?.fixtureId,
               ),
               $(FormColumn, {
                 children: addkeys([
@@ -452,14 +454,14 @@ const _DashboardReportsForm: FC<{
                     form.data.teamId,
                     form.link('teamId'),
                     teams,
-                    !!data?.teamId
+                    !!data?.teamId,
                   ),
                   againstOptions &&
                     renderAgainstTeamSelect(
                       form.data.againstTeamId,
                       form.link('againstTeamId'),
                       againstOptions,
-                      !!data?.teamAgainstId
+                      !!data?.teamAgainstId,
                     ),
                 ]),
               }),
@@ -479,7 +481,7 @@ const _DashboardReportsForm: FC<{
                       form.link('scoreFor'),
                       form.data.scoreAgainst,
                       form.link('scoreAgainst'),
-                      true
+                      true,
                     ),
                     $(Fragment, {
                       children:
@@ -494,7 +496,7 @@ const _DashboardReportsForm: FC<{
                           form.data.mvpMale2,
                           form.link('mvpMale2'),
                           form.data.mvpFemale2,
-                          form.link('mvpFemale2')
+                          form.link('mvpFemale2'),
                         ),
                     }),
                     // Render spirit form based on scoring type
@@ -511,13 +513,13 @@ const _DashboardReportsForm: FC<{
                           form.data.spiritP5,
                           (value) => form.patch({spiritP5: value}),
                           form.data.spiritComment,
-                          form.link('spiritComment')
+                          form.link('spiritComment'),
                         )
                       : renderSpiritInputs(
                           form.data.spirit,
                           (value) => form.patch({spirit: value}),
                           form.data.spiritComment,
-                          form.link('spiritComment')
+                          form.link('spiritComment'),
                         ),
                     renderSubmitButton(loading, handleSubmit),
                   ]),

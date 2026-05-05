@@ -4,7 +4,7 @@ import {ioReport} from '@shared/schemas/ioReport'
 import {ioTeam} from '@shared/schemas/ioTeam'
 import {ioUserPublic} from '@shared/schemas/ioUser'
 import {TEndpointDef} from '@shared/utils/endpointDef'
-import {io} from '@shared/torva'
+import {io, TypeIoValue} from '@shared/torva'
 
 export const ReportListOfFixtureDef = {
   access: authPoint.reportManage,
@@ -26,6 +26,33 @@ export const ReportListOfSeasonDef = {
     count: io.number(),
     reports: io.array(ioReport),
     fixtures: io.array(ioFixture),
+  }),
+} satisfies TEndpointDef
+
+export const ioReportSearchRow = io.object({
+  report: ioReport,
+  fixtureTitle: io.string(),
+  teamName: io.string(),
+  teamColor: io.optional(io.string()),
+  againstName: io.string(),
+  againstColor: io.optional(io.string()),
+  submitterName: io.string(),
+})
+
+export type TReportSearchRow = TypeIoValue<typeof ioReportSearchRow>
+
+export const ReportSearchOfSeasonDef = {
+  access: authPoint.reportManage,
+  path: '/ReportSearchOfSeason',
+  payload: io.object({
+    seasonId: io.string(),
+    search: io.optional(io.string().emptyok()),
+    limit: io.optional(io.number()),
+    skip: io.optional(io.number()),
+  }),
+  result: io.object({
+    count: io.number(),
+    reports: io.array(ioReportSearchRow),
   }),
 } satisfies TEndpointDef
 

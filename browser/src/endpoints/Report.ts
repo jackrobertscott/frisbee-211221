@@ -1,9 +1,11 @@
-import {ReportCreateDef, ReportDeleteDef, ReportGetFixtureAgainstDef, ReportListOfFixtureDef, ReportListOfSeasonDef, ReportMissingListDef, ReportUpdateDef} from '@shared/endpoints/ReportDef'
+import {ReportCreateDef, ReportDeleteDef, ReportGetFixtureAgainstDef, ReportListOfFixtureDef, ReportListOfSeasonDef, ReportMissingListDef, ReportSearchOfSeasonDef, ReportUpdateDef} from '@shared/endpoints/ReportDef'
 import {createEndpoint} from '../utils/endpoints'
 
 export const $ReportListOfFixture = createEndpoint(ReportListOfFixtureDef)
 
 export const $ReportListOfSeason = createEndpoint(ReportListOfSeasonDef)
+
+export const $ReportSearchOfSeason = createEndpoint(ReportSearchOfSeasonDef)
 
 export const $ReportGetFixtureAgainst = createEndpoint(ReportGetFixtureAgainstDef)
 
