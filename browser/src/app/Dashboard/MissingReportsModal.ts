@@ -12,7 +12,6 @@ import {Modal} from '../Modal'
 import {Spinner} from '../Spinner'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
-import { Router } from '../Router/Router'
 
 // Type for missing reports data structure
 type TMissingReportRound = {
