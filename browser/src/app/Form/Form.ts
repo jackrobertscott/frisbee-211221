@@ -9,6 +9,7 @@ export const Form: FC<{
   width?: number
   className?: string
 }> = ({children, width, background, className: _className}) => {
+  const font = background?.compliment()
   return $('div', {
     children,
     className: cx(
@@ -19,6 +20,7 @@ export const Form: FC<{
         gap: theme.fib[5],
         flexGrow: width ? undefined : 1,
         background: background?.string(),
+        color: font?.string(),
         padding: theme.fib[5],
       }),
       _className,

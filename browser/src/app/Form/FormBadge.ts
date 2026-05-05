@@ -47,6 +47,8 @@ export const FormBadge: FC<TFormBadge> = ({
   wrap,
 }) => {
   const background = disabled ? theme.bgDisabled : _background || theme.bg
+  const fontColor =
+    font ?? (typeof background === 'string' ? undefined : background.compliment())
   return $('div', {
     onClick: (event: MouseEvent) => !disabled && click?.(event),
     className: css(
@@ -63,7 +65,7 @@ export const FormBadge: FC<TFormBadge> = ({
         whiteSpace: wrap ? undefined : 'nowrap',
         border: theme.border(),
         padding: theme.padify(padding ?? theme.fib[4]),
-        color: font ? font.string() : undefined,
+        color: fontColor?.string(),
         background:
           typeof background === 'string' ? background : background.string(),
         '&:hover': !disabled &&

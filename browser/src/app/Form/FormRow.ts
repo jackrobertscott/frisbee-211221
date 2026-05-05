@@ -20,6 +20,7 @@ export const FormRow: FC<{
   wrap = false,
   bpColumn,
 }) => {
+  const font = background?.compliment()
   return $('div', {
     children,
     onClick: click,
@@ -31,6 +32,7 @@ export const FormRow: FC<{
       flexWrap: wrap ? 'wrap' : undefined,
       cursor: click ? 'default' : undefined,
       background: background?.string(),
+      color: font?.string(),
       '& > *:not(:last-child)': {
         marginRight: -theme.borderWidth,
       },
