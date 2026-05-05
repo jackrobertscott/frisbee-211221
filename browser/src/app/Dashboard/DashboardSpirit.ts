@@ -52,7 +52,7 @@ export const DashboardSpirit: FC = () => {
   const $reportList = useEndpoint($ReportListOfSeason)
   const [teams, teamsSet] = useState<TTeam[]>()
   const [reports, reportsSet] = useState<TReport[]>()
-  const [sortKey, sortKeySet] = useState<TSpiritSortKey>('spirit')
+  const [sortKey, sortKeySet] = useState<TSpiritSortKey>('average')
   const [sortDirection, sortDirectionSet] = useState<'asc' | 'desc'>('desc')
   const seasonId = auth.season!.id
   const useOfficialScoring = !!auth.season?.useOfficialScoring
