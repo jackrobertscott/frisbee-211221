@@ -9,7 +9,6 @@
   "scripts": {
     "dev": "nodemon",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "type-check": "npm run typecheck",
     "build": "npm run typecheck",
     "start": "tsx src/index.ts"
   },

@@ -715,60 +715,44 @@ const _DashboardReportsSpirit: FC<{
   const auth = useAuth()
   const useOfficialScoring = !!auth.season?.useOfficialScoring
 
+  const getSpiritSummary = (teamReports: TReport[]) => {
+    const reportCount = teamReports.length
+
+    if (useOfficialScoring) {
+      const spirit = teamReports.reduce((total, report) => {
+        return (
+          total +
+          (report.spiritP1 ?? 0) +
+          (report.spiritP2 ?? 0) +
+          (report.spiritP3 ?? 0) +
+          (report.spiritP4 ?? 0) +
+          (report.spiritP5 ?? 0)
+        )
+      }, 0)
+
+      return {spirit, reportCount}
+    }
+
+    const spirit = teamReports.reduce((total, report) => {
+      return total + (report.spirit ?? 0)
+    }, 0)
+
+    return {spirit, reportCount}
+  }
+
   const calculate = () =>
     teams
       .map((team) => {
-        // Filter reports for this team
-        const teamReports = reports.filter((i) => i.teamAgainstId === team.id)
-        const reportCount = teamReports.length
+        const received = getSpiritSummary(
+          reports.filter((report) => report.teamAgainstId === team.id)
+        )
+        const allocated = getSpiritSummary(
+          reports.filter((report) => report.teamId === team.id)
+        )
 
-        let spirit = 0
-        let totalPossiblePoints = 0
-
-        // Calculate spirit based on scoring system
-        if (useOfficialScoring) {
-          // For official scoring, calculate the sum of the 5 category scores for each report
-          teamReports.forEach((report) => {
-            // Add all spirit category points
-            if (report.spiritP1 !== undefined) {
-              spirit += report.spiritP1
-              totalPossiblePoints += 4 // Max points per category is 4
-            }
-            if (report.spiritP2 !== undefined) {
-              spirit += report.spiritP2
-              totalPossiblePoints += 4
-            }
-            if (report.spiritP3 !== undefined) {
-              spirit += report.spiritP3
-              totalPossiblePoints += 4
-            }
-            if (report.spiritP4 !== undefined) {
-              spirit += report.spiritP4
-              totalPossiblePoints += 4
-            }
-            if (report.spiritP5 !== undefined) {
-              spirit += report.spiritP5
-              totalPossiblePoints += 4
-            }
-          })
-        } else {
-          // For traditional scoring, just sum the spirit values
-          spirit = teamReports.reduce((a, b) => {
-            a += b.spirit || 0
-            return a
-          }, 0)
-          totalPossiblePoints = reportCount * 4 // Max points in traditional is 4 per report
-        }
-
-        // Calculate percentage for display
-        const percentage =
-          totalPossiblePoints > 0
-            ? Math.round((spirit / totalPossiblePoints) * 100)
-            : 0
-
-        return {team, spirit, percentage, reportCount}
+        return {team, received, allocated}
       })
-      .sort((a, b) => b.spirit - a.spirit)
+      .sort((a, b) => b.received.spirit - a.received.spirit)
 
   const [teamsAndSpirit, teamsAndSpiritSet] = useState(calculate)
 
@@ -785,12 +769,16 @@ const _DashboardReportsSpirit: FC<{
       }),
       $(Table, {
         head: {
-          team: {label: 'Team', grow: 2},
-          spirit: {label: 'Points', grow: 1},
-          reports: {label: '# Reports', grow: 1},
-          average: {label: 'Average', grow: 1},
+          team: {label: 'Team', grow: 3},
+          reports: {label: 'Reports Got', grow: 1},
+          spirit: {label: 'Pnts Got', grow: 1},
+          average: {label: 'Avg Got', grow: 1},
+          allocatedReports: {label: 'Reports Sent', grow: 1},
+          allocatedSpirit: {label: 'Pnts Sent', grow: 1},
+          allocatedAverage: {label: 'Avg Sent', grow: 1},
+          avgDiff: {label: 'Avg Diff', grow: 1},
         },
-        body: teamsAndSpirit.map(({team, spirit, reportCount}) => {
+        body: teamsAndSpirit.map(({team, received, allocated}) => {
           return {
             key: team.id,
             data: {
@@ -798,11 +786,36 @@ const _DashboardReportsSpirit: FC<{
                 value: team.name,
                 color: team.color,
               },
-              spirit: {value: spirit},
-              reports: {value: reportCount},
+              spirit: {value: received.spirit},
+              reports: {value: received.reportCount},
               average: {
-                value: Math.round((spirit / reportCount) * 100) / 100,
+                value:
+                  received.reportCount > 0
+                    ? Math.round((received.spirit / received.reportCount) * 100) /
+                      100
+                    : 0,
               },
+              allocatedSpirit: {value: allocated.spirit},
+              allocatedReports: {value: allocated.reportCount},
+              allocatedAverage: {
+                value:
+                  allocated.reportCount > 0
+                    ? Math.round(
+                        (allocated.spirit / allocated.reportCount) * 100
+                      ) / 100
+                    : 0,
+              },
+              avgDiff: {
+                value:
+                  allocated.reportCount > 0 && received.reportCount > 0
+                    ? Math.round(
+                        ((allocated.spirit / allocated.reportCount -
+                          received.spirit / received.reportCount) *
+                          100) /
+                          100
+                      )
+                    : 0,  
+              }
             },
           }
         }),

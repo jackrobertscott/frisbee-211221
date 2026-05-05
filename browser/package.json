@@ -9,7 +9,6 @@
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "type-check": "npm run typecheck",
     "build": "npm --prefix ../shared install && npm run typecheck && vite build",
     "preview": "vite preview",
     "deploy": "vercel --prod"
