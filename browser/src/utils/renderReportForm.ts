@@ -4,6 +4,7 @@ import {TFixture} from '@shared/schemas/ioFixture'
 import {TReport} from '@shared/schemas/ioReport'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUserPublic} from '@shared/schemas/ioUser'
+import {validateOfficialSpiritComment} from '@shared/utils/reportValidation'
 import dayjs from 'dayjs'
 import {createElement as $} from 'react'
 import {FormBadge} from '../app/Form/FormBadge'
@@ -79,14 +80,14 @@ const OFFICIAL_SPIRIT_LABEL_STYLE: CSSObject = {
 }
 
 export const createReportFormData = (
-  overrides: Partial<ReportFormData> = {}
+  overrides: Partial<ReportFormData> = {},
 ): ReportFormData => ({
   ...REPORT_FORM_DEFAULTS,
   ...overrides,
 })
 
 export const createReportFormDataFromReport = (
-  report?: Partial<TReport>
+  report?: Partial<TReport>,
 ): ReportFormData =>
   createReportFormData({
     teamId: report?.teamId,
@@ -109,14 +110,17 @@ export const createReportFormDataFromReport = (
 
 export function sanitizeReportFormMvps(
   formData: Pick<ReportFormData, ReportMvpField>,
-  users: TUserPublic[] | undefined
+  users: TUserPublic[] | undefined,
 ): Pick<ReportFormData, ReportMvpField> {
   if (users === undefined) {
     return formData
   }
 
   const usersById = new Map(users?.map((user) => [user.id, user]) ?? [])
-  const getValidUserId = (field: ReportMvpField, userId: string | undefined) => {
+  const getValidUserId = (
+    field: ReportMvpField,
+    userId: string | undefined,
+  ) => {
     if (!userId) {
       return undefined
     }
@@ -163,7 +167,9 @@ function formatTeamOptions(teams: TTeam[]): TSelectOption[] {
   }))
 }
 
-function formatAgainstOptions(againstOptions: ReportAgainstOption[]): TSelectOption[] {
+function formatAgainstOptions(
+  againstOptions: ReportAgainstOption[],
+): TSelectOption[] {
   return againstOptions.map(({team}) => ({
     key: team.id,
     label: team.name,
@@ -179,7 +185,7 @@ function isEligibleForMvpSlot(user: TUserPublic, slot: MvpSlot) {
 function formatUserOptions(
   users: TUserPublic[],
   slot: MvpSlot,
-  excludedUserId?: string
+  excludedUserId?: string,
 ): TSelectOption[] {
   return users
     .filter((user) => isEligibleForMvpSlot(user, slot))
@@ -194,7 +200,7 @@ function renderClearableUserSelectRow(
   label: string,
   value: string | undefined,
   valueSet: (value: string | undefined) => void,
-  options: TSelectOption[]
+  options: TSelectOption[],
 ) {
   return $(FormRow, {
     bpColumn: MVP_ROW_BP,
@@ -239,7 +245,7 @@ export function renderFixtureSelect(
   fixtureId: string | undefined,
   setFixtureId: (value: string) => void,
   fixtures: TFixture[] | undefined,
-  disabled?: boolean
+  disabled?: boolean,
 ) {
   if (fixtures === undefined) {
     return $(Spinner)
@@ -262,7 +268,7 @@ export function renderTeamSelect(
   teamId: string | undefined,
   setTeamId: (value: string) => void,
   teams: TTeam[],
-  disabled: boolean = false
+  disabled: boolean = false,
 ) {
   return $(FormRow, {
     children: addkeys([
@@ -284,7 +290,7 @@ export function renderAgainstTeamSelect(
   againstTeamId: string | undefined,
   setAgainstTeamId: (value: string) => void,
   againstOptions: ReportAgainstOption[],
-  disabled: boolean = false
+  disabled: boolean = false,
 ) {
   return $(FormRow, {
     children: addkeys([
@@ -308,7 +314,7 @@ export function renderTeamHeader(
   teamColor: string | undefined,
   againstTeamId: string | undefined,
   setAgainstTeamId: (value: string) => void,
-  againstOptions: ReportAgainstOption[] | undefined
+  againstOptions: ReportAgainstOption[] | undefined,
 ) {
   if (!teamId || !againstOptions) return null
 
@@ -342,7 +348,7 @@ export function renderScoreInputs(
   setScoreFor: (value: number | undefined) => void,
   scoreAgainst: number | undefined,
   setScoreAgainst: (value: number | undefined) => void,
-  adminVersion?: boolean
+  adminVersion?: boolean,
 ) {
   return $(FormColumn, {
     children: addkeys([
@@ -384,35 +390,35 @@ export function renderMVPInputs(
   mvpMale2?: string | undefined,
   setMvpMale2?: (value: string | undefined) => void,
   mvpFemale2?: string | undefined,
-  setMvpFemale2?: (value: string | undefined) => void
+  setMvpFemale2?: (value: string | undefined) => void,
 ) {
   const rows = [
     renderClearableUserSelectRow(
       `MVP Male${useOfficialScoring ? ' 1' : ''}`,
       mvpMale,
       setMvpMale,
-      formatUserOptions(users, 'male', mvpMale2)
+      formatUserOptions(users, 'male', mvpMale2),
     ),
     useOfficialScoring && setMvpMale2
       ? renderClearableUserSelectRow(
           'MVP Male 2',
           mvpMale2,
           setMvpMale2,
-          formatUserOptions(users, 'male', mvpMale)
+          formatUserOptions(users, 'male', mvpMale),
         )
       : undefined,
     renderClearableUserSelectRow(
       `MVP Female${useOfficialScoring ? ' 1' : ''}`,
       mvpFemale,
       setMvpFemale,
-      formatUserOptions(users, 'female', mvpFemale2)
+      formatUserOptions(users, 'female', mvpFemale2),
     ),
     useOfficialScoring && setMvpFemale2
       ? renderClearableUserSelectRow(
           'MVP Female 2',
           mvpFemale2,
           setMvpFemale2,
-          formatUserOptions(users, 'female', mvpFemale)
+          formatUserOptions(users, 'female', mvpFemale),
         )
       : undefined,
   ]
@@ -427,7 +433,7 @@ export function renderSpiritInputs(
   setSpirit: (value: number) => void,
   spiritComment: string,
   setSpiritComment: (value: string) => void,
-  useOfficialScoring?: boolean
+  useOfficialScoring?: boolean,
 ) {
   if (useOfficialScoring) {
     return null
@@ -452,7 +458,6 @@ export function renderSpiritInputs(
       $(FormRow, {
         children: addkeys([
           $(InputTextarea, {
-            rows: 2,
             value: spiritComment,
             valueSet: setSpiritComment,
             placeholder: 'Write a comment... (optional)',
@@ -476,7 +481,7 @@ export function renderOfficialSpiritInputs(
   spiritP5: number | undefined,
   setSpiritP5: (value: number) => void,
   spiritComment: string,
-  setSpiritComment: (value: string) => void
+  setSpiritComment: (value: string) => void,
 ) {
   const officialSpiritFields = [
     {
@@ -532,10 +537,9 @@ export function renderOfficialSpiritInputs(
       $(FormRow, {
         children: addkeys([
           $(InputTextarea, {
-            rows: 2,
             value: spiritComment,
             valueSet: setSpiritComment,
-            placeholder: 'Write a comment... (optional)',
+            placeholder: 'Write a comment...',
           }),
         ]),
       }),
@@ -545,7 +549,7 @@ export function renderOfficialSpiritInputs(
 
 export function renderSubmitButton(
   loading: boolean = false,
-  onClick: () => void
+  onClick: () => void,
 ) {
   return $(FormBadge, {
     disabled: loading,
@@ -556,7 +560,7 @@ export function renderSubmitButton(
 
 export function validateReportForm(
   formData: ReportFormData,
-  useOfficialScoring?: boolean
+  useOfficialScoring?: boolean,
 ): string | undefined {
   if (!formData.fixtureId) {
     return 'Fixture is required.'
@@ -603,6 +607,11 @@ export function validateReportForm(
       formData.spiritP5 === undefined
     ) {
       return 'All five spirit categories must be rated for official scoring.'
+    }
+
+    const officialSpiritCommentError = validateOfficialSpiritComment(formData)
+    if (officialSpiritCommentError) {
+      return officialSpiritCommentError
     }
   } else if (formData.spirit === undefined) {
     return 'Spirit score is required.'

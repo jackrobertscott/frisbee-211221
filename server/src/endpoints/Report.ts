@@ -9,16 +9,34 @@ import {
   ReportUpdateDef,
 } from '@shared/endpoints/ReportDef'
 import {TTeam} from '@shared/schemas/ioTeam'
+import {validateOfficialSpiritComment} from '@shared/utils/reportValidation'
 import {RequestHandler} from 'micro'
 import {$Fixture} from '../tables/$Fixture'
 import {$Member} from '../tables/$Member'
 import {$Report} from '../tables/$Report'
+import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
 import {requireTeam} from './requireTeam'
 import {requireUser} from './requireUser'
 import {requireUserAdmin} from './requireUserAdmin'
+
+function assertOfficialSpiritComment(
+  useOfficialScoring: boolean | undefined,
+  body: Parameters<typeof validateOfficialSpiritComment>[0]
+) {
+  if (!useOfficialScoring) {
+    return
+  }
+
+  const errorMessage = validateOfficialSpiritComment(body)
+  if (errorMessage) {
+    throw badRequestError(errorMessage, {
+      errorCode: 'report.spirit_comment_required',
+    })
+  }
+}
 
 export default new Map<string, RequestHandler>([
 
@@ -99,7 +117,9 @@ export default new Map<string, RequestHandler>([
       if (user.admin) team = await $Team.getOne({id: body.teamId})
       else [team] = await requireTeam(user, body.teamId)
       const fixture = await $Fixture.getOne({id: body.fixtureId})
+      const season = await $Season.getOne({id: fixture.seasonId})
       const teamAgainst = await $Team.getOne({id: body.againstTeamId})
+      assertOfficialSpiritComment(season.useOfficialScoring, body)
       if (
         await $Report.count({
           fixtureId: fixture.id,
@@ -143,6 +163,10 @@ export default new Map<string, RequestHandler>([
       ({reportId, ...body}) =>
       async (req) => {
         await requireUserAdmin(req)
+        const report = await $Report.getOne({id: reportId})
+        const fixture = await $Fixture.getOne({id: report.fixtureId})
+        const season = await $Season.getOne({id: fixture.seasonId})
+        assertOfficialSpiritComment(season.useOfficialScoring, body)
         return $Report.updateOne(
           {id: reportId},
           {
