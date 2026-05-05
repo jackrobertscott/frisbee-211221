@@ -20,7 +20,6 @@ import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
-import mongo from '../utils/mongo'
 import {regex} from '../utils/regex'
 import {requireAccess} from './requireAccess'
 import {requireTeam} from './requireTeam'
@@ -234,10 +233,9 @@ export default new Map<string, RequestHandler>([
       async (req) => {
         await requireAccess(req, access)
         await $Season.getOne({id: seasonId})
-        const collection = await mongo.collection('report')
-        const [result] = (await collection
-          .aggregate(createReportSearchPipeline({seasonId, search, limit, skip}))
-          .toArray()) as Array<{count: number; reports: TReportSearchRow[]}>
+        const [result] = (await $Report.aggregate(
+          createReportSearchPipeline({seasonId, search, limit, skip})
+        )) as Array<{count: number; reports: TReportSearchRow[]}>
         return result ?? {count: 0, reports: []}
       },
   }),

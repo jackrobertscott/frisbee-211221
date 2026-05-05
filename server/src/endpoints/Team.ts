@@ -1,5 +1,6 @@
 import {badRequestError, conflictError, forbiddenError} from '@shared/errors'
-import {TeamCreateDef, TeamCurrentCreateDef, TeamCurrentUpdateDef, TeamDeleteDef, TeamListOfSeasonDef, TeamUpdateDef} from '@shared/endpoints/TeamDef'
+import {TeamCreateDef, TeamCurrentCreateDef, TeamDeleteDef, TeamListOfSeasonDef, TeamUpdateDef, TeamCurrentUpdateDef, TTeamListSortDirection, TTeamListSortKey} from '@shared/endpoints/TeamDef'
+import {Document} from 'mongodb'
 import {RequestHandler} from 'micro'
 import {$Member} from '../tables/$Member'
 import {$Season} from '../tables/$Season'
@@ -9,6 +10,9 @@ import {createEndpoint} from '../utils/endpoints'
 import {regex} from '../utils/regex'
 import {requireAccess} from './requireAccess'
 import {requireTeam} from './requireTeam'
+
+const TEAM_DEFAULT_SORT_BY: TTeamListSortKey = 'division'
+const TEAM_DEFAULT_SORT_DIRECTION: TTeamListSortDirection = 'asc'
 
 export default new Map<string, RequestHandler>([
 
@@ -20,13 +24,13 @@ export default new Map<string, RequestHandler>([
         seasonId: body.seasonId,
         name: regex.from(body.search ?? ''),
       }
+      const sortBy = body.sortBy ?? TEAM_DEFAULT_SORT_BY
+      const sortDirection = body.sortDirection ?? TEAM_DEFAULT_SORT_DIRECTION
       const [count, teams] = await Promise.all([
         $Team.count(query),
-        $Team.getMany(query, {
-          limit: body.limit,
-          skip: body.skip,
-          sort: {createdOn: -1},
-        }),
+        $Team.aggregate(
+          _getTeamListPipeline(query, sortBy, sortDirection, body.skip, body.limit)
+        ),
       ])
       return {count, teams}
     },
@@ -113,3 +117,56 @@ export default new Map<string, RequestHandler>([
       },
   }),
 ])
+
+const _getTeamSort = (
+  sortBy: TTeamListSortKey,
+  sortDirection: TTeamListSortDirection,
+) => {
+  const direction: 1 | -1 = sortDirection === 'asc' ? 1 : -1
+
+  switch (sortBy) {
+    case 'name':
+      return {name: direction, id: 1 as const}
+    case 'division':
+      return {
+        _sortDivisionMissing: 1 as const,
+        division: direction,
+        name: 1 as const,
+        id: 1 as const,
+      }
+    case 'phone':
+      return {phone: direction, name: 1 as const, id: 1 as const}
+    case 'email':
+      return {email: direction, name: 1 as const, id: 1 as const}
+    case 'createdOn':
+      return {createdOn: direction, id: 1 as const}
+  }
+}
+
+const _getTeamListPipeline = (
+  query: Document,
+  sortBy: TTeamListSortKey,
+  sortDirection: TTeamListSortDirection,
+  skip?: number,
+  limit?: number,
+): Document[] => {
+  const pipeline: Document[] = [{$match: query}]
+
+  if (sortBy === 'division') {
+    pipeline.push({
+      $addFields: {
+        _sortDivisionMissing: {
+          $in: [{$type: '$division'}, ['missing', 'null']],
+        },
+      },
+    })
+  }
+
+  pipeline.push({$sort: _getTeamSort(sortBy, sortDirection)})
+
+  if (skip && skip > 0) pipeline.push({$skip: skip})
+  if (limit !== undefined) pipeline.push({$limit: limit})
+  if (sortBy === 'division') pipeline.push({$project: {_sortDivisionMissing: 0}})
+
+  return pipeline
+}

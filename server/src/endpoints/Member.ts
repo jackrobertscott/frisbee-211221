@@ -113,10 +113,11 @@ export default new Map<string, RequestHandler>([
               {errorCode: 'member.user_details_required'}
             )
           let raw: any = body
+          const emails = [userEmail.create(email, true)]
           user = await $User.createOne({
             ...raw,
             termsAccepted: false,
-            emails: [userEmail.create(email, true)],
+            emails,
           })
         }
         const member = await $Member.maybeOne({

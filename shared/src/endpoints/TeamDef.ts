@@ -4,11 +4,28 @@ import {ioTeam} from '@shared/schemas/ioTeam'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
+export const TEAM_LIST_SORT_KEYS = [
+  'name',
+  'division',
+  'phone',
+  'email',
+  'createdOn',
+] as const
+
+export type TTeamListSortKey = (typeof TEAM_LIST_SORT_KEYS)[number]
+
+export const TEAM_LIST_SORT_DIRECTIONS = ['asc', 'desc'] as const
+
+export type TTeamListSortDirection =
+  (typeof TEAM_LIST_SORT_DIRECTIONS)[number]
+
 export const TeamListOfSeasonDef = {
   path: '/TeamListOfSeason',
   payload: io.object({
     seasonId: io.string(),
     search: io.optional(io.string().emptyok()),
+    sortBy: io.optional(io.enum([...TEAM_LIST_SORT_KEYS])),
+    sortDirection: io.optional(io.enum([...TEAM_LIST_SORT_DIRECTIONS])),
     limit: io.optional(io.number()),
     skip: io.optional(io.number()),
   }),

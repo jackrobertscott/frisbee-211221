@@ -4,6 +4,21 @@ import {ioUserGender} from '@shared/schemas/ioUserGender'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
+export const USER_LIST_SORT_KEYS = [
+  'firstName',
+  'lastName',
+  'email',
+  'gender',
+  'createdOn',
+] as const
+
+export type TUserListSortKey = (typeof USER_LIST_SORT_KEYS)[number]
+
+export const USER_LIST_SORT_DIRECTIONS = ['asc', 'desc'] as const
+
+export type TUserListSortDirection =
+  (typeof USER_LIST_SORT_DIRECTIONS)[number]
+
 export const UserCurrentUpdateDef = {
   access: authPoint.userSelf,
   path: '/UserCurrentUpdate',
@@ -77,6 +92,8 @@ export const UserListDef = {
   path: '/UserList',
   payload: io.object({
     search: io.optional(io.string().emptyok()),
+    sortBy: io.optional(io.enum([...USER_LIST_SORT_KEYS])),
+    sortDirection: io.optional(io.enum([...USER_LIST_SORT_DIRECTIONS])),
     limit: io.optional(io.number()),
     skip: io.optional(io.number()),
   }),

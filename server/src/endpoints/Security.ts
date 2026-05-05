@@ -134,11 +134,12 @@ export default new Map<string, RequestHandler>([
             errorCode: 'user.email_exists',
           })
         const code = await userEmail.codeSend(email, firstName, 'Verify Email')
+        const emails = [userEmail.create(email, true, code)]
         const user = await $User.createOne({
           ...body,
           firstName,
           termsAccepted,
-          emails: [userEmail.create(email, true, code)],
+          emails,
         })
         const session = await gatekeeper.createUserSession(user, userAgent)
         return _addTeamOfSeason(user, session, seasonId)

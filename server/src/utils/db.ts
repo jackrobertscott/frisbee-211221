@@ -122,6 +122,12 @@ export const db = {
         if (operations.length) await collection.bulkWrite(operations)
       },
 
+      async aggregate<T = V>(pipeline: Document[]): Promise<T[]> {
+        const collection = await mongo.collection(options.key)
+        const result = await collection.aggregate(pipeline).toArray()
+        return result.map((i) => this._clean(i as any)) as T[]
+      },
+
       async deleteOne(query: Filter<V>): Promise<number> {
         const collection = await mongo.collection(options.key)
         const result = await collection.deleteOne(query as Filter<Document>)

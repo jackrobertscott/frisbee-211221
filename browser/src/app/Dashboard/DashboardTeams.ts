@@ -1,4 +1,5 @@
 import {authPoint} from '@shared/auth/authAccess'
+import {TTeamListSortKey} from '@shared/endpoints/TeamDef'
 import {css} from '@emotion/css'
 import {TTeam} from '@shared/schemas/ioTeam'
 import dayjs from 'dayjs'
@@ -34,7 +35,11 @@ export const DashboardTeams: FC = () => {
   const [teams, teamsSet] = useState<TTeam[]>()
   const [creating, creatingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
-  const current = currentId && teams?.find((i) => i.id === currentId)
+  const [currentTeam, currentTeamSet] = useState<TTeam>()
+  const [sortKey, sortKeySet] = useState<TTeamListSortKey>('division')
+  const [sortDirection, sortDirectionSet] = useState<'asc' | 'desc'>('asc')
+  const current =
+    currentTeam ?? (currentId ? teams?.find((i) => i.id === currentId) : undefined)
   const seasonId = auth.season!.id
   const teamList = ({
     search: nextSearch = search,
@@ -43,14 +48,22 @@ export const DashboardTeams: FC = () => {
     search?: string
     pager?: typeof pager.data
   } = {}) =>
-    $teamList.fetch({...nextPager, seasonId, search: nextSearch}).then((i) => {
-      teamsSet(i.teams)
-      pager.totalSet(i.count)
-    })
+    $teamList
+      .fetch({
+        ...nextPager,
+        seasonId,
+        search: nextSearch,
+        sortBy: sortKey,
+        sortDirection,
+      })
+      .then((i) => {
+        teamsSet(i.teams)
+        pager.totalSet(i.count)
+      })
   const teamListDelay = useSling(500, teamList)
   useEffect(() => {
     teamList()
-  }, [pager.data, seasonId])
+  }, [pager.data, seasonId, sortKey, sortDirection])
   useEffect(() => {
     if (teams === undefined) return
     if (pager.skip !== 0) {
@@ -59,6 +72,18 @@ export const DashboardTeams: FC = () => {
     }
     teamListDelay()
   }, [search])
+  const toggleSort = (key: TTeamListSortKey) => {
+    sortKeySet(key)
+    sortDirectionSet((current) => {
+      if (sortKey === key) return current === 'asc' ? 'desc' : 'asc'
+      return key === 'createdOn' ? 'desc' : 'asc'
+    })
+    if (pager.skip !== 0) pager.dataSet({...pager.data, skip: 0})
+  }
+  const getSortIcon = (key: TTeamListSortKey) => {
+    if (sortKey !== key) return undefined
+    return sortDirection === 'asc' ? 'angle-up' : 'angle-down'
+  }
   return $(Fragment, {
     children: addkeys([
       $(Form, {
@@ -94,36 +119,56 @@ export const DashboardTeams: FC = () => {
                     }),
                     $(Table, {
                       head: {
-                        name: {label: 'Name', grow: 3},
-                        division: {label: 'Div', grow: 1},
-                        phone: {label: 'Phone', grow: 2},
-                        email: {label: 'Email', grow: 3},
-                        createdOn: {label: 'Created', grow: 2},
+                        name: {
+                          label: 'Name',
+                          grow: 3,
+                          click: () => toggleSort('name'),
+                          icon: getSortIcon('name'),
+                        },
+                        division: {
+                          label: 'Div',
+                          grow: 1,
+                          click: () => toggleSort('division'),
+                          icon: getSortIcon('division'),
+                        },
+                        phone: {
+                          label: 'Phone',
+                          grow: 2,
+                          click: () => toggleSort('phone'),
+                          icon: getSortIcon('phone'),
+                        },
+                        email: {
+                          label: 'Email',
+                          grow: 3,
+                          click: () => toggleSort('email'),
+                          icon: getSortIcon('email'),
+                        },
+                        createdOn: {
+                          label: 'Created',
+                          grow: 2,
+                          click: () => toggleSort('createdOn'),
+                          icon: getSortIcon('createdOn'),
+                        },
                       },
-                      body: teams
-                        .sort(({division: a}, {division: b}) => {
-                          if (typeof a !== 'number' && typeof b !== 'number')
-                            return 0
-                          if (typeof a !== 'number') return 1
-                          if (typeof b !== 'number') return -1
-                          return a - b
-                        })
-                        .map((team) => ({
-                          key: team.id,
-                          click: () => currentIdSet(team.id),
-                          data: {
-                            name: {
-                              value: team.name,
-                              color: team.color,
-                            },
-                            division: {value: team.division},
-                            phone: {value: team.phone},
-                            email: {value: team.email},
-                            createdOn: {
-                              value: dayjs(team.createdOn).format('DD/MM/YYYY'),
-                            },
+                      body: teams.map((team) => ({
+                        key: team.id,
+                        click: () => {
+                          currentIdSet(team.id)
+                          currentTeamSet(undefined)
+                        },
+                        data: {
+                          name: {
+                            value: team.name,
+                            color: team.color,
                           },
-                        })),
+                          division: {value: team.division},
+                          phone: {value: team.phone},
+                          email: {value: team.email},
+                          createdOn: {
+                            value: dayjs(team.createdOn).format('DD/MM/YYYY'),
+                          },
+                        },
+                      })),
                     }),
                     $(Pager, {
                       ...pager,
@@ -141,10 +186,12 @@ export const DashboardTeams: FC = () => {
               const nextPager = {...pager.data, skip: 0}
               searchSet('')
               creatingSet(false)
+              currentIdSet(i.id)
+              currentTeamSet(i)
               teamList({
                 search: '',
                 pager: nextPager,
-              }).then(() => currentIdSet(i.id))
+              })
               if (pager.skip !== 0) pager.dataSet(nextPager)
             },
             close: () => creatingSet(false),
@@ -158,14 +205,24 @@ export const DashboardTeams: FC = () => {
               ? $(TeamViewAdmin, {
                   team: current,
                   teamSet: (i) => {
-                    if (i) teamsSet((x) => x?.map((z) => (z.id === i.id ? i : z)))
+                    currentTeamSet(i)
+                    if (i) {
+                      currentIdSet(i.id)
+                      teamsSet((x) => x?.map((z) => (z.id === i.id ? i : z)))
+                    } else currentIdSet(undefined)
                     teamList()
                   },
-                  close: () => currentIdSet(undefined),
+                  close: () => {
+                    currentIdSet(undefined)
+                    currentTeamSet(undefined)
+                  },
                 })
               : $(_DashboardTeamsView, {
                   team: current,
-                  close: () => currentIdSet(undefined),
+                  close: () => {
+                    currentIdSet(undefined)
+                    currentTeamSet(undefined)
+                  },
                 }),
           }),
       }),

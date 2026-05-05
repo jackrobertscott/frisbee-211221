@@ -1,4 +1,5 @@
 import {authPoint} from '@shared/auth/authAccess'
+import {TUserListSortKey} from '@shared/endpoints/UserDef'
 import {TMember} from '@shared/schemas/ioMember'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {TTeam} from '@shared/schemas/ioTeam'
@@ -54,7 +55,11 @@ export const DashboardUsers: FC = () => {
   const [users, usersSet] = useState<TUserSafe[]>()
   const [creating, creatingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
-  const current = currentId && users?.find((i) => currentId === i.id)
+  const [currentUser, currentUserSet] = useState<TUserSafe>()
+  const [sortKey, sortKeySet] = useState<TUserListSortKey>('firstName')
+  const [sortDirection, sortDirectionSet] = useState<'asc' | 'desc'>('asc')
+  const current =
+    currentUser ?? (currentId ? users?.find((i) => currentId === i.id) : undefined)
   const userList = ({
     search: nextSearch = search,
     pager: nextPager = pager.data,
@@ -62,15 +67,22 @@ export const DashboardUsers: FC = () => {
     search?: string
     pager?: typeof pager.data
   } = {}) =>
-    $userList.fetch({...nextPager, search: nextSearch}).then((i) => {
-      usersSet(i.users)
-      pager.totalSet(i.count)
-    })
+    $userList
+      .fetch({
+        ...nextPager,
+        search: nextSearch,
+        sortBy: sortKey,
+        sortDirection,
+      })
+      .then((i) => {
+        usersSet(i.users)
+        pager.totalSet(i.count)
+      })
   const userListDelay = useSling(500, userList)
   useEffect(() => {
     if (!auth.can(authPoint.userAdmin)) go.to('/')
     else userList()
-  }, [auth.current, pager.data])
+  }, [auth.current, pager.data, sortKey, sortDirection])
   useEffect(() => {
     if (users === undefined) return
     if (pager.skip !== 0) {
@@ -79,6 +91,18 @@ export const DashboardUsers: FC = () => {
     }
     userListDelay()
   }, [search])
+  const toggleSort = (key: TUserListSortKey) => {
+    sortKeySet(key)
+    sortDirectionSet((current) => {
+      if (sortKey === key) return current === 'asc' ? 'desc' : 'asc'
+      return key === 'createdOn' ? 'desc' : 'asc'
+    })
+    if (pager.skip !== 0) pager.dataSet({...pager.data, skip: 0})
+  }
+  const getSortIcon = (key: TUserListSortKey) => {
+    if (sortKey !== key) return undefined
+    return sortDirection === 'asc' ? 'angle-up' : 'angle-down'
+  }
   return $(Fragment, {
     children: addkeys([
       $(Form, {
@@ -110,15 +134,43 @@ export const DashboardUsers: FC = () => {
                 }),
                 $(Table, {
                   head: {
-                    firstName: {label: 'First Name', grow: 2},
-                    lastName: {label: 'Last Name', grow: 2},
-                    email: {label: 'Email', grow: 4},
-                    gender: {label: 'Gender', grow: 2},
-                    createdOn: {label: 'Created', grow: 2},
+                    firstName: {
+                      label: 'First Name',
+                      grow: 2,
+                      click: () => toggleSort('firstName'),
+                      icon: getSortIcon('firstName'),
+                    },
+                    lastName: {
+                      label: 'Last Name',
+                      grow: 2,
+                      click: () => toggleSort('lastName'),
+                      icon: getSortIcon('lastName'),
+                    },
+                    email: {
+                      label: 'Email',
+                      grow: 4,
+                      click: () => toggleSort('email'),
+                      icon: getSortIcon('email'),
+                    },
+                    gender: {
+                      label: 'Gender',
+                      grow: 2,
+                      click: () => toggleSort('gender'),
+                      icon: getSortIcon('gender'),
+                    },
+                    createdOn: {
+                      label: 'Created',
+                      grow: 2,
+                      click: () => toggleSort('createdOn'),
+                      icon: getSortIcon('createdOn'),
+                    },
                   },
                   body: users.map((user) => ({
                     key: user.id,
-                    click: () => currentIdSet(user.id),
+                    click: () => {
+                      currentIdSet(user.id)
+                      currentUserSet(undefined)
+                    },
                     data: {
                       firstName: {value: user.firstName},
                       lastName: {value: user.lastName},
@@ -148,10 +200,12 @@ export const DashboardUsers: FC = () => {
               const nextPager = {...pager.data, skip: 0}
               searchSet('')
               creatingSet(false)
+              currentIdSet(user.id)
+              currentUserSet(user)
               userList({
                 search: '',
                 pager: nextPager,
-              }).then(() => currentIdSet(user.id))
+              })
               if (pager.skip !== 0) pager.dataSet(nextPager)
             },
             close: () => creatingSet(false),
@@ -163,10 +217,15 @@ export const DashboardUsers: FC = () => {
           $(_DashboardUsersView, {
             user: current,
             userSet: (i) => {
+              currentIdSet(i.id)
+              currentUserSet(i)
               usersSet((x) => x?.map((z) => (z.id === i.id ? i : z)))
               userList()
             },
-            close: () => currentIdSet(undefined),
+            close: () => {
+              currentIdSet(undefined)
+              currentUserSet(undefined)
+            },
           }),
       }),
     ]),

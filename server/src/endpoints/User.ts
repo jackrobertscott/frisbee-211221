@@ -1,5 +1,6 @@
 import {badRequestError, conflictError} from '@shared/errors'
-import {UserChangePasswordDef, UserCreateDef, UserCurrentChangePasswordDef, UserCurrentEmailAddDef, UserCurrentEmailCodeResendDef, UserCurrentEmailPrimarySetDef, UserCurrentEmailRemoveDef, UserCurrentEmailVerifyDef, UserCurrentUpdateDef, UserListDef, UserListManyByIdDef, UserMergeDef, UserToggleAdminDef, UserUpdateDef} from '@shared/endpoints/UserDef'
+import {UserChangePasswordDef, UserCreateDef, UserCurrentChangePasswordDef, UserCurrentEmailAddDef, UserCurrentEmailCodeResendDef, UserCurrentEmailPrimarySetDef, UserCurrentEmailRemoveDef, UserCurrentEmailVerifyDef, UserCurrentUpdateDef, UserListDef, UserListManyByIdDef, UserMergeDef, UserToggleAdminDef, UserUpdateDef, TUserListSortDirection, TUserListSortKey} from '@shared/endpoints/UserDef'
+import {Document} from 'mongodb'
 import {RequestHandler} from 'micro'
 import {$Comment} from '../tables/$Comment'
 import {$Member} from '../tables/$Member'
@@ -15,6 +16,9 @@ import {requireAccess} from './requireAccess'
 import {selectPublicUserFields} from './userPublic'
 import {selectSafeUserFields} from './userSafe'
 import {userEmail} from './userEmail'
+
+const USER_DEFAULT_SORT_BY: TUserListSortKey = 'createdOn'
+const USER_DEFAULT_SORT_DIRECTION: TUserListSortDirection = 'desc'
 
 export default new Map<string, RequestHandler>([
 
@@ -128,13 +132,13 @@ export default new Map<string, RequestHandler>([
           {'emails.value': regexSearch},
         ],
       }
+      const sortBy = body.sortBy ?? USER_DEFAULT_SORT_BY
+      const sortDirection = body.sortDirection ?? USER_DEFAULT_SORT_DIRECTION
       const [count, users] = await Promise.all([
         $User.count(query),
-        $User.getMany(query, {
-          limit: body.limit,
-          skip: body.skip,
-          sort: {createdOn: -1},
-        }),
+        $User.aggregate(
+          _getUserListPipeline(query, sortBy, sortDirection, body.skip, body.limit)
+        ),
       ])
       return {count, users: users.map(selectSafeUserFields)}
     },
@@ -159,9 +163,10 @@ export default new Map<string, RequestHandler>([
           throw conflictError(`User already exists with email "${email}".`, {
             errorCode: 'user.email_exists',
           })
+        const emails = [userEmail.create(email, true)]
         const user = await $User.createOne({
           ...body,
-          emails: [userEmail.create(email, true)],
+          emails,
         })
         return selectSafeUserFields(user)
       },
@@ -273,7 +278,10 @@ export default new Map<string, RequestHandler>([
           await $User.deleteOne({id: user2.id})
           user1 = await $User.updateOne(
             {id: user1.id},
-            {emails: u1Emails, userMergedIds: u2MergedIds}
+            {
+              emails: u1Emails,
+              userMergedIds: u2MergedIds,
+            }
           )
         })
         return selectSafeUserFields(user1)
@@ -293,3 +301,91 @@ export default new Map<string, RequestHandler>([
     },
   }),
 ])
+
+const _getUserSort = (
+  sortBy: TUserListSortKey,
+  sortDirection: TUserListSortDirection,
+) => {
+  const direction: 1 | -1 = sortDirection === 'asc' ? 1 : -1
+
+  switch (sortBy) {
+    case 'firstName':
+      return {firstName: direction, lastName: 1 as const, id: 1 as const}
+    case 'lastName':
+      return {lastName: direction, firstName: 1 as const, id: 1 as const}
+    case 'email':
+      return {
+        _sortPrimaryEmail: direction,
+        lastName: 1 as const,
+        firstName: 1 as const,
+        id: 1 as const,
+      }
+    case 'gender':
+      return {gender: direction, lastName: 1 as const, firstName: 1 as const, id: 1 as const}
+    case 'createdOn':
+      return {createdOn: direction, id: 1 as const}
+  }
+}
+
+const _getUserListPipeline = (
+  query: Document,
+  sortBy: TUserListSortKey,
+  sortDirection: TUserListSortDirection,
+  skip?: number,
+  limit?: number,
+): Document[] => {
+  const pipeline: Document[] = [{$match: query}]
+
+  if (sortBy === 'email') {
+    pipeline.push({
+      $addFields: {
+        _sortPrimaryEmail: {
+          $toLower: {
+            $trim: {
+              input: {
+                $let: {
+                  vars: {
+                    primaryEmails: {
+                      $map: {
+                        input: {
+                          $filter: {
+                            input: '$emails',
+                            as: 'email',
+                            cond: '$$email.primary',
+                          },
+                        },
+                        as: 'email',
+                        in: '$$email.value',
+                      },
+                    },
+                    firstEmails: {
+                      $map: {
+                        input: {$slice: ['$emails', 1]},
+                        as: 'email',
+                        in: '$$email.value',
+                      },
+                    },
+                  },
+                  in: {
+                    $ifNull: [
+                      {$first: '$$primaryEmails'},
+                      {$ifNull: [{$first: '$$firstEmails'}, '']},
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+  }
+
+  pipeline.push({$sort: _getUserSort(sortBy, sortDirection)})
+
+  if (skip && skip > 0) pipeline.push({$skip: skip})
+  if (limit !== undefined) pipeline.push({$limit: limit})
+  if (sortBy === 'email') pipeline.push({$project: {_sortPrimaryEmail: 0}})
+
+  return pipeline
+}

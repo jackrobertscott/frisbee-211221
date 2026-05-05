@@ -18,7 +18,6 @@ const normalizeCode = (value: string) =>
 const isHashedCode = (value: string) => /^[a-f0-9]{64}$/i.test(value)
 
 export const userEmail = {
-
   isValueValid(email: string) {
     return regex.email().test(email.trim())
   },
