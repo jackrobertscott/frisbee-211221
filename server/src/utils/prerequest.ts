@@ -20,6 +20,11 @@ export default (handler: RequestHandler): RequestHandler => {
             : undefined,
           now: new Date().toISOString(),
         }
+      case '/health':
+        return {
+          ok: true,
+          now: new Date().toISOString(),
+        }
       case '/robots.txt':
         return null
       case '/favicon.ico':
