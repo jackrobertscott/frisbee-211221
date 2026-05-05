@@ -5,7 +5,7 @@ import {css} from '@emotion/css'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {$SeasonList} from '../../endpoints/Season'
-import {theme} from '../../theme'
+import {theme, useTheme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
 import {fadein} from '../../utils/keyframes'
@@ -42,6 +42,7 @@ export const Dashboard: FC = () => {
   const auth = useAuth()
   const media = useMedia()
   const toaster = useToaster()
+  const appTheme = useTheme()
   const [open, openSet] = useState(false)
   const [logout, logoutSet] = useState(false)
   const [reporting, reportingSet] = useState(false)
@@ -114,6 +115,14 @@ export const Dashboard: FC = () => {
                             }),
                       }),
                       $(_DashboardSeasonBadge),
+                      $(TopBarBadge, {
+                        icon: appTheme.current === 'dark' ? 'sun' : 'moon',
+                        tooltip:
+                          appTheme.current === 'dark'
+                            ? 'Use light theme'
+                            : 'Use dark theme',
+                        click: appTheme.toggle,
+                      }),
                       $(Fragment, {
                         children:
                           auth.current &&

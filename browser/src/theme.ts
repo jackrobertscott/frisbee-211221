@@ -1,21 +1,76 @@
 import {internalError} from '@shared/errors'
+import {
+  createContext,
+  createElement as $,
+  Dispatch,
+  FC,
+  ReactNode,
+  SetStateAction,
+  useContext,
+  useEffect,
+} from 'react'
+import {useLocalState} from './app/useLocalState'
 import {hsla} from './utils/hsla'
+
+export type TThemeMode = 'light' | 'dark'
+
+export const THEME_STORAGE_KEY = 'frisbee.theme'
+
+const ThemeContext = createContext<{
+  current: TThemeMode
+  currentSet: Dispatch<SetStateAction<TThemeMode>>
+  toggle: () => void
+}>({
+  current: 'light',
+  currentSet: () => undefined,
+  toggle: () => undefined,
+})
+
+export const ThemeProvider: FC<{
+  children: ReactNode
+}> = ({children}) => {
+  const [current, currentSet] = useLocalState<TThemeMode>(
+    THEME_STORAGE_KEY,
+    'light',
+  )
+  const applied = current ?? 'light'
+  useEffect(() => {
+    document.documentElement.dataset.theme = applied
+  }, [applied])
+  return $(ThemeContext.Provider, {
+    value: {
+      current: applied,
+      currentSet,
+      toggle: () =>
+        currentSet((i) => {
+          return i === 'dark' ? 'light' : 'dark'
+        }),
+    },
+    children,
+  })
+}
+
+export const useTheme = () => useContext(ThemeContext)
+
+const color = (name: string, compliment?: string) => hsla.variable(name, compliment)
 
 export const theme = {
   fib: [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597],
   fontFamily: 'Atkinson Hyperlegible Next',
-  font: hsla.create(0, 0, 0, 0.75),
-  fontComplement: hsla.create(0, 0, 100, 1),
-  fontMinor: hsla.create(0, 0, 0, 0.5),
-  fontPlaceholder: hsla.create(0, 0, 0, 0.35),
-  bg: hsla.create(0, 0, 100),
-  bgMinor: hsla.create(0, 0, 95),
-  bgRoot: hsla.create(0, 0, 90),
-  bgDisabled: hsla.create(0, 0, 85),
-  bgHighlight: hsla.create(60, 100, 85),
-  bgAdmin: hsla.create(300, 100, 95),
-  bgAdminButton: hsla.create(300, 100, 90),
-  borderColor: hsla.create(0, 0, 75),
+  font: color('font'),
+  fontComplement: color('font-complement'),
+  fontContrastLight: color('font-contrast-light'),
+  fontContrastDark: color('font-contrast-dark'),
+  fontMinor: color('font-minor'),
+  fontPlaceholder: color('font-placeholder'),
+  bg: color('bg', 'bg-compliment'),
+  bgMinor: color('bg-minor', 'bg-minor-compliment'),
+  bgRoot: color('bg-root'),
+  bgDisabled: color('bg-disabled', 'bg-disabled-compliment'),
+  bgHighlight: color('bg-highlight', 'bg-highlight-compliment'),
+  bgAdmin: color('bg-admin', 'bg-admin-compliment'),
+  bgAdminButton: color('bg-admin-button', 'bg-admin-button-compliment'),
+  borderColor: color('border-color'),
   borderWidth: 1,
   fontInset: 3,
   fontSizeMinor: 14,

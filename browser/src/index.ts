@@ -14,7 +14,8 @@ import {ToasterProvider} from './app/Toaster/ToasterProvider'
 import marlowFavicon from './assets/marlow-favicon.ico'
 import pulFavicon from './assets/pul-favicon.ico'
 import './index.css'
-import {theme} from './theme'
+import {THEME_STORAGE_KEY, ThemeProvider, theme} from './theme'
+import {local} from './utils/local'
 
 // add title
 document.title = config.title
@@ -33,6 +34,8 @@ switch (config.leagueKey) {
 }
 document.head.appendChild(favicon)
 
+document.documentElement.dataset.theme = local.get(THEME_STORAGE_KEY) ?? 'light'
+
 // add global styles
 // override the CSS fallback font-family with the themed font
 injectGlobal({
@@ -44,12 +47,14 @@ injectGlobal({
 })
 
 const root = $(StrictMode, {
-  children: $(MediaProvider, {
-    children: $(StackProvider, {
-      children: $(ToasterProvider, {
-        children: $(AuthProvider, {
-          children: $(RouterProvider, {
-            children: $(App),
+  children: $(ThemeProvider, {
+    children: $(MediaProvider, {
+      children: $(StackProvider, {
+        children: $(ToasterProvider, {
+          children: $(AuthProvider, {
+            children: $(RouterProvider, {
+              children: $(App),
+            }),
           }),
         }),
       }),
