@@ -48,8 +48,14 @@ export const DashboardUsers: FC = () => {
   const [creating, creatingSet] = useState(false)
   const [currentId, currentIdSet] = useState<string>()
   const current = currentId && users?.find((i) => currentId === i.id)
-  const userList = () =>
-    $userList.fetch({...pager.data, search}).then((i) => {
+  const userList = ({
+    search: nextSearch = search,
+    pager: nextPager = pager.data,
+  }: {
+    search?: string
+    pager?: typeof pager.data
+  } = {}) =>
+    $userList.fetch({...nextPager, search: nextSearch}).then((i) => {
       usersSet(i.users)
       pager.totalSet(i.count)
     })
@@ -59,7 +65,12 @@ export const DashboardUsers: FC = () => {
     else userList()
   }, [auth.current, pager.data])
   useEffect(() => {
-    if (users !== undefined) userListDelay()
+    if (users === undefined) return
+    if (pager.skip !== 0) {
+      pager.dataSet({...pager.data, skip: 0})
+      return
+    }
+    userListDelay()
   }, [search])
   return $(Fragment, {
     children: addkeys([
@@ -126,7 +137,16 @@ export const DashboardUsers: FC = () => {
         children:
           creating &&
           $(_DashboardUsersCreate, {
-            userSet: () => userList(),
+            userSet: (user) => {
+              const nextPager = {...pager.data, skip: 0}
+              searchSet('')
+              creatingSet(false)
+              userList({
+                search: '',
+                pager: nextPager,
+              }).then(() => currentIdSet(user.id))
+              if (pager.skip !== 0) pager.dataSet(nextPager)
+            },
             close: () => creatingSet(false),
           }),
       }),

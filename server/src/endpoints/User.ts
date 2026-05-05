@@ -121,21 +121,20 @@ export default new Map<string, RequestHandler>([
     handler: (body, access) => async (req) => {
       await requireAccess(req, access)
       const regexSearch = regex.from(body.search ?? '')
+      const query = {
+        $or: [
+          {firstName: regexSearch},
+          {lastName: regexSearch},
+          {'emails.value': regexSearch},
+        ],
+      }
       const [count, users] = await Promise.all([
-        $User.count({}),
-        $User.getMany(
-          {
-            $or: [
-              {firstName: regexSearch},
-              {lastName: regexSearch},
-              {'emails.value': regexSearch},
-            ],
-          },
-          {
-            limit: body.limit,
-            skip: body.skip,
-          }
-        ),
+        $User.count(query),
+        $User.getMany(query, {
+          limit: body.limit,
+          skip: body.skip,
+          sort: {createdOn: -1},
+        }),
       ])
       return {count, users: users.map(selectSafeUserFields)}
     },

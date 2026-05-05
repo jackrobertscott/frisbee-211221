@@ -16,18 +16,17 @@ export default new Map<string, RequestHandler>([
     ...TeamListOfSeasonDef,
     handler: (body) => async (req) => {
       await $Season.getOne({id: body.seasonId})
+      const query = {
+        seasonId: body.seasonId,
+        name: regex.from(body.search ?? ''),
+      }
       const [count, teams] = await Promise.all([
-        $Team.count({seasonId: body.seasonId}),
-        $Team.getMany(
-          {
-            seasonId: body.seasonId,
-            name: regex.from(body.search ?? ''),
-          },
-          {
-            limit: body.limit,
-            skip: body.skip,
-          }
-        ),
+        $Team.count(query),
+        $Team.getMany(query, {
+          limit: body.limit,
+          skip: body.skip,
+          sort: {createdOn: -1},
+        }),
       ])
       return {count, teams}
     },

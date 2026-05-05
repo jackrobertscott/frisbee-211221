@@ -36,8 +36,14 @@ export const DashboardTeams: FC = () => {
   const [currentId, currentIdSet] = useState<string>()
   const current = currentId && teams?.find((i) => i.id === currentId)
   const seasonId = auth.season!.id
-  const teamList = () =>
-    $teamList.fetch({...pager.data, seasonId, search}).then((i) => {
+  const teamList = ({
+    search: nextSearch = search,
+    pager: nextPager = pager.data,
+  }: {
+    search?: string
+    pager?: typeof pager.data
+  } = {}) =>
+    $teamList.fetch({...nextPager, seasonId, search: nextSearch}).then((i) => {
       teamsSet(i.teams)
       pager.totalSet(i.count)
     })
@@ -46,7 +52,12 @@ export const DashboardTeams: FC = () => {
     teamList()
   }, [pager.data, seasonId])
   useEffect(() => {
-    if (teams !== undefined) teamListDelay()
+    if (teams === undefined) return
+    if (pager.skip !== 0) {
+      pager.dataSet({...pager.data, skip: 0})
+      return
+    }
+    teamListDelay()
   }, [search])
   return $(Fragment, {
     children: addkeys([
@@ -127,9 +138,14 @@ export const DashboardTeams: FC = () => {
           creating &&
           $(_DashboardTeamsCreate, {
             teamSet: (i) => {
+              const nextPager = {...pager.data, skip: 0}
+              searchSet('')
               creatingSet(false)
-              currentIdSet(i.id)
-              teamList()
+              teamList({
+                search: '',
+                pager: nextPager,
+              }).then(() => currentIdSet(i.id))
+              if (pager.skip !== 0) pager.dataSet(nextPager)
             },
             close: () => creatingSet(false),
           }),
@@ -142,9 +158,8 @@ export const DashboardTeams: FC = () => {
               ? $(TeamViewAdmin, {
                   team: current,
                   teamSet: (i) => {
-                    if (i)
-                      teamsSet((x) => x?.map((z) => (z.id === i.id ? i : z)))
-                    else teamList()
+                    if (i) teamsSet((x) => x?.map((z) => (z.id === i.id ? i : z)))
+                    teamList()
                   },
                   close: () => currentIdSet(undefined),
                 })

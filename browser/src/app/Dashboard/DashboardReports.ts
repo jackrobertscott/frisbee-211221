@@ -75,13 +75,21 @@ export const DashboardReports: FC = () => {
     : undefined
   const currentReport = current?.report
   const seasonId = auth.season!.id
-  const reportList = () => {
+  const reportList = ({
+    search: nextSearch = search,
+    pager: nextPager = pager.data,
+  }: {
+    search?: string
+    pager?: typeof pager.data
+  } = {}) => {
     const requestId = ++reportListRequestId.current
-    return $reportSearch.fetch({...pager.data, seasonId, search}).then((i) => {
-      if (requestId !== reportListRequestId.current) return
-      reportRowsSet(i.reports)
-      pager.totalSet(i.count)
-    })
+    return $reportSearch
+      .fetch({...nextPager, seasonId, search: nextSearch})
+      .then((i) => {
+        if (requestId !== reportListRequestId.current) return
+        reportRowsSet(i.reports)
+        pager.totalSet(i.count)
+      })
   }
   const reportListDelay = useSling(500, reportList)
   const fixtureList = () =>
@@ -238,9 +246,15 @@ export const DashboardReports: FC = () => {
             loading: $reportCreate.loading,
             dataSet: (data: any) =>
               $reportCreate.fetch(data).then(() => {
+                const nextPager = {...pager.data, skip: 0}
                 toaster.notify('Report created.')
                 creatingSet(false)
-                reportList()
+                searchSet('')
+                reportList({
+                  search: '',
+                  pager: nextPager,
+                })
+                if (pager.skip !== 0) pager.dataSet(nextPager)
               }),
             close: () => creatingSet(false),
           }),
