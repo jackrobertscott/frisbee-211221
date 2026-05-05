@@ -27,7 +27,7 @@ import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
-import {MissingReportsModal} from './MissingReportsModal'
+import {MissingReportsControl} from './MissingReportsModal'
 
 export const DashboardLadder: FC = () => {
   const auth = useAuth()
@@ -40,7 +40,6 @@ export const DashboardLadder: FC = () => {
   const [editing, editingSet] = useState<TFixture>()
   const [openrnds, openrndsSet] = useState<string[]>([])
   const [addingFinal, addingFinalSet] = useState(false)
-  const [showingMissingReports, showingMissingReportsSet] = useState(false)
   const tally = tallyChart(fixtures ?? [])
   const reload = () => {
     const seasonId = auth.season!.id
@@ -79,11 +78,8 @@ export const DashboardLadder: FC = () => {
                     background: theme.bgAdminButton,
                     click: () => addingFinalSet(true),
                   }),
-                  $(FormBadge, {
-                    grow: true,
-                    label: 'View Missing Reports',
-                    background: theme.bgAdminButton,
-                    click: () => showingMissingReportsSet(true),
+                  $(MissingReportsControl, {
+                    seasonId: auth.season!.id,
                   }),
                 ]),
               }),
@@ -237,15 +233,6 @@ export const DashboardLadder: FC = () => {
                   reload()
                   editingSet(undefined)
                 }),
-          }),
-      }),
-      $(Fragment, {
-        children:
-          showingMissingReports &&
-          auth.season &&
-          $(MissingReportsModal, {
-            seasonId: auth.season.id,
-            close: () => showingMissingReportsSet(false),
           }),
       }),
     ]),

@@ -46,6 +46,7 @@ import {useToaster} from '../Toaster/useToaster'
 import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
+import {MissingReportsControl} from './MissingReportsModal'
 
 export const DashboardReports: FC = () => {
   const auth = useAuth()
@@ -127,6 +128,9 @@ export const DashboardReports: FC = () => {
                       label: 'Create Report',
                       background: theme.bgAdminButton,
                       click: () => creatingSet(true),
+                    }),
+                    $(MissingReportsControl, {
+                      seasonId,
                     }),
                   ]),
                 }),
