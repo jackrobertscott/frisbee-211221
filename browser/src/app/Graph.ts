@@ -1,6 +1,6 @@
 import {css} from '@emotion/css'
 import {createElement as $, FC, useEffect, useRef} from 'react'
-import {theme} from '../theme'
+import {theme, useTheme} from '../theme'
 
 export const Graph: FC<{
   title?: string
@@ -19,6 +19,7 @@ export const Graph: FC<{
   bars,
   height: _height = theme.fib[12],
 }) => {
+  const appTheme = useTheme()
   const bgRef = useRef<HTMLDivElement | null>(null)
   const cvsRef = useRef<HTMLCanvasElement | null>(null)
   useEffect(() => {
@@ -31,6 +32,17 @@ export const Graph: FC<{
       const height = (cvs.height = _height)
       cvs.width = width
       const ctx = cvs.getContext('2d')!
+      const rootStyle = getComputedStyle(document.documentElement)
+      const color = (name: string, alpha?: number) => {
+        const h = rootStyle.getPropertyValue(`--theme-${name}-h`).trim()
+        const s = rootStyle.getPropertyValue(`--theme-${name}-s`).trim()
+        const l = rootStyle.getPropertyValue(`--theme-${name}-l`).trim()
+        const a = alpha?.toString() ?? rootStyle.getPropertyValue(`--theme-${name}-a`).trim()
+        return `hsla(${h}, ${s}, ${l}, ${a})`
+      }
+      const axisColor = color('font')
+      const gridColor = color('border-color', 0.6)
+      const dataColor = color('bg-highlight')
       const axis = 55
       const yMaxDots = dots ? Math.max(...dots.map((i) => i[1])) : 0
       const yMaxLine = line ? Math.max(...line) : 0
@@ -54,9 +66,9 @@ export const Graph: FC<{
         const x = axis
         ctx.beginPath()
         ctx.lineWidth = 2
-        ctx.strokeStyle = 'rgba(0, 0, 0, 1)'
+        ctx.strokeStyle = axisColor
         ctx.textAlign = 'right'
-        ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+        ctx.fillStyle = axisColor
         ctx.moveTo(x, 0)
         ctx.lineTo(x, height - axis)
         for (let i = 0; i < yCount; i++) {
@@ -68,7 +80,7 @@ export const Graph: FC<{
         }
         ctx.stroke()
         ctx.beginPath()
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)'
+        ctx.strokeStyle = gridColor
         for (let i = 0; i < yCount; i += 2) {
           const y = height - axis - Math.round(i * yIncrement)
           ctx.moveTo(x, y)
@@ -92,9 +104,9 @@ export const Graph: FC<{
         const y = height - axis
         ctx.beginPath()
         ctx.lineWidth = 2
-        ctx.strokeStyle = 'rgba(0, 0, 0, 1)'
+        ctx.strokeStyle = axisColor
         ctx.textAlign = 'center'
-        ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+        ctx.fillStyle = axisColor
         ctx.moveTo(axis, y)
         ctx.lineTo(width, y)
         for (let i = 0; i < xCount - 1; i++) {
@@ -113,7 +125,7 @@ export const Graph: FC<{
       }
       if (dots) {
         ctx.beginPath()
-        ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+        ctx.fillStyle = dataColor
         for (let i = 0; i < dots.length; i++) {
           const x = axis + Math.round((dots[i][0] + 1) * xIncrement)
           const y = height - axis - Math.round(dots[i][1] * yIncrement)
@@ -125,7 +137,7 @@ export const Graph: FC<{
       if (line) {
         ctx.beginPath()
         ctx.lineWidth = 2
-        ctx.strokeStyle = 'rgba(0, 0, 0, 1)'
+        ctx.strokeStyle = dataColor
         for (let i = 0; i < line.length; i++) {
           const x = axis + Math.round((i + 1) * xIncrement)
           const y = height - axis - Math.round(line[i] * yIncrement)
@@ -137,7 +149,7 @@ export const Graph: FC<{
       if (bars) {
         ctx.beginPath()
         ctx.lineWidth = Math.round(xIncrement / 2)
-        ctx.strokeStyle = 'rgba(0, 0, 0, 1)'
+        ctx.strokeStyle = dataColor
         for (let i = 0; i < bars.length; i++) {
           const x = axis + Math.round((i + 1) * xIncrement)
           const y = height - axis - Math.round(bars[i] * yIncrement)
@@ -148,7 +160,7 @@ export const Graph: FC<{
       }
       if (title) {
         ctx.beginPath()
-        ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+        ctx.fillStyle = axisColor
         const x = Math.round((width - axis) / 2 + axis)
         ctx.fillText(title, x, 20)
       }
@@ -157,7 +169,7 @@ export const Graph: FC<{
     const observer = new ResizeObserver(draw)
     observer.observe(bg)
     return () => observer.disconnect()
-  }, [_height, bars, dots, line, title, xLabel, yLabel])
+  }, [_height, appTheme.current, bars, dots, line, title, xLabel, yLabel])
   return $('div', {
     ref: bgRef,
     className: css({

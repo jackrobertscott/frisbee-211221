@@ -66,6 +66,7 @@ export const Table: TFCTable = ({head, body}) => {
                 return $(FormRow, {
                   key: entry.key,
                   click: entry.click,
+                  className: entry.click ? _tableClickableRow : undefined,
                   children: Object.entries(head).map(([key, {grow}]) => {
                     const data = entry.data[key]
                     const bg = data?.color
@@ -85,9 +86,7 @@ export const Table: TFCTable = ({head, body}) => {
                             data?.value !== undefined && !badnum
                               ? data.value.toString()
                               : '...',
-                          background: bg
-                            ? bg // bg.merge({a: entry.click ? -0.5 : 0})
-                            : hsla.create(0, 0, 0, 0),
+                          background: bg,
                           font: data ? font : font?.merge({a: 0.5}),
                           select: !entry.click ? 'text' : undefined,
                           icon: data.icon,
@@ -110,6 +109,22 @@ export const Table: TFCTable = ({head, body}) => {
     }),
   })
 }
+
+const _tableClickableRow = css({
+  '& > div > div': {
+    transition: 'box-shadow 120ms ease',
+  },
+  '&:hover > div > div': {
+    boxShadow: `inset 0 0 0 999px ${theme.bg.compliment()
+      .merge({a: -0.82})
+      .string()}`,
+  },
+  '&:active > div > div': {
+    boxShadow: `inset 0 0 0 999px ${theme.bg.compliment()
+      .merge({a: -0.74})
+      .string()}`,
+  },
+})
 
 const _TableCell: FC<{
   grow: number
