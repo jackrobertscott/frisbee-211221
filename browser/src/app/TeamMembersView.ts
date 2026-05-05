@@ -8,6 +8,7 @@ import {
   $MemberAcceptOrDecline,
   $MemberCreate,
   $MemberListOfTeam,
+  $MemberLookupByEmail,
   $MemberRemove,
   $MemberSetCaptain,
 } from '../endpoints/Member'
@@ -67,50 +68,50 @@ export const TeamMembersView: FC<{team: TTeam}> = ({team}) => {
               state === undefined
                 ? $(Spinner)
                 : !state.members.length
-                ? $(FormBadge, {
-                    label: 'No Members Yet',
-                    font: theme.fontMinor,
-                  })
-                : $(FormColumn, {
-                    children: state.members.map((member) => {
-                      const user = state.users.find(
-                        (i) => i.id === member.userId
-                      )
-                      return $(FormRow, {
-                        key: member.id,
-                        children: addkeys([
-                          $(FormLabel, {
-                            grow: true,
-                            label: user
-                              ? `${user.firstName} ${user.lastName}`
-                              : '[unknown]',
-                          }),
-                          member.captain
-                            ? $(FormBadge, {
-                                label: 'Captain',
-                              })
-                            : canManage &&
-                              !member.pending &&
+                  ? $(FormBadge, {
+                      label: 'No Members Yet',
+                      font: theme.fontMinor,
+                    })
+                  : $(FormColumn, {
+                      children: state.members.map((member) => {
+                        const user = state.users.find(
+                          (i) => i.id === member.userId,
+                        )
+                        return $(FormRow, {
+                          key: member.id,
+                          children: addkeys([
+                            $(FormLabel, {
+                              grow: true,
+                              label: user
+                                ? `${user.firstName} ${user.lastName}`
+                                : '[unknown]',
+                            }),
+                            member.captain
+                              ? $(FormBadge, {
+                                  label: 'Captain',
+                                })
+                              : canManage &&
+                                !member.pending &&
+                                $(FormBadge, {
+                                  icon: 'hand-holding-medical',
+                                  click: () => promoteIdSet(member.id),
+                                }),
+                            canManage &&
+                              member.pending &&
                               $(FormBadge, {
-                                icon: 'hand-holding-medical',
-                                click: () => promoteIdSet(member.id),
+                                icon: 'bell',
+                                label: 'Pending',
+                                click: () => pendingIdSet(member.id),
                               }),
-                          canManage &&
-                            member.pending &&
-                            $(FormBadge, {
-                              icon: 'bell',
-                              label: 'Pending',
-                              click: () => pendingIdSet(member.id),
-                            }),
-                          canManage &&
-                            $(FormBadge, {
-                              icon: 'trash-alt',
-                              click: () => removeIdSet(member.id),
-                            }),
-                        ]),
-                      })
+                            canManage &&
+                              $(FormBadge, {
+                                icon: 'trash-alt',
+                                click: () => removeIdSet(member.id),
+                              }),
+                          ]),
+                        })
+                      }),
                     }),
-                  }),
           }),
           $(Fragment, {
             children:
@@ -232,12 +233,15 @@ const _TeamMembersViewCreate: FC<{
   memberSet: (member: TMember) => void
 }> = ({team, close, memberSet}) => {
   const $memberCreate = useEndpoint($MemberCreate)
+  const $memberLookupByEmail = useEndpoint($MemberLookupByEmail)
+  const toaster = useToaster()
   const form = useForm({
     email: '',
     firstName: '',
     lastName: '',
     gender: undefined as undefined | TUserGender,
   })
+  const [step, stepSet] = useState<'email' | 'details'>('email')
   return $(Modal, {
     children: addkeys([
       $(TopBar, {
@@ -261,49 +265,92 @@ const _TeamMembersViewCreate: FC<{
               $(InputString, {
                 value: form.data.email,
                 valueSet: form.link('email'),
+                autofocus: true,
               }),
             ]),
           }),
-          $(FormRow, {
-            children: addkeys([
-              $(FormLabel, {label: 'First Name'}),
-              $(InputString, {
-                value: form.data.firstName,
-                valueSet: form.link('firstName'),
+          step === 'details' &&
+            $(Fragment, {
+              children: addkeys([
+                $(FormRow, {
+                  children: addkeys([
+                    $(FormLabel, {label: 'First Name'}),
+                    $(InputString, {
+                      value: form.data.firstName,
+                      valueSet: form.link('firstName'),
+                      autofocus: true,
+                    }),
+                  ]),
+                }),
+                $(FormRow, {
+                  children: addkeys([
+                    $(FormLabel, {label: 'Last Name'}),
+                    $(InputString, {
+                      value: form.data.lastName,
+                      valueSet: form.link('lastName'),
+                    }),
+                  ]),
+                }),
+                $(FormRow, {
+                  children: addkeys([
+                    $(FormLabel, {label: 'Gender'}),
+                    $(InputSelect<TUserGender>, {
+                      value: form.data.gender,
+                      valueSet: form.link('gender'),
+                      options: GENDER_OPTIONS,
+                    }),
+                  ]),
+                }),
+              ]),
+            }),
+          step === 'email'
+            ? $(FormBadge, {
+                disabled: $memberLookupByEmail.loading || $memberCreate.loading,
+                label:
+                  $memberLookupByEmail.loading || $memberCreate.loading
+                    ? 'Loading'
+                    : 'Continue',
+                click: () =>
+                  $memberLookupByEmail
+                    .fetch({
+                      teamId: team.id,
+                      email: form.data.email,
+                    })
+                    .then((result) => {
+                      if (!result.exists) {
+                        stepSet('details')
+                        return
+                      }
+                      return $memberCreate
+                        .fetch({
+                          teamId: team.id,
+                          email: form.data.email,
+                        })
+                        .then((member) => {
+                          toaster.notify(
+                            result.user
+                              ? `${result.user.firstName} ${result.user.lastName} added to team.`
+                              : 'Member added to team.',
+                          )
+                          memberSet(member)
+                        })
+                    }),
+              })
+            : $(FormBadge, {
+                disabled: $memberCreate.loading,
+                label: $memberCreate.loading ? 'Loading' : 'Submit',
+                click: () =>
+                  $memberCreate
+                    .fetch({
+                      ...form.data,
+                      teamId: team.id,
+                      gender: form.data.gender!,
+                    })
+                    .then((member) => {
+                      toaster.notify('Member created and added to team.')
+                      memberSet(member)
+                    }),
               }),
-            ]),
-          }),
-          $(FormRow, {
-            children: addkeys([
-              $(FormLabel, {label: 'Last Name'}),
-              $(InputString, {
-                value: form.data.lastName,
-                valueSet: form.link('lastName'),
-              }),
-            ]),
-          }),
-          $(FormRow, {
-            children: addkeys([
-              $(FormLabel, {label: 'Gender'}),
-              $(InputSelect<TUserGender>, {
-                value: form.data.gender,
-                valueSet: form.link('gender'),
-                options: GENDER_OPTIONS,
-              }),
-            ]),
-          }),
-          $(FormBadge, {
-            disabled: $memberCreate.loading,
-            label: $memberCreate.loading ? 'Loading' : 'Submit',
-            click: () =>
-              $memberCreate
-                .fetch({
-                  ...form.data,
-                  teamId: team.id,
-                  gender: form.data.gender!,
-                })
-                .then(memberSet),
-          }),
         ]),
       }),
     ]),

@@ -39,6 +39,19 @@ export const MemberCreateDef = {
   result: ioMember,
 } satisfies TEndpointDef
 
+export const MemberLookupByEmailDef = {
+  access: authPoint.memberManage,
+  path: '/MemberLookupByEmail',
+  payload: io.object({
+    teamId: io.string(),
+    email: io.string().email().trim(),
+  }),
+  result: io.object({
+    exists: io.boolean(),
+    user: io.optional(ioUserPublic),
+  }),
+} satisfies TEndpointDef
+
 export const MemberRemoveDef = {
   access: authPoint.memberManage,
   path: '/MemberRemove',

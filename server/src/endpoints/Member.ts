@@ -1,5 +1,5 @@
-import {conflictError, forbiddenError} from '@shared/errors'
-import {MemberAcceptOrDeclineDef, MemberCreateDef, MemberListOfTeamDef, MemberListOfUserDef, MemberRemoveDef, MemberRequestCreateDef, MemberSetCaptainDef} from '@shared/endpoints/MemberDef'
+import {badRequestError, conflictError, forbiddenError} from '@shared/errors'
+import {MemberAcceptOrDeclineDef, MemberCreateDef, MemberListOfTeamDef, MemberListOfUserDef, MemberLookupByEmailDef, MemberRemoveDef, MemberRequestCreateDef, MemberSetCaptainDef} from '@shared/endpoints/MemberDef'
 import {TMember} from '@shared/schemas/ioMember'
 import {RequestHandler} from 'micro'
 import {$Member} from '../tables/$Member'
@@ -50,6 +50,25 @@ export default new Map<string, RequestHandler>([
   }),
 
   createEndpoint({
+    ...MemberLookupByEmailDef,
+    handler: ({teamId, email}, access) => async (req) => {
+      const [userCurrent] = await requireAccess(req, access)
+      if (!userCurrent.admin) {
+        const [, memberCurrent] = await requireTeam(userCurrent, teamId)
+        if (!memberCurrent.captain)
+          throw forbiddenError('Failed: only the team captain can add members.', {
+            errorCode: 'member.captain_required',
+          })
+      }
+      const user = await userEmail.maybeUser(email)
+      return {
+        exists: !!user,
+        user: user ? selectPublicUserFields(user) : undefined,
+      }
+    },
+  }),
+
+  createEndpoint({
     ...MemberCreateDef,
     handler:
       ({teamId, email, ...body}, access) =>
@@ -65,6 +84,11 @@ export default new Map<string, RequestHandler>([
         const team = await $Team.getOne({id: teamId})
         let user = await userEmail.maybeUser(email)
         if (!user) {
+          if (!body.firstName?.trim() || !body.lastName?.trim() || !body.gender)
+            throw badRequestError(
+              'First name, last name, and gender are required for a new user.',
+              {errorCode: 'member.user_details_required'}
+            )
           let raw: any = body
           user = await $User.createOne({
             ...raw,
