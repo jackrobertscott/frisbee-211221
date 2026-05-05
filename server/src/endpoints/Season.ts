@@ -3,6 +3,7 @@ import {
   SeasonListDef,
   SeasonUpdateDef,
 } from '@shared/endpoints/SeasonDef'
+import {seasonNameCollation} from '@shared/utils/seasonName'
 import {RequestHandler} from 'micro'
 import {$Season} from '../tables/$Season'
 import {createEndpoint} from '../utils/endpoints'
@@ -16,7 +17,10 @@ export default new Map<string, RequestHandler>([
     handler: (body) => async () => {
       return $Season.getMany(
         {name: regex.from(body.search ?? '')},
-        {sort: {createdOn: -1}}
+        {
+          sort: {name: 1 as const, id: 1 as const},
+          collation: seasonNameCollation,
+        },
       )
     },
   }),

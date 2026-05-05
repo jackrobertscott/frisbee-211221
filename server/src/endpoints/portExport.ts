@@ -4,6 +4,7 @@ import {TReport} from '@shared/schemas/ioReport'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUser, TUserEmail} from '@shared/schemas/ioUser'
+import {compareSeasonNames, seasonNameCollation} from '@shared/utils/seasonName'
 import AdmZip from 'adm-zip'
 import {$Fixture} from '../tables/$Fixture'
 import {$Member} from '../tables/$Member'
@@ -37,11 +38,6 @@ type TExportContext = {
   usersById: Map<string, TUser>
 }
 
-const SEASON_NAME_COLLATOR = new Intl.Collator('en', {
-  numeric: true,
-  sensitivity: 'base',
-})
-
 const EXPORT_DATASETS = [
   {
     filename: 'fixture-games',
@@ -63,7 +59,7 @@ const EXPORT_DATASETS = [
       return [...fixtures].sort((left, right) => {
         const leftSeasonName = _seasonLabel(seasonsById.get(left.seasonId))
         const rightSeasonName = _seasonLabel(seasonsById.get(right.seasonId))
-        const seasonDiff = _compareSeasonNames(leftSeasonName, rightSeasonName)
+        const seasonDiff = compareSeasonNames(leftSeasonName, rightSeasonName)
         if (seasonDiff) return seasonDiff
         const dateDiff = String(left.date ?? '').localeCompare(
           String(right.date ?? ''),
@@ -110,7 +106,7 @@ const EXPORT_DATASETS = [
           teamName: _teamLabel(teamsById.get(result.teamId)),
         })),
       ).sort((a, b) => {
-        const seasonDiff = _compareSeasonNames(a.seasonName, b.seasonName)
+        const seasonDiff = compareSeasonNames(a.seasonName, b.seasonName)
         if (seasonDiff) return seasonDiff
         const teamDiff = String(a.teamName ?? '').localeCompare(String(b.teamName ?? ''))
         if (teamDiff) return teamDiff
@@ -123,11 +119,11 @@ const EXPORT_DATASETS = [
     fields: ['name', 'signUpOpen', 'scoringSystem', 'isHidden'],
     build: ({seasons}) => {
       return seasons.map((season) => ({
-        name: season.name,
-        signUpOpen: season.signUpOpen ? 'Yes' : '',
-        isHidden: season.isHidden ? 'Yes' : '',
-        scoringSystem: season.useOfficialScoring ? 'Official' : 'Simple',
-      })).sort((a, b) => _compareSeasonNames(a.name, b.name))
+          name: season.name,
+          signUpOpen: season.signUpOpen ? 'Yes' : '',
+          isHidden: season.isHidden ? 'Yes' : '',
+          scoringSystem: season.useOfficialScoring ? 'Official' : 'Simple',
+        }))
     },
   },
   {
@@ -173,7 +169,7 @@ const EXPORT_DATASETS = [
           (rightFixture ? seasonsById.get(rightFixture.seasonId) : undefined) ??
           (rightTeam ? seasonsById.get(rightTeam.seasonId) : undefined)
 
-        const seasonDiff = _compareSeasonNames(
+        const seasonDiff = compareSeasonNames(
           _seasonLabel(leftSeason),
           _seasonLabel(rightSeason),
         )
@@ -277,7 +273,7 @@ const EXPORT_DATASETS = [
           pending: member.pending ? 'Pending' : '',
         }
       }).sort((a, b) => {
-        const seasonDiff = _compareSeasonNames(a.seasonName, b.seasonName)
+        const seasonDiff = compareSeasonNames(a.seasonName, b.seasonName)
         if (seasonDiff) return seasonDiff
         const teamDiff = String(a.teamName ?? '').localeCompare(String(b.teamName ?? ''))
         if (teamDiff) return teamDiff
@@ -299,7 +295,7 @@ const EXPORT_DATASETS = [
         email: team.email,
         phone: team.phone,
       })).sort((a, b) => {
-        const seasonDiff = _compareSeasonNames(a.seasonName, b.seasonName)
+        const seasonDiff = compareSeasonNames(a.seasonName, b.seasonName)
         if (seasonDiff) return seasonDiff
         const divisionDiff = String(a.division ?? '').localeCompare(String(b.division ?? ''))
         if (divisionDiff) return divisionDiff
@@ -474,7 +470,10 @@ const _loadExportContext = async (): Promise<TExportContext> => {
       $Fixture.getMany({}, {sort}),
       $Member.getMany({}, {sort}),
       $Report.getMany({}, {sort}),
-      $Season.getMany({}, {sort}),
+      $Season.getMany({}, {
+        sort: {name: 1 as const, id: 1 as const},
+        collation: seasonNameCollation,
+      }),
       $Team.getMany({}, {sort}),
       $User.getMany({}, {sort}),
     ],
@@ -522,7 +521,7 @@ const _compareExportValues = (
   right: unknown,
 ) => {
   if (field === 'seasonName') {
-    return _compareSeasonNames(left, right)
+    return compareSeasonNames(left, right)
   }
   if (typeof left === 'number' || typeof right === 'number') {
     const leftValue = typeof left === 'number' ? left : Number.MAX_SAFE_INTEGER
@@ -560,9 +559,6 @@ const _sortUserEmails = (emails: TUserEmail[]) => {
     return a.primary ? -1 : 1
   })
 }
-
-const _compareSeasonNames = (left: unknown, right: unknown) =>
-  SEASON_NAME_COLLATOR.compare(String(left ?? ''), String(right ?? ''))
 
 const _seasonLabel = (season?: TSeason) => season?.name ?? 'Unknown season'
 

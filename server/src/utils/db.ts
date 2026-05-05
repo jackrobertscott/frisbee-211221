@@ -1,5 +1,5 @@
 import {notFoundError} from '@shared/errors'
-import {Document, Filter, FindOptions, WithId} from 'mongodb'
+import {CollationOptions, Document, Filter, FindOptions, WithId} from 'mongodb'
 import {TypeIoAll, TypeIoValue} from '@shared/torva'
 import mongo from './mongo'
 import {Simplify} from './types'
@@ -8,6 +8,7 @@ export interface TQueryOptions<T> {
   sort?: {[key in keyof T]?: 1 | -1}
   limit?: number
   skip?: number
+  collation?: CollationOptions
 }
 
 export const db = {
@@ -59,13 +60,14 @@ export const db = {
         queryOptions?: TQueryOptions<V>
       ): Promise<V[]> {
         const collection = await mongo.collection(options.key)
-        let chain = collection
-          .find(query as Filter<Document>)
-          .limit(queryOptions?.limit ?? Number.MAX_SAFE_INTEGER)
-          .skip(queryOptions?.skip ?? 0)
+        let chain = collection.find(query as Filter<Document>)
+        if (queryOptions?.collation) chain = chain.collation(queryOptions.collation)
         for (const i of Object.entries(queryOptions?.sort ?? {})) {
           chain = chain.sort(i[0], i[1])
         }
+        chain = chain
+          .skip(queryOptions?.skip ?? 0)
+          .limit(queryOptions?.limit ?? Number.MAX_SAFE_INTEGER)
         const result = await chain.toArray()
         return result.map((i) => this._clean(i as any))
       },

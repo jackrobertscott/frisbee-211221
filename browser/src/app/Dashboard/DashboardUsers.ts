@@ -3,6 +3,7 @@ import {TUserListSortKey} from '@shared/endpoints/UserDef'
 import {TMember} from '@shared/schemas/ioMember'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {TTeam} from '@shared/schemas/ioTeam'
+import {compareSeasonNames} from '@shared/utils/seasonName'
 import {css} from '@emotion/css'
 import {TUserSafe} from '@shared/schemas/ioUser'
 import {TUserGender} from '@shared/schemas/ioUserGender'
@@ -627,7 +628,8 @@ const _DashboardUsersViewTeams: FC<{user: TUserSafe}> = ({user}) => {
                     state.seasons.find((i) => i.id === a.seasonId)?.name ?? ''
                   const bSeason =
                     state.seasons.find((i) => i.id === b.seasonId)?.name ?? ''
-                  if (aSeason !== bSeason) return aSeason.localeCompare(bSeason)
+                  const seasonDiff = compareSeasonNames(aSeason, bSeason)
+                  if (seasonDiff) return seasonDiff
                   const aTeam =
                     state.teams.find((i) => i.id === a.teamId)?.name ?? ''
                   const bTeam =
