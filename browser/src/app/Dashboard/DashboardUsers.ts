@@ -1,9 +1,13 @@
 import {authPoint} from '@shared/auth/authAccess'
+import {TMember} from '@shared/schemas/ioMember'
+import {TSeason} from '@shared/schemas/ioSeason'
+import {TTeam} from '@shared/schemas/ioTeam'
 import {css} from '@emotion/css'
 import {TUserSafe} from '@shared/schemas/ioUser'
 import {TUserGender} from '@shared/schemas/ioUserGender'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
+import {$MemberListOfUserAdmin} from '../../endpoints/Member'
 import {
   $UserChangePassword,
   $UserCreate,
@@ -26,6 +30,8 @@ import {FormRow} from '../Form/FormRow'
 import {InputBoolean} from '../Input/InputBoolean'
 import {InputSelect} from '../Input/InputSelect'
 import {InputString} from '../Input/InputString'
+import {useMedia} from '../Media/useMedia'
+import {MenuBar, MenuBarOption, MenuBarShadow, MenuBarSpacer} from '../MenuBar'
 import {Modal} from '../Modal'
 import {Pager} from '../Pager/Pager'
 import {usePager} from '../Pager/usePager'
@@ -37,6 +43,7 @@ import {TopBar, TopBarBadge} from '../TopBar'
 import {UserMerge} from '../UserMerge'
 import {useEndpoint} from '../useEndpoint'
 import {useForm} from '../useForm'
+import {useLocalRouter} from '../useLocalRouter'
 import {useSling} from '../useThrottle'
 
 export const DashboardUsers: FC = () => {
@@ -261,26 +268,51 @@ export const _DashboardUsersView: FC<{
   userSet: (user: TUserSafe) => void
   close: () => void
 }> = ({user, userSet, close}) => {
+  const media = useMedia()
+  const bpSmall = theme.fib[13]
+  const isSmall = media.width < bpSmall
+  const [open, openSet] = useState(false)
   const auth = useAuth()
   const $toggleAdmin = useEndpoint($UserToggleAdmin)
-  const $userUpdate = useEndpoint($UserUpdate)
   const [merge, mergeSet] = useState(false)
   const [changePass, changePassSet] = useState(false)
   const [adminify, adminifySet] = useState(false)
-  const form = useForm({
-    ...user,
-  })
-  const isDifferent = !objectify.compareKeys(user, form.data, [
-    'firstName',
-    'lastName',
-    'gender',
+  const router = useLocalRouter('/details', [
+    {
+      path: '/details',
+      title: 'User Details',
+      render: () =>
+        $(_DashboardUsersViewDetails, {
+          user,
+          userSet,
+          changePassword: () => changePassSet(true),
+          toggleAdmin: () => adminifySet(true),
+        }),
+    },
+    {
+      path: '/teams',
+      title: 'Teams',
+      render: () =>
+        $(_DashboardUsersViewTeams, {
+          user,
+        }),
+    },
   ])
   return $(Fragment, {
     children: addkeys([
       $(Modal, {
+        width: theme.fib[13] + theme.fib[10],
         children: addkeys([
           $(TopBar, {
             children: addkeys([
+              $(Fragment, {
+                children:
+                  isSmall &&
+                  $(TopBarBadge, {
+                    icon: 'bars',
+                    click: () => openSet((i) => !i),
+                  }),
+              }),
               $(TopBarBadge, {
                 grow: true,
                 label: 'User',
@@ -295,108 +327,44 @@ export const _DashboardUsersView: FC<{
               }),
             ]),
           }),
-          $(Form, {
-            background: theme.bgMinor,
+          $('div', {
+            className: css({
+              display: 'flex',
+              position: 'relative',
+            }),
             children: addkeys([
-              $(FormRow, {
-                children: addkeys([
-                  $(FormLabel, {label: 'First Name'}),
-                  $(InputString, {
-                    value: form.data.firstName,
-                    valueSet: form.link('firstName'),
+              (open || !isSmall) &&
+                $(MenuBarShadow, {
+                  click: () => openSet(false),
+                  deactivated: !isSmall,
+                  children: $(MenuBar, {
+                    width: theme.fib[11] - theme.fib[8],
+                    children: addkeys([
+                      $(Fragment, {
+                        children: router.routes.map((i) => {
+                          return $(MenuBarOption, {
+                            key: i.path,
+                            label: i.title,
+                            click: () => {
+                              router.go(i.path)
+                              if (open) openSet(false)
+                            },
+                            active: i.path === router.current.path,
+                          })
+                        }),
+                      }),
+                      $(MenuBarSpacer),
+                    ]),
                   }),
-                ]),
-              }),
-              $(FormRow, {
-                children: addkeys([
-                  $(FormLabel, {label: 'Last Name'}),
-                  $(InputString, {
-                    value: form.data.lastName,
-                    valueSet: form.link('lastName'),
-                  }),
-                ]),
-              }),
-              $(FormRow, {
-                children: addkeys([
-                  $(FormLabel, {label: 'Gender'}),
-                  $(InputSelect<TUserGender>, {
-                    value: form.data.gender,
-                    valueSet: form.link('gender'),
-                    options: GENDER_OPTIONS,
-                  }),
-                ]),
-              }),
-              $(FormColumn, {
-                children: addkeys([
-                  $(FormLabel, {label: 'Emails'}),
-                  $(Fragment, {
-                    children: user.emails.map((i) => {
-                      return $(InputString, {
-                        key: i.value,
-                        disabled: true,
-                        value: i.value,
-                      })
-                    }),
-                  }),
-                ]),
-              }),
-              $(FormBadge, {
-                label: 'Change Password',
-                click: () => changePassSet(true),
-              }),
-              $(FormRow, {
-                children: addkeys([
-                  $(FormLabel, {label: 'Created'}),
-                  $(FormLabel, {
-                    label: dayjs(user.createdOn).format('DD/MM/YY h:mma'),
-                    background: theme.bgDisabled,
-                    grow: true,
-                  }),
-                ]),
-              }),
-              $(FormRow, {
-                children: addkeys([
-                  $(FormLabel, {label: 'Last Updated'}),
-                  $(FormLabel, {
-                    label: dayjs(user.updatedOn).format('DD/MM/YY h:mma'),
-                    background: theme.bgDisabled,
-                    grow: true,
-                  }),
-                ]),
-              }),
-              $(FormRow, {
-                children: addkeys([
-                  $(FormLabel, {label: 'Id'}),
-                  $(FormLabel, {
-                    label: user.id,
-                    background: theme.bgDisabled,
-                    grow: true,
-                  }),
-                ]),
-              }),
-              $(FormRow, {
-                children: addkeys([
-                  $(FormLabel, {label: 'Admin'}),
-                  $(FormLabel, {
-                    label: user.admin ? 'Yes' : 'No',
-                    grow: true,
-                  }),
-                  $(FormBadge, {
-                    label: user.admin ? 'Remove From Admins' : 'Set As Admin',
-                    background: theme.bgAdminButton,
-                    click: () => adminifySet(true),
-                  }),
-                ]),
-              }),
-              isDifferent &&
-                $(FormBadge, {
-                  disabled: $userUpdate.loading,
-                  label: $userUpdate.loading ? 'Loading' : 'Save Changes',
-                  click: () =>
-                    $userUpdate
-                      .fetch({...form.data, userId: user.id})
-                      .then(userSet),
                 }),
+              $('div', {
+                className: css({
+                  overflow: 'hidden',
+                  background: theme.bgMinor.string(),
+                  flexGrow: 1,
+                }),
+                children: router.render(),
+              }),
             ]),
           }),
         ]),
@@ -445,6 +413,194 @@ export const _DashboardUsersView: FC<{
           }),
       }),
     ]),
+  })
+}
+
+const _DashboardUsersViewDetails: FC<{
+  user: TUserSafe
+  userSet: (user: TUserSafe) => void
+  changePassword: () => void
+  toggleAdmin: () => void
+}> = ({user, userSet, changePassword, toggleAdmin}) => {
+  const $userUpdate = useEndpoint($UserUpdate)
+  const form = useForm({
+    ...user,
+  })
+  const isDifferent = !objectify.compareKeys(user, form.data, [
+    'firstName',
+    'lastName',
+    'gender',
+  ])
+  return $(Form, {
+    background: theme.bgMinor,
+    children: addkeys([
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {label: 'First Name'}),
+          $(InputString, {
+            value: form.data.firstName,
+            valueSet: form.link('firstName'),
+          }),
+        ]),
+      }),
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {label: 'Last Name'}),
+          $(InputString, {
+            value: form.data.lastName,
+            valueSet: form.link('lastName'),
+          }),
+        ]),
+      }),
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {label: 'Gender'}),
+          $(InputSelect<TUserGender>, {
+            value: form.data.gender,
+            valueSet: form.link('gender'),
+            options: GENDER_OPTIONS,
+          }),
+        ]),
+      }),
+      $(FormColumn, {
+        children: addkeys([
+          $(FormLabel, {label: 'Emails'}),
+          $(Fragment, {
+            children: user.emails.map((i) => {
+              return $(InputString, {
+                key: i.value,
+                disabled: true,
+                value: i.value,
+              })
+            }),
+          }),
+        ]),
+      }),
+      $(FormBadge, {
+        label: 'Change Password',
+        click: changePassword,
+      }),
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {label: 'Created'}),
+          $(FormLabel, {
+            label: dayjs(user.createdOn).format('DD/MM/YY h:mma'),
+            background: theme.bgDisabled,
+            grow: true,
+          }),
+        ]),
+      }),
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {label: 'Last Updated'}),
+          $(FormLabel, {
+            label: dayjs(user.updatedOn).format('DD/MM/YY h:mma'),
+            background: theme.bgDisabled,
+            grow: true,
+          }),
+        ]),
+      }),
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {label: 'Id'}),
+          $(FormLabel, {
+            label: user.id,
+            background: theme.bgDisabled,
+            grow: true,
+          }),
+        ]),
+      }),
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {label: 'Admin'}),
+          $(FormLabel, {
+            label: user.admin ? 'Yes' : 'No',
+            grow: true,
+          }),
+          $(FormBadge, {
+            label: user.admin ? 'Remove From Admins' : 'Set As Admin',
+            background: theme.bgAdminButton,
+            click: toggleAdmin,
+          }),
+        ]),
+      }),
+      isDifferent &&
+        $(FormBadge, {
+          disabled: $userUpdate.loading,
+          label: $userUpdate.loading ? 'Loading' : 'Save Changes',
+          click: () =>
+            $userUpdate.fetch({...form.data, userId: user.id}).then(userSet),
+        }),
+    ]),
+  })
+}
+
+const _DashboardUsersViewTeams: FC<{user: TUserSafe}> = ({user}) => {
+  const $memberList = useEndpoint($MemberListOfUserAdmin)
+  const [state, stateSet] = useState<{
+    members: TMember[]
+    seasons: TSeason[]
+    teams: TTeam[]
+  }>()
+  useEffect(() => {
+    $memberList.fetch(user.id).then(stateSet)
+  }, [user.id])
+  return $(Form, {
+    background: theme.bgMinor,
+    children:
+      state === undefined
+        ? $(Spinner)
+        : !state.members.length
+          ? $(FormBadge, {
+              label: 'No Teams',
+              font: theme.fontMinor,
+            })
+          : $(Table, {
+              head: {
+                team: {label: 'Team', grow: 3},
+                season: {label: 'Season', grow: 3},
+                status: {label: 'Status', grow: 2},
+              },
+              body: state.members
+                .slice()
+                .sort((a, b) => {
+                  const aSeason =
+                    state.seasons.find((i) => i.id === a.seasonId)?.name ?? ''
+                  const bSeason =
+                    state.seasons.find((i) => i.id === b.seasonId)?.name ?? ''
+                  if (aSeason !== bSeason) return aSeason.localeCompare(bSeason)
+                  const aTeam =
+                    state.teams.find((i) => i.id === a.teamId)?.name ?? ''
+                  const bTeam =
+                    state.teams.find((i) => i.id === b.teamId)?.name ?? ''
+                  return aTeam.localeCompare(bTeam)
+                })
+                .map((member) => {
+                  const team = state.teams.find((i) => i.id === member.teamId)
+                  const season = state.seasons.find(
+                    (i) => i.id === member.seasonId,
+                  )
+                  return {
+                    key: member.id,
+                    data: {
+                      team: {
+                        value: team?.name ?? '[unknown]',
+                        color: team?.color,
+                      },
+                      season: {
+                        value: season?.name ?? '[unknown]',
+                      },
+                      status: {
+                        value: member.pending
+                          ? 'Pending'
+                          : member.captain
+                            ? 'Captain'
+                            : 'Member',
+                      },
+                    },
+                  }
+                }),
+            }),
   })
 }
 

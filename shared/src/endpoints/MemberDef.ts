@@ -1,5 +1,6 @@
 import {authPoint} from '@shared/auth/authAccess'
 import {ioMember} from '@shared/schemas/ioMember'
+import {ioSeason} from '@shared/schemas/ioSeason'
 import {ioTeam} from '@shared/schemas/ioTeam'
 import {ioUserGender} from '@shared/schemas/ioUserGender'
 import {ioUserPublic} from '@shared/schemas/ioUser'
@@ -23,6 +24,17 @@ export const MemberListOfTeamDef = {
     current: io.optional(ioMember),
     members: io.array(ioMember),
     users: io.array(ioUserPublic),
+  }),
+} satisfies TEndpointDef
+
+export const MemberListOfUserAdminDef = {
+  access: authPoint.userAdmin,
+  path: '/MemberListOfUserAdmin',
+  payload: io.string(),
+  result: io.object({
+    members: io.array(ioMember),
+    seasons: io.array(ioSeason),
+    teams: io.array(ioTeam),
   }),
 } satisfies TEndpointDef
 

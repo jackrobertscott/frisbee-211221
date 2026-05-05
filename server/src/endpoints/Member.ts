@@ -1,8 +1,9 @@
 import {badRequestError, conflictError, forbiddenError} from '@shared/errors'
-import {MemberAcceptOrDeclineDef, MemberCreateDef, MemberListOfTeamDef, MemberListOfUserDef, MemberLookupByEmailDef, MemberRemoveDef, MemberRequestCreateDef, MemberSetCaptainDef} from '@shared/endpoints/MemberDef'
+import {MemberAcceptOrDeclineDef, MemberCreateDef, MemberListOfTeamDef, MemberListOfUserAdminDef, MemberListOfUserDef, MemberLookupByEmailDef, MemberRemoveDef, MemberRequestCreateDef, MemberSetCaptainDef} from '@shared/endpoints/MemberDef'
 import {TMember} from '@shared/schemas/ioMember'
 import {RequestHandler} from 'micro'
 import {$Member} from '../tables/$Member'
+import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
@@ -45,6 +46,28 @@ export default new Map<string, RequestHandler>([
         current: memberCurrent,
         members,
         users: users.map(selectPublicUserFields),
+      }
+    },
+  }),
+
+  createEndpoint({
+    ...MemberListOfUserAdminDef,
+    handler: (userId, access) => async (req) => {
+      await requireAccess(req, access)
+      await $User.getOne({id: userId})
+      const members = await $Member.getMany({userId})
+      const [teams, seasons] = await Promise.all([
+        $Team.getMany({
+          id: {$in: members.map((i) => i.teamId)},
+        }),
+        $Season.getMany({
+          id: {$in: members.map((i) => i.seasonId)},
+        }),
+      ])
+      return {
+        members,
+        seasons,
+        teams,
       }
     },
   }),
