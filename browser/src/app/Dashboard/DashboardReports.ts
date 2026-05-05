@@ -714,6 +714,37 @@ const _DashboardReportsSpirit: FC<{
 }> = ({reports, teams}) => {
   const auth = useAuth()
   const useOfficialScoring = !!auth.season?.useOfficialScoring
+  const averageFormatter = new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: 2,
+  })
+
+  const formatAverage = (value: number) => {
+    const normalized = Math.abs(value) < 0.005 ? 0 : value
+    return averageFormatter.format(normalized)
+  }
+
+  const getAverageDifferenceBadge = (value: number) => {
+    const normalized = Math.abs(value) < 0.005 ? 0 : value
+    const background =
+      normalized > 1
+        ? hsla.create(60, 70, 50, 0.2)
+        : normalized < -1
+        ? hsla.create(0, 70, 50, 0.2)
+        : undefined
+    const font =
+      normalized > 1
+        ? hsla.create(60, 70, 30, 1)
+        : normalized < -1
+        ? hsla.create(0, 70, 30, 1)
+        : undefined
+
+    return $(FormLabel, {
+      label: formatAverage(normalized),
+      background,
+      font,
+      grow: true,
+    })
+  }
 
   const getSpiritSummary = (teamReports: TReport[]) => {
     const reportCount = teamReports.length
@@ -770,15 +801,26 @@ const _DashboardReportsSpirit: FC<{
       $(Table, {
         head: {
           team: {label: 'Team', grow: 3},
-          reports: {label: 'Reports Got', grow: 1},
           spirit: {label: 'Pnts Got', grow: 1},
+          reports: {label: 'Rpts Got', grow: 1},
           average: {label: 'Avg Got', grow: 1},
-          allocatedReports: {label: 'Reports Sent', grow: 1},
           allocatedSpirit: {label: 'Pnts Sent', grow: 1},
+          allocatedReports: {label: 'Rpts Sent', grow: 1},
           allocatedAverage: {label: 'Avg Sent', grow: 1},
           avgDiff: {label: 'Avg Diff', grow: 1},
         },
         body: teamsAndSpirit.map(({team, received, allocated}) => {
+          const receivedAverage =
+            received.reportCount > 0 ? received.spirit / received.reportCount : 0
+          const allocatedAverage =
+            allocated.reportCount > 0
+              ? allocated.spirit / allocated.reportCount
+              : 0
+          const averageDifference =
+            allocated.reportCount > 0 && received.reportCount > 0
+              ? allocatedAverage - receivedAverage
+              : 0
+
           return {
             key: team.id,
             data: {
@@ -789,33 +831,16 @@ const _DashboardReportsSpirit: FC<{
               spirit: {value: received.spirit},
               reports: {value: received.reportCount},
               average: {
-                value:
-                  received.reportCount > 0
-                    ? Math.round((received.spirit / received.reportCount) * 100) /
-                      100
-                    : 0,
+                value: formatAverage(receivedAverage),
               },
               allocatedSpirit: {value: allocated.spirit},
               allocatedReports: {value: allocated.reportCount},
               allocatedAverage: {
-                value:
-                  allocated.reportCount > 0
-                    ? Math.round(
-                        (allocated.spirit / allocated.reportCount) * 100
-                      ) / 100
-                    : 0,
+                value: formatAverage(allocatedAverage),
               },
               avgDiff: {
-                value:
-                  allocated.reportCount > 0 && received.reportCount > 0
-                    ? Math.round(
-                        ((allocated.spirit / allocated.reportCount -
-                          received.spirit / received.reportCount) *
-                          100) /
-                          100
-                      )
-                    : 0,  
-              }
+                children: getAverageDifferenceBadge(averageDifference),
+              },
             },
           }
         }),
