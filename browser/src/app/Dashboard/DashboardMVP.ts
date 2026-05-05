@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {TReport} from '@shared/schemas/ioReport'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUserPublic} from '@shared/schemas/ioUser'
@@ -30,7 +31,7 @@ export const DashboardMVP: FC = () => {
   const useOfficialScoring = auth.season?.useOfficialScoring === true
 
   useEffect(() => {
-    if (!auth.isAdmin()) {
+    if (!auth.can(authPoint.reportManage)) {
       go.to('/')
       return
     }

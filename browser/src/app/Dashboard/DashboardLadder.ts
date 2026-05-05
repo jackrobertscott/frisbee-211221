@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {css} from '@emotion/css'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TSeason} from '@shared/schemas/ioSeason'
@@ -65,7 +66,7 @@ export const DashboardLadder: FC = () => {
         children: addkeys([
           $(Fragment, {
             children:
-              auth.isAdmin() &&
+              auth.can(authPoint.seasonManage) &&
               $('div', {
                 className: css({
                   display: 'flex',
@@ -159,7 +160,7 @@ export const DashboardLadder: FC = () => {
                             key: fixture.id,
                             fixture,
                             teams,
-                            isAdmin: auth.isAdmin(),
+                            isAdmin: auth.can(authPoint.fixtureManage),
                             open: openrnds.includes(fixture.id),
                             editingSet,
                             toggle: () =>

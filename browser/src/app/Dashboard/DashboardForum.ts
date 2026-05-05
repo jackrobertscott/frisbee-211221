@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {css} from '@emotion/css'
 import {TPost} from '@shared/schemas/ioPost'
 import {TUserPublic} from '@shared/schemas/ioUser'
@@ -38,7 +39,7 @@ export const DashboardForum: FC = () => {
         children: addkeys([
           $(Fragment, {
             children:
-              auth.current &&
+              auth.can(authPoint.postWrite) &&
               $(FormBadge, {
                 label: 'Write A Post...',
                 click: () => creatingSet(true),

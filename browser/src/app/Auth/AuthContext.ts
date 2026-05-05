@@ -1,3 +1,4 @@
+import {TAuthPoint} from '@shared/auth/authAccess'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {TSession} from '@shared/schemas/ioSession'
 import {TTeam} from '@shared/schemas/ioTeam'
@@ -31,6 +32,7 @@ export interface TAuthContext {
   teamSet: (team?: TTeam) => void
   seasonSet: (season: TSeason, noReload?: boolean) => void
   isAdmin: () => boolean
+  can: (point: TAuthPoint) => boolean
 }
 
 export const AuthContext = createContext<TAuthContext>({
@@ -42,4 +44,5 @@ export const AuthContext = createContext<TAuthContext>({
   teamSet: contextNoop('teamSet'),
   seasonSet: contextNoop('seasonSet'),
   isAdmin: contextNoop('isAdmin'),
+  can: contextNoop('can'),
 })

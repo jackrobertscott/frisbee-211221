@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {ioFixture, ioFixtureGame} from '@shared/schemas/ioFixture'
 import {ioTeam} from '@shared/schemas/ioTeam'
 import {TEndpointDef} from '@shared/utils/endpointDef'
@@ -24,6 +25,7 @@ export const FixtureGetDef = {
 } satisfies TEndpointDef
 
 export const FixtureCreateDef = {
+  access: authPoint.fixtureManage,
   path: '/FixtureCreate',
   payload: io.object({
     seasonId: io.string(),
@@ -36,6 +38,7 @@ export const FixtureCreateDef = {
 } satisfies TEndpointDef
 
 export const FixtureUpdateDef = {
+  access: authPoint.fixtureManage,
   path: '/FixtureUpdate',
   payload: io.object({
     fixtureId: io.string(),
@@ -48,6 +51,7 @@ export const FixtureUpdateDef = {
 } satisfies TEndpointDef
 
 export const FixtureDeleteDef = {
+  access: authPoint.fixtureManage,
   path: '/FixtureDelete',
   payload: io.object({
     fixtureId: io.string(),
@@ -62,6 +66,7 @@ export const FixtureSnapshotDef = {
 } satisfies TEndpointDef
 
 export const FixtureAdjustMultipleDef = {
+  access: authPoint.fixtureManage,
   path: '/FixtureAdjustMultiple',
   payload: io.object({
     seasonId: io.string(),
@@ -76,6 +81,7 @@ export const FixtureAdjustMultipleDef = {
 } satisfies TEndpointDef
 
 export const FixtureGenerateDef = {
+  access: authPoint.fixtureManage,
   path: '/FixtureGenerate',
   payload: io.object({
     seasonId: io.string(),

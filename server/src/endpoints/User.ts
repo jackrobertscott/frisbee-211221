@@ -11,8 +11,7 @@ import {createEndpoint} from '../utils/endpoints'
 import hash from '../utils/hash'
 import mongo from '../utils/mongo'
 import {regex} from '../utils/regex'
-import {requireUser} from './requireUser'
-import {requireUserAdmin} from './requireUserAdmin'
+import {requireAccess} from './requireAccess'
 import {selectPublicUserFields} from './userPublic'
 import {selectSafeUserFields} from './userSafe'
 import {userEmail} from './userEmail'
@@ -21,8 +20,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...UserCurrentUpdateDef,
-    handler: (body) => async (req) => {
-      const [user] = await requireUser(req)
+    handler: (body, access) => async (req) => {
+      const [user] = await requireAccess(req, access)
       const next = await $User.updateOne(
         {id: user.id},
         {
@@ -37,9 +36,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...UserCurrentEmailAddDef,
     handler:
-      ({email}) =>
+      ({email}, access) =>
       async (req) => {
-        const [user] = await requireUser(req)
+        const [user] = await requireAccess(req, access)
         return selectSafeUserFields(await userEmail.add(user, email))
       },
   }),
@@ -47,9 +46,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...UserCurrentEmailVerifyDef,
     handler:
-      ({email, code}) =>
+      ({email, code}, access) =>
       async (req) => {
-        const [user] = await requireUser(req)
+        const [user] = await requireAccess(req, access)
         if (!userEmail.isCodeEqual(user, email, code))
           throw badRequestError(`Code is incorrect.`, {
             errorCode: 'user.code_invalid',
@@ -68,9 +67,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...UserCurrentEmailCodeResendDef,
     handler:
-      ({email}) =>
+      ({email}, access) =>
       async (req) => {
-        const [user] = await requireUser(req)
+        const [user] = await requireAccess(req, access)
         return selectSafeUserFields(
           await userEmail.codeSendSave(user, email, 'Verify Email')
         )
@@ -80,9 +79,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...UserCurrentEmailPrimarySetDef,
     handler:
-      ({email}) =>
+      ({email}, access) =>
       async (req) => {
-        const [user] = await requireUser(req)
+        const [user] = await requireAccess(req, access)
         return selectSafeUserFields(await userEmail.primarySet(user, email))
       },
   }),
@@ -90,17 +89,17 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...UserCurrentEmailRemoveDef,
     handler:
-      ({email}) =>
+      ({email}, access) =>
       async (req) => {
-        const [user] = await requireUser(req)
+        const [user] = await requireAccess(req, access)
         return selectSafeUserFields(await userEmail.remove(user, email))
       },
   }),
 
   createEndpoint({
     ...UserCurrentChangePasswordDef,
-    handler: (body) => async (req) => {
-      let [user] = await requireUser(req)
+    handler: (body, access) => async (req) => {
+      let [user] = await requireAccess(req, access)
       if (!user.password)
         throw badRequestError('User does not have a password.', {
           errorCode: 'user.password_missing',
@@ -119,8 +118,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...UserListDef,
-    handler: (body) => async (req) => {
-      await requireUserAdmin(req)
+    handler: (body, access) => async (req) => {
+      await requireAccess(req, access)
       const regexSearch = regex.from(body.search ?? '')
       const [count, users] = await Promise.all([
         $User.count({}),
@@ -144,8 +143,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...UserListManyByIdDef,
-    handler: (body) => async (req) => {
-      await requireUserAdmin(req)
+    handler: (body, access) => async (req) => {
+      await requireAccess(req, access)
       const users = await $User.getMany({id: {$in: body.userIds}})
       return users.map(selectPublicUserFields)
     },
@@ -154,9 +153,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...UserCreateDef,
     handler:
-      ({email, ...body}) =>
+      ({email, ...body}, access) =>
       async (req) => {
-        await requireUserAdmin(req)
+        await requireAccess(req, access)
         if (await userEmail.maybeUser(email))
           throw conflictError(`User already exists with email "${email}".`, {
             errorCode: 'user.email_exists',
@@ -172,9 +171,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...UserUpdateDef,
     handler:
-      ({userId, ...body}) =>
+      ({userId, ...body}, access) =>
       async (req) => {
-        await requireUserAdmin(req)
+        await requireAccess(req, access)
         const user = await $User.getOne({id: userId})
         const next = await $User.updateOne(
           {id: user.id},
@@ -186,8 +185,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...UserToggleAdminDef,
-    handler: (body) => async (req) => {
-      await requireUserAdmin(req)
+    handler: (body, access) => async (req) => {
+      await requireAccess(req, access)
       const user = await $User.getOne({id: body.userId})
       const next = await $User.updateOne({id: user.id}, {admin: !user.admin})
       return selectSafeUserFields(next)
@@ -197,9 +196,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...UserMergeDef,
     handler:
-      ({user1Id, user2Id}) =>
+      ({user1Id, user2Id}, access) =>
       async (req) => {
-        await requireUserAdmin(req)
+        await requireAccess(req, access)
         let [user1, user2, u1Members, u2Members] = await Promise.all([
           $User.getOne({id: user1Id}),
           $User.getOne({id: user2Id}),
@@ -284,8 +283,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...UserChangePasswordDef,
-    handler: (body) => async (req) => {
-      await requireUserAdmin(req)
+    handler: (body, access) => async (req) => {
+      await requireAccess(req, access)
       const user = await $User.getOne({id: body.userId})
       const next = await $User.updateOne(
         {id: user.id},

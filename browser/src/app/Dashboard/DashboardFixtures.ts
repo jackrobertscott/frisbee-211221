@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {css} from '@emotion/css'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TTeam} from '@shared/schemas/ioTeam'
@@ -50,7 +51,7 @@ export const DashboardFixtures: FC = () => {
       $(Form, {
         background: theme.bgMinor,
         children: addkeys([
-          auth.isAdmin() &&
+          auth.can(authPoint.fixtureManage) &&
             $('div', {
               className: css({
                 display: 'flex',
@@ -99,7 +100,7 @@ export const DashboardFixtures: FC = () => {
                             key: fixture.id,
                             fixture,
                             teams,
-                            isAdmin: auth.isAdmin(),
+                            isAdmin: auth.can(authPoint.fixtureManage),
                             open: openfxs.includes(fixture.id),
                             editingSet,
                             toggle: () =>

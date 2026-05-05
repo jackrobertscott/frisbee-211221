@@ -1,24 +1,26 @@
-import {
-  badRequestError,
-  forbiddenError,
-  validationError,
-} from '@shared/errors'
+import {TAuthPoint} from '@shared/auth/authAccess'
+import {badRequestError, forbiddenError, validationError} from '@shared/errors'
 import {json, RequestHandler} from 'micro'
 import {TypeIoAll, TypeIoValue} from '@shared/torva'
 import {origin} from './origin'
 
-export const createEndpoint = <P extends TypeIoAll>({
+export const createEndpoint = <
+  P extends TypeIoAll,
+  A extends TAuthPoint | undefined,
+>({
+  access,
   path,
   payload,
   unsafe,
   multipart,
   handler,
 }: {
+  access?: A
   path: string
   payload?: P
   unsafe?: boolean
   multipart?: boolean
-  handler: (body: TypeIoValue<P>) => RequestHandler
+  handler: (body: TypeIoValue<P>, access: A) => RequestHandler
 }): [string, RequestHandler] => {
   return [
     path,
@@ -56,7 +58,7 @@ export const createEndpoint = <P extends TypeIoAll>({
         }
         result = data.value
       }
-      return handler(result)(req, res)
+      return handler(result, access as A)(req, res)
     },
   ]
 }

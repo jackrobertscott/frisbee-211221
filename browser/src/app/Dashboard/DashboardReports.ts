@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {css} from '@emotion/css'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TReport} from '@shared/schemas/ioReport'
@@ -76,7 +77,7 @@ export const DashboardReports: FC = () => {
   const teamList = () =>
     seasonId && $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))
   useEffect(() => {
-    if (!auth.isAdmin()) go.to('/')
+    if (!auth.can(authPoint.reportManage)) go.to('/')
     else {
       reportList()
       teamList()

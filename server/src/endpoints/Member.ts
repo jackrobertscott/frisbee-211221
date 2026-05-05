@@ -6,8 +6,8 @@ import {$Member} from '../tables/$Member'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
+import {requireAccess} from './requireAccess'
 import {requireTeam} from './requireTeam'
-import {requireUser} from './requireUser'
 import {userEmail} from './userEmail'
 import {selectPublicUserFields} from './userPublic'
 
@@ -15,8 +15,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...MemberListOfUserDef,
-    handler: () => async (req) => {
-      const [user] = await requireUser(req)
+    handler: (_, access) => async (req) => {
+      const [user] = await requireAccess(req, access)
       // pending and non-pending
       const members = await $Member.getMany({userId: user.id})
       const teams = await $Team.getMany({
@@ -31,8 +31,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...MemberListOfTeamDef,
-    handler: (teamId) => async (req) => {
-      const [user] = await requireUser(req)
+    handler: (teamId, access) => async (req) => {
+      const [user] = await requireAccess(req, access)
       let memberCurrent: TMember | undefined
       if (!user.admin) [, memberCurrent] = await requireTeam(user, teamId)
       else memberCurrent = await $Member.maybeOne({userId: user.id, teamId})
@@ -52,9 +52,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...MemberCreateDef,
     handler:
-      ({teamId, email, ...body}) =>
+      ({teamId, email, ...body}, access) =>
       async (req) => {
-        const [userCurrent] = await requireUser(req)
+        const [userCurrent] = await requireAccess(req, access)
         if (!userCurrent.admin) {
           const [, memberCurrent] = await requireTeam(userCurrent, teamId)
           if (!memberCurrent.captain)
@@ -97,8 +97,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...MemberRemoveDef,
-    handler: (memberId) => async (req) => {
-      const [user] = await requireUser(req)
+    handler: (memberId, access) => async (req) => {
+      const [user] = await requireAccess(req, access)
       const memberDelete = await $Member.maybeOne({id: memberId})
       if (!memberDelete) return
       if (memberDelete.captain) {
@@ -126,8 +126,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...MemberRequestCreateDef,
-    handler: (teamId) => async (req) => {
-      const [user] = await requireUser(req)
+    handler: (teamId, access) => async (req) => {
+      const [user] = await requireAccess(req, access)
       const team = await $Team.getOne({id: teamId})
       const member = await $Member.maybeOne({userId: user.id, teamId: team.id})
       if (member) {
@@ -153,8 +153,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...MemberAcceptOrDeclineDef,
-    handler: (body) => async (req) => {
-      const [user] = await requireUser(req)
+    handler: (body, access) => async (req) => {
+      const [user] = await requireAccess(req, access)
       const memberToAdd = await $Member.getOne({id: body.memberId})
       if (!user.admin) {
         const [_, member] = await requireTeam(user, memberToAdd.teamId)
@@ -176,8 +176,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...MemberSetCaptainDef,
-    handler: (memberId) => async (req) => {
-      const [user] = await requireUser(req)
+    handler: (memberId, access) => async (req) => {
+      const [user] = await requireAccess(req, access)
       const memberNewCaptain = await $Member.getOne({id: memberId})
       if (memberNewCaptain.captain)
         throw conflictError('This member is already the captain of the team.', {

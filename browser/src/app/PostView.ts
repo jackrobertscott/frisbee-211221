@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {css} from '@emotion/css'
 import {TComment} from '@shared/schemas/ioComment'
 import {TPost} from '@shared/schemas/ioPost'
@@ -73,7 +74,8 @@ export const PostView: FC<{
               }),
               $(Fragment, {
                 children:
-                  (auth.isAdmin() || auth.current?.user.id === user?.id) &&
+                  (auth.can(authPoint.userAdmin) ||
+                    auth.current?.user.id === user?.id) &&
                   addkeys([
                     $(TopBarBadge, {
                       icon: 'wrench',
@@ -153,7 +155,7 @@ export const PostView: FC<{
                 children: addkeys([
                   $(Fragment, {
                     children:
-                      auth.current &&
+                      auth.can(authPoint.commentWrite) &&
                       $(FormColumn, {
                         children: addkeys([
                           $(InputTextarea, {
@@ -203,7 +205,7 @@ export const PostView: FC<{
                               })
                             }),
                           })
-                        : !auth.current &&
+                        : !auth.can(authPoint.commentWrite) &&
                           $(FormBadge, {
                             label: 'Sign In To Comment',
                             click: () => go.to('/auth'),
@@ -444,7 +446,8 @@ const _PostViewCommentContent: FC<{
       }),
       $(Fragment, {
         children:
-          (auth.isAdmin() || auth.current?.user.id === comment.userId) &&
+          (auth.can(authPoint.userAdmin) ||
+            auth.current?.user.id === comment.userId) &&
           $('div', {
             className: css({
               top: 8,

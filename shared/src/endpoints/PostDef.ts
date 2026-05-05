@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {ioPost} from '@shared/schemas/ioPost'
 import {ioUserPublic} from '@shared/schemas/ioUser'
 import {TEndpointDef} from '@shared/utils/endpointDef'
@@ -16,6 +17,7 @@ export const PostListDef = {
 } satisfies TEndpointDef
 
 export const PostCreateDef = {
+  access: authPoint.postWrite,
   path: '/PostCreate',
   payload: io.object({
     seasonId: io.optional(io.string()),
@@ -27,6 +29,7 @@ export const PostCreateDef = {
 } satisfies TEndpointDef
 
 export const PostUpdateDef = {
+  access: authPoint.postManage,
   path: '/PostUpdate',
   payload: io.object({
     postId: io.string(),
@@ -37,6 +40,7 @@ export const PostUpdateDef = {
 } satisfies TEndpointDef
 
 export const PostDeleteDef = {
+  access: authPoint.postManage,
   path: '/PostDelete',
   payload: io.object({
     postId: io.string(),

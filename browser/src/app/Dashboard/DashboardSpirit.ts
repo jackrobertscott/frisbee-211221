@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {TReport} from '@shared/schemas/ioReport'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {createElement as $, FC, useEffect, useState} from 'react'
@@ -61,7 +62,7 @@ export const DashboardSpirit: FC = () => {
   })
 
   useEffect(() => {
-    if (!auth.isAdmin()) {
+    if (!auth.can(authPoint.reportManage)) {
       go.to('/')
       return
     }

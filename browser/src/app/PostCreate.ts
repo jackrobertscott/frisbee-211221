@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {TPost} from '@shared/schemas/ioPost'
 import {createElement as $, FC, Fragment} from 'react'
 import {$PostCreate} from '../endpoints/Post'
@@ -71,7 +72,7 @@ export const PostCreate: FC<{
           }),
           $(Fragment, {
             children:
-              auth.isAdmin() &&
+              auth.can(authPoint.userAdmin) &&
               $(FormRow, {
                 children: addkeys([
                   $(FormLabel, {

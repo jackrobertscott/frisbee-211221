@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {ioSeason} from '@shared/schemas/ioSeason'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
@@ -11,6 +12,7 @@ export const SeasonListDef = {
 } satisfies TEndpointDef
 
 export const SeasonCreateDef = {
+  access: authPoint.seasonManage,
   path: '/SeasonCreate',
   payload: io.object({
     name: io.string(),
@@ -21,6 +23,7 @@ export const SeasonCreateDef = {
 } satisfies TEndpointDef
 
 export const SeasonUpdateDef = {
+  access: authPoint.seasonManage,
   path: '/SeasonUpdate',
   payload: io.object({
     seasonId: io.string(),

@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {TMember} from '@shared/schemas/ioMember'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUserPublic} from '@shared/schemas/ioUser'
@@ -45,6 +46,9 @@ export const TeamMembersView: FC<{team: TTeam}> = ({team}) => {
   const [pendingId, pendingIdSet] = useState<string>()
   const [removeId, removeIdSet] = useState<string>()
   const [promoteId, promoteIdSet] = useState<string>()
+  const canManage =
+    auth.can(authPoint.memberManage) &&
+    (state?.current?.captain || auth.isAdmin())
   const reload = () => $memberList.fetch(team.id).then(stateSet)
   useEffect(() => {
     reload()
@@ -55,7 +59,8 @@ export const TeamMembersView: FC<{team: TTeam}> = ({team}) => {
         children: addkeys([
           $(FormBadge, {
             label: 'Add Member',
-            click: () => creatingSet(true),
+            click: () => canManage && creatingSet(true),
+            disabled: !canManage,
           }),
           $(Fragment, {
             children:
@@ -84,20 +89,20 @@ export const TeamMembersView: FC<{team: TTeam}> = ({team}) => {
                             ? $(FormBadge, {
                                 label: 'Captain',
                               })
-                            : (state.current?.captain || auth.isAdmin()) &&
+                            : canManage &&
                               !member.pending &&
                               $(FormBadge, {
                                 icon: 'hand-holding-medical',
                                 click: () => promoteIdSet(member.id),
                               }),
-                          (state.current?.captain || auth.isAdmin()) &&
+                          canManage &&
                             member.pending &&
                             $(FormBadge, {
                               icon: 'bell',
                               label: 'Pending',
                               click: () => pendingIdSet(member.id),
                             }),
-                          (state.current?.captain || auth.isAdmin()) &&
+                          canManage &&
                             $(FormBadge, {
                               icon: 'trash-alt',
                               click: () => removeIdSet(member.id),

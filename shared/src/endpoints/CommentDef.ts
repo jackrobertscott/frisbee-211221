@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {ioComment} from '@shared/schemas/ioComment'
 import {ioUserPublic} from '@shared/schemas/ioUser'
 import {TEndpointDef} from '@shared/utils/endpointDef'
@@ -16,6 +17,7 @@ export const CommentListOfPostDef = {
 } satisfies TEndpointDef
 
 export const CommentCreateDef = {
+  access: authPoint.commentWrite,
   path: '/CommentCreate',
   payload: io.object({
     postId: io.string(),
@@ -26,6 +28,7 @@ export const CommentCreateDef = {
 } satisfies TEndpointDef
 
 export const CommentUpdateDef = {
+  access: authPoint.commentManage,
   path: '/CommentUpdate',
   payload: io.object({
     commentId: io.string(),
@@ -35,6 +38,7 @@ export const CommentUpdateDef = {
 } satisfies TEndpointDef
 
 export const CommentDeleteDef = {
+  access: authPoint.commentManage,
   path: '/CommentDelete',
   payload: io.object({
     commentId: io.string(),

@@ -18,9 +18,8 @@ import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
+import {requireAccess} from './requireAccess'
 import {requireTeam} from './requireTeam'
-import {requireUser} from './requireUser'
-import {requireUserAdmin} from './requireUserAdmin'
 
 function assertOfficialSpiritComment(
   useOfficialScoring: boolean | undefined,
@@ -43,9 +42,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...ReportListOfFixtureDef,
     handler:
-      ({fixtureId, limit}) =>
+      ({fixtureId, limit}, access) =>
       async (req) => {
-        await requireUserAdmin(req)
+        await requireAccess(req, access)
         return $Report.getMany({fixtureId}, {limit, sort: {createdOn: -1}})
       },
   }),
@@ -53,9 +52,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...ReportListOfSeasonDef,
     handler:
-      ({seasonId}) =>
+      ({seasonId}, access) =>
       async (req) => {
-        await requireUserAdmin(req)
+        await requireAccess(req, access)
         const fixtures = await $Fixture.getMany({seasonId})
         const query = {fixtureId: {$in: fixtures.map((i) => i.id)}}
         const [count, reports] = await Promise.all([
@@ -69,9 +68,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...ReportGetFixtureAgainstDef,
     handler:
-      ({teamId, fixtureId}) =>
+      ({teamId, fixtureId}, access) =>
       async (req) => {
-        const [user] = await requireUser(req)
+        const [user] = await requireAccess(req, access)
         let team: TTeam
         if (user.admin) team = await $Team.getOne({id: teamId})
         else [team] = await requireTeam(user, teamId)
@@ -111,8 +110,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...ReportCreateDef,
-    handler: (body) => async (req) => {
-      const [user] = await requireUser(req)
+    handler: (body, access) => async (req) => {
+      const [user] = await requireAccess(req, access)
       let team: TTeam
       if (user.admin) team = await $Team.getOne({id: body.teamId})
       else [team] = await requireTeam(user, body.teamId)
@@ -160,9 +159,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...ReportUpdateDef,
     handler:
-      ({reportId, ...body}) =>
+      ({reportId, ...body}, access) =>
       async (req) => {
-        await requireUserAdmin(req)
+        await requireAccess(req, access)
         const report = await $Report.getOne({id: reportId})
         const fixture = await $Fixture.getOne({id: report.fixtureId})
         const season = await $Season.getOne({id: fixture.seasonId})
@@ -180,9 +179,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...ReportDeleteDef,
     handler:
-      ({reportId}) =>
+      ({reportId}, access) =>
       async (req) => {
-        await requireUserAdmin(req)
+        await requireAccess(req, access)
         await $Report.deleteOne({id: reportId})
       },
   }),
@@ -190,9 +189,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...ReportMissingListDef,
     handler:
-      ({seasonId}) =>
+      ({seasonId}, access) =>
       async (req) => {
-        await requireUserAdmin(req)
+        await requireAccess(req, access)
         const fixtures = await $Fixture.getMany({seasonId}, {sort: {date: 1}})
         const teams = await $Team.getMany({seasonId})
         const reports = await $Report.getMany({

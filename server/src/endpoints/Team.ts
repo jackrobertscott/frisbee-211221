@@ -7,9 +7,8 @@ import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
 import {regex} from '../utils/regex'
+import {requireAccess} from './requireAccess'
 import {requireTeam} from './requireTeam'
-import {requireUser} from './requireUser'
-import {requireUserAdmin} from './requireUserAdmin'
 
 export default new Map<string, RequestHandler>([
 
@@ -36,8 +35,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...TeamCurrentCreateDef,
-    handler: (body) => async (req) => {
-      const [user] = await requireUser(req)
+    handler: (body, access) => async (req) => {
+      const [user] = await requireAccess(req, access)
       const season = await $Season.getOne({id: body.seasonId})
       if (!season.signUpOpen)
         throw badRequestError('Season is not currently open for new team sign ups.', {
@@ -66,9 +65,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...TeamCurrentUpdateDef,
     handler:
-      ({teamId, ...body}) =>
+      ({teamId, ...body}, access) =>
       async (req) => {
-        const [user] = await requireUser(req)
+        const [user] = await requireAccess(req, access)
         const [team, member] = await requireTeam(user, teamId)
         if (member.pending)
           throw forbiddenError('Pending members cannot update team information.', {
@@ -83,8 +82,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...TeamCreateDef,
-    handler: (body) => async (req) => {
-      await requireUserAdmin(req)
+    handler: (body, access) => async (req) => {
+      await requireAccess(req, access)
       await $Season.getOne({id: body.seasonId})
       return $Team.createOne(body)
     },
@@ -93,9 +92,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...TeamUpdateDef,
     handler:
-      ({teamId, ...body}) =>
+      ({teamId, ...body}, access) =>
       async (req) => {
-        await requireUserAdmin(req)
+        await requireAccess(req, access)
         const team = await $Team.getOne({id: teamId})
         return $Team.updateOne(
           {id: team.id},
@@ -107,9 +106,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...TeamDeleteDef,
     handler:
-      ({teamId}) =>
+      ({teamId}, access) =>
       async (req) => {
-        await requireUserAdmin(req)
+        await requireAccess(req, access)
         await $Member.deleteMany({teamId})
         await $Team.deleteOne({id: teamId})
       },

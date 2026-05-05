@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {ioFixture} from '@shared/schemas/ioFixture'
 import {ioReport} from '@shared/schemas/ioReport'
 import {ioTeam} from '@shared/schemas/ioTeam'
@@ -6,6 +7,7 @@ import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
 export const ReportListOfFixtureDef = {
+  access: authPoint.reportManage,
   path: '/ReportListOfFixture',
   payload: io.object({
     fixtureId: io.string(),
@@ -15,6 +17,7 @@ export const ReportListOfFixtureDef = {
 } satisfies TEndpointDef
 
 export const ReportListOfSeasonDef = {
+  access: authPoint.reportManage,
   path: '/ReportListOfSeason',
   payload: io.object({
     seasonId: io.string(),
@@ -27,6 +30,7 @@ export const ReportListOfSeasonDef = {
 } satisfies TEndpointDef
 
 export const ReportGetFixtureAgainstDef = {
+  access: authPoint.reportWrite,
   path: '/ReportGetFixtureAgainst',
   payload: io.object({
     teamId: io.string(),
@@ -41,6 +45,7 @@ export const ReportGetFixtureAgainstDef = {
 } satisfies TEndpointDef
 
 export const ReportCreateDef = {
+  access: authPoint.reportWrite,
   path: '/ReportCreate',
   payload: io.object({
     teamId: io.string(),
@@ -64,6 +69,7 @@ export const ReportCreateDef = {
 } satisfies TEndpointDef
 
 export const ReportUpdateDef = {
+  access: authPoint.reportManage,
   path: '/ReportUpdate',
   payload: io.object({
     reportId: io.string(),
@@ -85,6 +91,7 @@ export const ReportUpdateDef = {
 } satisfies TEndpointDef
 
 export const ReportDeleteDef = {
+  access: authPoint.reportManage,
   path: '/ReportDelete',
   payload: io.object({
     reportId: io.string(),
@@ -92,6 +99,7 @@ export const ReportDeleteDef = {
 } satisfies TEndpointDef
 
 export const ReportMissingListDef = {
+  access: authPoint.reportManage,
   path: '/ReportMissingList',
   payload: io.object({
     seasonId: io.string(),

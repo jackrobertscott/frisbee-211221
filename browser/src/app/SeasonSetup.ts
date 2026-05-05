@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useState} from 'react'
 import {theme} from '../theme'
@@ -34,7 +35,7 @@ export const SeasonSetup: FC = () => {
                 }),
               ]),
             }),
-            auth.isAdmin()
+            auth.can(authPoint.seasonManage)
               ? $(SeasonCreate, {
                   seasonSet: auth.seasonSet,
                 })

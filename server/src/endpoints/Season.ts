@@ -7,7 +7,7 @@ import {RequestHandler} from 'micro'
 import {$Season} from '../tables/$Season'
 import {createEndpoint} from '../utils/endpoints'
 import {regex} from '../utils/regex'
-import {requireUserAdmin} from './requireUserAdmin'
+import {requireAccess} from './requireAccess'
 
 export default new Map<string, RequestHandler>([
 
@@ -23,8 +23,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...SeasonCreateDef,
-    handler: (body) => async (req) => {
-      await requireUserAdmin(req)
+    handler: (body, access) => async (req) => {
+      await requireAccess(req, access)
       return $Season.createOne(body)
     },
   }),
@@ -32,9 +32,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...SeasonUpdateDef,
     handler:
-      ({seasonId, ...body}) =>
+      ({seasonId, ...body}, access) =>
       async (req) => {
-        await requireUserAdmin(req)
+        await requireAccess(req, access)
         return $Season.updateOne(
           {id: seasonId},
           {...body, updatedOn: new Date().toISOString()}

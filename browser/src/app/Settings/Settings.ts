@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {SettingsSeason} from '@browser/app/Settings/SettingsSeason'
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useState} from 'react'
@@ -41,7 +42,7 @@ export const Settings: FC<{close: () => void}> = ({close}) => {
       title: 'Members',
       render: () => $(SettingsMembers),
     },
-    !!auth.isAdmin() && {
+    auth.can(authPoint.seasonManage) && {
       path: '/season',
       title: 'Season',
       render: () => $(SettingsSeason),

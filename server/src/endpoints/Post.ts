@@ -13,7 +13,7 @@ import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
 import {mail} from '../utils/mail'
 import {regex} from '../utils/regex'
-import {requireUser} from './requireUser'
+import {requireAccess} from './requireAccess'
 import {userEmail} from './userEmail'
 import {selectPublicUserFields} from './userPublic'
 
@@ -40,8 +40,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...PostCreateDef,
-    handler: (body) => async (req) => {
-      const [user] = await requireUser(req)
+    handler: (body, access) => async (req) => {
+      const [user] = await requireAccess(req, access)
       body.content = DOMPurify.sanitize(body.content)
       const post = await $Post.createOne({
         ...body,
@@ -72,9 +72,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...PostUpdateDef,
     handler:
-      ({postId, ...body}) =>
+      ({postId, ...body}, access) =>
       async (req) => {
-        const [user] = await requireUser(req)
+        const [user] = await requireAccess(req, access)
         const post = await $Post.getOne({id: postId})
         if (post.userId !== user.id && !user.admin)
           throw forbiddenError('Failed: you can only update your own posts.', {
@@ -91,9 +91,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...PostDeleteDef,
     handler:
-      ({postId}) =>
+      ({postId}, access) =>
       async (req) => {
-        const [user] = await requireUser(req)
+        const [user] = await requireAccess(req, access)
         const post = await $Post.getOne({id: postId})
         if (post.userId !== user.id && !user.admin)
           throw forbiddenError('Failed: you can only delete your own posts.', {

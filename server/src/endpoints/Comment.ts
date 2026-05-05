@@ -10,7 +10,7 @@ import {$Comment} from '../tables/$Comment'
 import {$Post} from '../tables/$Post'
 import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
-import {requireUser} from './requireUser'
+import {requireAccess} from './requireAccess'
 import {selectPublicUserFields} from './userPublic'
 
 export default new Map<string, RequestHandler>([
@@ -32,8 +32,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...CommentCreateDef,
-    handler: (body) => async (req) => {
-      const [user] = await requireUser(req)
+    handler: (body, access) => async (req) => {
+      const [user] = await requireAccess(req, access)
       await $Post.getOne({id: body.postId})
       return $Comment.createOne({
         ...body,
@@ -45,9 +45,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...CommentUpdateDef,
     handler:
-      ({commentId, ...body}) =>
+      ({commentId, ...body}, access) =>
       async (req) => {
-        const [user] = await requireUser(req)
+        const [user] = await requireAccess(req, access)
         const comment = await $Comment.getOne({id: commentId})
         if (!user.admin && comment.userId !== user.id) {
           const message =
@@ -66,9 +66,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...CommentDeleteDef,
     handler:
-      ({commentId}) =>
+      ({commentId}, access) =>
       async (req) => {
-        const [user] = await requireUser(req)
+        const [user] = await requireAccess(req, access)
         const comment = await $Comment.getOne({id: commentId})
         if (!user.admin && comment.userId !== user.id) {
           const message =

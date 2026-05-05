@@ -1,12 +1,15 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
 export const PortImportDef = {
+  access: authPoint.portManage,
   path: '/PortImport',
   multipart: true,
 } satisfies TEndpointDef
 
 export const PortExportDef = {
+  access: authPoint.portManage,
   path: '/PortExport',
   payload: io.object({
     fileType: io.enum(['csv', 'json']),
@@ -15,6 +18,7 @@ export const PortExportDef = {
 } satisfies TEndpointDef
 
 export const PortMockGenerateDef = {
+  access: authPoint.portManage,
   path: '/PortMockGenerate',
   payload: io.object({
     seasonId: io.string().trim(),
@@ -24,5 +28,6 @@ export const PortMockGenerateDef = {
 } satisfies TEndpointDef
 
 export const PortDeleteAllMockDataDef = {
+  access: authPoint.portManage,
   path: '/PortDeleteAllMockData',
 } satisfies TEndpointDef

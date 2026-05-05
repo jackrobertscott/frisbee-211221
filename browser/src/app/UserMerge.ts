@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {css} from '@emotion/css'
 import {TUserSafe} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
@@ -146,7 +147,7 @@ const _UserMergeSelect: FC<{
     if (users !== undefined) userListDelay()
   }, [search])
   useEffect(() => {
-    if (!auth.isAdmin()) go.to('/')
+    if (!auth.can(authPoint.userAdmin)) go.to('/')
     else userList()
   }, [auth.current])
   if (users === undefined) {

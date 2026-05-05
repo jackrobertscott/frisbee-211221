@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {css} from '@emotion/css'
 import {TTeam} from '@shared/schemas/ioTeam'
 import dayjs from 'dayjs'
@@ -70,7 +71,7 @@ export const DashboardTeams: FC = () => {
                         }),
                         $(Fragment, {
                           children:
-                            auth.isAdmin() &&
+                            auth.can(authPoint.teamAdmin) &&
                             $(FormBadge, {
                               noshrink: true,
                               label: 'Create Team',
@@ -137,7 +138,7 @@ export const DashboardTeams: FC = () => {
         children:
           current &&
           $(Fragment, {
-            children: auth.isAdmin()
+            children: auth.can(authPoint.teamAdmin)
               ? $(TeamViewAdmin, {
                   team: current,
                   teamSet: (i) => {

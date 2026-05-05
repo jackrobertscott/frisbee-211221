@@ -1,8 +1,10 @@
-import {getErrorMessage, hasStatusCode, toAppError} from '@shared/errors'
+import {readAuthDeny} from '@shared/auth/authAccess'
+import {forbiddenError, getErrorMessage, hasStatusCode, toAppError, unauthorizedError} from '@shared/errors'
 import {useMemo, useRef, useState} from 'react'
 import {TypeIoAll, TypeIoValue} from '@shared/torva'
 import {TEndpoint} from '../utils/endpoints'
 import {throttle} from '../utils/throttle'
+import {readAuthState} from './Auth/authAccess'
 import {useAuth} from './Auth/useAuth'
 import {useToaster} from './Toaster/useToaster'
 import {useMountedRef} from './useMountedRef'
@@ -22,8 +24,27 @@ export const useEndpoint = <
   const [loading, loadingSet] = useState(false)
   type P = M extends true ? FormData : TypeIoValue<NonNullable<E['IN']>>
   type R = TypeIoValue<NonNullable<E['OUT']>>
-  const cbNext = async (payload?: P) =>
-    endpoint.fetch(payload, auth.current?.token)
+  const cbNext = async (payload?: P) => {
+    if (endpoint.access) {
+      const deny = readAuthDeny(readAuthState(auth.current), endpoint.access)
+      if (deny === 'sign_in')
+        throw unauthorizedError('This feature requires you to sign in.', {
+          errorCode: 'auth.sign_in_required',
+          meta: {access: endpoint.access},
+        })
+      if (deny === 'team')
+        throw forbiddenError('This feature requires you to join a team.', {
+          errorCode: 'auth.team_required',
+          meta: {access: endpoint.access},
+        })
+      if (deny === 'admin')
+        throw forbiddenError('This feature requires admin access.', {
+          errorCode: 'auth.admin_required',
+          meta: {access: endpoint.access},
+        })
+    }
+    return endpoint.fetch(payload, auth.current?.token)
+  }
   const cbRef = useRef(cbNext)
   cbRef.current = cbNext
   const drippedCb = useRef(

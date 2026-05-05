@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {ioMember} from '@shared/schemas/ioMember'
 import {ioTeam} from '@shared/schemas/ioTeam'
 import {TEndpointDef} from '@shared/utils/endpointDef'
@@ -18,6 +19,7 @@ export const TeamListOfSeasonDef = {
 } satisfies TEndpointDef
 
 export const TeamCurrentCreateDef = {
+  access: authPoint.teamJoin,
   path: '/TeamCurrentCreate',
   payload: io.object({
     seasonId: io.string(),
@@ -31,6 +33,7 @@ export const TeamCurrentCreateDef = {
 } satisfies TEndpointDef
 
 export const TeamCurrentUpdateDef = {
+  access: authPoint.teamManage,
   path: '/TeamCurrentUpdate',
   payload: io.object({
     teamId: io.string(),
@@ -43,6 +46,7 @@ export const TeamCurrentUpdateDef = {
 } satisfies TEndpointDef
 
 export const TeamCreateDef = {
+  access: authPoint.teamAdmin,
   path: '/TeamCreate',
   payload: io.object({
     seasonId: io.string(),
@@ -55,6 +59,7 @@ export const TeamCreateDef = {
 } satisfies TEndpointDef
 
 export const TeamUpdateDef = {
+  access: authPoint.teamAdmin,
   path: '/TeamUpdate',
   payload: io.object({
     teamId: io.string(),
@@ -68,6 +73,7 @@ export const TeamUpdateDef = {
 } satisfies TEndpointDef
 
 export const TeamDeleteDef = {
+  access: authPoint.teamAdmin,
   path: '/TeamDelete',
   payload: io.object({
     teamId: io.string(),

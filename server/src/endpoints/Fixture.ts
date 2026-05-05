@@ -16,7 +16,7 @@ import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
 import {createEndpoint} from '../utils/endpoints'
 import {random} from '../utils/random'
-import {requireUserAdmin} from './requireUserAdmin'
+import {requireAccess} from './requireAccess'
 
 export default new Map<string, RequestHandler>([
 
@@ -42,8 +42,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...FixtureCreateDef,
-    handler: (body) => async (req) => {
-      const [user] = await requireUserAdmin(req)
+    handler: (body, access) => async (req) => {
+      const [user] = await requireAccess(req, access)
       await $Season.getOne({id: body.seasonId})
       return $Fixture.createOne({
         ...body,
@@ -56,9 +56,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...FixtureUpdateDef,
     handler:
-      ({fixtureId, ...body}) =>
+      ({fixtureId, ...body}, access) =>
       async (req) => {
-        await requireUserAdmin(req)
+        await requireAccess(req, access)
         return $Fixture.updateOne(
           {id: fixtureId},
           {...body, updatedOn: new Date().toISOString()}
@@ -69,9 +69,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...FixtureDeleteDef,
     handler:
-      ({fixtureId}) =>
+      ({fixtureId}, access) =>
       async (req) => {
-        await requireUserAdmin(req)
+        await requireAccess(req, access)
         await $Fixture.deleteOne({id: fixtureId})
       },
   }),
@@ -106,9 +106,9 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...FixtureAdjustMultipleDef,
     handler:
-      ({seasonId, referenceFixtureId, amount, unit, direction}) =>
+      ({seasonId, referenceFixtureId, amount, unit, direction}, access) =>
       async (req) => {
-        await requireUserAdmin(req)
+        await requireAccess(req, access)
 
         // Get the reference fixture to determine the date threshold
         const referenceFixture = await $Fixture.getOne({id: referenceFixtureId})
@@ -163,8 +163,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...FixtureGenerateDef,
-    handler: (body) => async (req) => {
-      const [user] = await requireUserAdmin(req)
+    handler: (body, access) => async (req) => {
+      const [user] = await requireAccess(req, access)
       const season = await $Season.getOne({id: body.seasonId})
       const teams = await $Team.getMany({seasonId: season.id})
       const teamsInvalid = teams.filter((i) => typeof i.division !== 'number')

@@ -3,6 +3,7 @@ import {TSeason} from '@shared/schemas/ioSeason'
 import {createElement as $, FC, ReactNode, useEffect, useState} from 'react'
 import {$SecurityCurrent, $SecurityLogout} from '../../endpoints/Security'
 import {useLocalState} from '../useLocalState'
+import {canAccess} from './authAccess'
 import {AuthContext, TAuth, TAuthPayload} from './AuthContext'
 
 export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
@@ -77,6 +78,7 @@ export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
         if (!noReload) setTimeout(() => window.location.reload())
       },
       isAdmin: () => !!current?.user.admin,
+      can: (point) => canAccess(current, point),
     },
   })
 }

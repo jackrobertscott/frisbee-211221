@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {ioMember} from '@shared/schemas/ioMember'
 import {ioTeam} from '@shared/schemas/ioTeam'
 import {ioUserGender} from '@shared/schemas/ioUserGender'
@@ -6,6 +7,7 @@ import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
 export const MemberListOfUserDef = {
+  access: authPoint.memberRead,
   path: '/MemberListOfUser',
   result: io.object({
     members: io.array(ioMember),
@@ -14,6 +16,7 @@ export const MemberListOfUserDef = {
 } satisfies TEndpointDef
 
 export const MemberListOfTeamDef = {
+  access: authPoint.memberManage,
   path: '/MemberListOfTeam',
   payload: io.string(),
   result: io.object({
@@ -24,6 +27,7 @@ export const MemberListOfTeamDef = {
 } satisfies TEndpointDef
 
 export const MemberCreateDef = {
+  access: authPoint.memberManage,
   path: '/MemberCreate',
   payload: io.object({
     teamId: io.string(),
@@ -36,17 +40,20 @@ export const MemberCreateDef = {
 } satisfies TEndpointDef
 
 export const MemberRemoveDef = {
+  access: authPoint.memberManage,
   path: '/MemberRemove',
   payload: io.string(),
 } satisfies TEndpointDef
 
 export const MemberRequestCreateDef = {
+  access: authPoint.teamJoin,
   path: '/MemberRequestCreate',
   payload: io.string(),
   result: ioMember,
 } satisfies TEndpointDef
 
 export const MemberAcceptOrDeclineDef = {
+  access: authPoint.memberManage,
   path: '/MemberAcceptOrDecline',
   payload: io.object({
     memberId: io.string(),
@@ -55,6 +62,7 @@ export const MemberAcceptOrDeclineDef = {
 } satisfies TEndpointDef
 
 export const MemberSetCaptainDef = {
+  access: authPoint.memberManage,
   path: '/MemberSetCaptain',
   payload: io.string(),
   result: ioMember,

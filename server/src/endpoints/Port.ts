@@ -19,14 +19,14 @@ import {createEndpoint} from '../utils/endpoints'
 import mongo from '../utils/mongo'
 import {regex} from '../utils/regex'
 import {createExportArchive} from './portExport'
-import {requireUserAdmin} from './requireUserAdmin'
+import {requireAccess} from './requireAccess'
 import {userEmail} from './userEmail'
 
 export default new Map<string, RequestHandler>([
   createEndpoint({
     ...PortImportDef,
-    handler: () => async (req) => {
-      await requireUserAdmin(req)
+    handler: (_, access) => async (req) => {
+      await requireAccess(req, access)
       const [rawFiles, fields] = await blob.digestRequest(req)
       const seasonId = fields.get('seasonId')
       if (!seasonId?.trim())
@@ -86,8 +86,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...PortExportDef,
-    handler: (body) => async (req, res) => {
-      await requireUserAdmin(req)
+    handler: (body, access) => async (req, res) => {
+      await requireAccess(req, access)
       const {buffer, filename} = await createExportArchive(body.fileType)
       res.statusCode = 200
       res.setHeader('Cache-Control', 'no-store, max-age=0')
@@ -107,8 +107,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...PortMockGenerateDef,
-    handler: (body) => async (req) => {
-      await requireUserAdmin(req)
+    handler: (body, access) => async (req) => {
+      await requireAccess(req, access)
       if (!body.seasonId?.trim())
         throw badRequestError('Season id missing from request.', {
           errorCode: 'season.id_missing',
@@ -205,8 +205,8 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...PortDeleteAllMockDataDef,
-    handler: () => async (req) => {
-      await requireUserAdmin(req)
+    handler: (_, access) => async (req) => {
+      await requireAccess(req, access)
 
       const mockTeams = await $Team.getMany({isMock: true})
 

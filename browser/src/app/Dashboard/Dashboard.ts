@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {config} from '@browser/config'
 import {initials} from '@browser/utils/initials'
 import {css} from '@emotion/css'
@@ -144,17 +145,17 @@ export const Dashboard: FC = () => {
                         label: 'Ladder',
                         render: () => $(DashboardLadder),
                       },
-                      auth.isAdmin() && {
+                      auth.can(authPoint.reportManage) && {
                         path: '/reports',
                         label: 'Reports',
                         render: () => $(DashboardReports),
                       },
-                      auth.isAdmin() && {
+                      auth.can(authPoint.reportManage) && {
                         path: '/spirit',
                         label: 'Spirit',
                         render: () => $(DashboardSpirit),
                       },
-                      auth.isAdmin() && {
+                      auth.can(authPoint.reportManage) && {
                         path: '/mvp',
                         label: 'MVP',
                         render: () => $(DashboardMVP),
@@ -164,12 +165,12 @@ export const Dashboard: FC = () => {
                         label: 'Teams',
                         render: () => $(DashboardTeams),
                       },
-                      auth.isAdmin() && {
+                      auth.can(authPoint.userAdmin) && {
                         path: '/users',
                         label: 'Users',
                         render: () => $(DashboardUsers),
                       },
-                      auth.isAdmin() && {
+                      auth.can(authPoint.portManage) && {
                         path: '/port',
                         label: 'Port',
                         render: () => $(DashboardPort),
@@ -373,7 +374,7 @@ const _DashboardSeasonBadge: FC = () => {
   useEffect(() => {
     seasonList()
   }, [])
-  if (seasons?.length <= 1 && !auth.isAdmin()) return null
+  if (seasons?.length <= 1 && !auth.can(authPoint.seasonManage)) return null
   return $(Fragment, {
     children: addkeys([
       $(Popup, {
@@ -396,7 +397,7 @@ const _DashboardSeasonBadge: FC = () => {
                 empty: seasons === undefined ? 'Loading' : 'Empty',
                 maxHeight: '60vh',
                 options: spreadify(seasons)
-                  .filter((i) => auth.isAdmin || !i.isHidden)
+                  .filter((i) => auth.can(authPoint.seasonManage) || !i.isHidden)
                   .map((i) => ({
                     ...i,
                     label: i.name,
@@ -408,7 +409,7 @@ const _DashboardSeasonBadge: FC = () => {
                   })),
               }),
             }),
-            auth.isAdmin() &&
+            auth.can(authPoint.seasonManage) &&
               $(FormBadge, {
                 label: 'Create New Season',
                 click: () => {

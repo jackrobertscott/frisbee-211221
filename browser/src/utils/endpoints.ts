@@ -1,3 +1,4 @@
+import {TAuthPoint} from '@shared/auth/authAccess'
 import {TypeIoAll, TypeIoValue} from '@shared/torva'
 import {radio} from './radio'
 
@@ -8,6 +9,7 @@ export interface TEndpoint<
 > {
   readonly IN?: I
   readonly OUT?: O
+  readonly access?: TAuthPoint
   fetch(
     payload?: M extends true ? FormData : TypeIoValue<I>,
     token?: string
@@ -20,11 +22,13 @@ export const createEndpoint = <
   M extends boolean
 >(options: {
   path: string
+  access?: TAuthPoint
   multipart?: M
   payload?: M extends true ? undefined : I
   result?: O
 }): TEndpoint<I, O, M> => {
   return {
+    access: options.access,
     async fetch(payload, token) {
       if (options.multipart)
         return radio.multipart(options.path, payload as FormData, token)

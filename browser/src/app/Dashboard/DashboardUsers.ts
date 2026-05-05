@@ -1,3 +1,4 @@
+import {authPoint} from '@shared/auth/authAccess'
 import {css} from '@emotion/css'
 import {TUserSafe} from '@shared/schemas/ioUser'
 import {TUserGender} from '@shared/schemas/ioUserGender'
@@ -53,7 +54,7 @@ export const DashboardUsers: FC = () => {
     })
   const userListDelay = useSling(500, userList)
   useEffect(() => {
-    if (!auth.isAdmin()) go.to('/')
+    if (!auth.can(authPoint.userAdmin)) go.to('/')
     else userList()
   }, [auth.current, pager.data])
   useEffect(() => {
