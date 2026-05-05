@@ -87,8 +87,8 @@ export const ReportMissingListDef = {
           color: io.optional(io.string()),
           againstId: io.optional(io.string()),
           againstName: io.optional(io.string()),
-        })
+        }),
       ),
-    })
+    }),
   ),
 } satisfies TEndpointDef

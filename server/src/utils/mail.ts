@@ -15,7 +15,6 @@ const client = new SESv2Client({
 })
 
 export const mail = {
-
   async send({
     to,
     from = `${config.APP_NAME} <${config.SES_FROM_EMAIL}>`,

@@ -8,7 +8,6 @@ export interface ICorsOptions {
 }
 
 export default (options?: ICorsOptions) => {
-
   return (handler: RequestHandler): RequestHandler => {
     return (req, res) => {
       attachCorsToResponse(req, res, options)
@@ -20,7 +19,7 @@ export default (options?: ICorsOptions) => {
 export const attachCorsToResponse = (
   req: IncomingMessage,
   res: Parameters<RequestHandler>[1],
-  options?: ICorsOptions
+  options?: ICorsOptions,
 ) => {
   const allowedAge = 60 * 60 * 24 // 24 hours
   const allowedMethods = ['POST', 'OPTIONS']

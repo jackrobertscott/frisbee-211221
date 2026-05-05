@@ -6,7 +6,7 @@ import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
 export const MemberListOfTeamDef = {
-  access: authPoint.memberManage,
+  access: authPoint.memberRead,
   path: '/MemberListOfTeam',
   payload: io.string(),
   result: io.object({

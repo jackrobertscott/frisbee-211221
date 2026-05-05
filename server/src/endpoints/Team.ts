@@ -1,5 +1,11 @@
 import {badRequestError, conflictError, forbiddenError} from '@shared/errors'
-import {TeamCreateDef, TeamCurrentCreateDef, TeamDeleteDef, TeamUpdateDef, TeamCurrentUpdateDef} from '@shared/endpoints/TeamDef'
+import {
+  TeamCreateDef,
+  TeamCurrentCreateDef,
+  TeamDeleteDef,
+  TeamUpdateDef,
+  TeamCurrentUpdateDef,
+} from '@shared/endpoints/TeamDef'
 import {RequestHandler} from 'micro'
 import {$Member} from '../tables/$Member'
 import {$Season} from '../tables/$Season'
@@ -10,16 +16,18 @@ import {requireAccess} from './requireAccess'
 import {requireTeam} from './requireTeam'
 
 export default new Map<string, RequestHandler>([
-
   createEndpoint({
     ...TeamCurrentCreateDef,
     handler: (body, access) => async (req) => {
       const [user] = await requireAccess(req, access)
       const season = await $Season.getOne({id: body.seasonId})
       if (!season.signUpOpen)
-        throw badRequestError('Season is not currently open for new team sign ups.', {
-          errorCode: 'team.signup_closed',
-        })
+        throw badRequestError(
+          'Season is not currently open for new team sign ups.',
+          {
+            errorCode: 'team.signup_closed',
+          },
+        )
       if (await $Member.count({userId: user.id, seasonId: season.id}))
         throw conflictError('User is already a member of another team.', {
           errorCode: 'member.already_on_other_team',
@@ -48,12 +56,22 @@ export default new Map<string, RequestHandler>([
         const [user] = await requireAccess(req, access)
         const [team, member] = await requireTeam(user, teamId)
         if (member.pending)
-          throw forbiddenError('Pending members cannot update team information.', {
-            errorCode: 'team.pending_member_forbidden',
-          })
+          throw forbiddenError(
+            'Pending members cannot update team information.',
+            {
+              errorCode: 'team.pending_member_forbidden',
+            },
+          )
+        if (!member.captain)
+          throw forbiddenError(
+            'Only the team captain can update team information.',
+            {
+              errorCode: 'team.captain_required',
+            },
+          )
         return $Team.updateOne(
           {id: team.id},
-          {...body, updatedOn: new Date().toISOString()}
+          {...body, updatedOn: new Date().toISOString()},
         )
       },
   }),
@@ -76,7 +94,7 @@ export default new Map<string, RequestHandler>([
         const team = await $Team.getOne({id: teamId})
         return $Team.updateOne(
           {id: team.id},
-          {...body, updatedOn: new Date().toISOString()}
+          {...body, updatedOn: new Date().toISOString()},
         )
       },
   }),

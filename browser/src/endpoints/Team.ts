@@ -1,4 +1,10 @@
-import {TeamCreateDef, TeamCurrentCreateDef, TeamCurrentUpdateDef, TeamDeleteDef, TeamUpdateDef} from '@shared/endpoints/TeamDef'
+import {
+  TeamCreateDef,
+  TeamCurrentCreateDef,
+  TeamCurrentUpdateDef,
+  TeamDeleteDef,
+  TeamUpdateDef,
+} from '@shared/endpoints/TeamDef'
 import {createEndpoint} from '../utils/endpoints'
 
 export const $TeamCurrentCreate = createEndpoint(TeamCurrentCreateDef)

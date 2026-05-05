@@ -52,9 +52,12 @@ export const createEndpoint = <
               .concat(rest?.join('').trim().toLowerCase())
           }
           if (prettyError) prettyError = `An error occurred: ${prettyError}`
-          throw validationError(prettyError ?? `The input provided is invalid.`, {
-            details: data.error,
-          })
+          throw validationError(
+            prettyError ?? `The input provided is invalid.`,
+            {
+              details: data.error,
+            },
+          )
         }
         result = data.value
       }

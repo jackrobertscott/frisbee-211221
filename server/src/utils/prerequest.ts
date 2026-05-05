@@ -6,7 +6,6 @@ import intrusion from './intrusion'
 import {origin} from './origin'
 
 export default (handler: RequestHandler): RequestHandler => {
-
   return async (req, res) => {
     if (req.method === 'OPTIONS') return {}
 
@@ -16,7 +15,9 @@ export default (handler: RequestHandler): RequestHandler => {
       case '/':
         return {
           env: config.DEBUG
-            ? (config.IS_PRODUCTION ? 'production' : 'development')
+            ? config.IS_PRODUCTION
+              ? 'production'
+              : 'development'
             : undefined,
           now: new Date().toISOString(),
         }

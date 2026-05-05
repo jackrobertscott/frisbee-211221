@@ -33,18 +33,17 @@ const formatRoundLabel = (round: TMissingReportRound) =>
 const isPastFixture = (round: TMissingReportRound) =>
   dayjs(round.date).isBefore(dayjs())
 
-const formatTeamLabel = (
-  team: TMissingReportRound['missingTeams'][number]
-) => {
+const formatTeamLabel = (team: TMissingReportRound['missingTeams'][number]) => {
   return team.name
 }
 
 const formatMissingReportsText = (rounds: TMissingReportRound[]) =>
   rounds
     .map((round) =>
-      [formatRoundLabel(round), ...round.missingTeams.map((team) => `- ${formatTeamLabel(team)}`)].join(
-        '\n'
-      )
+      [
+        formatRoundLabel(round),
+        ...round.missingTeams.map((team) => `- ${formatTeamLabel(team)}`),
+      ].join('\n'),
     )
     .join('\n\n')
 
@@ -88,7 +87,9 @@ export const MissingReportsModal: FC<{
       .then((data) => {
         roundsSet(data)
         openFixtureIdsSet(
-          data.filter((round) => isPastFixture(round)).map((round) => round.fixtureId)
+          data
+            .filter((round) => isPastFixture(round))
+            .map((round) => round.fixtureId),
         )
         loadingSet(false)
       })
@@ -99,7 +100,7 @@ export const MissingReportsModal: FC<{
   }, [seasonId])
 
   const missingReportsText = formatMissingReportsText(
-    rounds.filter((round) => isPastFixture(round))
+    rounds.filter((round) => isPastFixture(round)),
   )
 
   return $(Modal, {
@@ -126,56 +127,57 @@ export const MissingReportsModal: FC<{
         children: loading
           ? $(Spinner)
           : rounds.length === 0
-          ? $(FormLabel, {
-              label: 'No missing reports found.',
-              background: theme.bgMinor,
-            })
-          : $('div', {
-              className: css({
-                flexShrink: 0,
-                display: 'grid',
-                gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)',
-                gap: theme.fib[5],
-                minHeight: theme.fib[12],
-                height: '100%',
-                [theme.ltMedia(theme.fib[13])]: {
-                  gridTemplateColumns: '1fr',
-                },
-              }),
-              children: addkeys([
-                $('div', {
-                  className: css({
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: theme.fib[5],
-                    minWidth: 0,
-                  }),
-                  children: addkeys(
-                    rounds.map((round) => {
-                      const open = openFixtureIds.includes(round.fixtureId)
-                      return $(FormColumn, {
-                        key: round.fixtureId,
-                        children: addkeys([
-                          $(FormBadge, {
-                            label: formatRoundLabel(round),
-                            background: theme.bg,
-                            suffixIcon: open ? 'angle-up' : 'angle-down',
-                            grow: true,
-                            wrap: true,
-                            style: {
-                              justifyContent: 'space-between',
-                              textAlign: 'left',
-                              alignItems: 'center',
-                            },
-                            click: () =>
-                              openFixtureIdsSet((current) =>
-                                current.includes(round.fixtureId)
-                                  ? current.filter((id) => id !== round.fixtureId)
-                                  : current.concat(round.fixtureId)
-                              ),
-                          }),
-                          ...(
-                            open
+            ? $(FormLabel, {
+                label: 'No missing reports found.',
+                background: theme.bgMinor,
+              })
+            : $('div', {
+                className: css({
+                  flexShrink: 0,
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)',
+                  gap: theme.fib[5],
+                  minHeight: theme.fib[12],
+                  height: '100%',
+                  [theme.ltMedia(theme.fib[13])]: {
+                    gridTemplateColumns: '1fr',
+                  },
+                }),
+                children: addkeys([
+                  $('div', {
+                    className: css({
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: theme.fib[5],
+                      minWidth: 0,
+                    }),
+                    children: addkeys(
+                      rounds.map((round) => {
+                        const open = openFixtureIds.includes(round.fixtureId)
+                        return $(FormColumn, {
+                          key: round.fixtureId,
+                          children: addkeys([
+                            $(FormBadge, {
+                              label: formatRoundLabel(round),
+                              background: theme.bg,
+                              suffixIcon: open ? 'angle-up' : 'angle-down',
+                              grow: true,
+                              wrap: true,
+                              style: {
+                                justifyContent: 'space-between',
+                                textAlign: 'left',
+                                alignItems: 'center',
+                              },
+                              click: () =>
+                                openFixtureIdsSet((current) =>
+                                  current.includes(round.fixtureId)
+                                    ? current.filter(
+                                        (id) => id !== round.fixtureId,
+                                      )
+                                    : current.concat(round.fixtureId),
+                                ),
+                            }),
+                            ...(open
                               ? round.missingTeams.map((team) =>
                                   $(FormBadge, {
                                     key: team.id,
@@ -184,49 +186,48 @@ export const MissingReportsModal: FC<{
                                     grow: true,
                                     select: 'text',
                                     wrap: true,
-                                  })
+                                  }),
                                 )
-                              : []
-                          ),
-                        ]),
-                      })
-                    })
-                  ),
-                }),
-                $(FormColumn, {
-                  grow: true,
-                  className: css({
-                    overflow: 'auto',
-                  }),
-                  children: addkeys([
-                    $(FormBadge, {
-                      noshrink: true,
-                      label: 'Text Copy',
-                      background: theme.bg,
-                    }),
-                    $('div', {
-                      children: missingReportsText,
-                      onClick: (e) => {
-                        const ws = window.getSelection()
-                        if (!ws) return
-                        // dont select if a selection already exists (eg user is trying to copy a specific team)
-                        if (ws.toString()) return
-                        ws.selectAllChildren(e.currentTarget)
-                      },
-                      className: css({
-                        flexGrow: 1,
-                        overflow: 'auto',
-                        minHeight: theme.fib[12],
-                        border: theme.border(),
-                        padding: theme.padify(theme.fib[4]),
-                        background: theme.bg.string(),
-                        whiteSpace: 'pre-wrap',
+                              : []),
+                          ]),
+                        })
                       }),
+                    ),
+                  }),
+                  $(FormColumn, {
+                    grow: true,
+                    className: css({
+                      overflow: 'auto',
                     }),
-                  ]),
-                }),
-              ]),
-            }),
+                    children: addkeys([
+                      $(FormBadge, {
+                        noshrink: true,
+                        label: 'Text Copy',
+                        background: theme.bg,
+                      }),
+                      $('div', {
+                        children: missingReportsText,
+                        onClick: (e) => {
+                          const ws = window.getSelection()
+                          if (!ws) return
+                          // dont select if a selection already exists (eg user is trying to copy a specific team)
+                          if (ws.toString()) return
+                          ws.selectAllChildren(e.currentTarget)
+                        },
+                        className: css({
+                          flexGrow: 1,
+                          overflow: 'auto',
+                          minHeight: theme.fib[12],
+                          border: theme.border(),
+                          padding: theme.padify(theme.fib[4]),
+                          background: theme.bg.string(),
+                          whiteSpace: 'pre-wrap',
+                        }),
+                      }),
+                    ]),
+                  }),
+                ]),
+              }),
       }),
     ]),
   })

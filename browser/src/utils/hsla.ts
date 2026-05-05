@@ -1,7 +1,6 @@
 import {theme} from '../theme'
 
 export const hsla = {
-
   create(h: number = 0, s: number = 0, l: number = 0, a: number = 1) {
     return {
       h,
@@ -27,7 +26,7 @@ export const hsla = {
           h + (i.h ?? 0),
           s + (i.s ?? 0),
           l + (i.l ?? 0),
-          a + (i.a ?? 0)
+          a + (i.a ?? 0),
         )
       },
       hover() {

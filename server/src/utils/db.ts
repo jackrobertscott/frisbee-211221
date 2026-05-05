@@ -12,7 +12,6 @@ export interface TQueryOptions<T> {
 }
 
 export const db = {
-
   table<T extends TypeIoAll, P extends Partial<TypeIoValue<T>>>(options: {
     key: string
     index: string[]
@@ -21,7 +20,6 @@ export const db = {
   }) {
     type V = TypeIoValue<T>
     return {
-
       validator() {
         return options.schema
       },
@@ -29,18 +27,18 @@ export const db = {
       async count(query: Filter<V>): Promise<number> {
         const collection = await mongo.collection(options.key)
         return collection.countDocuments(
-          query as Filter<Document>
+          query as Filter<Document>,
         ) as Promise<number>
       },
 
       async maybeOne(
         query: Filter<V>,
-        queryOptions?: TQueryOptions<V>
+        queryOptions?: TQueryOptions<V>,
       ): Promise<V | undefined> {
         const collection = await mongo.collection(options.key)
         const result = await collection.findOne(
           query as Filter<Document>,
-          queryOptions as FindOptions
+          queryOptions as FindOptions,
         )
         return result ? this._clean(result as any) : undefined
       },
@@ -57,11 +55,12 @@ export const db = {
 
       async getMany(
         query: Filter<V>,
-        queryOptions?: TQueryOptions<V>
+        queryOptions?: TQueryOptions<V>,
       ): Promise<V[]> {
         const collection = await mongo.collection(options.key)
         let chain = collection.find(query as Filter<Document>)
-        if (queryOptions?.collation) chain = chain.collation(queryOptions.collation)
+        if (queryOptions?.collation)
+          chain = chain.collation(queryOptions.collation)
         for (const i of Object.entries(queryOptions?.sort ?? {})) {
           chain = chain.sort(i[0], i[1])
         }
@@ -73,7 +72,7 @@ export const db = {
       },
 
       async createOne(
-        value: Simplify<Omit<V, keyof P> & Partial<P>>
+        value: Simplify<Omit<V, keyof P> & Partial<P>>,
       ): Promise<V> {
         const defaults = this._compileDefaults()
         const i = options.schema.validate({...defaults, ...value})
@@ -84,7 +83,7 @@ export const db = {
       },
 
       async createMany(
-        value: Simplify<Omit<V, keyof P> & Partial<P>>[]
+        value: Simplify<Omit<V, keyof P> & Partial<P>>[],
       ): Promise<number> {
         const all = []
         for (let x = 0; x < value.length; x++) {
@@ -149,11 +148,14 @@ export const db = {
 
       _compileDefaults() {
         if (!options.defaults) return {}
-        return Object.entries(options.defaults).reduce((all, next) => {
-          const [key, data] = next as [string, () => any]
-          all[key] = data()
-          return all
-        }, {} as Record<string, any>)
+        return Object.entries(options.defaults).reduce(
+          (all, next) => {
+            const [key, data] = next as [string, () => any]
+            all[key] = data()
+            return all
+          },
+          {} as Record<string, any>,
+        )
       },
     }
   },

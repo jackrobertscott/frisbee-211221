@@ -75,14 +75,14 @@ export const DashboardSpirit: FC = () => {
       normalized > 1
         ? hsla.create(60, 70, 50, 0.2)
         : normalized < -1
-        ? hsla.create(0, 70, 50, 0.2)
-        : undefined
+          ? hsla.create(0, 70, 50, 0.2)
+          : undefined
     const font =
       normalized > 1
         ? hsla.create(60, 70, 30, 1)
         : normalized < -1
-        ? hsla.create(0, 70, 30, 1)
-        : undefined
+          ? hsla.create(0, 70, 30, 1)
+          : undefined
 
     return $(FormLabel, {
       label: formatAverage(normalized),
@@ -199,13 +199,12 @@ export const DashboardSpirit: FC = () => {
                           value: formatAverage(allocatedAverage),
                         },
                         avgDiff: {
-                          children: getAverageDifferenceBadge(
-                            averageDifference
-                          ),
+                          children:
+                            getAverageDifferenceBadge(averageDifference),
                         },
                       },
                     }
-                  }
+                  },
                 ),
               }),
             ]),

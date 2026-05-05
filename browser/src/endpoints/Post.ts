@@ -1,4 +1,9 @@
-import {PostCreateDef, PostDeleteDef, PostListDef, PostUpdateDef} from '@shared/endpoints/PostDef'
+import {
+  PostCreateDef,
+  PostDeleteDef,
+  PostListDef,
+  PostUpdateDef,
+} from '@shared/endpoints/PostDef'
 import {createEndpoint} from '../utils/endpoints'
 
 export const $PostList = createEndpoint(PostListDef)

@@ -1,7 +1,6 @@
 import {randomInt} from 'crypto'
 
 export const random = {
-
   alphanumerics:
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.split(''),
 

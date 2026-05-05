@@ -28,7 +28,7 @@ export const CommentCreateDef = {
 } satisfies TEndpointDef
 
 export const CommentUpdateDef = {
-  access: authPoint.commentManage,
+  access: authPoint.commentWrite,
   path: '/CommentUpdate',
   payload: io.object({
     commentId: io.string(),
@@ -38,7 +38,7 @@ export const CommentUpdateDef = {
 } satisfies TEndpointDef
 
 export const CommentDeleteDef = {
-  access: authPoint.commentManage,
+  access: authPoint.commentWrite,
   path: '/CommentDelete',
   payload: io.object({
     commentId: io.string(),

@@ -1,5 +1,4 @@
 export const download = {
-
   blob(blob: Blob, filename: string) {
     const url = window.URL.createObjectURL(blob)
     const anchor = document.createElement('a')

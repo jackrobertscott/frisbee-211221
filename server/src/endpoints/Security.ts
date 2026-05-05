@@ -4,7 +4,15 @@ import {
   notFoundError,
   unauthorizedError,
 } from '@shared/errors'
-import {SecurityCurrentDef, SecurityForgotDef, SecurityLoginDef, SecurityLogoutDef, SecuritySignUpDef, SecurityStatusDef, SecurityVerifyDef} from '@shared/endpoints/SecurityDef'
+import {
+  SecurityCurrentDef,
+  SecurityForgotDef,
+  SecurityLoginDef,
+  SecurityLogoutDef,
+  SecuritySignUpDef,
+  SecurityStatusDef,
+  SecurityVerifyDef,
+} from '@shared/endpoints/SecurityDef'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {TSession} from '@shared/schemas/ioSession'
 import {TTeam} from '@shared/schemas/ioTeam'
@@ -25,7 +33,6 @@ import {userEmail} from './userEmail'
 
 const INVALID_LOGIN_MESSAGE = 'Email or password is incorrect.'
 export default new Map<string, RequestHandler>([
-
   createEndpoint({
     ...SecurityCurrentDef,
     handler:
@@ -126,9 +133,12 @@ export default new Map<string, RequestHandler>([
       ({seasonId, userAgent, email, firstName, termsAccepted, ...body}) =>
       async () => {
         if (!termsAccepted)
-          throw badRequestError('Please accept our terms to create an account.', {
-            errorCode: 'auth.terms_required',
-          })
+          throw badRequestError(
+            'Please accept our terms to create an account.',
+            {
+              errorCode: 'auth.terms_required',
+            },
+          )
         if (await userEmail.maybeUser(email))
           throw conflictError(`User already exists with email "${email}".`, {
             errorCode: 'user.email_exists',
@@ -189,9 +199,12 @@ export default new Map<string, RequestHandler>([
         }
         if (newPassword.trim().length || !user.password) {
           if (newPassword.length < 5)
-            throw badRequestError('Password must be at least 5 characters long.', {
-              errorCode: 'user.password_too_short',
-            })
+            throw badRequestError(
+              'Password must be at least 5 characters long.',
+              {
+                errorCode: 'user.password_too_short',
+              },
+            )
           const password = await hash.encrypt(newPassword)
           user = await $User.updateOne({id: user.id}, {password})
         }
@@ -211,7 +224,7 @@ export default new Map<string, RequestHandler>([
       if (!session || !gatekeeper.isSessionValid(auth, session)) return
       await $Session.updateOne(
         {id: session.id},
-        {ended: true, endedOn: new Date().toISOString()}
+        {ended: true, endedOn: new Date().toISOString()},
       )
     },
   }),
@@ -220,7 +233,7 @@ export default new Map<string, RequestHandler>([
 export const _addTeamOfSeason = async (
   rawUser: TUser,
   session: TSession,
-  seasonId?: string
+  seasonId?: string,
 ) => {
   let user = rawUser
   let team: TTeam | undefined

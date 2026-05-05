@@ -165,7 +165,7 @@ export const Dashboard: FC = () => {
                         label: 'Teams',
                         render: () => $(DashboardTeams),
                       },
-                      auth.can(authPoint.userAdmin) && {
+                      auth.can(authPoint.userManage) && {
                         path: '/users',
                         label: 'Users',
                         render: () => $(DashboardUsers),
@@ -236,7 +236,7 @@ export const Dashboard: FC = () => {
                                       background: theme.bgHighlight,
                                       click: () => {
                                         if (auth.current) {
-                                          if (auth.current.team) {
+                                          if (auth.can(authPoint.reportWrite)) {
                                             reportingSet(true)
                                             openSet(false)
                                           } else {
@@ -397,7 +397,9 @@ const _DashboardSeasonBadge: FC = () => {
                 empty: seasons === undefined ? 'Loading' : 'Empty',
                 maxHeight: '60vh',
                 options: spreadify(seasons)
-                  .filter((i) => auth.can(authPoint.seasonManage) || !i.isHidden)
+                  .filter(
+                    (i) => auth.can(authPoint.seasonManage) || !i.isHidden,
+                  )
                   .map((i) => ({
                     ...i,
                     label: i.name,

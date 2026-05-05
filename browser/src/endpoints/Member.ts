@@ -1,4 +1,12 @@
-import {MemberAcceptOrDeclineDef, MemberCreateDef, MemberListOfTeamDef, MemberLookupByEmailDef, MemberRemoveDef, MemberRequestCreateDef, MemberSetCaptainDef} from '@shared/endpoints/MemberDef'
+import {
+  MemberAcceptOrDeclineDef,
+  MemberCreateDef,
+  MemberListOfTeamDef,
+  MemberLookupByEmailDef,
+  MemberRemoveDef,
+  MemberRequestCreateDef,
+  MemberSetCaptainDef,
+} from '@shared/endpoints/MemberDef'
 import {createEndpoint} from '../utils/endpoints'
 
 export const $MemberListOfTeam = createEndpoint(MemberListOfTeamDef)

@@ -1,7 +1,8 @@
 import {authPoint} from '@shared/auth/authAccess'
+import {$MemberListOfTeam} from '@browser/endpoints/Member'
 import {SettingsSeason} from '@browser/app/Settings/SettingsSeason'
 import {css} from '@emotion/css'
-import {createElement as $, FC, Fragment, useState} from 'react'
+import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {useAuth} from '../Auth/useAuth'
@@ -9,6 +10,7 @@ import {useMedia} from '../Media/useMedia'
 import {MenuBar, MenuBarOption, MenuBarShadow, MenuBarSpacer} from '../MenuBar'
 import {Modal} from '../Modal'
 import {TopBar, TopBarBadge} from '../TopBar'
+import {useEndpoint} from '../useEndpoint'
 import {useLocalRouter} from '../useLocalRouter'
 import {SettingsAccount} from './SettingsAccount'
 import {SettingsMembers} from './SettingsMembers'
@@ -18,9 +20,20 @@ import {SettingsTeam} from './SettingsTeam'
 export const Settings: FC<{close: () => void}> = ({close}) => {
   const auth = useAuth()
   const media = useMedia()
+  const $memberList = useEndpoint($MemberListOfTeam)
   const bpSmall = theme.fib[13]
   const isSmall = media.width < bpSmall
   const [open, openSet] = useState(false)
+  const [isCaptain, isCaptainSet] = useState(false)
+  useEffect(() => {
+    if (!auth.current?.team) {
+      isCaptainSet(false)
+      return
+    }
+    $memberList.fetch(auth.current.team.id).then((data) => {
+      isCaptainSet(!!data.current?.captain || auth.isAdmin())
+    })
+  }, [auth.current?.team?.id, auth.current?.user.admin])
   const router = useLocalRouter('/account', [
     {
       path: '/account',
@@ -32,11 +45,12 @@ export const Settings: FC<{close: () => void}> = ({close}) => {
       title: 'Change Password',
       render: () => $(SettingsPassword),
     },
-    !!auth.current?.team && {
-      path: '/team',
-      title: 'Team',
-      render: () => $(SettingsTeam),
-    },
+    !!auth.current?.team &&
+      isCaptain && {
+        path: '/team',
+        title: 'Team',
+        render: () => $(SettingsTeam),
+      },
     !!auth.current?.team && {
       path: '/members',
       title: 'Members',

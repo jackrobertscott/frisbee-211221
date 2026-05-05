@@ -17,7 +17,6 @@ import {random} from '../utils/random'
 import {requireAccess} from './requireAccess'
 
 export default new Map<string, RequestHandler>([
-
   createEndpoint({
     ...FixtureCreateDef,
     handler: (body, access) => async (req) => {
@@ -39,7 +38,7 @@ export default new Map<string, RequestHandler>([
         await requireAccess(req, access)
         return $Fixture.updateOne(
           {id: fixtureId},
-          {...body, updatedOn: new Date().toISOString()}
+          {...body, updatedOn: new Date().toISOString()},
         )
       },
   }),
@@ -98,7 +97,7 @@ export default new Map<string, RequestHandler>([
             seasonId,
             date: {$gte: referenceDate.toISOString()},
           },
-          {sort: {date: 1}}
+          {sort: {date: 1}},
         )
 
         // Apply the direction to the amount
@@ -130,9 +129,9 @@ export default new Map<string, RequestHandler>([
               {
                 date: newDate.toISOString(),
                 updatedOn: new Date().toISOString(),
-              }
+              },
             )
-          })
+          }),
         )
 
         return {count: fixtures.length}
@@ -158,7 +157,7 @@ export default new Map<string, RequestHandler>([
       // Get existing fixtures to determine starting round
       const existingFixtures = await $Fixture.getMany(
         {seasonId: season.id},
-        {sort: {date: 1}}
+        {sort: {date: 1}},
       )
 
       type TPartialFixture = Omit<TFixture, 'id' | 'createdOn' | 'updatedOn'>
@@ -190,7 +189,7 @@ export default new Map<string, RequestHandler>([
           for (const [division, divisionTeams] of divisions.entries()) {
             const roundGames = getDivisionRoundGames(
               existingFixtures,
-              new Set(divisionTeams)
+              new Set(divisionTeams),
             )
             if (roundGames.size > 0) {
               teamOrder.set(
@@ -198,8 +197,8 @@ export default new Map<string, RequestHandler>([
                 reconstructDivisionTeamOrder(
                   divisionTeams,
                   roundGames,
-                  body.roundCount
-                )
+                  body.roundCount,
+                ),
               )
             }
           }
@@ -235,13 +234,13 @@ export default new Map<string, RequestHandler>([
               'Fixture generation failed: each division must contain an even number of teams to create valid round-robin matchups. Please add or remove a team in the affected division.',
               {
                 errorCode: 'fixture.uneven_division',
-              }
+              },
             )
           }
           // Use the actual round index in the sequence (startingRound + r)
           let roundPairings = getRoundRobinPairings(
             divisionTeams,
-            startingRound + r
+            startingRound + r,
           )
           allPairings = allPairings.concat(roundPairings)
         })
@@ -263,7 +262,7 @@ export default new Map<string, RequestHandler>([
         })
       }
       await Promise.all(
-        newFixtures.map((fixture) => $Fixture.createOne(fixture))
+        newFixtures.map((fixture) => $Fixture.createOne(fixture)),
       )
     },
   }),
@@ -327,7 +326,7 @@ export default new Map<string, RequestHandler>([
 
 export function getRoundRobinPairings(
   teams: string[],
-  round: number
+  round: number,
 ): string[][] {
   // Support odd team counts by adding a bye placeholder.
   const hasBye = teams.length % 2 !== 0
@@ -382,13 +381,11 @@ function buildCanonicalOrderFromRoundPairings(pairings: string[][]): string[] {
   const normalizedPairings = pairings
     .map(([team1Id, team2Id]) => [team1Id, team2Id].sort())
     .sort((pairA, pairB) =>
-      normalizePairing(pairA).localeCompare(normalizePairing(pairB))
+      normalizePairing(pairA).localeCompare(normalizePairing(pairB)),
     )
 
   const leftTeams = normalizedPairings.map(([team1Id]) => team1Id)
-  const rightTeams = normalizedPairings
-    .map(([, team2Id]) => team2Id)
-    .reverse()
+  const rightTeams = normalizedPairings.map(([, team2Id]) => team2Id).reverse()
 
   return leftTeams.concat(rightTeams)
 }
@@ -406,7 +403,7 @@ function setOrderPosition(
   order: Array<string | undefined>,
   index: number,
   teamId: string,
-  usedTeams: Set<string>
+  usedTeams: Set<string>,
 ): boolean {
   const existing = order[index]
   if (existing !== undefined) return existing === teamId
@@ -420,7 +417,7 @@ function reconstructOrderFromFirstTwoRounds(
   fixedTeamId: string,
   roundOneOpponents: Map<string, string>,
   roundTwoOpponents: Map<string, string>,
-  teamCount: number
+  teamCount: number,
 ): string[] | null {
   const order = new Array<string | undefined>(teamCount)
   const usedTeams = new Set<string>()
@@ -458,7 +455,7 @@ function reconstructOrderFromFirstTwoRounds(
 
 export function getDivisionRoundGames(
   fixtures: TFixture[],
-  divisionTeamSet: Set<string>
+  divisionTeamSet: Set<string>,
 ): Map<number, string[][]> {
   const roundGames = new Map<number, string[][]>()
 
@@ -469,7 +466,8 @@ export function getDivisionRoundGames(
     const divisionGames = fixture.games
       .filter(
         (game) =>
-          divisionTeamSet.has(game.team1Id) && divisionTeamSet.has(game.team2Id)
+          divisionTeamSet.has(game.team1Id) &&
+          divisionTeamSet.has(game.team2Id),
       )
       .map((game) => [game.team1Id, game.team2Id])
 
@@ -484,14 +482,14 @@ export function getDivisionRoundGames(
 export function reconstructDivisionTeamOrder(
   divisionTeams: string[],
   roundGames: Map<number, string[][]>,
-  futureRoundCount: number
+  futureRoundCount: number,
 ): string[] {
   if (divisionTeams.length % 2 !== 0) {
     throw badRequestError(
       'Fixture generation failed: each division must contain an even number of teams to create valid round-robin matchups. Please add or remove a team in the affected division.',
       {
         errorCode: 'fixture.uneven_division',
-      }
+      },
     )
   }
 
@@ -501,7 +499,7 @@ export function reconstructDivisionTeamOrder(
       'Fixture generation failed: existing round-robin fixtures must start at Round 1.',
       {
         errorCode: 'fixture.round_robin_invalid',
-      }
+      },
     )
   }
 
@@ -512,7 +510,7 @@ export function reconstructDivisionTeamOrder(
         `Fixture generation failed: existing round-robin fixtures are missing Round ${roundNumber}.`,
         {
           errorCode: 'fixture.round_robin_invalid',
-        }
+        },
       )
     }
   }
@@ -528,7 +526,7 @@ export function reconstructDivisionTeamOrder(
         `Fixture generation failed: Round ${roundNumber} does not contain the expected number of division games.`,
         {
           errorCode: 'fixture.round_robin_invalid',
-        }
+        },
       )
     }
 
@@ -539,7 +537,7 @@ export function reconstructDivisionTeamOrder(
           `Fixture generation failed: Round ${roundNumber} includes a team outside the current division.`,
           {
             errorCode: 'fixture.round_robin_invalid',
-          }
+          },
         )
       }
       if (team1Id === team2Id) {
@@ -547,7 +545,7 @@ export function reconstructDivisionTeamOrder(
           `Fixture generation failed: Round ${roundNumber} includes a team playing itself.`,
           {
             errorCode: 'fixture.round_robin_invalid',
-          }
+          },
         )
       }
       if (teamsInRound.has(team1Id) || teamsInRound.has(team2Id)) {
@@ -555,7 +553,7 @@ export function reconstructDivisionTeamOrder(
           `Fixture generation failed: Round ${roundNumber} schedules the same team more than once in this division.`,
           {
             errorCode: 'fixture.round_robin_invalid',
-          }
+          },
         )
       }
       teamsInRound.add(team1Id)
@@ -567,7 +565,7 @@ export function reconstructDivisionTeamOrder(
         `Fixture generation failed: Round ${roundNumber} is missing division teams.`,
         {
           errorCode: 'fixture.round_robin_invalid',
-        }
+        },
       )
     }
 
@@ -581,7 +579,7 @@ export function reconstructDivisionTeamOrder(
       'Fixture generation failed: existing round-robin fixtures must include Round 1.',
       {
         errorCode: 'fixture.round_robin_invalid',
-      }
+      },
     )
   }
   const roundOneOpponents = opponentMaps.get(1)
@@ -590,7 +588,7 @@ export function reconstructDivisionTeamOrder(
       'Fixture generation failed: existing round-robin fixtures must include Round 1.',
       {
         errorCode: 'fixture.round_robin_invalid',
-      }
+      },
     )
   }
 
@@ -607,7 +605,9 @@ export function reconstructDivisionTeamOrder(
       roundIndex < highestRound + roundsToValidate;
       roundIndex++
     ) {
-      futureRounds.push(serializePairings(getRoundRobinPairings(order, roundIndex)))
+      futureRounds.push(
+        serializePairings(getRoundRobinPairings(order, roundIndex)),
+      )
     }
     return futureRounds.join('||')
   }
@@ -615,7 +615,7 @@ export function reconstructDivisionTeamOrder(
   function validateCandidate(order: string[]): boolean {
     for (const [roundNumber, signature] of observedRounds.entries()) {
       const candidate = serializePairings(
-        getRoundRobinPairings(order, roundNumber - 1)
+        getRoundRobinPairings(order, roundNumber - 1),
       )
       if (candidate !== signature) return false
     }
@@ -663,7 +663,7 @@ export function reconstructDivisionTeamOrder(
         'Fixture generation failed: existing round-robin fixtures are missing Round 2.',
         {
           errorCode: 'fixture.round_robin_invalid',
-        }
+        },
       )
     }
 
@@ -672,7 +672,7 @@ export function reconstructDivisionTeamOrder(
         fixedTeamId,
         roundOneOpponents,
         roundTwoOpponents,
-        divisionTeams.length
+        divisionTeams.length,
       )
       if (candidateOrder) registerCandidate(candidateOrder)
     })
@@ -683,7 +683,7 @@ export function reconstructDivisionTeamOrder(
       'Fixture generation failed: existing fixtures do not match the expected round-robin pattern.',
       {
         errorCode: 'fixture.round_robin_invalid',
-      }
+      },
     )
   }
 

@@ -1,6 +1,13 @@
 import {css} from '@emotion/css'
 import dayjs from 'dayjs'
-import {createElement as $, ChangeEvent, FC, Fragment, useRef, useState} from 'react'
+import {
+  createElement as $,
+  ChangeEvent,
+  FC,
+  Fragment,
+  useRef,
+  useState,
+} from 'react'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {$PortExport, $PortImport} from '../../endpoints/Port'
 import {theme} from '../../theme'
@@ -169,7 +176,8 @@ export const _DashboardExport: FC<{
               }),
               $(InputSelect, {
                 value: form.data.fileType,
-                valueSet: (value) => form.link('fileType')(value as 'csv' | 'json'),
+                valueSet: (value) =>
+                  form.link('fileType')(value as 'csv' | 'json'),
                 options: [
                   {key: 'csv', label: 'CSV'},
                   {key: 'json', label: 'JSON'},

@@ -26,7 +26,8 @@ export interface TypeIoCustom<T = any> extends TypeIo_<'custom', T> {}
 
 export interface TypeIoDate extends TypeIo_<'date', string> {}
 
-export interface TypeIoEnum<C extends string = string> extends TypeIo_<'enum', C> {}
+export interface TypeIoEnum<C extends string = string>
+  extends TypeIo_<'enum', C> {}
 
 export interface TypeIoLazy<T extends TypeIoAll = TypeIoAll>
   extends TypeIo_<'lazy', TypeIoValue<T>> {}
@@ -78,7 +79,7 @@ export interface TypeIoObject<
     }>
   > {
   extend<X extends Record<string, TypeIoAll>>(
-    fields: X
+    fields: X,
   ): TypeIoObject<Omit<F, keyof X> & X>
 }
 
@@ -116,9 +117,8 @@ export type TypeIoAll =
   | TypeIoOptional
   | TypeIoString
 
-export type TypeIoValue<T extends TypeIo_> = T extends TypeIo_<string, infer X>
-  ? X
-  : never
+export type TypeIoValue<T extends TypeIo_> =
+  T extends TypeIo_<string, infer X> ? X : never
 
 export const ensure = {
   date: (data: any): data is Date =>
@@ -167,7 +167,9 @@ export function ioAny(): TypeIoAny {
   }
 }
 
-export function ioArray<T extends TypeIoAll = TypeIoAll>(ofType: T): TypeIoArray<T> {
+export function ioArray<T extends TypeIoAll = TypeIoAll>(
+  ofType: T,
+): TypeIoArray<T> {
   return {
     _type: 'array',
     validate(value) {
@@ -213,8 +215,7 @@ export function ioColor(): TypeIoColor {
         return {ok: false, error: `Color value is not a string.`}
       const normalizedValue = value.trim()
       const match = regex.hsla().exec(normalizedValue)
-      if (!match)
-        return {ok: false, error: `Value is not a valid hsla string.`}
+      if (!match) return {ok: false, error: `Value is not a valid hsla string.`}
       const [, hue, saturation, lightness, alpha] = match
       const channels = {
         hue: Number(hue),
@@ -236,7 +237,7 @@ export function ioColor(): TypeIoColor {
 }
 
 export function ioCustom<T>(
-  validate: (value: T) => TypeIoValidateReturn<T>
+  validate: (value: T) => TypeIoValidateReturn<T>,
 ): TypeIoCustom<T> {
   return {
     _type: 'custom',
@@ -274,7 +275,7 @@ export function ioEnum<C extends string>(choices: C[]): TypeIoEnum<C> {
 }
 
 export function ioLazy<T extends TypeIoAll = TypeIoAll>(
-  callback: () => T
+  callback: () => T,
 ): TypeIoLazy<T> {
   return {
     _type: 'lazy',
@@ -284,12 +285,15 @@ export function ioLazy<T extends TypeIoAll = TypeIoAll>(
   }
 }
 
-export function ioNull<T extends TypeIoAll = TypeIoAll>(ofType: T): TypeIoNull<T> {
+export function ioNull<T extends TypeIoAll = TypeIoAll>(
+  ofType: T,
+): TypeIoNull<T> {
   return {
     _type: 'null',
     validate(value) {
       if (value === null) return {ok: true, value}
-      if (!ofType) throw new Error('Null schema not provided prior to validate.')
+      if (!ofType)
+        throw new Error('Null schema not provided prior to validate.')
       return ofType.validate(value as TypeIoValue<T>)
     },
   }
@@ -364,14 +368,19 @@ export function ioObject<
       try {
         return {
           ok: true,
-          value: Object.entries(fields).reduce((all, [key, ofType]) => {
-            const data = ofType.validate((value as Record<string, unknown>)[key] as never)
-            if (!data.ok) throw `[${key}]: ${data.error}`
-            if (data.value !== undefined) {
-              ;(all as Record<string, unknown>)[key] = data.value
-            }
-            return all
-          }, {} as OptionalUndefined<{[K in keyof F]: TypeIoValue<F[K]>}>),
+          value: Object.entries(fields).reduce(
+            (all, [key, ofType]) => {
+              const data = ofType.validate(
+                (value as Record<string, unknown>)[key] as never,
+              )
+              if (!data.ok) throw `[${key}]: ${data.error}`
+              if (data.value !== undefined) {
+                ;(all as Record<string, unknown>)[key] = data.value
+              }
+              return all
+            },
+            {} as OptionalUndefined<{[K in keyof F]: TypeIoValue<F[K]>}>,
+          ),
         }
       } catch (message) {
         const error =
@@ -383,7 +392,7 @@ export function ioObject<
 }
 
 export function ioOptional<T extends TypeIoAll = TypeIoAll>(
-  ofType: T
+  ofType: T,
 ): TypeIoOptional<T> {
   return {
     _type: 'optional',

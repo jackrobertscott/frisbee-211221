@@ -58,7 +58,9 @@ export const InputNumber: FC<{
       width: width ?? '100%',
       border: theme.border(),
       padding: theme.padify(theme.fib[4]),
-      background: backgroundColor || (disabled ? theme.bgDisabled.string() : theme.bg.string()),
+      background:
+        backgroundColor ||
+        (disabled ? theme.bgDisabled.string() : theme.bg.string()),
       '&::placeholder': {
         color: theme.fontPlaceholder.string(),
       },

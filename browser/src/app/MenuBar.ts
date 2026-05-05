@@ -44,7 +44,7 @@ export const MenuBarOption: FC<{
   background?: THSLA
   font?: THSLA
 }> = ({icon, label, click, active, background, font}) => {
-  const bg = active ? theme.bg : background ?? theme.bgMinor
+  const bg = active ? theme.bg : (background ?? theme.bgMinor)
   return $('div', {
     onClick: click,
     children: addkeys([$('div', {children: label}), icon && $(Icon, {icon})]),
@@ -58,8 +58,8 @@ export const MenuBarOption: FC<{
       color: font
         ? font.string()
         : active
-        ? theme.font.string()
-        : theme.fontMinor.string(),
+          ? theme.font.string()
+          : theme.fontMinor.string(),
       '&:hover': {
         background: bg.hover(),
       },

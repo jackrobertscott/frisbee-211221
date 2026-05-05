@@ -60,7 +60,8 @@ export const DashboardUsers: FC = () => {
   const [sortKey, sortKeySet] = useState<TUserListSortKey>('firstName')
   const [sortDirection, sortDirectionSet] = useState<'asc' | 'desc'>('asc')
   const current =
-    currentUser ?? (currentId ? users?.find((i) => currentId === i.id) : undefined)
+    currentUser ??
+    (currentId ? users?.find((i) => currentId === i.id) : undefined)
   const userList = ({
     search: nextSearch = search,
     pager: nextPager = pager.data,
@@ -81,7 +82,7 @@ export const DashboardUsers: FC = () => {
       })
   const userListDelay = useSling(500, userList)
   useEffect(() => {
-    if (!auth.can(authPoint.userAdmin)) go.to('/')
+    if (!auth.can(authPoint.userManage)) go.to('/')
     else userList()
   }, [auth.current, pager.data, sortKey, sortDirection])
   useEffect(() => {
@@ -179,7 +180,8 @@ export const DashboardUsers: FC = () => {
                         value: userEmails.primary(user) ?? '',
                       },
                       gender: {
-                        value: user.gender[0].toUpperCase() + user.gender.slice(1),
+                        value:
+                          user.gender[0].toUpperCase() + user.gender.slice(1),
                       },
                       createdOn: {
                         value: dayjs(user.createdOn).format('DD/MM/YYYY'),

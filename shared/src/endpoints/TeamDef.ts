@@ -16,8 +16,7 @@ export type TTeamListSortKey = (typeof TEAM_LIST_SORT_KEYS)[number]
 
 export const TEAM_LIST_SORT_DIRECTIONS = ['asc', 'desc'] as const
 
-export type TTeamListSortDirection =
-  (typeof TEAM_LIST_SORT_DIRECTIONS)[number]
+export type TTeamListSortDirection = (typeof TEAM_LIST_SORT_DIRECTIONS)[number]
 
 export const TeamCurrentCreateDef = {
   access: authPoint.teamJoin,
@@ -47,7 +46,7 @@ export const TeamCurrentUpdateDef = {
 } satisfies TEndpointDef
 
 export const TeamCreateDef = {
-  access: authPoint.teamAdmin,
+  access: authPoint.teamDirectoryManage,
   path: '/TeamCreate',
   payload: io.object({
     seasonId: io.string(),
@@ -60,7 +59,7 @@ export const TeamCreateDef = {
 } satisfies TEndpointDef
 
 export const TeamUpdateDef = {
-  access: authPoint.teamAdmin,
+  access: authPoint.teamDirectoryManage,
   path: '/TeamUpdate',
   payload: io.object({
     teamId: io.string(),
@@ -74,7 +73,7 @@ export const TeamUpdateDef = {
 } satisfies TEndpointDef
 
 export const TeamDeleteDef = {
-  access: authPoint.teamAdmin,
+  access: authPoint.teamDirectoryManage,
   path: '/TeamDelete',
   payload: io.object({
     teamId: io.string(),

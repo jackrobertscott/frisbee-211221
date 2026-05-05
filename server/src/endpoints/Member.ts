@@ -1,5 +1,13 @@
 import {badRequestError, conflictError, forbiddenError} from '@shared/errors'
-import {MemberAcceptOrDeclineDef, MemberCreateDef, MemberListOfTeamDef, MemberLookupByEmailDef, MemberRemoveDef, MemberRequestCreateDef, MemberSetCaptainDef} from '@shared/endpoints/MemberDef'
+import {
+  MemberAcceptOrDeclineDef,
+  MemberCreateDef,
+  MemberListOfTeamDef,
+  MemberLookupByEmailDef,
+  MemberRemoveDef,
+  MemberRequestCreateDef,
+  MemberSetCaptainDef,
+} from '@shared/endpoints/MemberDef'
 import {TMember} from '@shared/schemas/ioMember'
 import {RequestHandler} from 'micro'
 import {$Member} from '../tables/$Member'
@@ -12,7 +20,6 @@ import {userEmail} from './userEmail'
 import {selectPublicUserFields} from './userPublic'
 
 export default new Map<string, RequestHandler>([
-
   createEndpoint({
     ...MemberListOfTeamDef,
     handler: (teamId, access) => async (req) => {
@@ -35,21 +42,26 @@ export default new Map<string, RequestHandler>([
 
   createEndpoint({
     ...MemberLookupByEmailDef,
-    handler: ({teamId, email}, access) => async (req) => {
-      const [userCurrent] = await requireAccess(req, access)
-      if (!userCurrent.admin) {
-        const [, memberCurrent] = await requireTeam(userCurrent, teamId)
-        if (!memberCurrent.captain)
-          throw forbiddenError('Failed: only the team captain can add members.', {
-            errorCode: 'member.captain_required',
-          })
-      }
-      const user = await userEmail.maybeUser(email)
-      return {
-        exists: !!user,
-        user: user ? selectPublicUserFields(user) : undefined,
-      }
-    },
+    handler:
+      ({teamId, email}, access) =>
+      async (req) => {
+        const [userCurrent] = await requireAccess(req, access)
+        if (!userCurrent.admin) {
+          const [, memberCurrent] = await requireTeam(userCurrent, teamId)
+          if (!memberCurrent.captain)
+            throw forbiddenError(
+              'Failed: only the team captain can add members.',
+              {
+                errorCode: 'member.captain_required',
+              },
+            )
+        }
+        const user = await userEmail.maybeUser(email)
+        return {
+          exists: !!user,
+          user: user ? selectPublicUserFields(user) : undefined,
+        }
+      },
   }),
 
   createEndpoint({
@@ -61,9 +73,12 @@ export default new Map<string, RequestHandler>([
         if (!userCurrent.admin) {
           const [, memberCurrent] = await requireTeam(userCurrent, teamId)
           if (!memberCurrent.captain)
-            throw forbiddenError('Failed: only the team captain can add members.', {
-              errorCode: 'member.captain_required',
-            })
+            throw forbiddenError(
+              'Failed: only the team captain can add members.',
+              {
+                errorCode: 'member.captain_required',
+              },
+            )
         }
         const team = await $Team.getOne({id: teamId})
         let user = await userEmail.maybeUser(email)
@@ -71,7 +86,7 @@ export default new Map<string, RequestHandler>([
           if (!body.firstName?.trim() || !body.lastName?.trim() || !body.gender)
             throw badRequestError(
               'First name, last name, and gender are required for a new user.',
-              {errorCode: 'member.user_details_required'}
+              {errorCode: 'member.user_details_required'},
             )
           let raw: any = body
           const emails = [userEmail.create(email, true)]
@@ -92,7 +107,7 @@ export default new Map<string, RequestHandler>([
             })
           return $Member.updateOne(
             {id: member.id},
-            {pending: false, updatedOn: new Date().toISOString()}
+            {pending: false, updatedOn: new Date().toISOString()},
           )
         }
         return $Member.createOne({
@@ -118,16 +133,19 @@ export default new Map<string, RequestHandler>([
               teamId: memberDelete.teamId,
               id: {$not: {$eq: memberDelete.id}},
             },
-            {captain: true}
+            {captain: true},
           )
         } catch {} // ignore
       }
       if (!user.admin) {
         const [, member] = await requireTeam(user, memberDelete.teamId)
         if (!member.captain && member.id !== memberDelete.id)
-          throw forbiddenError('Failed: only the team captain can delete members.', {
-            errorCode: 'member.captain_required',
-          })
+          throw forbiddenError(
+            'Failed: only the team captain can delete members.',
+            {
+              errorCode: 'member.captain_required',
+            },
+          )
       }
       await $Member.deleteOne({id: memberId})
     },
@@ -205,12 +223,12 @@ export default new Map<string, RequestHandler>([
       try {
         await $Member.updateOne(
           {teamId: memberNewCaptain.teamId, captain: true},
-          {captain: false}
+          {captain: false},
         )
       } catch {} // ignore
       return $Member.updateOne(
         {id: memberNewCaptain.id},
-        {captain: true, pending: false}
+        {captain: true, pending: false},
       )
     },
   }),

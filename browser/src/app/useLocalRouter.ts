@@ -8,7 +8,7 @@ export interface TRoute {
 
 export const useLocalRouter = <T extends TRoute>(
   fallback: string,
-  _routes: (T | false)[]
+  _routes: (T | false)[],
 ) => {
   const routes = _routes.filter((i) => i) as T[]
   if (routes.length < 1)

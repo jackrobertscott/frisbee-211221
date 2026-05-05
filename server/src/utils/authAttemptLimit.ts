@@ -36,8 +36,7 @@ const LIMITS: Record<
     },
   },
   delivery: {
-    message:
-      'Too many security code requests. Please try again in 15 minutes.',
+    message: 'Too many security code requests. Please try again in 15 minutes.',
     errorCode: 'user.code_delivery_rate_limited',
     maxAttemptsByScope: {
       account: 3,
@@ -70,7 +69,7 @@ const getStates = (kind: TAttemptKind, email: string, ip: string) => {
 
 const createInitialState = (
   state: ReturnType<typeof getStates>[number],
-  now: number
+  now: number,
 ): TAttemptState => {
   return {
     id: state.id,
@@ -88,7 +87,7 @@ const createInitialState = (
 const getCurrentState = (
   current: TAuthAttemptLimit | undefined,
   stateDef: ReturnType<typeof getStates>[number],
-  now: number
+  now: number,
 ): TAttemptState => {
   const state = current ?? createInitialState(stateDef, now)
   if (state.blockedUntil <= now && now - state.windowStartedAt >= WINDOW_MS) {
@@ -107,7 +106,7 @@ const getCurrentState = (
 
 const saveState = async (
   current: TAuthAttemptLimit | undefined,
-  state: TAttemptState
+  state: TAttemptState,
 ) => {
   if (current) {
     await $AuthAttemptLimit.updateOne({id: state.id}, state)
@@ -152,7 +151,11 @@ export default {
     }
   },
 
-  async registerFailure(kind: Extract<TAttemptKind, 'login' | 'verify'>, email: string, ip: string) {
+  async registerFailure(
+    kind: Extract<TAttemptKind, 'login' | 'verify'>,
+    email: string,
+    ip: string,
+  ) {
     const now = Date.now()
     const config = LIMITS[kind]
 
@@ -171,7 +174,11 @@ export default {
     }
   },
 
-  async consume(kind: Extract<TAttemptKind, 'delivery'>, email: string, ip: string) {
+  async consume(
+    kind: Extract<TAttemptKind, 'delivery'>,
+    email: string,
+    ip: string,
+  ) {
     const now = Date.now()
     const config = LIMITS[kind]
 
@@ -190,7 +197,11 @@ export default {
     }
   },
 
-  async reset(kind: Extract<TAttemptKind, 'login' | 'verify'>, email: string, ip: string) {
+  async reset(
+    kind: Extract<TAttemptKind, 'login' | 'verify'>,
+    email: string,
+    ip: string,
+  ) {
     await $AuthAttemptLimit.deleteMany({
       id: {$in: getStates(kind, email, ip).map((i) => i.id)},
     })

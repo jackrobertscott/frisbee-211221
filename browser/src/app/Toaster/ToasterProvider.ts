@@ -15,7 +15,7 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
   const createToast = (
     message: string,
     type: TToaster['type'],
-    timeout?: number
+    timeout?: number,
   ) => {
     const id = random.randomString()
     const toastClose = () => removeById(id)
@@ -25,7 +25,7 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
       type,
       remove: toastClose,
     }
-    setTimeout(() => toastClose(), timeout ?? type === 'error' ? 5000 : 3000)
+    setTimeout(() => toastClose(), (timeout ?? type === 'error') ? 5000 : 3000)
     return piece
   }
   return $(ToasterContext.Provider, {

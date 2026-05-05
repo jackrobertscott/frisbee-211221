@@ -6,7 +6,6 @@ import {
 import {config} from '../config'
 
 export const radio = {
-
   async send(path: string, payload?: any, token?: string) {
     if (!config.urlServer)
       throw serviceUnavailableError('Server url not set in config.', {

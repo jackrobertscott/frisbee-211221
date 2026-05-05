@@ -39,7 +39,7 @@ export const SecurityForgot: FC<{email?: string}> = ({email: _email}) => {
               '&status=password'
             go.to(url)
             toaster.notify(
-              'If an account exists for this email, check your inbox for the code.'
+              'If an account exists for this email, check your inbox for the code.',
             )
           }),
       }),

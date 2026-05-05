@@ -12,7 +12,10 @@ const USER_GENDER_NORMALIZED_MAP = new Map<string, TUserGender>([
 ])
 
 const normalizeGenderKey = (value: string) => {
-  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '')
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
 }
 
 export const normalizeUserGender = (value: string) => {

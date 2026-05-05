@@ -116,7 +116,7 @@ export const Security: FC = () => {
                       else {
                         const url =
                           `/auth/verify?email=${encodeURIComponent(
-                            data.email
+                            data.email,
                           )}` + `&status=${encodeURIComponent(data.status)}`
                         go.to(url)
                       }

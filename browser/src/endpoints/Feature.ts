@@ -16,39 +16,37 @@ import {createEndpoint} from '../utils/endpoints'
 export const $FeatureCompetitionLoad = createEndpoint(FeatureCompetitionLoadDef)
 
 export const $FeatureDashboardTeamsLoad = createEndpoint(
-  FeatureDashboardTeamsLoadDef
+  FeatureDashboardTeamsLoadDef,
 )
 
 export const $FeatureDashboardReportsLoad = createEndpoint(
-  FeatureDashboardReportsLoadDef
+  FeatureDashboardReportsLoadDef,
 )
 
 export const $FeatureReportEditorLoad = createEndpoint(
-  FeatureReportEditorLoadDef
+  FeatureReportEditorLoadDef,
 )
 
 export const $FeatureDashboardSpiritLoad = createEndpoint(
-  FeatureDashboardSpiritLoadDef
+  FeatureDashboardSpiritLoadDef,
 )
 
 export const $FeatureDashboardMvpLoad = createEndpoint(
-  FeatureDashboardMvpLoadDef
+  FeatureDashboardMvpLoadDef,
 )
 
 export const $FeatureFixtureSetupLoad = createEndpoint(
-  FeatureFixtureSetupLoadDef
+  FeatureFixtureSetupLoadDef,
 )
 
 export const $FeatureFixtureTallyLoad = createEndpoint(
-  FeatureFixtureTallyLoadDef
+  FeatureFixtureTallyLoadDef,
 )
 
-export const $FeatureFixtureViewLoad = createEndpoint(
-  FeatureFixtureViewLoadDef
-)
+export const $FeatureFixtureViewLoad = createEndpoint(FeatureFixtureViewLoadDef)
 
 export const $FeatureTeamSetupLoad = createEndpoint(FeatureTeamSetupLoadDef)
 
 export const $FeatureDashboardUserMembershipsLoad = createEndpoint(
-  FeatureDashboardUserMembershipsLoadDef
+  FeatureDashboardUserMembershipsLoadDef,
 )

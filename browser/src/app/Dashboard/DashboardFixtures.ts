@@ -224,7 +224,7 @@ const _DashboardFixturesView: FC<{
                 children: addkeys([
                   $('div', {
                     children: dayjs(fixture.date).format(
-                      isSmall ? 'DD/MM/YY' : 'D MMM YYYY'
+                      isSmall ? 'DD/MM/YY' : 'D MMM YYYY',
                     ),
                   }),
                   $(Icon, {
@@ -285,13 +285,13 @@ const _DashboardFixturesView: FC<{
                     one: {
                       value: isSmall
                         ? initials(team1?.name)
-                        : team1?.name ?? '[unknown]',
+                        : (team1?.name ?? '[unknown]'),
                       color: team1?.color,
                     },
                     two: {
                       value: isSmall
                         ? initials(team2?.name)
-                        : team2?.name ?? '[unknown]',
+                        : (team2?.name ?? '[unknown]'),
                       color: team2?.color,
                     },
                     time: {value: game.time},

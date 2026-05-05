@@ -1,4 +1,5 @@
 import {forbiddenError} from '@shared/errors'
+import {authPoint} from '@shared/auth/authAccess'
 import {
   PostCreateDef,
   PostDeleteDef,
@@ -18,7 +19,6 @@ import {userEmail} from './userEmail'
 import {selectPublicUserFields} from './userPublic'
 
 export default new Map<string, RequestHandler>([
-
   createEndpoint({
     ...PostListDef,
     handler:
@@ -26,7 +26,7 @@ export default new Map<string, RequestHandler>([
       async () => {
         const posts = await $Post.getMany(
           {title: regex.from(search ?? '')},
-          {limit, sort: {createdOn: -1}}
+          {limit, sort: {createdOn: -1}},
         )
         const users = await $User.getMany({
           id: {$in: posts.map((i) => i.userId)},
@@ -42,12 +42,15 @@ export default new Map<string, RequestHandler>([
     ...PostCreateDef,
     handler: (body, access) => async (req) => {
       const [user] = await requireAccess(req, access)
+      if (body.sendEmail) {
+        await requireAccess(req, authPoint.postNotifyCaptains)
+      }
       body.content = DOMPurify.sanitize(body.content)
       const post = await $Post.createOne({
         ...body,
         userId: user.id,
       })
-      if (user.admin && body.sendEmail) {
+      if (body.sendEmail) {
         const memberCaptains = await $Member.getMany({
           captain: true,
           seasonId: body.seasonId,
@@ -74,8 +77,9 @@ export default new Map<string, RequestHandler>([
     handler:
       ({postId, ...body}, access) =>
       async (req) => {
-        const [user] = await requireAccess(req, access)
+        const [user] = await requireAccess(req, authPoint.postWrite)
         const post = await $Post.getOne({id: postId})
+        if (post.userId !== user.id) await requireAccess(req, access)
         if (post.userId !== user.id && !user.admin)
           throw forbiddenError('Failed: you can only update your own posts.', {
             errorCode: 'post.update_forbidden',
@@ -83,7 +87,7 @@ export default new Map<string, RequestHandler>([
         body.content = DOMPurify.sanitize(body.content)
         return $Post.updateOne(
           {id: postId},
-          {...body, updatedOn: new Date().toISOString()}
+          {...body, updatedOn: new Date().toISOString()},
         )
       },
   }),
@@ -93,8 +97,9 @@ export default new Map<string, RequestHandler>([
     handler:
       ({postId}, access) =>
       async (req) => {
-        const [user] = await requireAccess(req, access)
+        const [user] = await requireAccess(req, authPoint.postWrite)
         const post = await $Post.getOne({id: postId})
+        if (post.userId !== user.id) await requireAccess(req, access)
         if (post.userId !== user.id && !user.admin)
           throw forbiddenError('Failed: you can only delete your own posts.', {
             errorCode: 'post.delete_forbidden',

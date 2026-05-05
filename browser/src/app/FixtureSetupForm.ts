@@ -75,7 +75,6 @@ export const FixtureSetupForm: FC<{
   }, [])
   return $(Fragment, {
     children: addkeys([
-
       $(Modal, {
         width: theme.fib[14],
         children: addkeys([
@@ -145,7 +144,7 @@ export const FixtureSetupForm: FC<{
                                     color: i.color,
                                     icon:
                                       teamsChosen.findIndex(
-                                        (x) => x.id === i.id
+                                        (x) => x.id === i.id,
                                       ) >= 0
                                         ? 'check'
                                         : undefined,
@@ -161,7 +160,7 @@ export const FixtureSetupForm: FC<{
                                     color: i.color,
                                     icon:
                                       teamsChosen.findIndex(
-                                        (x) => x.id === i.id
+                                        (x) => x.id === i.id,
                                       ) >= 0
                                         ? 'check'
                                         : undefined,
@@ -198,7 +197,7 @@ export const FixtureSetupForm: FC<{
                                     display: 'flex',
                                   }),
                                 })
-                              })
+                              }),
                             ),
                           })
                         }),

@@ -38,8 +38,8 @@ export const InputSelect = <T extends string = string>({
   const bg = disabled
     ? theme.bgDisabled
     : current?.color
-    ? hsla.digest(current?.color)
-    : theme.bg
+      ? hsla.digest(current?.color)
+      : theme.bg
   return $(Popup, {
     open,
     position,

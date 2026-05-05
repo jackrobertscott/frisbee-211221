@@ -53,7 +53,7 @@ export const throttle = {
   dribble: <T>(
     max: number,
     timeout: number,
-    cb: (...args: any[]) => Promise<T>
+    cb: (...args: any[]) => Promise<T>,
   ) => {
     if (max < 1)
       throw internalError('Dribble max can not be less than 1', {

@@ -23,7 +23,8 @@ import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useSling} from './useThrottle'
 
-const userEmailLabel = (user: TUserSafe) => userEmails.primary(user) ?? '[no email]'
+const userEmailLabel = (user: TUserSafe) =>
+  userEmails.primary(user) ?? '[no email]'
 
 export const UserMerge: FC<{
   user: TUserSafe
@@ -147,7 +148,7 @@ const _UserMergeSelect: FC<{
     if (users !== undefined) userListDelay()
   }, [search])
   useEffect(() => {
-    if (!auth.can(authPoint.userAdmin)) go.to('/')
+    if (!auth.can(authPoint.userManage)) go.to('/')
     else userList()
   }, [auth.current])
   if (users === undefined) {

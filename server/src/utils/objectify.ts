@@ -1,8 +1,7 @@
 export const objectify = {
-
   pick<X extends Record<string, any>, Y extends keyof X>(
     obj: X,
-    keys: Y[]
+    keys: Y[],
   ): Pick<X, Y> {
     return Object.keys(obj).reduce((all: any, key: any) => {
       if (keys.includes(key)) all[key] = obj[key]
@@ -12,7 +11,7 @@ export const objectify = {
 
   omit<X extends Record<string, any>, Y extends keyof X>(
     obj: X,
-    keys: Y[]
+    keys: Y[],
   ): Omit<X, Y> {
     return Object.keys(obj).reduce((all: any, key: any) => {
       if (!keys.includes(key)) all[key] = obj[key]
@@ -43,7 +42,7 @@ export const objectify = {
   compareKeys<A extends Record<string, any>, B extends A, K extends keyof A>(
     a: A,
     b: B,
-    keys: K[]
+    keys: K[],
   ) {
     const _a = this.sortKeys(this.pick(a, keys))
     const _b = this.sortKeys(this.pick(b, keys))

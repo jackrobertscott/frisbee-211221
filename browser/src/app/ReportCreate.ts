@@ -2,7 +2,14 @@ import {Poster} from '@browser/app/Poster'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUserPublic} from '@shared/schemas/ioUser'
-import {createElement as $, FC, Fragment, useEffect, useMemo, useState} from 'react'
+import {
+  createElement as $,
+  FC,
+  Fragment,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import {$FeatureReportEditorLoad} from '../endpoints/Feature'
 import {$ReportCreate} from '../endpoints/Report'
 import {theme} from '../theme'
@@ -10,6 +17,7 @@ import {addkeys} from '../utils/addkeys'
 import {
   createReportFormData,
   renderFixtureSelect,
+  renderTeamSelect,
   renderMVPInputs,
   renderOfficialSpiritInputs,
   renderScoreInputs,
@@ -38,6 +46,7 @@ export const ReportCreate: FC<{
   const toaster = useToaster()
   // const isSmall = media.width < theme.fib[12]
   const [fixtures, fixturesSet] = useState<TFixture[]>()
+  const [teams, teamsSet] = useState<TTeam[]>()
   const [againstOptions, againstOptionsSet] =
     useState<Array<{team: TTeam; users: TUserPublic[]}>>()
   const $editorLoad = useEndpoint($FeatureReportEditorLoad)
@@ -45,25 +54,31 @@ export const ReportCreate: FC<{
 
   // Check if the season uses official scoring
   const useOfficialScoring = auth.season?.useOfficialScoring === true
+  const canChooseTeam = auth.isAdmin()
 
   const form = useForm(
     createReportFormData({
-      teamId: auth.current?.team?.id,
-    })
+      teamId: canChooseTeam ? undefined : auth.current?.team?.id,
+    }),
   )
 
   useEffect(() => {
-    if (!auth.current?.team?.id || form.data.teamId === auth.current.team.id) {
+    if (
+      canChooseTeam ||
+      !auth.current?.team?.id ||
+      form.data.teamId === auth.current.team.id
+    ) {
       return
     }
 
     form.patch({teamId: auth.current.team.id})
-  }, [auth.current?.team?.id, form.data.teamId])
+  }, [auth.current?.team?.id, canChooseTeam, form.data.teamId])
 
   useEffect(() => {
-    $editorLoad
-      .fetch({seasonId: auth.season!.id})
-      .then((data) => fixturesSet(data.fixtures))
+    $editorLoad.fetch({seasonId: auth.season!.id}).then((data) => {
+      fixturesSet(data.fixtures)
+      teamsSet(data.teams)
+    })
   }, [])
 
   useEffect(() => {
@@ -83,24 +98,31 @@ export const ReportCreate: FC<{
         fixtureId: form.data.fixtureId,
         teamId: form.data.teamId,
       })
-      .then(({fixtures: nextFixtures, againstOptions: nextAgainstOptions}) => {
-        if (cancelled) return
+      .then(
+        ({
+          fixtures: nextFixtures,
+          teams: nextTeams,
+          againstOptions: nextAgainstOptions,
+        }) => {
+          if (cancelled) return
 
-        fixturesSet(nextFixtures)
-        againstOptionsSet(nextAgainstOptions)
-        const hasCurrentSelection = nextAgainstOptions.some(
-          (option) => option.team.id === currentAgainstTeamId
-        )
+          fixturesSet(nextFixtures)
+          teamsSet(nextTeams)
+          againstOptionsSet(nextAgainstOptions)
+          const hasCurrentSelection = nextAgainstOptions.some(
+            (option) => option.team.id === currentAgainstTeamId,
+          )
 
-        form.patch({
-          againstTeamId:
-            nextAgainstOptions.length === 1
-              ? nextAgainstOptions[0].team.id
-              : hasCurrentSelection
-              ? currentAgainstTeamId
-              : undefined,
-        })
-      })
+          form.patch({
+            againstTeamId:
+              nextAgainstOptions.length === 1
+                ? nextAgainstOptions[0].team.id
+                : hasCurrentSelection
+                  ? currentAgainstTeamId
+                  : undefined,
+          })
+        },
+      )
 
     return () => {
       cancelled = true
@@ -108,8 +130,9 @@ export const ReportCreate: FC<{
   }, [form.data.fixtureId, form.data.teamId])
 
   const chosenAgainst = againstOptions?.find(
-    (i) => i.team.id === form.data.againstTeamId
+    (i) => i.team.id === form.data.againstTeamId,
   )
+  const selectedTeam = teams?.find((team) => team.id === form.data.teamId)
 
   useEffect(() => {
     const nextMvps = sanitizeReportFormMvps(form.data, chosenAgainst?.users)
@@ -134,7 +157,7 @@ export const ReportCreate: FC<{
 
   const shuffledUsers = useMemo(
     () => shuffleArray(chosenAgainst?.users ?? []),
-    [chosenAgainst]
+    [chosenAgainst],
   )
 
   const handleSubmit = () => {
@@ -166,11 +189,20 @@ export const ReportCreate: FC<{
           renderFixtureSelect(
             form.data.fixtureId,
             form.link('fixtureId'),
-            fixtures
+            fixtures,
           ),
           $(Fragment, {
             children:
-              !form.data.fixtureId || !auth.current?.team || !againstOptions
+              canChooseTeam &&
+              teams &&
+              renderTeamSelect(form.data.teamId, form.link('teamId'), teams),
+          }),
+          $(Fragment, {
+            children:
+              !form.data.fixtureId ||
+              !form.data.teamId ||
+              !selectedTeam ||
+              !againstOptions
                 ? $(FormColumn, {
                     children: form.data.fixtureId
                       ? $(Poster, {
@@ -188,17 +220,17 @@ export const ReportCreate: FC<{
                 : addkeys([
                     renderTeamHeader(
                       form.data.teamId,
-                      auth.current.team.name,
-                      auth.current.team.color,
+                      selectedTeam.name,
+                      selectedTeam.color,
                       form.data.againstTeamId,
                       form.link('againstTeamId'),
-                      againstOptions
+                      againstOptions,
                     ),
                     renderScoreInputs(
                       form.data.scoreFor,
                       form.link('scoreFor'),
                       form.data.scoreAgainst,
-                      form.link('scoreAgainst')
+                      form.link('scoreAgainst'),
                     ),
                     $(Fragment, {
                       children:
@@ -213,7 +245,7 @@ export const ReportCreate: FC<{
                           form.data.mvpMale2,
                           form.link('mvpMale2'),
                           form.data.mvpFemale2,
-                          form.link('mvpFemale2')
+                          form.link('mvpFemale2'),
                         ),
                     }),
                     // Render either official or standard spirit inputs based on the season setting
@@ -230,13 +262,13 @@ export const ReportCreate: FC<{
                           form.data.spiritP5,
                           (value) => form.patch({spiritP5: value}),
                           form.data.spiritComment,
-                          form.link('spiritComment')
+                          form.link('spiritComment'),
                         )
                       : renderSpiritInputs(
                           form.data.spirit,
                           (value) => form.patch({spirit: value}),
                           form.data.spiritComment,
-                          form.link('spiritComment')
+                          form.link('spiritComment'),
                         ),
                     renderSubmitButton($create.loading, handleSubmit),
                   ]),

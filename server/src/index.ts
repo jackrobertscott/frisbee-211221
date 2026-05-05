@@ -32,7 +32,6 @@ async function bootstrap() {
   startServer()
 }
 
-
 function startServer() {
   const handler: RequestHandler = async (req, res) => {
     if (!req.url)
@@ -48,7 +47,7 @@ function startServer() {
     })
   }
   const server = new http.Server(
-    microServe(cors()(capture.handle(prerequest(handler))))
+    microServe(cors()(capture.handle(prerequest(handler)))),
   )
   attachWorkerClusterLifecycle(server)
   server.listen(config.PORT, () => {

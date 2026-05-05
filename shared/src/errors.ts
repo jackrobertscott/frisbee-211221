@@ -74,10 +74,14 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null
 
 const isStatusCode = (value: unknown): value is number =>
-  typeof value === 'number' && Number.isInteger(value) && value >= 400 && value <= 599
+  typeof value === 'number' &&
+  Number.isInteger(value) &&
+  value >= 400 &&
+  value <= 599
 
 const getStatusText = (statusCode: number) =>
-  STATUS_TEXT_BY_CODE[statusCode] ?? STATUS_TEXT_BY_CODE[HTTP_STATUS.INTERNAL_SERVER_ERROR]
+  STATUS_TEXT_BY_CODE[statusCode] ??
+  STATUS_TEXT_BY_CODE[HTTP_STATUS.INTERNAL_SERVER_ERROR]
 
 const getDefaultErrorCode = (statusCode: number) => {
   switch (statusCode) {
@@ -150,8 +154,7 @@ export class AppError extends Error {
     this.name = 'AppError'
     this.statusCode = options.statusCode ?? HTTP_STATUS.INTERNAL_SERVER_ERROR
     this.errorCode = options.errorCode ?? getDefaultErrorCode(this.statusCode)
-    this.expose =
-      options.expose ?? defaultExposeForStatus(this.statusCode)
+    this.expose = options.expose ?? defaultExposeForStatus(this.statusCode)
     this.details = options.details
     this.retryable = options.retryable ?? false
     this.cause = options.cause
@@ -162,7 +165,7 @@ export class AppError extends Error {
 
 export const createError = (
   options: string | AppErrorOptions,
-  overrides: Omit<AppErrorOptions, 'message'> & {message?: string} = {}
+  overrides: Omit<AppErrorOptions, 'message'> & {message?: string} = {},
 ) => {
   const base = typeof options === 'string' ? {message: options} : options
   const statusCode =
@@ -183,7 +186,7 @@ const createStatusFactory =
   (statusCode: number, errorCode?: string) =>
   (
     message: string,
-    options: Omit<AppErrorOptions, 'message' | 'statusCode'> = {}
+    options: Omit<AppErrorOptions, 'message' | 'statusCode'> = {},
   ) =>
     createError({
       message,
@@ -194,39 +197,39 @@ const createStatusFactory =
 
 export const badRequestError = createStatusFactory(
   HTTP_STATUS.BAD_REQUEST,
-  'bad_request'
+  'bad_request',
 )
 export const unauthorizedError = createStatusFactory(
   HTTP_STATUS.UNAUTHORIZED,
-  'unauthorized'
+  'unauthorized',
 )
 export const forbiddenError = createStatusFactory(
   HTTP_STATUS.FORBIDDEN,
-  'forbidden'
+  'forbidden',
 )
 export const notFoundError = createStatusFactory(
   HTTP_STATUS.NOT_FOUND,
-  'not_found'
+  'not_found',
 )
 export const methodNotAllowedError = createStatusFactory(
   HTTP_STATUS.METHOD_NOT_ALLOWED,
-  'method_not_allowed'
+  'method_not_allowed',
 )
 export const conflictError = createStatusFactory(
   HTTP_STATUS.CONFLICT,
-  'conflict'
+  'conflict',
 )
 export const validationError = createStatusFactory(
   HTTP_STATUS.UNPROCESSABLE_ENTITY,
-  'validation_error'
+  'validation_error',
 )
 export const tooManyRequestsError = createStatusFactory(
   HTTP_STATUS.TOO_MANY_REQUESTS,
-  'too_many_requests'
+  'too_many_requests',
 )
 export const internalError = (
   message: string = getStatusText(HTTP_STATUS.INTERNAL_SERVER_ERROR),
-  options: Omit<AppErrorOptions, 'message' | 'statusCode' | 'expose'> = {}
+  options: Omit<AppErrorOptions, 'message' | 'statusCode' | 'expose'> = {},
 ) =>
   createError({
     message,
@@ -237,11 +240,11 @@ export const internalError = (
   })
 export const serviceUnavailableError = createStatusFactory(
   HTTP_STATUS.SERVICE_UNAVAILABLE,
-  'service_unavailable'
+  'service_unavailable',
 )
 
 export const unreachableError = (
-  message: string = 'Unreachable code path.'
+  message: string = 'Unreachable code path.',
 ): never => {
   throw internalError(message, {errorCode: 'unreachable'})
 }
@@ -251,7 +254,7 @@ export const isAppError = (error: unknown): error is AppError => {
 }
 
 export const isSerializedAppError = (
-  error: unknown
+  error: unknown,
 ): error is SerializedAppError => {
   if (!isRecord(error)) return false
   const statusCode = extractStatusCode(error.statusCode ?? error.code)
@@ -267,7 +270,7 @@ export const isSerializedAppError = (
 
 export const toAppError = (
   error: unknown,
-  fallback: Omit<AppErrorOptions, 'message'> & {message?: string} = {}
+  fallback: Omit<AppErrorOptions, 'message'> & {message?: string} = {},
 ) => {
   if (isAppError(error)) return error
   if (isSerializedAppError(error)) {
@@ -286,7 +289,7 @@ export const toAppError = (
       {
         message: error,
       },
-      fallback
+      fallback,
     )
   }
   if (error instanceof Error) {
@@ -294,7 +297,8 @@ export const toAppError = (
     const statusCode = inferStatusCode(appError, fallback.statusCode)
     return createError(
       {
-        message: appError.message || fallback.message || getStatusText(statusCode),
+        message:
+          appError.message || fallback.message || getStatusText(statusCode),
         statusCode,
         errorCode:
           extractErrorCode(appError.errorCode) ??
@@ -318,14 +322,16 @@ export const toAppError = (
       {
         ...fallback,
         statusCode,
-      }
+      },
     )
   }
   return createError(
     {
-      message: fallback.message ?? getStatusText(fallback.statusCode ?? HTTP_STATUS.INTERNAL_SERVER_ERROR),
+      message:
+        fallback.message ??
+        getStatusText(fallback.statusCode ?? HTTP_STATUS.INTERNAL_SERVER_ERROR),
     },
-    fallback
+    fallback,
   )
 }
 
@@ -336,7 +342,7 @@ export const serializeError = (
     includeDetails?: boolean
     includeMeta?: boolean
     includeStackLines?: boolean
-  } = {}
+  } = {},
 ): SerializedAppError => {
   const appError = toAppError(error)
   const status = getStatusText(appError.statusCode)
@@ -365,19 +371,21 @@ export const serializeError = (
 
 export const deserializeError = (
   error: unknown,
-  fallback: Omit<AppErrorOptions, 'message'> & {message?: string} = {}
+  fallback: Omit<AppErrorOptions, 'message'> & {message?: string} = {},
 ) => {
-  return isSerializedAppError(error) ? toAppError(error, fallback) : toAppError(error, fallback)
+  return isSerializedAppError(error)
+    ? toAppError(error, fallback)
+    : toAppError(error, fallback)
 }
 
 export const getErrorMessage = (
   error: unknown,
-  fallback: string = 'An error occurred.'
+  fallback: string = 'An error occurred.',
 ) => toAppError(error, {message: fallback}).message || fallback
 
 export const getErrorStatusCode = (
   error: unknown,
-  fallback: number = HTTP_STATUS.INTERNAL_SERVER_ERROR
+  fallback: number = HTTP_STATUS.INTERNAL_SERVER_ERROR,
 ) => toAppError(error, {statusCode: fallback}).statusCode
 
 export const hasErrorCode = (error: unknown, expected: string | string[]) => {

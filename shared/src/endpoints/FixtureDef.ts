@@ -71,7 +71,7 @@ export const FixtureGenerateDef = {
         id: io.string(),
         time: io.string(),
         place: io.string(),
-      })
+      }),
     ),
   }),
 } satisfies TEndpointDef

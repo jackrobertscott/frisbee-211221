@@ -1,5 +1,21 @@
 import {badRequestError, conflictError} from '@shared/errors'
-import {UserChangePasswordDef, UserCreateDef, UserCurrentChangePasswordDef, UserCurrentEmailAddDef, UserCurrentEmailCodeResendDef, UserCurrentEmailPrimarySetDef, UserCurrentEmailRemoveDef, UserCurrentEmailVerifyDef, UserCurrentUpdateDef, UserListDef, UserMergeDef, UserToggleAdminDef, UserUpdateDef, TUserListSortDirection, TUserListSortKey} from '@shared/endpoints/UserDef'
+import {
+  UserChangePasswordDef,
+  UserCreateDef,
+  UserCurrentChangePasswordDef,
+  UserCurrentEmailAddDef,
+  UserCurrentEmailCodeResendDef,
+  UserCurrentEmailPrimarySetDef,
+  UserCurrentEmailRemoveDef,
+  UserCurrentEmailVerifyDef,
+  UserCurrentUpdateDef,
+  UserListDef,
+  UserMergeDef,
+  UserToggleAdminDef,
+  UserUpdateDef,
+  TUserListSortDirection,
+  TUserListSortKey,
+} from '@shared/endpoints/UserDef'
 import {Document} from 'mongodb'
 import {RequestHandler} from 'micro'
 import {$Comment} from '../tables/$Comment'
@@ -20,7 +36,6 @@ const USER_DEFAULT_SORT_BY: TUserListSortKey = 'createdOn'
 const USER_DEFAULT_SORT_DIRECTION: TUserListSortDirection = 'desc'
 
 export default new Map<string, RequestHandler>([
-
   createEndpoint({
     ...UserCurrentUpdateDef,
     handler: (body, access) => async (req) => {
@@ -30,7 +45,7 @@ export default new Map<string, RequestHandler>([
         {
           ...body,
           updatedOn: new Date().toISOString(),
-        }
+        },
       )
       return selectSafeUserFields(next)
     },
@@ -74,7 +89,7 @@ export default new Map<string, RequestHandler>([
       async (req) => {
         const [user] = await requireAccess(req, access)
         return selectSafeUserFields(
-          await userEmail.codeSendSave(user, email, 'Verify Email')
+          await userEmail.codeSendSave(user, email, 'Verify Email'),
         )
       },
   }),
@@ -113,7 +128,7 @@ export default new Map<string, RequestHandler>([
         })
       user = await $User.updateOne(
         {id: user.id},
-        {password: await hash.encrypt(body.newPassword)}
+        {password: await hash.encrypt(body.newPassword)},
       )
       return selectSafeUserFields(user)
     },
@@ -136,7 +151,13 @@ export default new Map<string, RequestHandler>([
       const [count, users] = await Promise.all([
         $User.count(query),
         $User.aggregate(
-          _getUserListPipeline(query, sortBy, sortDirection, body.skip, body.limit)
+          _getUserListPipeline(
+            query,
+            sortBy,
+            sortDirection,
+            body.skip,
+            body.limit,
+          ),
         ),
       ])
       return {count, users: users.map(selectSafeUserFields)}
@@ -171,7 +192,7 @@ export default new Map<string, RequestHandler>([
         const user = await $User.getOne({id: userId})
         const next = await $User.updateOne(
           {id: user.id},
-          {...body, updatedOn: new Date().toISOString()}
+          {...body, updatedOn: new Date().toISOString()},
         )
         return selectSafeUserFields(next)
       },
@@ -271,7 +292,7 @@ export default new Map<string, RequestHandler>([
             {
               emails: u1Emails,
               userMergedIds: u2MergedIds,
-            }
+            },
           )
         })
         return selectSafeUserFields(user1)
@@ -285,7 +306,7 @@ export default new Map<string, RequestHandler>([
       const user = await $User.getOne({id: body.userId})
       const next = await $User.updateOne(
         {id: user.id},
-        {password: await hash.encrypt(body.newPassword)}
+        {password: await hash.encrypt(body.newPassword)},
       )
       return selectSafeUserFields(next)
     },
@@ -311,7 +332,12 @@ const _getUserSort = (
         id: 1 as const,
       }
     case 'gender':
-      return {gender: direction, lastName: 1 as const, firstName: 1 as const, id: 1 as const}
+      return {
+        gender: direction,
+        lastName: 1 as const,
+        firstName: 1 as const,
+        id: 1 as const,
+      }
     case 'createdOn':
       return {createdOn: direction, id: 1 as const}
   }

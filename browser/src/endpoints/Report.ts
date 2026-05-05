@@ -1,4 +1,9 @@
-import {ReportCreateDef, ReportDeleteDef, ReportMissingListDef, ReportUpdateDef} from '@shared/endpoints/ReportDef'
+import {
+  ReportCreateDef,
+  ReportDeleteDef,
+  ReportMissingListDef,
+  ReportUpdateDef,
+} from '@shared/endpoints/ReportDef'
 import {createEndpoint} from '../utils/endpoints'
 
 export const $ReportCreate = createEndpoint(ReportCreateDef)

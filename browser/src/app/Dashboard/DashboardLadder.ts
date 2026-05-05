@@ -322,14 +322,14 @@ const _LadderFixture: FC<{
                     team1: {
                       value: isSmall
                         ? initials(team1?.name)
-                        : team1?.name ?? '[unknown]',
+                        : (team1?.name ?? '[unknown]'),
                       color: team1?.color,
                     },
                     team1Score: {value: game.team1Score},
                     team2: {
                       value: isSmall
                         ? initials(team2?.name)
-                        : team2?.name ?? '[unknown]',
+                        : (team2?.name ?? '[unknown]'),
                       color: team2?.color,
                     },
                     team2Score: {value: game.team2Score},
@@ -464,7 +464,7 @@ export const FinalResultsForm: FC<{
                                         ? {...fr, position}
                                         : fr
                                     })
-                                  : frs.concat({teamId: team.id, position})
+                                  : frs.concat({teamId: team.id, position}),
                               ),
                           }),
                           $(FormLabel, {

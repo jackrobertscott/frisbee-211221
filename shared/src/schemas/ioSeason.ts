@@ -13,8 +13,8 @@ export const ioSeason = io.object({
       io.object({
         teamId: io.string(),
         position: io.optional(io.null(io.number())),
-      })
-    )
+      }),
+    ),
   ),
 })
 

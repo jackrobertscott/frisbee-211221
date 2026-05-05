@@ -18,7 +18,7 @@ import {requireTeam} from './requireTeam'
 
 function assertOfficialSpiritComment(
   useOfficialScoring: boolean | undefined,
-  body: Parameters<typeof validateOfficialSpiritComment>[0]
+  body: Parameters<typeof validateOfficialSpiritComment>[0],
 ) {
   if (!useOfficialScoring) {
     return
@@ -96,7 +96,7 @@ export default new Map<string, RequestHandler>([
           {
             ...body,
             updatedOn: new Date().toISOString(),
-          }
+          },
         )
       },
   }),
@@ -146,7 +146,7 @@ export default new Map<string, RequestHandler>([
                   (r) =>
                     r.fixtureId === fixture.id &&
                     r.teamId === team1.id &&
-                    r.teamAgainstId === team2?.id
+                    r.teamAgainstId === team2?.id,
                 )
                 if (
                   !hasReport &&
@@ -167,7 +167,7 @@ export default new Map<string, RequestHandler>([
                   (r) =>
                     r.fixtureId === fixture.id &&
                     r.teamId === team2.id &&
-                    r.teamAgainstId === team1?.id
+                    r.teamAgainstId === team1?.id,
                 )
                 if (
                   !hasReport &&
@@ -200,14 +200,14 @@ export default new Map<string, RequestHandler>([
                 againstName?: string
               }>
             }
-          >
+          >,
         )
 
         // Convert to array and sort by date
         return Object.values(missingReportsByRound)
           .filter((round) => round.missingTeams.length > 0)
           .sort(
-            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
           )
       },
   }),

@@ -13,5 +13,5 @@ export type OptionalUndefined<X> = Simplify<
 export type Simplify<A> = A extends (infer X)[]
   ? Simplify<X>[]
   : A extends object
-  ? {[K in keyof A]: Simplify<A[K]>}
-  : A
+    ? {[K in keyof A]: Simplify<A[K]>}
+    : A

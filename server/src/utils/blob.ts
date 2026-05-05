@@ -1,8 +1,4 @@
-import {
-  badRequestError,
-  tooManyRequestsError,
-  toAppError,
-} from '@shared/errors'
+import {badRequestError, tooManyRequestsError, toAppError} from '@shared/errors'
 import os from 'os'
 import path from 'path'
 import createBusboy from 'busboy'
@@ -15,11 +11,12 @@ const MAX_UPLOAD_FILES = 1
 const MAX_UPLOAD_FIELDS = 16
 
 const cleanupFiles = async (filepaths: string[]) => {
-  await Promise.all(filepaths.map((filepath) => fs.remove(filepath).catch(() => {})))
+  await Promise.all(
+    filepaths.map((filepath) => fs.remove(filepath).catch(() => {})),
+  )
 }
 
 export const blob = {
-
   digestRequest(req: IncomingMessage) {
     return new Promise<
       [
@@ -60,43 +57,35 @@ export const blob = {
         reject(toAppError(error))
       }
 
-      req.on(
-        'aborted',
-        () =>
-          fail(
-            badRequestError('Upload was aborted.', {
-              errorCode: 'upload.aborted',
-            })
-          )
+      req.on('aborted', () =>
+        fail(
+          badRequestError('Upload was aborted.', {
+            errorCode: 'upload.aborted',
+          }),
+        ),
       )
       req.on('error', fail)
       busboy.on('field', (fieldname, val) => fields.set(fieldname, val))
-      busboy.on(
-        'filesLimit',
-        () =>
-          fail(
-            tooManyRequestsError('Too many files were uploaded.', {
-              errorCode: 'upload.files_limit',
-            })
-          )
+      busboy.on('filesLimit', () =>
+        fail(
+          tooManyRequestsError('Too many files were uploaded.', {
+            errorCode: 'upload.files_limit',
+          }),
+        ),
       )
-      busboy.on(
-        'fieldsLimit',
-        () =>
-          fail(
-            tooManyRequestsError('Too many fields were uploaded.', {
-              errorCode: 'upload.fields_limit',
-            })
-          )
+      busboy.on('fieldsLimit', () =>
+        fail(
+          tooManyRequestsError('Too many fields were uploaded.', {
+            errorCode: 'upload.fields_limit',
+          }),
+        ),
       )
-      busboy.on(
-        'partsLimit',
-        () =>
-          fail(
-            tooManyRequestsError('Too many parts were uploaded.', {
-              errorCode: 'upload.parts_limit',
-            })
-          )
+      busboy.on('partsLimit', () =>
+        fail(
+          tooManyRequestsError('Too many parts were uploaded.', {
+            errorCode: 'upload.parts_limit',
+          }),
+        ),
       )
       busboy.on('error', fail)
 
@@ -108,7 +97,7 @@ export const blob = {
         const extension = path.extname(filename).toLowerCase()
         const filepath = path.join(
           os.tmpdir(),
-          `upload-${random.generateId()}${extension || '.bin'}`
+          `upload-${random.generateId()}${extension || '.bin'}`,
         )
         filepaths.push(filepath)
         const output = fs.createWriteStream(filepath, {flags: 'wx'})
@@ -116,14 +105,12 @@ export const blob = {
           output.on('finish', ok)
           output.on('error', no)
           file.on('error', no)
-          file.on(
-            'limit',
-            () =>
-              no(
-                tooManyRequestsError('Upload exceeded size limit.', {
-                  errorCode: 'upload.size_limit',
-                })
-              )
+          file.on('limit', () =>
+            no(
+              tooManyRequestsError('Upload exceeded size limit.', {
+                errorCode: 'upload.size_limit',
+              }),
+            ),
           )
         }).catch((error) => {
           if (!done) throw error

@@ -51,20 +51,22 @@ export const FixtureTallyForm: FC<{
       form.patch({
         games: form.data.games.map((game) => {
           const forTeam1Report = reports.find(
-            (i) => i.teamId === game.team1Id && i.teamAgainstId === game.team2Id
+            (i) =>
+              i.teamId === game.team1Id && i.teamAgainstId === game.team2Id,
           )
           const forTeam2Report = reports.find(
-            (i) => i.teamId === game.team2Id && i.teamAgainstId === game.team1Id
+            (i) =>
+              i.teamId === game.team2Id && i.teamAgainstId === game.team1Id,
           )
           let team1Score: number | undefined = undefined
           let team2Score: number | undefined = undefined
           if (forTeam1Report) {
             if (forTeam2Report) {
               team1Score = Math.round(
-                (forTeam1Report.scoreFor + forTeam2Report.scoreAgainst) / 2
+                (forTeam1Report.scoreFor + forTeam2Report.scoreAgainst) / 2,
               )
               team2Score = Math.round(
-                (forTeam1Report.scoreAgainst + forTeam2Report.scoreFor) / 2
+                (forTeam1Report.scoreAgainst + forTeam2Report.scoreFor) / 2,
               )
             } else {
               team1Score = forTeam1Report.scoreFor
@@ -154,12 +156,12 @@ export const FixtureTallyForm: FC<{
                                 const forTeam1Report = reports?.find(
                                   (i) =>
                                     i.teamId === game.team1Id &&
-                                    i.teamAgainstId === game.team2Id
+                                    i.teamAgainstId === game.team2Id,
                                 )
                                 const forTeam2Report = reports?.find(
                                   (i) =>
                                     i.teamId === game.team2Id &&
-                                    i.teamAgainstId === game.team1Id
+                                    i.teamAgainstId === game.team1Id,
                                 )
 
                                 let reportedScore: number | undefined =
@@ -170,7 +172,7 @@ export const FixtureTallyForm: FC<{
                                     reportedScore = Math.round(
                                       (forTeam1Report.scoreFor +
                                         forTeam2Report.scoreAgainst) /
-                                        2
+                                        2,
                                     )
                                   } else {
                                     reportedScore = forTeam1Report.scoreFor
@@ -204,12 +206,12 @@ export const FixtureTallyForm: FC<{
                                 const forTeam1Report = reports?.find(
                                   (i) =>
                                     i.teamId === game.team1Id &&
-                                    i.teamAgainstId === game.team2Id
+                                    i.teamAgainstId === game.team2Id,
                                 )
                                 const forTeam2Report = reports?.find(
                                   (i) =>
                                     i.teamId === game.team2Id &&
-                                    i.teamAgainstId === game.team1Id
+                                    i.teamAgainstId === game.team1Id,
                                 )
 
                                 let reportedScore: number | undefined =
@@ -220,7 +222,7 @@ export const FixtureTallyForm: FC<{
                                     reportedScore = Math.round(
                                       (forTeam2Report.scoreFor +
                                         forTeam1Report.scoreAgainst) /
-                                        2
+                                        2,
                                     )
                                   } else {
                                     reportedScore = forTeam2Report.scoreFor
@@ -247,7 +249,7 @@ export const FixtureTallyForm: FC<{
                                 overflow: 'hidden',
                               }),
                             })
-                          })
+                          }),
                         ),
                       })
                     }),
@@ -350,13 +352,13 @@ export const FixtureTallyForm: FC<{
                       const team1Reported = reports.some(
                         (r) =>
                           r.teamId === pair.team1Id &&
-                          r.teamAgainstId === pair.team2Id
+                          r.teamAgainstId === pair.team2Id,
                       )
 
                       const team2Reported = reports.some(
                         (r) =>
                           r.teamId === pair.team2Id &&
-                          r.teamAgainstId === pair.team1Id
+                          r.teamAgainstId === pair.team1Id,
                       )
 
                       const missing = []

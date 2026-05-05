@@ -58,11 +58,7 @@ export const Router: FC<{
   })
 }
 
-const _getCurrent = (
-  pathname: string,
-  routes: TRoute[],
-  prefix?: string
-) => {
+const _getCurrent = (pathname: string, routes: TRoute[], prefix?: string) => {
   for (const route of routes) {
     const routePath = `${prefix ?? ''}${route.path}`
     const i = _parseRoute(pathname, routePath, route.exact)
@@ -78,7 +74,7 @@ const _getCurrent = (
 const _parseRoute = (
   pathname: string,
   path: string,
-  exact?: boolean
+  exact?: boolean,
 ): {ok: false} | {ok: true; params: TRouteParams} => {
   // `path-to-regexp` v8 no longer treats `/` as a prefix match, but this
   // router relies on `/` catching all nested app routes.

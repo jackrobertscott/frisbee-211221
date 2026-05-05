@@ -194,7 +194,7 @@ export const FeatureTeamSetupLoadDef = {
 } satisfies TEndpointDef
 
 export const FeatureDashboardUserMembershipsLoadDef = {
-  access: authPoint.userAdmin,
+  access: authPoint.userManage,
   path: '/FeatureDashboardUserMembershipsLoad',
   payload: io.object({
     userId: io.string(),

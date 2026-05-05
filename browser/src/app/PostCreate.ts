@@ -32,6 +32,7 @@ export const PostCreate: FC<{
     content: '',
     sendEmail: false,
   })
+  const canNotifyCaptains = auth.can(authPoint.postNotifyCaptains)
   return $(Modal, {
     width: 610,
     children: addkeys([
@@ -72,7 +73,7 @@ export const PostCreate: FC<{
           }),
           $(Fragment, {
             children:
-              auth.can(authPoint.userAdmin) &&
+              canNotifyCaptains &&
               $(FormRow, {
                 children: addkeys([
                   $(FormLabel, {

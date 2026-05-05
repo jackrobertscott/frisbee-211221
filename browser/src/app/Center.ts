@@ -8,7 +8,13 @@ export const Center: FC<{
   breakpoint?: number
   padding?: number
   className?: string
-}> = ({children, click, breakpoint = theme.fib[12], padding, className: _className}) => {
+}> = ({
+  children,
+  click,
+  breakpoint = theme.fib[12],
+  padding,
+  className: _className,
+}) => {
   return $('div', {
     onClick: click,
     className: css({

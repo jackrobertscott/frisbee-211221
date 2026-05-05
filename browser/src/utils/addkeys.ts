@@ -1,7 +1,7 @@
 import {createElement as $, ReactNode, Fragment} from 'react'
 
 export const addkeys = (
-  children: ReactNode | ReactNode[]
+  children: ReactNode | ReactNode[],
 ): ReactNode | ReactNode[] =>
   !Array.isArray(children)
     ? children

@@ -16,8 +16,7 @@ export type TUserListSortKey = (typeof USER_LIST_SORT_KEYS)[number]
 
 export const USER_LIST_SORT_DIRECTIONS = ['asc', 'desc'] as const
 
-export type TUserListSortDirection =
-  (typeof USER_LIST_SORT_DIRECTIONS)[number]
+export type TUserListSortDirection = (typeof USER_LIST_SORT_DIRECTIONS)[number]
 
 export const UserCurrentUpdateDef = {
   access: authPoint.userSelf,
@@ -88,7 +87,7 @@ export const UserCurrentChangePasswordDef = {
 } satisfies TEndpointDef
 
 export const UserListDef = {
-  access: authPoint.userAdmin,
+  access: authPoint.userManage,
   path: '/UserList',
   payload: io.object({
     search: io.optional(io.string().emptyok()),
@@ -104,7 +103,7 @@ export const UserListDef = {
 } satisfies TEndpointDef
 
 export const UserCreateDef = {
-  access: authPoint.userAdmin,
+  access: authPoint.userManage,
   path: '/UserCreate',
   payload: io.object({
     email: io.string().email().trim(),
@@ -117,7 +116,7 @@ export const UserCreateDef = {
 } satisfies TEndpointDef
 
 export const UserUpdateDef = {
-  access: authPoint.userAdmin,
+  access: authPoint.userManage,
   path: '/UserUpdate',
   payload: io.object({
     userId: io.string(),
@@ -130,7 +129,7 @@ export const UserUpdateDef = {
 } satisfies TEndpointDef
 
 export const UserToggleAdminDef = {
-  access: authPoint.userAdmin,
+  access: authPoint.userManage,
   path: '/UserToggleAdmin',
   payload: io.object({
     userId: io.string(),
@@ -139,7 +138,7 @@ export const UserToggleAdminDef = {
 } satisfies TEndpointDef
 
 export const UserMergeDef = {
-  access: authPoint.userAdmin,
+  access: authPoint.userManage,
   path: '/UserMerge',
   payload: io.object({
     user1Id: io.string(),
@@ -149,7 +148,7 @@ export const UserMergeDef = {
 } satisfies TEndpointDef
 
 export const UserChangePasswordDef = {
-  access: authPoint.userAdmin,
+  access: authPoint.userManage,
   path: '/UserChangePassword',
   payload: io.object({
     userId: io.string(),

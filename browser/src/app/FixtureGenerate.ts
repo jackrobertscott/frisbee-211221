@@ -116,7 +116,7 @@ export const FixtureGenerate: FC<{
                         click: () =>
                           form.patch({
                             slots: form.data.slots.filter(
-                              (i) => i.id !== slot.id
+                              (i) => i.id !== slot.id,
                             ),
                           }),
                       }),

@@ -1,9 +1,9 @@
 export const authPoint = {
   userSelf: 'user.self',
-  userAdmin: 'user.admin',
+  userManage: 'user.manage',
   teamJoin: 'team.join',
   teamManage: 'team.manage',
-  teamAdmin: 'team.admin',
+  teamDirectoryManage: 'team.directory.manage',
   memberRead: 'member.read',
   memberManage: 'member.manage',
   reportWrite: 'report.write',
@@ -12,8 +12,11 @@ export const authPoint = {
   seasonManage: 'season.manage',
   postWrite: 'post.write',
   postManage: 'post.manage',
+  postModerate: 'post.moderate',
+  postNotifyCaptains: 'post.notify_captains',
   commentWrite: 'comment.write',
   commentManage: 'comment.manage',
+  commentModerate: 'comment.moderate',
   portManage: 'port.manage',
 } as const
 
@@ -35,11 +38,11 @@ export type TAuthDeny = 'sign_in' | 'team' | 'admin'
 
 export const authRuleByPoint: Record<TAuthPoint, TAuthRule> = {
   [authPoint.userSelf]: {signedIn: true},
-  [authPoint.userAdmin]: {admin: true},
+  [authPoint.userManage]: {admin: true},
   [authPoint.teamJoin]: {signedIn: true},
   [authPoint.teamManage]: {team: true},
-  [authPoint.teamAdmin]: {admin: true},
-  [authPoint.memberRead]: {signedIn: true},
+  [authPoint.teamDirectoryManage]: {admin: true},
+  [authPoint.memberRead]: {team: true},
   [authPoint.memberManage]: {team: true},
   [authPoint.reportWrite]: {team: true},
   [authPoint.reportManage]: {admin: true},
@@ -47,8 +50,11 @@ export const authRuleByPoint: Record<TAuthPoint, TAuthRule> = {
   [authPoint.seasonManage]: {admin: true},
   [authPoint.postWrite]: {signedIn: true},
   [authPoint.postManage]: {signedIn: true},
+  [authPoint.postModerate]: {admin: true},
+  [authPoint.postNotifyCaptains]: {admin: true},
   [authPoint.commentWrite]: {signedIn: true},
   [authPoint.commentManage]: {signedIn: true},
+  [authPoint.commentModerate]: {admin: true},
   [authPoint.portManage]: {admin: true},
 }
 

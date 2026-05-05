@@ -1,8 +1,4 @@
-import {
-  badRequestError,
-  conflictError,
-  notFoundError,
-} from '@shared/errors'
+import {badRequestError, conflictError, notFoundError} from '@shared/errors'
 import {TUser} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
 import config from '../config'
@@ -71,7 +67,11 @@ export const userEmail = {
         errorCode: 'user.email_exists',
       })
     const i = userEmail.create(email)
-    const rawCode = await userEmail.codeSend(i.value, user.firstName, 'Verify Email')
+    const rawCode = await userEmail.codeSend(
+      i.value,
+      user.firstName,
+      'Verify Email',
+    )
     i.code = hash.digest(normalizeCode(rawCode))
     const emails = [...user.emails, i]
     return $User.updateOne({id: user.id}, {emails})
@@ -130,7 +130,7 @@ export const userEmail = {
     const codeSliced = `${code.slice(0, 4)}-${code.slice(4, 8)}`
     if (!config.IS_PRODUCTION) {
       console.log(
-        `[security-code] ${subject} ${email} ${codeSliced} (email delivery skipped in development)`
+        `[security-code] ${subject} ${email} ${codeSliced} (email delivery skipped in development)`,
       )
       return code
     }

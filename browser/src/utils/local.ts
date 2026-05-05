@@ -1,5 +1,4 @@
 export const local = {
-
   get(key: string) {
     try {
       const raw = localStorage.getItem(key)

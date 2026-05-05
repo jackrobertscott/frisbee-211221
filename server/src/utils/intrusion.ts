@@ -8,7 +8,7 @@ const LOG_COOLDOWN_MS = 30 * 1000
 const BLOCK_THRESHOLD = 6
 const PRUNE_INTERVAL = 256
 const BLOCK_DURATIONS_MS = [15, 60, 360, 1440].map(
-  (minutes) => minutes * 60 * 1000
+  (minutes) => minutes * 60 * 1000,
 )
 const STATE_RETENTION_MS = STRIKE_RESET_MS + BLOCK_DURATIONS_MS.at(-1)!
 
@@ -46,7 +46,8 @@ const getHeaderValue = (value?: string | string[]) => {
 
 const isPrivateIpv4 = (value: string) => {
   const parts = value.split('.').map(Number)
-  if (parts.length !== 4 || parts.some((part) => Number.isNaN(part))) return false
+  if (parts.length !== 4 || parts.some((part) => Number.isNaN(part)))
+    return false
   return (
     parts[0] === 10 ||
     parts[0] === 127 ||
@@ -123,7 +124,10 @@ const getState = (ip: string, now: number) => {
     return fresh
   }
 
-  if (existing.blockedUntil <= now && now - existing.lastSeenAt > STRIKE_RESET_MS) {
+  if (
+    existing.blockedUntil <= now &&
+    now - existing.lastSeenAt > STRIKE_RESET_MS
+  ) {
     existing.score = 0
   }
 
@@ -190,7 +194,7 @@ const addStrike = ({
     now,
     force: true,
     message: `${reason} on "${path}" blocked-until=${new Date(
-      state.blockedUntil
+      state.blockedUntil,
     ).toISOString()}`,
   })
 }
@@ -226,7 +230,7 @@ export default {
         state,
         now,
         message: `attempted "${options.pathname}" while blocked until ${new Date(
-          state.blockedUntil
+          state.blockedUntil,
         ).toISOString()}`,
       })
       return notFoundError('Not found.', {
@@ -236,7 +240,7 @@ export default {
     }
 
     const suspiciousPath = SUSPICIOUS_PATH_PATTERNS.some((pattern) =>
-      pattern.test(options.pathname)
+      pattern.test(options.pathname),
     )
 
     if (suspiciousPath || (!options.knownRoute && !options.originAllowed)) {
@@ -288,7 +292,7 @@ export default {
         `Forbidden origin "${options.origin}" attempted "${options.pathname}"`,
         {
           errorCode: 'intrusion.origin_forbidden',
-        }
+        },
       )
     }
 

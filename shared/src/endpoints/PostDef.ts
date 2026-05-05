@@ -29,7 +29,7 @@ export const PostCreateDef = {
 } satisfies TEndpointDef
 
 export const PostUpdateDef = {
-  access: authPoint.postManage,
+  access: authPoint.postWrite,
   path: '/PostUpdate',
   payload: io.object({
     postId: io.string(),
@@ -40,7 +40,7 @@ export const PostUpdateDef = {
 } satisfies TEndpointDef
 
 export const PostDeleteDef = {
-  access: authPoint.postManage,
+  access: authPoint.postWrite,
   path: '/PostDelete',
   payload: io.object({
     postId: io.string(),

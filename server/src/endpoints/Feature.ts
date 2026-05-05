@@ -78,7 +78,8 @@ export default new Map<string, RequestHandler>([
           name: regex.from(search ?? ''),
         }
         const resolvedSortBy = sortBy ?? TEAM_DEFAULT_SORT_BY
-        const resolvedSortDirection = sortDirection ?? TEAM_DEFAULT_SORT_DIRECTION
+        const resolvedSortDirection =
+          sortDirection ?? TEAM_DEFAULT_SORT_DIRECTION
         const [count, teams] = await Promise.all([
           $Team.count(query),
           $Team.aggregate(
@@ -87,8 +88,8 @@ export default new Map<string, RequestHandler>([
               resolvedSortBy,
               resolvedSortDirection,
               skip,
-              limit
-            )
+              limit,
+            ),
           ),
         ])
         return {count, teams}
@@ -149,14 +150,17 @@ export default new Map<string, RequestHandler>([
         const [teams, [aggregate]] = await Promise.all([
           _getSeasonTeams(seasonId),
           $Report.aggregate<TSpiritAggregate>(
-            _createSpiritAggregatePipeline(seasonId, !!season.useOfficialScoring)
+            _createSpiritAggregatePipeline(
+              seasonId,
+              !!season.useOfficialScoring,
+            ),
           ),
         ])
         const receivedMap = new Map(
-          (aggregate?.received ?? []).map((row) => [row._id, row])
+          (aggregate?.received ?? []).map((row) => [row._id, row]),
         )
         const allocatedMap = new Map(
-          (aggregate?.allocated ?? []).map((row) => [row._id, row])
+          (aggregate?.allocated ?? []).map((row) => [row._id, row]),
         )
         const rows = teams.map((team) => {
           const received = receivedMap.get(team.id)
@@ -187,7 +191,7 @@ export default new Map<string, RequestHandler>([
           rows: _sortSpiritRows(
             rows,
             sortBy ?? 'receivedAverage',
-            sortDirection ?? 'desc'
+            sortDirection ?? 'desc',
           ),
         }
       },
@@ -202,7 +206,7 @@ export default new Map<string, RequestHandler>([
         const season = await $Season.getOne({id: seasonId})
         const [aggregateRows, teams] = await Promise.all([
           $Report.aggregate<TMvpAggregateRow>(
-            _createMvpAggregatePipeline(seasonId, !!season.useOfficialScoring)
+            _createMvpAggregatePipeline(seasonId, !!season.useOfficialScoring),
           ),
           _getSeasonTeams(seasonId),
         ])
@@ -210,7 +214,9 @@ export default new Map<string, RequestHandler>([
         const users = await $User.getMany({
           id: {$in: aggregateRows.map((row) => row._id)},
         })
-        const userMap = new Map(users.map((user) => [user.id, selectPublicUserFields(user)]))
+        const userMap = new Map(
+          users.map((user) => [user.id, selectPublicUserFields(user)]),
+        )
         const result: TFeatureMvpRow[] = aggregateRows
           .map((row) => {
             const user = userMap.get(row._id)
@@ -228,10 +234,10 @@ export default new Map<string, RequestHandler>([
                 user?.gender === 'male'
                   ? 0
                   : user?.gender === 'female'
-                  ? 1
-                  : maleVotes > femaleVotes
-                  ? 0
-                  : 1,
+                    ? 1
+                    : maleVotes > femaleVotes
+                      ? 0
+                      : 1,
             }
           })
           .filter((row) => row.votes > 0)
@@ -300,8 +306,8 @@ export default new Map<string, RequestHandler>([
                 name: regex.from(search ?? ''),
               },
               'name',
-              'asc'
-            )
+              'asc',
+            ),
           ),
           $Member.getMany({userId: user.id, seasonId}),
         ])
@@ -323,7 +329,9 @@ export default new Map<string, RequestHandler>([
         const members = await $Member.getMany({userId})
         const [teams, seasons] = await Promise.all([
           $Team.getMany({id: {$in: members.map((member) => member.teamId)}}),
-          $Season.getMany({id: {$in: members.map((member) => member.seasonId)}}),
+          $Season.getMany({
+            id: {$in: members.map((member) => member.seasonId)},
+          }),
         ])
         return {members, seasons, teams}
       },
@@ -332,7 +340,7 @@ export default new Map<string, RequestHandler>([
 
 async function _getSeasonTeams(seasonId: string) {
   return $Team.aggregate(
-    _getTeamListPipeline({seasonId}, 'division', 'asc')
+    _getTeamListPipeline({seasonId}, 'division', 'asc'),
   ) as Promise<TTeam[]>
 }
 
@@ -351,9 +359,10 @@ async function _getReportSearchResult({
   limit?: number
   skip?: number
 }) {
-  const [result] = await $Report.aggregate<{count: number; reports: TReportSearchRow[]}>(
-    _createReportSearchPipeline({seasonId, search, limit, skip})
-  )
+  const [result] = await $Report.aggregate<{
+    count: number
+    reports: TReportSearchRow[]
+  }>(_createReportSearchPipeline({seasonId, search, limit, skip}))
   return result ?? {count: 0, reports: []}
 }
 
@@ -385,15 +394,19 @@ async function _getAgainstOptions({
   if (!againstTeamIds.length) {
     throw badRequestError(
       'Failed to find the opposition team. Your team is may not be playing in this fixture.',
-      {errorCode: 'report.matchup_invalid'}
+      {errorCode: 'report.matchup_invalid'},
     )
   }
   const [againstTeams, members] = await Promise.all([
     $Team.getMany({id: {$in: againstTeamIds}}),
     $Member.getMany({teamId: {$in: againstTeamIds}, pending: false}),
   ])
-  const users = await $User.getMany({id: {$in: members.map((member) => member.userId)}})
-  const userMap = new Map(users.map((user) => [user.id, selectPublicUserFields(user)]))
+  const users = await $User.getMany({
+    id: {$in: members.map((member) => member.userId)},
+  })
+  const userMap = new Map(
+    users.map((user) => [user.id, selectPublicUserFields(user)]),
+  )
   return againstTeamIds
     .map((againstTeamId) => {
       const againstTeam = againstTeams.find((item) => item.id === againstTeamId)
@@ -416,7 +429,7 @@ async function _getAgainstOptions({
 function _sortSpiritRows(
   rows: TFeatureSpiritRow[],
   sortBy: (typeof FEATURE_SPIRIT_SORT_KEYS)[number],
-  sortDirection: (typeof FEATURE_SORT_DIRECTIONS)[number]
+  sortDirection: (typeof FEATURE_SORT_DIRECTIONS)[number],
 ) {
   const direction = sortDirection === 'asc' ? 1 : -1
   return [...rows].sort((a, b) => {
@@ -429,7 +442,7 @@ function _sortSpiritRows(
 
 function _createSpiritAggregatePipeline(
   seasonId: string,
-  useOfficialScoring: boolean
+  useOfficialScoring: boolean,
 ): Document[] {
   const spiritExpression = useOfficialScoring
     ? {
@@ -481,7 +494,7 @@ function _createSpiritAggregatePipeline(
 
 function _createMvpAggregatePipeline(
   seasonId: string,
-  useOfficialScoring: boolean
+  useOfficialScoring: boolean,
 ): Document[] {
   return [
     {
@@ -718,7 +731,7 @@ function _createReportSearchPipeline({
 
 function _getTeamSort(
   sortBy: TTeamListSortKey,
-  sortDirection: TTeamListSortDirection
+  sortDirection: TTeamListSortDirection,
 ) {
   const direction: 1 | -1 = sortDirection === 'asc' ? 1 : -1
   switch (sortBy) {
@@ -745,7 +758,7 @@ function _getTeamListPipeline(
   sortBy: TTeamListSortKey,
   sortDirection: TTeamListSortDirection,
   skip?: number,
-  limit?: number
+  limit?: number,
 ): Document[] {
   const pipeline: Document[] = [{$match: query}]
   if (sortBy === 'division') {
@@ -760,6 +773,7 @@ function _getTeamListPipeline(
   pipeline.push({$sort: _getTeamSort(sortBy, sortDirection)})
   if (skip && skip > 0) pipeline.push({$skip: skip})
   if (limit !== undefined) pipeline.push({$limit: limit})
-  if (sortBy === 'division') pipeline.push({$project: {_sortDivisionMissing: 0}})
+  if (sortBy === 'division')
+    pipeline.push({$project: {_sortDivisionMissing: 0}})
   return pipeline
 }

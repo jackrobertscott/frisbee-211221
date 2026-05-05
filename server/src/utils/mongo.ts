@@ -4,7 +4,6 @@ import config from '../config'
 let cachedClient: MongoClient
 
 export default {
-
   async database(db: string = config.MONGODB_DB) {
     return (await this.client()).db(db)
   },

@@ -5,21 +5,21 @@ import {radio} from './radio'
 export interface TEndpoint<
   I extends TypeIoAll,
   O extends TypeIoAll,
-  M extends boolean
+  M extends boolean,
 > {
   readonly IN?: I
   readonly OUT?: O
   readonly access?: TAuthPoint
   fetch(
     payload?: M extends true ? FormData : TypeIoValue<I>,
-    token?: string
+    token?: string,
   ): Promise<TypeIoValue<O>>
 }
 
 export const createEndpoint = <
   I extends TypeIoAll,
   O extends TypeIoAll,
-  M extends boolean
+  M extends boolean,
 >(options: {
   path: string
   access?: TAuthPoint

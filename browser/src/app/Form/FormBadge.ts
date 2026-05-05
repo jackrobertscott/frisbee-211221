@@ -77,7 +77,7 @@ export const FormBadge: FC<TFormBadge> = ({
               typeof background === 'string' ? background : background.press(),
           },
       },
-      style
+      style,
     ),
     children: addkeys([
       icon &&

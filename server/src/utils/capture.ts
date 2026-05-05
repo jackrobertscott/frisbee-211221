@@ -18,7 +18,7 @@ export default {
 
   formatLogLine(
     pretty: {statusCode: number; status: string; message: string; url?: string},
-    req?: IncomingMessage
+    req?: IncomingMessage,
   ) {
     const parts = [
       '[error]',

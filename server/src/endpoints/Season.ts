@@ -11,7 +11,6 @@ import {regex} from '../utils/regex'
 import {requireAccess} from './requireAccess'
 
 export default new Map<string, RequestHandler>([
-
   createEndpoint({
     ...SeasonListDef,
     handler: (body) => async () => {
@@ -41,7 +40,7 @@ export default new Map<string, RequestHandler>([
         await requireAccess(req, access)
         return $Season.updateOne(
           {id: seasonId},
-          {...body, updatedOn: new Date().toISOString()}
+          {...body, updatedOn: new Date().toISOString()},
         )
       },
   }),

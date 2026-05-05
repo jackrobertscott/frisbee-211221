@@ -40,7 +40,8 @@ export const DashboardTeams: FC = () => {
   const [sortKey, sortKeySet] = useState<TTeamListSortKey>('division')
   const [sortDirection, sortDirectionSet] = useState<'asc' | 'desc'>('asc')
   const current =
-    currentTeam ?? (currentId ? teams?.find((i) => i.id === currentId) : undefined)
+    currentTeam ??
+    (currentId ? teams?.find((i) => i.id === currentId) : undefined)
   const seasonId = auth.season!.id
   const teamList = ({
     search: nextSearch = search,
@@ -108,7 +109,7 @@ export const DashboardTeams: FC = () => {
                         }),
                         $(Fragment, {
                           children:
-                            auth.can(authPoint.teamAdmin) &&
+                            auth.can(authPoint.teamDirectoryManage) &&
                             $(FormBadge, {
                               noshrink: true,
                               label: 'Create Team',
@@ -202,7 +203,7 @@ export const DashboardTeams: FC = () => {
         children:
           current &&
           $(Fragment, {
-            children: auth.can(authPoint.teamAdmin)
+            children: auth.can(authPoint.teamDirectoryManage)
               ? $(TeamViewAdmin, {
                   team: current,
                   teamSet: (i) => {

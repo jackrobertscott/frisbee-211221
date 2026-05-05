@@ -4,7 +4,6 @@ import config from '../config'
 import {random} from './random'
 
 export default {
-
   encrypt: async (password: string): Promise<string> => {
     return bcrypt
       .genSalt(11)

@@ -31,7 +31,7 @@ export function getOfficialSpiritScoreTotal({
 }
 
 export function officialSpiritCommentRequired(
-  formData: Omit<OfficialSpiritFields, 'spiritComment'>
+  formData: Omit<OfficialSpiritFields, 'spiritComment'>,
 ): boolean {
   const total = getOfficialSpiritScoreTotal(formData)
 
@@ -47,7 +47,7 @@ export function hasSpiritComment(comment: string): boolean {
 }
 
 export function validateOfficialSpiritComment(
-  formData: OfficialSpiritFields
+  formData: OfficialSpiritFields,
 ): string | undefined {
   if (
     officialSpiritCommentRequired(formData) &&

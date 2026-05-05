@@ -49,30 +49,30 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function isWorkerMetricsMessage(
-  message: unknown
+  message: unknown,
 ): message is WorkerMetricsMessage {
   return Boolean(
     message &&
       typeof message === 'object' &&
       'type' in message &&
-      message.type === 'cluster:metrics'
+      message.type === 'cluster:metrics',
   )
 }
 
 function isShutdownWorkerMessage(
-  message: unknown
+  message: unknown,
 ): message is ShutdownWorkerMessage {
   return Boolean(
     message &&
       typeof message === 'object' &&
       'type' in message &&
-      message.type === 'cluster:shutdown'
+      message.type === 'cluster:shutdown',
   )
 }
 
 function getClusterWorkers() {
   return Object.values(cluster.workers ?? {}).filter(
-    (worker): worker is Worker => Boolean(worker)
+    (worker): worker is Worker => Boolean(worker),
   )
 }
 
@@ -93,7 +93,7 @@ export function startPrimaryCluster() {
       (worker) =>
         !worker.isDead() &&
         worker.isConnected() &&
-        !drainingWorkerIds.has(worker.id)
+        !drainingWorkerIds.has(worker.id),
     )
   }
 
@@ -110,7 +110,7 @@ export function startPrimaryCluster() {
     desiredWorkers = clamp(
       desiredWorkers + 1,
       HTTP_CLUSTER_MIN_WORKERS,
-      HTTP_CLUSTER_MAX_WORKERS
+      HTTP_CLUSTER_MAX_WORKERS,
     )
     lastScaleAt = Date.now()
     syncToDesiredCount(reason)
@@ -124,11 +124,13 @@ export function startPrimaryCluster() {
         snapshot: workerSnapshots.get(worker.id),
       }))
       .sort((left, right) => {
-        const leftActive = left.snapshot?.activeRequests ?? Number.MAX_SAFE_INTEGER
+        const leftActive =
+          left.snapshot?.activeRequests ?? Number.MAX_SAFE_INTEGER
         const rightActive =
           right.snapshot?.activeRequests ?? Number.MAX_SAFE_INTEGER
         if (leftActive !== rightActive) return leftActive - rightActive
-        const leftRps = left.snapshot?.requestsPerSecond ?? Number.MAX_SAFE_INTEGER
+        const leftRps =
+          left.snapshot?.requestsPerSecond ?? Number.MAX_SAFE_INTEGER
         const rightRps =
           right.snapshot?.requestsPerSecond ?? Number.MAX_SAFE_INTEGER
         return leftRps - rightRps
@@ -142,7 +144,7 @@ export function startPrimaryCluster() {
     desiredWorkers = clamp(
       desiredWorkers - 1,
       HTTP_CLUSTER_MIN_WORKERS,
-      HTTP_CLUSTER_MAX_WORKERS
+      HTTP_CLUSTER_MAX_WORKERS,
     )
     const worker = pickWorkerToDrain()
     if (!worker) {
@@ -174,7 +176,7 @@ export function startPrimaryCluster() {
     const freshSnapshots = getServingWorkers()
       .map((worker) => workerSnapshots.get(worker.id))
       .filter((snapshot): snapshot is WorkerSnapshot =>
-        Boolean(snapshot && snapshot.receivedAt >= freshnessCutoff)
+        Boolean(snapshot && snapshot.receivedAt >= freshnessCutoff),
       )
 
     if (!freshSnapshots.length) return
@@ -194,7 +196,7 @@ export function startPrimaryCluster() {
         cpuUtilization: 0,
         eventLoopUtilization: 0,
         rssBytes: 0,
-      }
+      },
     )
 
     const activeWorkerCount = freshSnapshots.length
@@ -205,17 +207,18 @@ export function startPrimaryCluster() {
       totalMemoryBytes > 0 ? totals.rssBytes / totalMemoryBytes : 0
 
     const desiredByRequests = Math.ceil(
-      totals.requestsPerSecond / HTTP_CLUSTER_TARGET_RPS_PER_WORKER
+      totals.requestsPerSecond / HTTP_CLUSTER_TARGET_RPS_PER_WORKER,
     )
     const desiredByConcurrency = Math.ceil(
-      totals.activeRequests / HTTP_CLUSTER_TARGET_ACTIVE_REQUESTS_PER_WORKER
+      totals.activeRequests / HTTP_CLUSTER_TARGET_ACTIVE_REQUESTS_PER_WORKER,
     )
     const desiredByCpu = Math.ceil(
-      (avgCpuUtilization * currentWorkers) / HTTP_CLUSTER_TARGET_CPU_UTILIZATION
+      (avgCpuUtilization * currentWorkers) /
+        HTTP_CLUSTER_TARGET_CPU_UTILIZATION,
     )
     const desiredByEventLoop = Math.ceil(
       (avgEventLoopUtilization * currentWorkers) /
-        HTTP_CLUSTER_TARGET_EVENT_LOOP_UTILIZATION
+        HTTP_CLUSTER_TARGET_EVENT_LOOP_UTILIZATION,
     )
 
     const desiredFromLoad = clamp(
@@ -224,10 +227,10 @@ export function startPrimaryCluster() {
         desiredByRequests,
         desiredByConcurrency,
         desiredByCpu,
-        desiredByEventLoop
+        desiredByEventLoop,
       ),
       HTTP_CLUSTER_MIN_WORKERS,
-      HTTP_CLUSTER_MAX_WORKERS
+      HTTP_CLUSTER_MAX_WORKERS,
     )
 
     if (
@@ -235,14 +238,14 @@ export function startPrimaryCluster() {
       memoryUtilization < HTTP_CLUSTER_MAX_MEMORY_UTILIZATION
     ) {
       scaleUp(
-        `load rps=${totals.requestsPerSecond.toFixed(1)} active=${totals.activeRequests} cpu=${avgCpuUtilization.toFixed(2)} elu=${avgEventLoopUtilization.toFixed(2)}`
+        `load rps=${totals.requestsPerSecond.toFixed(1)} active=${totals.activeRequests} cpu=${avgCpuUtilization.toFixed(2)} elu=${avgEventLoopUtilization.toFixed(2)}`,
       )
       return
     }
 
     if (desiredFromLoad < currentWorkers) {
       scaleDown(
-        `load rps=${totals.requestsPerSecond.toFixed(1)} active=${totals.activeRequests} cpu=${avgCpuUtilization.toFixed(2)} elu=${avgEventLoopUtilization.toFixed(2)} mem=${memoryUtilization.toFixed(2)}`
+        `load rps=${totals.requestsPerSecond.toFixed(1)} active=${totals.activeRequests} cpu=${avgCpuUtilization.toFixed(2)} elu=${avgEventLoopUtilization.toFixed(2)} mem=${memoryUtilization.toFixed(2)}`,
       )
     }
   }
@@ -260,8 +263,11 @@ export function startPrimaryCluster() {
     workerSnapshots.delete(worker.id)
     drainingWorkerIds.delete(worker.id)
 
-    const exitReason =
-      signal ? `signal ${signal}` : code === 0 ? 'exit 0' : `exit ${code}`
+    const exitReason = signal
+      ? `signal ${signal}`
+      : code === 0
+        ? 'exit 0'
+        : `exit ${code}`
     log(`worker ${worker.id} stopped (${exitReason})`)
 
     if (getServingWorkers().length < desiredWorkers) {
@@ -271,7 +277,10 @@ export function startPrimaryCluster() {
 
   syncToDesiredCount('startup')
 
-  const scaleTimer = setInterval(evaluateScaling, HTTP_CLUSTER_SCALE_INTERVAL_MS)
+  const scaleTimer = setInterval(
+    evaluateScaling,
+    HTTP_CLUSTER_SCALE_INTERVAL_MS,
+  )
   scaleTimer.unref()
 }
 
@@ -317,7 +326,7 @@ export function attachWorkerClusterLifecycle(server: http.Server) {
       (currentCpuUsage.system - lastCpuUsage.system)
     const currentEventLoopUtilization = performance.eventLoopUtilization()
     const eventLoopDelta = performance.eventLoopUtilization(
-      lastEventLoopUtilization
+      lastEventLoopUtilization,
     )
     const requestsPerSecond = completedRequests / (elapsedMs / 1000)
     const metricsMessage: WorkerMetricsMessage = {
@@ -359,7 +368,7 @@ export function attachWorkerClusterLifecycle(server: http.Server) {
 
   const metricsTimer = setInterval(
     sendWorkerMetrics,
-    HTTP_CLUSTER_METRICS_INTERVAL_MS
+    HTTP_CLUSTER_METRICS_INTERVAL_MS,
   )
   metricsTimer.unref()
 }

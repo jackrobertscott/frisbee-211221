@@ -148,15 +148,15 @@ const _InputDatePicker: FC<{
                       color: isSelected
                         ? hsla.string(0, 0, 100)
                         : sameMonth
-                        ? theme.font.string()
-                        : theme.fontMinor.string(),
+                          ? theme.font.string()
+                          : theme.fontMinor.string(),
                       background: isSelected
                         ? hsla.string(210, 100, 50)
                         : isToday
-                        ? hsla.string(0, 100, 75)
-                        : sameMonth
-                        ? hsla.string(0, 0, 90)
-                        : hsla.string(0, 0, 85),
+                          ? hsla.string(0, 100, 75)
+                          : sameMonth
+                            ? hsla.string(0, 0, 90)
+                            : hsla.string(0, 0, 85),
                       '&:hover': !isSelected && {
                         background: sameMonth
                           ? hsla.string(0, 0, 80)

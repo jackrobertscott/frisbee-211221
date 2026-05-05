@@ -74,7 +74,7 @@ export const PostView: FC<{
               }),
               $(Fragment, {
                 children:
-                  (auth.can(authPoint.userAdmin) ||
+                  (auth.can(authPoint.postModerate) ||
                     auth.current?.user.id === user?.id) &&
                   addkeys([
                     $(TopBarBadge, {
@@ -181,35 +181,35 @@ export const PostView: FC<{
                       comments === undefined || commentsRoot === undefined
                         ? $(Spinner)
                         : commentsRoot.length
-                        ? $(Fragment, {
-                            children: commentsRoot.map((comment) => {
-                              const user = users?.find((i) => {
-                                return i.id === comment.userId
-                              })
-                              return $(_PostViewComment, {
-                                key: comment.id,
-                                post,
-                                comment,
-                                user,
-                                reload: () => commentList(),
-                                replies: comments
-                                  .filter((i) => {
-                                    return i.commentParentId === comment.id
-                                  })
-                                  .map((i) => ({
-                                    comment: i,
-                                    user: users?.find((x) => {
-                                      return x.id === i.userId
-                                    }),
-                                  })),
-                              })
+                          ? $(Fragment, {
+                              children: commentsRoot.map((comment) => {
+                                const user = users?.find((i) => {
+                                  return i.id === comment.userId
+                                })
+                                return $(_PostViewComment, {
+                                  key: comment.id,
+                                  post,
+                                  comment,
+                                  user,
+                                  reload: () => commentList(),
+                                  replies: comments
+                                    .filter((i) => {
+                                      return i.commentParentId === comment.id
+                                    })
+                                    .map((i) => ({
+                                      comment: i,
+                                      user: users?.find((x) => {
+                                        return x.id === i.userId
+                                      }),
+                                    })),
+                                })
+                              }),
+                            })
+                          : !auth.can(authPoint.commentWrite) &&
+                            $(FormBadge, {
+                              label: 'Sign In To Comment',
+                              click: () => go.to('/auth'),
                             }),
-                          })
-                        : !auth.can(authPoint.commentWrite) &&
-                          $(FormBadge, {
-                            label: 'Sign In To Comment',
-                            click: () => go.to('/auth'),
-                          }),
                   }),
                 ]),
               }),
@@ -446,7 +446,7 @@ const _PostViewCommentContent: FC<{
       }),
       $(Fragment, {
         children:
-          (auth.can(authPoint.userAdmin) ||
+          (auth.can(authPoint.commentModerate) ||
             auth.current?.user.id === comment.userId) &&
           $('div', {
             className: css({

@@ -1,5 +1,11 @@
 import {readAuthDeny} from '@shared/auth/authAccess'
-import {forbiddenError, getErrorMessage, hasStatusCode, toAppError, unauthorizedError} from '@shared/errors'
+import {
+  forbiddenError,
+  getErrorMessage,
+  hasStatusCode,
+  toAppError,
+  unauthorizedError,
+} from '@shared/errors'
 import {useMemo, useRef, useState} from 'react'
 import {TypeIoAll, TypeIoValue} from '@shared/torva'
 import {TEndpoint} from '../utils/endpoints'
@@ -13,10 +19,10 @@ export const useEndpoint = <
   I extends TypeIoAll,
   O extends TypeIoAll,
   M extends boolean,
-  E extends TEndpoint<I, O, M>
+  E extends TEndpoint<I, O, M>,
 >(
   endpoint: E,
-  timeout?: number
+  timeout?: number,
 ) => {
   const auth = useAuth()
   const toaster = useToaster()
@@ -52,10 +58,10 @@ export const useEndpoint = <
       const cb = (
         resolve: (data: R) => void,
         reject: (error: any) => void,
-        payload?: P
+        payload?: P,
       ) => cbRef.current(payload).then(resolve).catch(reject)
       return timeout ? throttle.sling(timeout, cb) : cb
-    })()
+    })(),
   )
   return useMemo(() => {
     return {

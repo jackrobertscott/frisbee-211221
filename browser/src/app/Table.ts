@@ -57,7 +57,7 @@ export const Table: TFCTable = ({head, body}) => {
                   },
                 }),
               })
-            }
+            },
           ),
         }),
         $(Fragment, {

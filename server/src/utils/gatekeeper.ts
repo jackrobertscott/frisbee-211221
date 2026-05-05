@@ -22,11 +22,10 @@ const compareToken = (first?: string, second?: string) => {
 }
 
 export default {
-
   async createUserSession(user: TUser, userAgent?: string) {
     const createdOn = new Date().toISOString()
     const expiresOn = new Date(
-      Date.now() + config.SESSION_TTL_DAYS * 24 * 60 * 60 * 1000
+      Date.now() + config.SESSION_TTL_DAYS * 24 * 60 * 60 * 1000,
     ).toISOString()
     const sessionId = random.generateId()
     return $Session.createOne({
@@ -35,11 +34,14 @@ export default {
       expiresOn,
       userId: user.id,
       userAgent,
-      token: jwt.encode({
-        sessionId,
-        userId: user.id,
-        createdOn,
-      }, {expiresIn: `${config.SESSION_TTL_DAYS}d`}),
+      token: jwt.encode(
+        {
+          sessionId,
+          userId: user.id,
+          createdOn,
+        },
+        {expiresIn: `${config.SESSION_TTL_DAYS}d`},
+      ),
     })
   },
 
@@ -64,7 +66,7 @@ export default {
       userId?: string
       expiresOn?: string
       ended?: boolean
-    }
+    },
   ) {
     const now = Date.now()
     const expiresOn = session?.expiresOn
@@ -76,7 +78,7 @@ export default {
         !session.ended &&
         expiresOn > now &&
         session.userId === auth.userId &&
-        this.isTokenEqual(session.token, auth.token)
+        this.isTokenEqual(session.token, auth.token),
     )
   },
 

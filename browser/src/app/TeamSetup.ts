@@ -35,10 +35,12 @@ export const TeamSetup: FC<{
   const [teamRequested, teamRequestedSet] = useState<TTeam>()
   const [search, searchSet] = useState('')
   const teamList = (nextSearch = search) =>
-    $teamSetupLoad.fetch({seasonId: auth.season!.id, search: nextSearch}).then((data) => {
-      teamsSet(data.teams)
-      pendingTeamSet(data.pendingTeam)
-    })
+    $teamSetupLoad
+      .fetch({seasonId: auth.season!.id, search: nextSearch})
+      .then((data) => {
+        teamsSet(data.teams)
+        pendingTeamSet(data.pendingTeam)
+      })
   const teamListDelay = useSling(300, () => teamList())
   useEffect(() => {
     teamList('')
@@ -75,55 +77,55 @@ export const TeamSetup: FC<{
                     children: $(Spinner),
                   })
                 : pendingTeam
-                ? $(Poster, {
-                    title: 'Request Pending',
-                    description: `You have requested to join ${pendingTeam.name}. Please wait while the team captain responds to your request.`,
-                  })
-                : $('div', {
-                    className: css({
-                      display: 'flex',
-                      flexDirection: 'column',
-                      '& > *:not(:last-child)': {
-                        borderBottom: theme.border(),
-                      },
+                  ? $(Poster, {
+                      title: 'Request Pending',
+                      description: `You have requested to join ${pendingTeam.name}. Please wait while the team captain responds to your request.`,
+                    })
+                  : $('div', {
+                      className: css({
+                        display: 'flex',
+                        flexDirection: 'column',
+                        '& > *:not(:last-child)': {
+                          borderBottom: theme.border(),
+                        },
+                      }),
+                      children: addkeys([
+                        $(Form, {
+                          children: addkeys([
+                            $(InputString, {
+                              value: search,
+                              valueSet: searchSet,
+                              placeholder: 'Search',
+                            }),
+                            $('div', {
+                              className: css({
+                                border: theme.border(),
+                              }),
+                              children: $(FormMenu, {
+                                empty: 'No Teams Found',
+                                options: teams
+                                  .filter((i) => normalizeSearch(i.name))
+                                  .map((i) => ({
+                                    id: i.id,
+                                    label: i.name,
+                                    color: i.color,
+                                    click: () => teamRequestedSet(i),
+                                  })),
+                              }),
+                            }),
+                          ]),
+                        }),
+                        $(Form, {
+                          background: theme.bgMinor,
+                          children: addkeys([
+                            $(FormBadge, {
+                              label: 'Create New Team',
+                              click: () => creatingSet(true),
+                            }),
+                          ]),
+                        }),
+                      ]),
                     }),
-                    children: addkeys([
-                      $(Form, {
-                        children: addkeys([
-                          $(InputString, {
-                            value: search,
-                            valueSet: searchSet,
-                            placeholder: 'Search',
-                          }),
-                          $('div', {
-                            className: css({
-                              border: theme.border(),
-                            }),
-                            children: $(FormMenu, {
-                              empty: 'No Teams Found',
-                              options: teams
-                                .filter((i) => normalizeSearch(i.name))
-                                .map((i) => ({
-                                  id: i.id,
-                                  label: i.name,
-                                  color: i.color,
-                                  click: () => teamRequestedSet(i),
-                                })),
-                            }),
-                          }),
-                        ]),
-                      }),
-                      $(Form, {
-                        background: theme.bgMinor,
-                        children: addkeys([
-                          $(FormBadge, {
-                            label: 'Create New Team',
-                            click: () => creatingSet(true),
-                          }),
-                        ]),
-                      }),
-                    ]),
-                  }),
           }),
         ]),
       }),
