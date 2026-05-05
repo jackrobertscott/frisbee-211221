@@ -4,8 +4,7 @@ import {TFixture} from '@shared/schemas/ioFixture'
 import {TTeam} from '@shared/schemas/ioTeam'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$FixtureListOfSeason} from '../../endpoints/Fixture'
-import {$TeamListOfSeason} from '../../endpoints/Team'
+import {$FeatureCompetitionLoad} from '../../endpoints/Feature'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {initials} from '../../utils/initials'
@@ -25,8 +24,7 @@ import {useEndpoint} from '../useEndpoint'
 
 export const DashboardFixtures: FC = () => {
   const auth = useAuth()
-  const $teamList = useEndpoint($TeamListOfSeason)
-  const $fixtureList = useEndpoint($FixtureListOfSeason)
+  const $competitionLoad = useEndpoint($FeatureCompetitionLoad)
   const [teams, teamsSet] = useState<TTeam[]>()
   const [fixtures, fixturesSet] = useState<TFixture[]>()
   const [creating, creatingSet] = useState(false)
@@ -36,10 +34,10 @@ export const DashboardFixtures: FC = () => {
   const [openfxs, openfxsSet] = useState<string[]>([])
   const reload = () => {
     const seasonId = auth.season!.id
-    $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))
-    $fixtureList.fetch({seasonId}).then((i) => {
-      fixturesSet(i)
-      const fixturesInFuture = i.filter((f) => {
+    $competitionLoad.fetch({seasonId}).then((data) => {
+      teamsSet(data.teams)
+      fixturesSet(data.fixtures)
+      const fixturesInFuture = data.fixtures.filter((f) => {
         return dayjs(f.date).add(1, 'day').isAfter(dayjs())
       })
       openfxsSet(fixturesInFuture.map((f) => f.id))

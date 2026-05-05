@@ -2,12 +2,12 @@ import {css} from '@emotion/css'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
+import {$FeatureFixtureSetupLoad} from '../endpoints/Feature'
 import {
   $FixtureCreate,
   $FixtureDelete,
   $FixtureUpdate,
 } from '../endpoints/Fixture'
-import {$TeamListOfSeason} from '../endpoints/Team'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {random} from '../utils/random'
@@ -45,7 +45,7 @@ export const FixtureSetupForm: FC<{
   const $fixtureCreate = useEndpoint($FixtureCreate)
   const $fixtureUpdate = useEndpoint($FixtureUpdate)
   const $fixtureDelete = useEndpoint($FixtureDelete)
-  const $teamList = useEndpoint($TeamListOfSeason)
+  const $setupLoad = useEndpoint($FeatureFixtureSetupLoad)
   const [teams, teamsSet] = useState<TTeam[]>()
   const form = useForm<TFixtureForm>({
     title: '',
@@ -62,7 +62,7 @@ export const FixtureSetupForm: FC<{
     return index >= 0
   })
   useEffect(() => {
-    $teamList.fetch({seasonId: auth.season!.id}).then((i) => {
+    $setupLoad.fetch({seasonId: auth.season!.id}).then((i) => {
       teamsSet(i.teams)
       if (!form.data.games.length) {
         form.patch({

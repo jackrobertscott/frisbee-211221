@@ -7,15 +7,15 @@ import {TTeam} from '@shared/schemas/ioTeam'
 import {TUserPublic} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useRef, useState} from 'react'
-import {$FixtureListOfSeason} from '../../endpoints/Fixture'
+import {
+  $FeatureDashboardReportsLoad,
+  $FeatureReportEditorLoad,
+} from '../../endpoints/Feature'
 import {
   $ReportCreate,
   $ReportDelete,
-  $ReportGetFixtureAgainst,
-  $ReportSearchOfSeason,
   $ReportUpdate,
 } from '../../endpoints/Report'
-import {$TeamListOfSeason} from '../../endpoints/Team'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
@@ -56,9 +56,7 @@ export const DashboardReports: FC = () => {
   const auth = useAuth()
   const pager = usePager()
   const toaster = useToaster()
-  const $fixtureList = useEndpoint($FixtureListOfSeason)
-  const $teamList = useEndpoint($TeamListOfSeason)
-  const $reportSearch = useEndpoint($ReportSearchOfSeason)
+  const $reportsLoad = useEndpoint($FeatureDashboardReportsLoad)
   const $reportCreate = useEndpoint($ReportCreate)
   const $reportUpdate = useEndpoint($ReportUpdate)
   const $reportDelete = useEndpoint($ReportDelete)
@@ -83,32 +81,24 @@ export const DashboardReports: FC = () => {
     pager?: typeof pager.data
   } = {}) => {
     const requestId = ++reportListRequestId.current
-    return $reportSearch
+    return $reportsLoad
       .fetch({...nextPager, seasonId, search: nextSearch})
       .then((i) => {
         if (requestId !== reportListRequestId.current) return
         reportRowsSet(i.reports)
+        fixturesSet(i.fixtures)
+        teamsSet(i.teams)
         pager.totalSet(i.count)
       })
   }
   const reportListDelay = useSling(500, reportList)
-  const fixtureList = () =>
-    $fixtureList.fetch({seasonId}).then((i) => fixturesSet(i))
-  const teamList = () =>
-    seasonId && $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))
   useEffect(() => {
     if (!auth.can(authPoint.reportManage)) {
       go.to('/')
       return
     }
-
-    fixtureList()
-    teamList()
-  }, [auth.current, seasonId])
-  useEffect(() => {
-    if (!auth.can(authPoint.reportManage)) return
     reportList()
-  }, [pager.data, seasonId])
+  }, [auth.current, pager.data, seasonId])
 
   useEffect(() => {
     if (!auth.can(authPoint.reportManage) || reportRows === undefined) {
@@ -331,7 +321,7 @@ const _DashboardReportsForm: FC<{
 }) => {
   const auth = useAuth()
   const toaster = useToaster()
-  const $fixtureAgainst = useEndpoint($ReportGetFixtureAgainst)
+  const $reportEditorLoad = useEndpoint($FeatureReportEditorLoad)
   const [againstOptions, againstOptionsSet] =
     useState<Array<{team: TTeam; users: TUserPublic[]}>>()
 
@@ -356,9 +346,13 @@ const _DashboardReportsForm: FC<{
 
     againstOptionsSet(undefined)
 
-    $fixtureAgainst
-      .fetch({fixtureId: form.data.fixtureId, teamId: form.data.teamId})
-      .then((nextAgainstOptions) => {
+    $reportEditorLoad
+      .fetch({
+        seasonId: auth.season!.id,
+        fixtureId: form.data.fixtureId,
+        teamId: form.data.teamId,
+      })
+      .then(({againstOptions: nextAgainstOptions}) => {
         if (cancelled) return
 
         againstOptionsSet(nextAgainstOptions)

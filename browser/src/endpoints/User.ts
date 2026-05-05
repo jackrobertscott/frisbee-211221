@@ -1,4 +1,4 @@
-import {UserChangePasswordDef, UserCreateDef, UserCurrentChangePasswordDef, UserCurrentEmailAddDef, UserCurrentEmailCodeResendDef, UserCurrentEmailPrimarySetDef, UserCurrentEmailRemoveDef, UserCurrentEmailVerifyDef, UserCurrentUpdateDef, UserListDef, UserListManyByIdDef, UserMergeDef, UserToggleAdminDef, UserUpdateDef} from '@shared/endpoints/UserDef'
+import {UserChangePasswordDef, UserCreateDef, UserCurrentChangePasswordDef, UserCurrentEmailAddDef, UserCurrentEmailCodeResendDef, UserCurrentEmailPrimarySetDef, UserCurrentEmailRemoveDef, UserCurrentEmailVerifyDef, UserCurrentUpdateDef, UserListDef, UserMergeDef, UserToggleAdminDef, UserUpdateDef} from '@shared/endpoints/UserDef'
 import {createEndpoint} from '../utils/endpoints'
 
 export const $UserCurrentUpdate = createEndpoint(UserCurrentUpdateDef)
@@ -16,8 +16,6 @@ export const $UserCurrentEmailRemove = createEndpoint(UserCurrentEmailRemoveDef)
 export const $UserCurrentChangePassword = createEndpoint(UserCurrentChangePasswordDef)
 
 export const $UserList = createEndpoint(UserListDef)
-
-export const $UserListManyById = createEndpoint(UserListManyByIdDef)
 
 export const $UserCreate = createEndpoint(UserCreateDef)
 

@@ -4,13 +4,11 @@ import {TReport} from '@shared/schemas/ioReport'
 import {TTeam} from '@shared/schemas/ioTeam'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$ReportListOfFixture} from '../endpoints/Report'
-import {$TeamListOfSeason} from '../endpoints/Team'
+import {$FeatureFixtureTallyLoad} from '../endpoints/Feature'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {hsla} from '../utils/hsla'
 import {initials} from '../utils/initials'
-import {useAuth} from './Auth/useAuth'
 import {Form} from './Form/Form'
 import {FormBadge} from './Form/FormBadge'
 import {FormColumn} from './Form/FormColumn'
@@ -36,21 +34,17 @@ export const FixtureTallyForm: FC<{
   close: () => void
   done: (fixture: TFixtureForm) => void
 }> = ({fixture, loading, close, done}) => {
-  const auth = useAuth()
   const media = useMedia()
-  const $teamList = useEndpoint($TeamListOfSeason)
-  const $reportList = useEndpoint($ReportListOfFixture)
+  const $tallyLoad = useEndpoint($FeatureFixtureTallyLoad)
   const [teams, teamsSet] = useState<TTeam[]>()
   const [reports, reportsSet] = useState<TReport[]>()
   const form = useForm<TFixtureForm>(fixture)
   const isSmall = media.width < theme.fib[14]
   useEffect(() => {
-    $teamList.fetch({seasonId: auth.season!.id}).then((i) => {
-      teamsSet(i.teams)
+    $tallyLoad.fetch({fixtureId: fixture.id}).then((data) => {
+      teamsSet(data.teams)
+      reportsSet(data.reports)
     })
-  }, [])
-  useEffect(() => {
-    $reportList.fetch({fixtureId: fixture.id}).then(reportsSet)
   }, [fixture.id])
   useEffect(() => {
     if (teams?.length && reports?.length) {

@@ -9,7 +9,7 @@ import {TUserSafe} from '@shared/schemas/ioUser'
 import {TUserGender} from '@shared/schemas/ioUserGender'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$MemberListOfUserAdmin} from '../../endpoints/Member'
+import {$FeatureDashboardUserMembershipsLoad} from '../../endpoints/Feature'
 import {
   $UserChangePassword,
   $UserCreate,
@@ -596,14 +596,14 @@ const _DashboardUsersViewDetails: FC<{
 }
 
 const _DashboardUsersViewTeams: FC<{user: TUserSafe}> = ({user}) => {
-  const $memberList = useEndpoint($MemberListOfUserAdmin)
+  const $memberList = useEndpoint($FeatureDashboardUserMembershipsLoad)
   const [state, stateSet] = useState<{
     members: TMember[]
     seasons: TSeason[]
     teams: TTeam[]
   }>()
   useEffect(() => {
-    $memberList.fetch(user.id).then(stateSet)
+    $memberList.fetch({userId: user.id}).then(stateSet)
   }, [user.id])
   return $(Form, {
     background: theme.bgMinor,

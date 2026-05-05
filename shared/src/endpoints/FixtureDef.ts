@@ -1,28 +1,7 @@
 import {authPoint} from '@shared/auth/authAccess'
 import {ioFixture, ioFixtureGame} from '@shared/schemas/ioFixture'
-import {ioTeam} from '@shared/schemas/ioTeam'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
-
-export const FixtureListOfSeasonDef = {
-  path: '/FixtureListOfSeason',
-  payload: io.object({
-    seasonId: io.string(),
-    limit: io.optional(io.number()),
-  }),
-  result: io.array(ioFixture),
-} satisfies TEndpointDef
-
-export const FixtureGetDef = {
-  path: '/FixtureGet',
-  payload: io.object({
-    fixtureId: io.string(),
-  }),
-  result: io.object({
-    fixture: ioFixture,
-    teams: io.array(ioTeam),
-  }),
-} satisfies TEndpointDef
 
 export const FixtureCreateDef = {
   access: authPoint.fixtureManage,

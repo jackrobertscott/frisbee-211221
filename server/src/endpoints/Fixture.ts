@@ -4,8 +4,6 @@ import {
   FixtureCreateDef,
   FixtureDeleteDef,
   FixtureGenerateDef,
-  FixtureGetDef,
-  FixtureListOfSeasonDef,
   FixtureSnapshotDef,
   FixtureUpdateDef,
 } from '@shared/endpoints/FixtureDef'
@@ -19,26 +17,6 @@ import {random} from '../utils/random'
 import {requireAccess} from './requireAccess'
 
 export default new Map<string, RequestHandler>([
-
-  createEndpoint({
-    ...FixtureListOfSeasonDef,
-    handler:
-      ({seasonId, limit}) =>
-      async () => {
-        return $Fixture.getMany({seasonId}, {limit, sort: {date: 1}})
-      },
-  }),
-
-  createEndpoint({
-    ...FixtureGetDef,
-    handler:
-      ({fixtureId}) =>
-      async () => {
-        const fixture = await $Fixture.getOne({id: fixtureId})
-        const teams = await $Team.getMany({seasonId: fixture.seasonId})
-        return {fixture, teams}
-      },
-  }),
 
   createEndpoint({
     ...FixtureCreateDef,

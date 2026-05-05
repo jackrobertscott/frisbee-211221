@@ -1,9 +1,10 @@
 import {authPoint} from '@shared/auth/authAccess'
-import {TReport} from '@shared/schemas/ioReport'
-import {TTeam} from '@shared/schemas/ioTeam'
+import {
+  TFeatureSpiritRow,
+  TFeatureSpiritSortKey,
+} from '@shared/endpoints/FeatureDef'
 import {createElement as $, FC, useEffect, useState} from 'react'
-import {$ReportListOfSeason} from '../../endpoints/Report'
-import {$TeamListOfSeason} from '../../endpoints/Team'
+import {$FeatureDashboardSpiritLoad} from '../../endpoints/Feature'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
@@ -27,36 +28,13 @@ type TSpiritSortKey =
   | 'allocatedAverage'
   | 'avgDiff'
 
-type TSpiritRow = {
-  team: TTeam
-  receivedSpirit: number
-  receivedReports: number
-  receivedAverage: number
-  allocatedSpirit: number
-  allocatedReports: number
-  allocatedAverage: number
-  averageDifference: number
-}
-
-type TSpiritNumericField =
-  | 'receivedSpirit'
-  | 'receivedReports'
-  | 'receivedAverage'
-  | 'allocatedSpirit'
-  | 'allocatedReports'
-  | 'allocatedAverage'
-  | 'averageDifference'
-
 export const DashboardSpirit: FC = () => {
   const auth = useAuth()
-  const $teamList = useEndpoint($TeamListOfSeason)
-  const $reportList = useEndpoint($ReportListOfSeason)
-  const [teams, teamsSet] = useState<TTeam[]>()
-  const [reports, reportsSet] = useState<TReport[]>()
+  const $spiritLoad = useEndpoint($FeatureDashboardSpiritLoad)
+  const [rows, rowsSet] = useState<TFeatureSpiritRow[]>()
   const [sortKey, sortKeySet] = useState<TSpiritSortKey>('average')
   const [sortDirection, sortDirectionSet] = useState<'asc' | 'desc'>('desc')
   const seasonId = auth.season!.id
-  const useOfficialScoring = !!auth.season?.useOfficialScoring
   const averageFormatter = new Intl.NumberFormat(undefined, {
     maximumFractionDigits: 2,
   })
@@ -67,9 +45,24 @@ export const DashboardSpirit: FC = () => {
       return
     }
 
-    $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))
-    $reportList.fetch({seasonId}).then((i) => reportsSet(i.reports))
-  }, [auth.current, seasonId])
+    const sortMap: Record<TSpiritSortKey, TFeatureSpiritSortKey> = {
+      team: 'team',
+      spirit: 'receivedSpirit',
+      reports: 'receivedReports',
+      average: 'receivedAverage',
+      allocatedSpirit: 'allocatedSpirit',
+      allocatedReports: 'allocatedReports',
+      allocatedAverage: 'allocatedAverage',
+      avgDiff: 'averageDifference',
+    }
+    $spiritLoad
+      .fetch({
+        seasonId,
+        sortBy: sortMap[sortKey],
+        sortDirection,
+      })
+      .then((data) => rowsSet(data.rows))
+  }, [auth.current, seasonId, sortKey, sortDirection])
 
   const formatAverage = (value: number) => {
     const normalized = Math.abs(value) < 0.005 ? 0 : value
@@ -99,31 +92,6 @@ export const DashboardSpirit: FC = () => {
     })
   }
 
-  const getSpiritSummary = (teamReports: TReport[]) => {
-    const reportCount = teamReports.length
-
-    if (useOfficialScoring) {
-      const spirit = teamReports.reduce((total, report) => {
-        return (
-          total +
-          (report.spiritP1 ?? 0) +
-          (report.spiritP2 ?? 0) +
-          (report.spiritP3 ?? 0) +
-          (report.spiritP4 ?? 0) +
-          (report.spiritP5 ?? 0)
-        )
-      }, 0)
-
-      return {spirit, reportCount}
-    }
-
-    const spirit = teamReports.reduce((total, report) => {
-      return total + (report.spirit ?? 0)
-    }, 0)
-
-    return {spirit, reportCount}
-  }
-
   const toggleSort = (key: TSpiritSortKey) => {
     if (sortKey === key) {
       sortDirectionSet((current) => (current === 'asc' ? 'desc' : 'asc'))
@@ -139,66 +107,10 @@ export const DashboardSpirit: FC = () => {
     return sortDirection === 'asc' ? 'angle-up' : 'angle-down'
   }
 
-  const sortRows = (rows: TSpiritRow[]) => {
-    const direction = sortDirection === 'asc' ? 1 : -1
-    const valueMap: Record<Exclude<TSpiritSortKey, 'team'>, TSpiritNumericField> = {
-      spirit: 'receivedSpirit',
-      reports: 'receivedReports',
-      average: 'receivedAverage',
-      allocatedSpirit: 'allocatedSpirit',
-      allocatedReports: 'allocatedReports',
-      allocatedAverage: 'allocatedAverage',
-      avgDiff: 'averageDifference',
-    }
-
-    return [...rows].sort((a, b) => {
-      if (sortKey === 'team') {
-        return a.team.name.localeCompare(b.team.name) * direction
-      }
-
-      const valueKey = valueMap[sortKey]
-      return (a[valueKey] - b[valueKey]) * direction
-    })
-  }
-
-  const calculate = () =>
-    sortRows(
-      teams?.map((team) => {
-        const received = getSpiritSummary(
-          reports?.filter((report) => report.teamAgainstId === team.id) ?? []
-        )
-        const allocated = getSpiritSummary(
-          reports?.filter((report) => report.teamId === team.id) ?? []
-        )
-
-        const receivedAverage =
-          received.reportCount > 0 ? received.spirit / received.reportCount : 0
-        const allocatedAverage =
-          allocated.reportCount > 0
-            ? allocated.spirit / allocated.reportCount
-            : 0
-        const averageDifference =
-          allocated.reportCount > 0 && received.reportCount > 0
-            ? allocatedAverage - receivedAverage
-            : 0
-
-        return {
-          team,
-          receivedSpirit: received.spirit,
-          receivedReports: received.reportCount,
-          receivedAverage,
-          allocatedSpirit: allocated.spirit,
-          allocatedReports: allocated.reportCount,
-          allocatedAverage,
-          averageDifference,
-        }
-      }) ?? []
-    )
-
   return $(Form, {
     background: theme.bgAdmin,
     children:
-      reports === undefined || teams === undefined
+      rows === undefined
         ? $(Spinner)
         : $(FormColumn, {
             grow: true,
@@ -258,7 +170,7 @@ export const DashboardSpirit: FC = () => {
                     icon: getSortIcon('avgDiff'),
                   },
                 },
-                body: calculate().map(
+                body: rows.map(
                   ({
                     team,
                     receivedSpirit,

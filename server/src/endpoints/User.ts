@@ -1,5 +1,5 @@
 import {badRequestError, conflictError} from '@shared/errors'
-import {UserChangePasswordDef, UserCreateDef, UserCurrentChangePasswordDef, UserCurrentEmailAddDef, UserCurrentEmailCodeResendDef, UserCurrentEmailPrimarySetDef, UserCurrentEmailRemoveDef, UserCurrentEmailVerifyDef, UserCurrentUpdateDef, UserListDef, UserListManyByIdDef, UserMergeDef, UserToggleAdminDef, UserUpdateDef, TUserListSortDirection, TUserListSortKey} from '@shared/endpoints/UserDef'
+import {UserChangePasswordDef, UserCreateDef, UserCurrentChangePasswordDef, UserCurrentEmailAddDef, UserCurrentEmailCodeResendDef, UserCurrentEmailPrimarySetDef, UserCurrentEmailRemoveDef, UserCurrentEmailVerifyDef, UserCurrentUpdateDef, UserListDef, UserMergeDef, UserToggleAdminDef, UserUpdateDef, TUserListSortDirection, TUserListSortKey} from '@shared/endpoints/UserDef'
 import {Document} from 'mongodb'
 import {RequestHandler} from 'micro'
 import {$Comment} from '../tables/$Comment'
@@ -13,7 +13,6 @@ import hash from '../utils/hash'
 import mongo from '../utils/mongo'
 import {regex} from '../utils/regex'
 import {requireAccess} from './requireAccess'
-import {selectPublicUserFields} from './userPublic'
 import {selectSafeUserFields} from './userSafe'
 import {userEmail} from './userEmail'
 
@@ -141,15 +140,6 @@ export default new Map<string, RequestHandler>([
         ),
       ])
       return {count, users: users.map(selectSafeUserFields)}
-    },
-  }),
-
-  createEndpoint({
-    ...UserListManyByIdDef,
-    handler: (body, access) => async (req) => {
-      await requireAccess(req, access)
-      const users = await $User.getMany({id: {$in: body.userIds}})
-      return users.map(selectPublicUserFields)
     },
   }),
 

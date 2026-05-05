@@ -1,5 +1,5 @@
 import {authPoint} from '@shared/auth/authAccess'
-import {ioUserPublic, ioUserSafe} from '@shared/schemas/ioUser'
+import {ioUserSafe} from '@shared/schemas/ioUser'
 import {ioUserGender} from '@shared/schemas/ioUserGender'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
@@ -101,15 +101,6 @@ export const UserListDef = {
     count: io.number(),
     users: io.array(ioUserSafe),
   }),
-} satisfies TEndpointDef
-
-export const UserListManyByIdDef = {
-  access: authPoint.userAdmin,
-  path: '/UserListManyById',
-  payload: io.object({
-    userIds: io.array(io.string()),
-  }),
-  result: io.array(ioUserPublic),
 } satisfies TEndpointDef
 
 export const UserCreateDef = {

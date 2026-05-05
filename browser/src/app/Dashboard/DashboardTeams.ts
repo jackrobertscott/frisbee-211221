@@ -4,7 +4,8 @@ import {css} from '@emotion/css'
 import {TTeam} from '@shared/schemas/ioTeam'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$TeamCreate, $TeamListOfSeason} from '../../endpoints/Team'
+import {$FeatureDashboardTeamsLoad} from '../../endpoints/Feature'
+import {$TeamCreate} from '../../endpoints/Team'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {SIMPLE_COLORS} from '../../utils/colors'
@@ -30,7 +31,7 @@ import {useSling} from '../useThrottle'
 export const DashboardTeams: FC = () => {
   const auth = useAuth()
   const pager = usePager()
-  const $teamList = useEndpoint($TeamListOfSeason)
+  const $teamList = useEndpoint($FeatureDashboardTeamsLoad)
   const [search, searchSet] = useState('')
   const [teams, teamsSet] = useState<TTeam[]>()
   const [creating, creatingSet] = useState(false)

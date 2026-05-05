@@ -5,9 +5,9 @@ import {TSeason} from '@shared/schemas/ioSeason'
 import {TTeam} from '@shared/schemas/ioTeam'
 import dayjs from 'dayjs'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$FixtureListOfSeason, $FixtureUpdate} from '../../endpoints/Fixture'
+import {$FeatureCompetitionLoad} from '../../endpoints/Feature'
+import {$FixtureUpdate} from '../../endpoints/Fixture'
 import {$SeasonUpdate} from '../../endpoints/Season'
-import {$TeamListOfSeason} from '../../endpoints/Team'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {initials} from '../../utils/initials'
@@ -34,8 +34,7 @@ export const DashboardLadder: FC = () => {
   const auth = useAuth()
   const media = useMedia()
   const $fixtureUpdate = useEndpoint($FixtureUpdate)
-  const $teamList = useEndpoint($TeamListOfSeason)
-  const $fixtureList = useEndpoint($FixtureListOfSeason)
+  const $competitionLoad = useEndpoint($FeatureCompetitionLoad)
   const [teams, teamsSet] = useState<TTeam[]>([])
   const [fixtures, fixturesSet] = useState<TFixture[]>()
   const [editing, editingSet] = useState<TFixture>()
@@ -44,8 +43,10 @@ export const DashboardLadder: FC = () => {
   const tally = tallyChart(fixtures ?? [])
   const reload = () => {
     const seasonId = auth.season!.id
-    $teamList.fetch({seasonId}).then((i) => teamsSet(i.teams))
-    $fixtureList.fetch({seasonId}).then(fixturesSet)
+    $competitionLoad.fetch({seasonId}).then((data) => {
+      teamsSet(data.teams)
+      fixturesSet(data.fixtures)
+    })
   }
   useEffect(() => reload(), [])
   const finalResultsAndTeam = auth.season?.finalResults

@@ -3,8 +3,8 @@ import {TFixture} from '@shared/schemas/ioFixture'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUserPublic} from '@shared/schemas/ioUser'
 import {createElement as $, FC, Fragment, useEffect, useMemo, useState} from 'react'
-import {$FixtureListOfSeason} from '../endpoints/Fixture'
-import {$ReportCreate, $ReportGetFixtureAgainst} from '../endpoints/Report'
+import {$FeatureReportEditorLoad} from '../endpoints/Feature'
+import {$ReportCreate} from '../endpoints/Report'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {
@@ -40,8 +40,7 @@ export const ReportCreate: FC<{
   const [fixtures, fixturesSet] = useState<TFixture[]>()
   const [againstOptions, againstOptionsSet] =
     useState<Array<{team: TTeam; users: TUserPublic[]}>>()
-  const $fixtureList = useEndpoint($FixtureListOfSeason)
-  const $fixtureAgainst = useEndpoint($ReportGetFixtureAgainst)
+  const $editorLoad = useEndpoint($FeatureReportEditorLoad)
   const $create = useEndpoint($ReportCreate)
 
   // Check if the season uses official scoring
@@ -62,7 +61,9 @@ export const ReportCreate: FC<{
   }, [auth.current?.team?.id, form.data.teamId])
 
   useEffect(() => {
-    $fixtureList.fetch({seasonId: auth.season!.id}).then(fixturesSet)
+    $editorLoad
+      .fetch({seasonId: auth.season!.id})
+      .then((data) => fixturesSet(data.fixtures))
   }, [])
 
   useEffect(() => {
@@ -76,11 +77,16 @@ export const ReportCreate: FC<{
 
     againstOptionsSet(undefined)
 
-    $fixtureAgainst
-      .fetch({fixtureId: form.data.fixtureId, teamId: form.data.teamId})
-      .then((nextAgainstOptions) => {
+    $editorLoad
+      .fetch({
+        seasonId: auth.season!.id,
+        fixtureId: form.data.fixtureId,
+        teamId: form.data.teamId,
+      })
+      .then(({fixtures: nextFixtures, againstOptions: nextAgainstOptions}) => {
         if (cancelled) return
 
+        fixturesSet(nextFixtures)
         againstOptionsSet(nextAgainstOptions)
         const hasCurrentSelection = nextAgainstOptions.some(
           (option) => option.team.id === currentAgainstTeamId

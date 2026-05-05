@@ -1,9 +1,8 @@
 import {css} from '@emotion/css'
-import {TMember} from '@shared/schemas/ioMember'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
-import {$MemberListOfUser, $MemberRequestCreate} from '../endpoints/Member'
-import {$TeamListOfSeason} from '../endpoints/Team'
+import {$FeatureTeamSetupLoad} from '../endpoints/Feature'
+import {$MemberRequestCreate} from '../endpoints/Member'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {useAuth} from './Auth/useAuth'
@@ -19,6 +18,7 @@ import {TeamCreate} from './TeamCreate'
 import {useToaster} from './Toaster/useToaster'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
+import {useSling} from './useThrottle'
 
 export const TeamSetup: FC<{
   close: () => void
@@ -26,26 +26,27 @@ export const TeamSetup: FC<{
 }> = ({close, teamSet}) => {
   const auth = useAuth()
   const toaster = useToaster()
-  const $teamList = useEndpoint($TeamListOfSeason)
+  const $teamSetupLoad = useEndpoint($FeatureTeamSetupLoad)
   const $memberRequest = useEndpoint($MemberRequestCreate)
-  const $membersOfUser = useEndpoint($MemberListOfUser)
   const [teams, teamsSet] = useState<TTeam[]>()
+  const [pendingTeam, pendingTeamSet] = useState<TTeam>()
   const [logout, logoutSet] = useState(false)
   const [creating, creatingSet] = useState(false)
   const [teamRequested, teamRequestedSet] = useState<TTeam>()
-  const [membersOfUser, membersOfUserSet] = useState<TMember[]>()
   const [search, searchSet] = useState('')
-  const memberList = () =>
-    $membersOfUser.fetch().then((data) => membersOfUserSet(data.members))
-  const teamPending =
-    membersOfUser &&
-    teams?.find((i) => membersOfUser.findIndex((x) => x.teamId === i.id) >= 0)
+  const teamList = (nextSearch = search) =>
+    $teamSetupLoad.fetch({seasonId: auth.season!.id, search: nextSearch}).then((data) => {
+      teamsSet(data.teams)
+      pendingTeamSet(data.pendingTeam)
+    })
+  const teamListDelay = useSling(300, () => teamList())
   useEffect(() => {
-    $teamList
-      .fetch({seasonId: auth.season!.id, search})
-      .then((i) => teamsSet(i.teams))
-    memberList()
+    teamList('')
   }, [])
+  useEffect(() => {
+    if (teams === undefined) return
+    teamListDelay()
+  }, [search])
   const normalize = (data: string) => data.toLowerCase().split(' ').join('')
   const searchNormalized = normalize(search)
   const normalizeSearch = (data: string) =>
@@ -73,10 +74,10 @@ export const TeamSetup: FC<{
                 ? $(Form, {
                     children: $(Spinner),
                   })
-                : teamPending
+                : pendingTeam
                 ? $(Poster, {
                     title: 'Request Pending',
-                    description: `You have requested to join ${teamPending.name}. Please wait while the team captain responds to your request.`,
+                    description: `You have requested to join ${pendingTeam.name}. Please wait while the team captain responds to your request.`,
                   })
                 : $('div', {
                     className: css({
@@ -169,7 +170,7 @@ export const TeamSetup: FC<{
                     const message =
                       'Request successfully created. Please wait while the captain approves the request.'
                     toaster.notify(message)
-                    memberList()
+                    teamList('')
                     teamRequestedSet(undefined)
                   }),
               },

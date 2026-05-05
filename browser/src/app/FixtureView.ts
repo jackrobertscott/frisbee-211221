@@ -2,7 +2,7 @@ import {css} from '@emotion/css'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {createElement as $, FC, useEffect, useState} from 'react'
-import {$FixtureGet} from '../endpoints/Fixture'
+import {$FeatureFixtureViewLoad} from '../endpoints/Feature'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {Form} from './Form/Form'
@@ -16,7 +16,7 @@ export const FixtureView: FC<{
 }> = ({fixtureId}) => {
   const [teams, teamsSet] = useState<TTeam[]>()
   const [fixture, fixtureSet] = useState<TFixture>()
-  const $fixtureGet = useEndpoint($FixtureGet)
+  const $fixtureGet = useEndpoint($FeatureFixtureViewLoad)
   useEffect(() => {
     $fixtureGet.fetch({fixtureId}).then((i) => {
       fixtureSet(i.fixture)

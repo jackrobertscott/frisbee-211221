@@ -1,9 +1,8 @@
 import {badRequestError, conflictError, forbiddenError} from '@shared/errors'
-import {MemberAcceptOrDeclineDef, MemberCreateDef, MemberListOfTeamDef, MemberListOfUserAdminDef, MemberListOfUserDef, MemberLookupByEmailDef, MemberRemoveDef, MemberRequestCreateDef, MemberSetCaptainDef} from '@shared/endpoints/MemberDef'
+import {MemberAcceptOrDeclineDef, MemberCreateDef, MemberListOfTeamDef, MemberLookupByEmailDef, MemberRemoveDef, MemberRequestCreateDef, MemberSetCaptainDef} from '@shared/endpoints/MemberDef'
 import {TMember} from '@shared/schemas/ioMember'
 import {RequestHandler} from 'micro'
 import {$Member} from '../tables/$Member'
-import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
@@ -13,22 +12,6 @@ import {userEmail} from './userEmail'
 import {selectPublicUserFields} from './userPublic'
 
 export default new Map<string, RequestHandler>([
-
-  createEndpoint({
-    ...MemberListOfUserDef,
-    handler: (_, access) => async (req) => {
-      const [user] = await requireAccess(req, access)
-      // pending and non-pending
-      const members = await $Member.getMany({userId: user.id})
-      const teams = await $Team.getMany({
-        id: {$in: members.map((i) => i.teamId)},
-      })
-      return {
-        members,
-        teams,
-      }
-    },
-  }),
 
   createEndpoint({
     ...MemberListOfTeamDef,
@@ -46,28 +29,6 @@ export default new Map<string, RequestHandler>([
         current: memberCurrent,
         members,
         users: users.map(selectPublicUserFields),
-      }
-    },
-  }),
-
-  createEndpoint({
-    ...MemberListOfUserAdminDef,
-    handler: (userId, access) => async (req) => {
-      await requireAccess(req, access)
-      await $User.getOne({id: userId})
-      const members = await $Member.getMany({userId})
-      const [teams, seasons] = await Promise.all([
-        $Team.getMany({
-          id: {$in: members.map((i) => i.teamId)},
-        }),
-        $Season.getMany({
-          id: {$in: members.map((i) => i.seasonId)},
-        }),
-      ])
-      return {
-        members,
-        seasons,
-        teams,
       }
     },
   }),

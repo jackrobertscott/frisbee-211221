@@ -1,9 +1,5 @@
-import {FixtureAdjustMultipleDef, FixtureCreateDef, FixtureDeleteDef, FixtureGenerateDef, FixtureGetDef, FixtureListOfSeasonDef, FixtureSnapshotDef, FixtureUpdateDef} from '@shared/endpoints/FixtureDef'
+import {FixtureAdjustMultipleDef, FixtureCreateDef, FixtureDeleteDef, FixtureGenerateDef, FixtureSnapshotDef, FixtureUpdateDef} from '@shared/endpoints/FixtureDef'
 import {createEndpoint} from '../utils/endpoints'
-
-export const $FixtureListOfSeason = createEndpoint(FixtureListOfSeasonDef)
-
-export const $FixtureGet = createEndpoint(FixtureGetDef)
 
 export const $FixtureCreate = createEndpoint(FixtureCreateDef)
 
