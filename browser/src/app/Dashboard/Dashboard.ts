@@ -30,8 +30,10 @@ import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {DashboardFixtures} from './DashboardFixtures'
 import {DashboardLadder} from './DashboardLadder'
+import {DashboardMVP} from './DashboardMVP'
 import {DashboardPort} from './DashboardPort'
 import {DashboardReports} from './DashboardReports'
+import {DashboardSpirit} from './DashboardSpirit'
 import {DashboardTeams} from './DashboardTeams'
 import {DashboardUsers} from './DashboardUsers'
 
@@ -146,6 +148,16 @@ export const Dashboard: FC = () => {
                         path: '/reports',
                         label: 'Reports',
                         render: () => $(DashboardReports),
+                      },
+                      auth.isAdmin() && {
+                        path: '/spirit',
+                        label: 'Spirit',
+                        render: () => $(DashboardSpirit),
+                      },
+                      auth.isAdmin() && {
+                        path: '/mvp',
+                        label: 'MVP',
+                        render: () => $(DashboardMVP),
                       },
                       {
                         path: '/teams',

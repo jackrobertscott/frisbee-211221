@@ -51,10 +51,8 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: theme.fib[7],
-          '& > *:not(:last-child)': {
-            marginBottom: theme.fib[6],
-          },
+          padding: theme.fib[8],
+          gap: theme.fib[6],
           [theme.ltMedia(theme.fib[13])]: {
             padding: theme.fib[5],
           },
@@ -64,7 +62,7 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
           return $('div', {
             key: toast.id,
             className: css({
-              width: 610,
+              width: 500,
               maxWidth: '100%',
               display: 'flex',
               overflow: 'hidden',
