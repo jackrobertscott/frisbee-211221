@@ -45,7 +45,7 @@ type TSpiritAggregate = {
 }
 
 type TMvpAggregateRow = {
-  _id: string
+  userId: string
   votes: number
   maleVotes: number
   femaleVotes: number
@@ -212,20 +212,22 @@ export default new Map<string, RequestHandler>([
         ])
         const teamMap = new Map(teams.map((team) => [team.id, team]))
         const users = await $User.getMany({
-          id: {$in: aggregateRows.map((row) => row._id)},
+          id: {$in: aggregateRows.map((row) => row.userId)},
         })
         const userMap = new Map(
           users.map((user) => [user.id, selectPublicUserFields(user)]),
         )
         const result: TFeatureMvpRow[] = aggregateRows
           .map((row) => {
-            const user = userMap.get(row._id)
+            const user = userMap.get(row.userId)
             const team = row.teamId ? teamMap.get(row.teamId) : undefined
             const maleVotes = row.maleVotes ?? 0
             const femaleVotes = row.femaleVotes ?? 0
             return {
-              userId: row._id,
-              userName: user ? `${user.firstName} ${user.lastName}` : row._id,
+              userId: row.userId,
+              userName: user
+                ? `${user.firstName} ${user.lastName}`
+                : row.userId,
               teamId: team?.id,
               teamName: team?.name,
               division: team?.division,
@@ -567,7 +569,17 @@ function _createMvpAggregatePipeline(
         teamId: {$first: '$votes.teamId'},
       },
     },
-    {$sort: {votes: -1, _id: 1}},
+    {
+      $project: {
+        _id: 0,
+        userId: '$_id',
+        votes: 1,
+        maleVotes: 1,
+        femaleVotes: 1,
+        teamId: 1,
+      },
+    },
+    {$sort: {votes: -1, userId: 1}},
   ]
 }
 

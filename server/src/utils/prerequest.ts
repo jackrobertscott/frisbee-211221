@@ -14,11 +14,7 @@ export default (handler: RequestHandler): RequestHandler => {
     switch (pathname) {
       case '/':
         return {
-          env: config.DEBUG
-            ? config.IS_PRODUCTION
-              ? 'production'
-              : 'development'
-            : undefined,
+          env: config.IS_PRODUCTION ? 'production' : 'development',
           now: new Date().toISOString(),
         }
       case '/health':

@@ -23,7 +23,6 @@ const envSchema = io.object({
   SES_REGION: io.optional(io.string().emptyok().trim()),
   SES_FROM_EMAIL: io.string().emptyok().trim(),
   IS_PRODUCTION: io.boolean(),
-  DEBUG: io.boolean(),
   PORT: io.number().coerce().integer().positive(),
   SESSION_TTL_DAYS: io.number().coerce().integer().positive(),
 })
@@ -40,7 +39,6 @@ const envResult = envSchema.validate({
   SES_FROM_EMAIL: process.env.SES_FROM_EMAIL,
   // Dockerfile injects NODE_ENV=production
   IS_PRODUCTION: process.env.NODE_ENV === 'production',
-  DEBUG: process.env.DEBUG === 'true',
   PORT: process.env.PORT,
   SESSION_TTL_DAYS: process.env.SESSION_TTL_DAYS ?? 90,
 } as any)

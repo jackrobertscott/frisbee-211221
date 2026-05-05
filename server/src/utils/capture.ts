@@ -11,8 +11,10 @@ import config from '../config'
 import tarpit from './tarpit'
 
 export default {
-  shouldLogDebug(error: unknown) {
-    if (getErrorStatusCode(error) === HTTP_STATUS.NOT_FOUND) return false
+  shouldLogError(error: unknown) {
+    const statusCode = getErrorStatusCode(error)
+    if (statusCode === HTTP_STATUS.NOT_FOUND) return false
+    if (config.IS_PRODUCTION) return true
     return true
   },
 
@@ -48,17 +50,17 @@ export default {
       } catch (error) {
         const appError = toAppError(error)
         if (typeof appError.tarpit === 'object' && appError.tarpit) {
-          if (config.DEBUG && this.shouldLogDebug(error)) {
+          if (this.shouldLogError(error)) {
             const pretty = this.pretty(error, req)
-            console.log(this.formatLogLine(pretty, req))
+            console.error(this.formatLogLine(pretty, req), error)
           }
           await tarpit.respond(res, appError.tarpit as any)
           return null
         }
 
         const pretty = this.pretty(error, req)
-        if (config.DEBUG && this.shouldLogDebug(error)) {
-          console.log(this.formatLogLine(pretty, req))
+        if (this.shouldLogError(error)) {
+          console.error(this.formatLogLine(pretty, req), error)
         }
         send(res, pretty.statusCode, pretty)
       }
@@ -66,11 +68,12 @@ export default {
   },
 
   pretty(error: unknown, req: IncomingMessage) {
+    const includeDebugDetails = !config.IS_PRODUCTION
     const pretty = serializeError(error, {
-      redactInternalMessage: !config.DEBUG,
-      includeDetails: config.DEBUG,
-      includeMeta: config.DEBUG,
-      includeStackLines: config.DEBUG,
+      redactInternalMessage: config.IS_PRODUCTION,
+      includeDetails: includeDebugDetails,
+      includeMeta: includeDebugDetails,
+      includeStackLines: includeDebugDetails,
     })
     return {
       ...pretty,
