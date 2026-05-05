@@ -16,6 +16,7 @@ import {addkeys} from '../../utils/addkeys'
 import {GENDER_OPTIONS} from '../../utils/constants'
 import {go} from '../../utils/go'
 import {objectify} from '../../utils/objectify'
+import {userEmails} from '../../utils/userEmails'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
@@ -91,11 +92,11 @@ export const DashboardUsers: FC = () => {
                 }),
                 $(Table, {
                   head: {
-                    firstName: {label: 'First Name', grow: 3},
-                    lastName: {label: 'Last Name', grow: 3},
-                    gender: {label: 'Gender', grow: 3},
-                    createdOn: {label: 'Created', grow: 3},
-                    updatedOn: {label: 'Updated', grow: 3},
+                    firstName: {label: 'First Name', grow: 2},
+                    lastName: {label: 'Last Name', grow: 2},
+                    email: {label: 'Email', grow: 4},
+                    gender: {label: 'Gender', grow: 2},
+                    createdOn: {label: 'Created', grow: 2},
                   },
                   body: users.map((user) => ({
                     key: user.id,
@@ -103,12 +104,14 @@ export const DashboardUsers: FC = () => {
                     data: {
                       firstName: {value: user.firstName},
                       lastName: {value: user.lastName},
-                      gender: {value: user.gender},
+                      email: {
+                        value: userEmails.primary(user) ?? '',
+                      },
+                      gender: {
+                        value: user.gender[0].toUpperCase() + user.gender.slice(1),
+                      },
                       createdOn: {
                         value: dayjs(user.createdOn).format('DD/MM/YYYY'),
-                      },
-                      updatedOn: {
-                        value: dayjs(user.updatedOn).format('DD/MM/YYYY'),
                       },
                     },
                   })),
