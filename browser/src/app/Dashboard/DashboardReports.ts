@@ -635,20 +635,17 @@ const _DashboardReportsMVP: FC<{
     .map(({userId, votes, gender, teamId}) => {
       const user = users?.find((j) => j.id === userId)
       const teamOfUser = teams.find((t) => t.id === teamId)
-      const teamName = teamOfUser?.name
-      const teamDiv = teamOfUser?.division
       const displayName = user ? `${user.firstName} ${user.lastName}` : userId
       return {
         key: userId,
         gender:
           user?.gender === 'male' ? 0 : user?.gender === 'female' ? 1 : gender,
         data: {
-          // Append team name next to the user's name if available
           user: {
-            value: teamName
-              ? `${displayName} - D${teamDiv ?? '?'} ${teamName}`
-              : displayName,
+            value: displayName,
           },
+          division: {value: teamOfUser?.division ?? '...'},
+          team: {value: teamOfUser?.name ?? '...'},
           votes: {value: votes},
         },
       }
@@ -682,6 +679,8 @@ const _DashboardReportsMVP: FC<{
           $(Table, {
             head: {
               user: {label: 'User', grow: 3},
+              division: {label: 'Division', grow: 1},
+              team: {label: 'Team', grow: 2},
               votes: {label: 'Points', grow: 1},
             },
             body: usersAndVotes.filter((i) => i.gender === 0),
@@ -698,6 +697,8 @@ const _DashboardReportsMVP: FC<{
           $(Table, {
             head: {
               user: {label: 'User', grow: 3},
+              division: {label: 'Division', grow: 1},
+              team: {label: 'Team', grow: 2},
               votes: {label: 'Points', grow: 1},
             },
             body: usersAndVotes.filter((i) => i.gender === 1),
