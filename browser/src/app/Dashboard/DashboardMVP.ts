@@ -150,15 +150,11 @@ export const DashboardMVP: FC = () => {
               className: css({
                 flexGrow: 1,
                 display: 'flex',
-                '& > *:not(:last-child)': {marginRight: theme.fib[5]},
+                gap: theme.fib[5],
                 '& > *': {flexGrow: 1},
                 [theme.ltMedia(theme.fib[14])]: {
                   flexDirection: 'column',
                   '& > *': {flexGrow: 0},
-                  '& > *:not(:last-child)': {
-                    marginBottom: theme.fib[5],
-                    marginRight: 0,
-                  },
                 },
               }),
               children: addkeys([

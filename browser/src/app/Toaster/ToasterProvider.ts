@@ -85,10 +85,8 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
                   flexGrow: 1,
                   display: 'flex',
                   flexDirection: 'column',
+                  gap: 2,
                   padding: theme.padify(8),
-                  '& > *:not(:last-child)': {
-                    marginBottom: 2,
-                  },
                 }),
               }),
               $('div', {

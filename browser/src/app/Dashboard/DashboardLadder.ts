@@ -70,9 +70,7 @@ export const DashboardLadder: FC = () => {
               $('div', {
                 className: css({
                   display: 'flex',
-                  '& > *:not(:last-child)': {
-                    marginRight: theme.fib[5],
-                  },
+                  gap: theme.fib[5],
                 }),
                 children: addkeys([
                   $(FormBadge, {
@@ -156,9 +154,9 @@ export const DashboardLadder: FC = () => {
                     ? $(Spinner)
                     : $('div', {
                         className: css({
-                          '& > *:not(:last-child)': {
-                            marginBottom: theme.fib[5],
-                          },
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: theme.fib[5],
                         }),
                         children: fixtures.map((fixture) => {
                           return $(_LadderFixture, {
@@ -293,9 +291,7 @@ const _LadderFixture: FC<{
                 className: css({
                   display: 'flex',
                   color: theme.fontMinor.string(),
-                  '& > *:not(:last-child)': {
-                    marginRight: theme.fib[4],
-                  },
+                  gap: theme.fib[4],
                 }),
                 children: addkeys([
                   $('div', {

@@ -16,12 +16,10 @@ export const Form: FC<{
         width,
         display: 'flex',
         flexDirection: 'column',
+        gap: theme.fib[5],
         flexGrow: width ? undefined : 1,
         background: background?.string(),
         padding: theme.fib[5],
-        '& > *:not(:last-child)': {
-          marginBottom: theme.fib[5],
-        },
       }),
       _className,
     ),

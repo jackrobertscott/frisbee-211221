@@ -141,9 +141,9 @@ export const PostView: FC<{
                   borderLeft: theme.border(),
                   background: theme.bgMinor.string(),
                   padding: theme.fib[5],
-                  '& > *:not(:last-child)': {
-                    marginBottom: theme.fib[5],
-                  },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: theme.fib[5],
                   [theme.ltMedia(theme.fib[14])]: {
                     borderLeft: 'none',
                     borderTop: theme.border(),
@@ -421,12 +421,10 @@ const _PostViewCommentContent: FC<{
         className: css({
           display: 'flex',
           flexWrap: 'wrap',
+          gap: theme.fib[4],
           color: theme.fontMinor.string(),
           fontSize: theme.fontSizeMinor,
           marginTop: theme.fib[4] - theme.fontInset * 2,
-          '& > *:not(:last-child)': {
-            marginRight: theme.fib[4],
-          },
         }),
         children: addkeys([
           $(Fragment, {

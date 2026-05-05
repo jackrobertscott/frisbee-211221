@@ -44,9 +44,7 @@ export const Question: FC<{
           borderTop: theme.border(),
           background: theme.bgMinor.string(),
           padding: theme.fib[5],
-          '& > *:not(:last-child)': {
-            marginRight: theme.fib[5],
-          },
+          gap: theme.fib[5],
         }),
         children: options.map(({key, label, click, disabled, background}) => {
           return $(FormBadge, {

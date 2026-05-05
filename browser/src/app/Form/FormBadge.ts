@@ -56,6 +56,7 @@ export const FormBadge: FC<TFormBadge> = ({
         overflow: 'hidden',
         textAlign: 'center',
         justifyContent: 'center',
+        gap: theme.fib[3],
         flexGrow: grow ? 1 : undefined,
         flexShrink: noshrink ? 0 : undefined,
         userSelect: select ?? 'none',
@@ -75,9 +76,6 @@ export const FormBadge: FC<TFormBadge> = ({
             background:
               typeof background === 'string' ? background : background.press(),
           },
-        '& > *:not(:last-child)': {
-          marginRight: theme.fib[3],
-        },
       },
       style
     ),

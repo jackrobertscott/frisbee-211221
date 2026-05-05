@@ -54,13 +54,7 @@ export const DashboardFixtures: FC = () => {
             $('div', {
               className: css({
                 display: 'flex',
-                '& > *:not(:last-child)': {
-                  marginRight: theme.fib[5],
-                  [theme.ltMedia(theme.fib[14])]: {
-                    marginRight: 0,
-                    marginBottom: theme.fib[5],
-                  },
-                },
+                gap: theme.fib[5],
                 [theme.ltMedia(theme.fib[14])]: {
                   flexDirection: 'column',
                 },
@@ -95,9 +89,9 @@ export const DashboardFixtures: FC = () => {
                 ? $(Spinner)
                 : $('div', {
                     className: css({
-                      '& > *:not(:last-child)': {
-                        marginBottom: theme.fib[5],
-                      },
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: theme.fib[5],
                     }),
                     children: fixtures.length
                       ? fixtures.map((fixture) => {
@@ -226,9 +220,7 @@ const _DashboardFixturesView: FC<{
                 className: css({
                   display: 'flex',
                   color: theme.fontMinor.string(),
-                  '& > *:not(:last-child)': {
-                    marginRight: theme.fib[4],
-                  },
+                  gap: theme.fib[4],
                 }),
                 children: addkeys([
                   $('div', {

@@ -63,15 +63,9 @@ export const SecurityLogin: FC<{
         className: css({
           display: 'flex',
           justifyContent: 'center',
-          '& > *:not(:last-child)': {
-            marginRight: theme.fib[5],
-          },
+          gap: theme.fib[5],
           [theme.ltMedia(theme.fib[12])]: {
             flexDirection: 'column',
-            '& > *:not(:last-child)': {
-              marginRight: 0,
-              marginBottom: theme.fib[5],
-            },
           },
         }),
         children: addkeys([

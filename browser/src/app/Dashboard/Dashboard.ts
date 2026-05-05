@@ -284,11 +284,9 @@ export const Dashboard: FC = () => {
                                     width: '100%',
                                     display: 'flex',
                                     flexDirection: 'column',
+                                    gap: theme.fib[5],
                                     padding: theme.fib[6],
                                     borderTop: theme.border(),
-                                    '& > *:not(:last-child)': {
-                                      marginBottom: theme.fib[5],
-                                    },
                                   }),
                                 }),
                             }),
@@ -308,9 +306,7 @@ export const Dashboard: FC = () => {
                 className: css({
                   display: 'flex',
                   justifyContent: 'center',
-                  '& > *:not(:last-child)': {
-                    marginRight: theme.fib[5],
-                  },
+                  gap: theme.fib[5],
                 }),
               }),
           }),

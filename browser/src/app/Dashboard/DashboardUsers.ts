@@ -70,9 +70,7 @@ export const DashboardUsers: FC = () => {
                 $('div', {
                   className: css({
                     display: 'flex',
-                    '& > *:not(:last-child)': {
-                      marginRight: theme.fib[5],
-                    },
+                    gap: theme.fib[5],
                   }),
                   children: addkeys([
                     $(Fragment, {
