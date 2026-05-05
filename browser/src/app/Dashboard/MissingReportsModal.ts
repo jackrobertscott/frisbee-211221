@@ -121,7 +121,7 @@ export const MissingReportsModal: FC<{
         background: theme.bgMinor,
         className: css({
           maxHeight: '75vh',
-          overflow: 'hidden',
+          overflow: 'auto',
         }),
         children: loading
           ? $(Spinner)
@@ -132,8 +132,8 @@ export const MissingReportsModal: FC<{
             })
           : $('div', {
               className: css({
+                flexShrink: 0,
                 display: 'grid',
-                overflow: 'hidden',
                 gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)',
                 gap: theme.fib[5],
                 minHeight: theme.fib[12],
@@ -148,7 +148,6 @@ export const MissingReportsModal: FC<{
                     display: 'flex',
                     flexDirection: 'column',
                     gap: theme.fib[5],
-                    overflow: 'auto',
                     minWidth: 0,
                   }),
                   children: addkeys(
@@ -197,7 +196,7 @@ export const MissingReportsModal: FC<{
                 $(FormColumn, {
                   grow: true,
                   className: css({
-                    overflow: 'hidden',
+                    overflow: 'auto',
                   }),
                   children: addkeys([
                     $(FormBadge, {
