@@ -255,6 +255,7 @@ export const Dashboard: FC = () => {
                             flexGrow: 1,
                             minHeight: 0,
                             overflow: 'auto',
+                            background: theme.bgMinor.string(),
                             '& > *': {
                               animation: `150ms linear ${fadein}`,
                             },
