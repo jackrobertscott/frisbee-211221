@@ -30,6 +30,9 @@ type TMissingReportRound = {
 const formatRoundLabel = (round: TMissingReportRound) =>
   `${round.title} - ${dayjs(round.date).format('MMM D')}`
 
+const isPastFixture = (round: TMissingReportRound) =>
+  dayjs(round.date).isBefore(dayjs())
+
 const formatTeamLabel = (
   team: TMissingReportRound['missingTeams'][number]
 ) => {
@@ -84,7 +87,9 @@ export const MissingReportsModal: FC<{
       .fetch({seasonId})
       .then((data) => {
         roundsSet(data)
-        openFixtureIdsSet(data.length ? [data[0].fixtureId] : [])
+        openFixtureIdsSet(
+          data.filter((round) => isPastFixture(round)).map((round) => round.fixtureId)
+        )
         loadingSet(false)
       })
       .catch((error) => {
@@ -93,7 +98,9 @@ export const MissingReportsModal: FC<{
       })
   }, [seasonId])
 
-  const missingReportsText = formatMissingReportsText(rounds)
+  const missingReportsText = formatMissingReportsText(
+    rounds.filter((round) => isPastFixture(round))
+  )
 
   return $(Modal, {
     width: theme.fib[14],
