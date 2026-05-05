@@ -8,7 +8,10 @@ import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
 
 type TFCTable<T extends string = any> = FC<{
-  head: Record<T, {label: string; grow: number}>
+  head: Record<
+    T,
+    {label: string; grow: number; click?: () => void; icon?: string}
+  >
   body: Array<{
     key: string
     click?: () => void
@@ -36,18 +39,26 @@ export const Table: TFCTable = ({head, body}) => {
       maxWidth: '100%',
       children: addkeys([
         $(FormRow, {
-          children: Object.entries(head).map(([key, {grow, label}]) => {
-            return $(_TableCell, {
-              key,
-              grow,
-              children: $(FormLabel, {
-                label,
-                background: theme.bgMinor,
-                select: 'text',
-                grow: true,
-              }),
-            })
-          }),
+          children: Object.entries(head).map(
+            ([key, {grow, label, click, icon}]) => {
+              return $(_TableCell, {
+                key,
+                grow,
+                children: $(FormLabel, {
+                  label,
+                  background: theme.bgMinor,
+                  select: 'text',
+                  grow: true,
+                  click,
+                  suffixIcon: icon,
+                  style: {
+                    justifyContent: 'space-between',
+                    cursor: click ? 'pointer' : undefined,
+                  },
+                }),
+              })
+            }
+          ),
         }),
         $(Fragment, {
           children: body.length

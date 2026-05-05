@@ -1,7 +1,7 @@
 import {css} from '@emotion/css'
 import {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 import type {Property} from 'csstype'
-import {createElement as $, FC} from 'react'
+import {createElement as $, FC, ReactNode} from 'react'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {THSLA} from '../../utils/hsla'
@@ -9,9 +9,11 @@ import {Icon} from '../Icon'
 
 export interface TFormBadge {
   icon?: string
+  suffixIcon?: string
   multiple?: number
   prefix?: string
   label?: string
+  children?: ReactNode
   click?: (event: MouseEvent) => void
   disabled?: boolean
   font?: THSLA
@@ -27,9 +29,11 @@ export interface TFormBadge {
 
 export const FormBadge: FC<TFormBadge> = ({
   icon,
+  suffixIcon,
   multiple,
   prefix,
   label,
+  children,
   click,
   disabled,
   font,
@@ -84,9 +88,13 @@ export const FormBadge: FC<TFormBadge> = ({
           prefix,
           multiple,
         }),
-      label &&
+      (label || children) &&
         $('div', {
-          children: label,
+          children: children ?? label,
+        }),
+      suffixIcon &&
+        $(Icon, {
+          icon: suffixIcon,
         }),
     ]),
   })

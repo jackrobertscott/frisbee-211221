@@ -13,11 +13,10 @@ import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
 import {FormColumn} from '../Form/FormColumn'
 import {FormLabel} from '../Form/FormLabel'
+import {css} from '@emotion/css'
 import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useEndpoint} from '../useEndpoint'
-import {FormRow} from '../Form/FormRow'
-import {css} from '@emotion/css'
 
 export const DashboardMVP: FC = () => {
   const auth = useAuth()

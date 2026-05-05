@@ -16,12 +16,44 @@ import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useEndpoint} from '../useEndpoint'
 
+type TSpiritSortKey =
+  | 'team'
+  | 'spirit'
+  | 'reports'
+  | 'average'
+  | 'allocatedSpirit'
+  | 'allocatedReports'
+  | 'allocatedAverage'
+  | 'avgDiff'
+
+type TSpiritRow = {
+  team: TTeam
+  receivedSpirit: number
+  receivedReports: number
+  receivedAverage: number
+  allocatedSpirit: number
+  allocatedReports: number
+  allocatedAverage: number
+  averageDifference: number
+}
+
+type TSpiritNumericField =
+  | 'receivedSpirit'
+  | 'receivedReports'
+  | 'receivedAverage'
+  | 'allocatedSpirit'
+  | 'allocatedReports'
+  | 'allocatedAverage'
+  | 'averageDifference'
+
 export const DashboardSpirit: FC = () => {
   const auth = useAuth()
   const $teamList = useEndpoint($TeamListOfSeason)
   const $reportList = useEndpoint($ReportListOfSeason)
   const [teams, teamsSet] = useState<TTeam[]>()
   const [reports, reportsSet] = useState<TReport[]>()
+  const [sortKey, sortKeySet] = useState<TSpiritSortKey>('spirit')
+  const [sortDirection, sortDirectionSet] = useState<'asc' | 'desc'>('desc')
   const seasonId = auth.season!.id
   const useOfficialScoring = !!auth.season?.useOfficialScoring
   const averageFormatter = new Intl.NumberFormat(undefined, {
@@ -91,17 +123,76 @@ export const DashboardSpirit: FC = () => {
     return {spirit, reportCount}
   }
 
-  const calculate = () =>
-    teams?.map((team) => {
-      const received = getSpiritSummary(
-        reports?.filter((report) => report.teamAgainstId === team.id) ?? []
-      )
-      const allocated = getSpiritSummary(
-        reports?.filter((report) => report.teamId === team.id) ?? []
-      )
+  const toggleSort = (key: TSpiritSortKey) => {
+    if (sortKey === key) {
+      sortDirectionSet((current) => (current === 'asc' ? 'desc' : 'asc'))
+      return
+    }
 
-      return {team, received, allocated}
-    }) ?? []
+    sortKeySet(key)
+    sortDirectionSet(key === 'team' ? 'asc' : 'desc')
+  }
+
+  const getSortIcon = (key: TSpiritSortKey) => {
+    if (sortKey !== key) return undefined
+    return sortDirection === 'asc' ? 'angle-up' : 'angle-down'
+  }
+
+  const sortRows = (rows: TSpiritRow[]) => {
+    const direction = sortDirection === 'asc' ? 1 : -1
+    const valueMap: Record<Exclude<TSpiritSortKey, 'team'>, TSpiritNumericField> = {
+      spirit: 'receivedSpirit',
+      reports: 'receivedReports',
+      average: 'receivedAverage',
+      allocatedSpirit: 'allocatedSpirit',
+      allocatedReports: 'allocatedReports',
+      allocatedAverage: 'allocatedAverage',
+      avgDiff: 'averageDifference',
+    }
+
+    return [...rows].sort((a, b) => {
+      if (sortKey === 'team') {
+        return a.team.name.localeCompare(b.team.name) * direction
+      }
+
+      const valueKey = valueMap[sortKey]
+      return (a[valueKey] - b[valueKey]) * direction
+    })
+  }
+
+  const calculate = () =>
+    sortRows(
+      teams?.map((team) => {
+        const received = getSpiritSummary(
+          reports?.filter((report) => report.teamAgainstId === team.id) ?? []
+        )
+        const allocated = getSpiritSummary(
+          reports?.filter((report) => report.teamId === team.id) ?? []
+        )
+
+        const receivedAverage =
+          received.reportCount > 0 ? received.spirit / received.reportCount : 0
+        const allocatedAverage =
+          allocated.reportCount > 0
+            ? allocated.spirit / allocated.reportCount
+            : 0
+        const averageDifference =
+          allocated.reportCount > 0 && received.reportCount > 0
+            ? allocatedAverage - receivedAverage
+            : 0
+
+        return {
+          team,
+          receivedSpirit: received.spirit,
+          receivedReports: received.reportCount,
+          receivedAverage,
+          allocatedSpirit: allocated.spirit,
+          allocatedReports: allocated.reportCount,
+          allocatedAverage,
+          averageDifference,
+        }
+      }) ?? []
+    )
 
   return $(Form, {
     background: theme.bgAdmin,
@@ -117,31 +208,66 @@ export const DashboardSpirit: FC = () => {
               }),
               $(Table, {
                 head: {
-                  team: {label: 'Team', grow: 3},
-                  spirit: {label: 'Pnts Got', grow: 1},
-                  reports: {label: 'Rpts Got', grow: 1},
-                  average: {label: 'Avg Got', grow: 1},
-                  allocatedSpirit: {label: 'Pnts Sent', grow: 1},
-                  allocatedReports: {label: 'Rpts Sent', grow: 1},
-                  allocatedAverage: {label: 'Avg Sent', grow: 1},
-                  avgDiff: {label: 'Avg Diff', grow: 1},
+                  team: {
+                    label: 'Team',
+                    grow: 3,
+                    click: () => toggleSort('team'),
+                    icon: getSortIcon('team'),
+                  },
+                  spirit: {
+                    label: 'Pnts Got',
+                    grow: 1,
+                    click: () => toggleSort('spirit'),
+                    icon: getSortIcon('spirit'),
+                  },
+                  reports: {
+                    label: 'Rpts Got',
+                    grow: 1,
+                    click: () => toggleSort('reports'),
+                    icon: getSortIcon('reports'),
+                  },
+                  average: {
+                    label: 'Avg Got',
+                    grow: 1,
+                    click: () => toggleSort('average'),
+                    icon: getSortIcon('average'),
+                  },
+                  allocatedSpirit: {
+                    label: 'Pnts Sent',
+                    grow: 1,
+                    click: () => toggleSort('allocatedSpirit'),
+                    icon: getSortIcon('allocatedSpirit'),
+                  },
+                  allocatedReports: {
+                    label: 'Rpts Sent',
+                    grow: 1,
+                    click: () => toggleSort('allocatedReports'),
+                    icon: getSortIcon('allocatedReports'),
+                  },
+                  allocatedAverage: {
+                    label: 'Avg Sent',
+                    grow: 1,
+                    click: () => toggleSort('allocatedAverage'),
+                    icon: getSortIcon('allocatedAverage'),
+                  },
+                  avgDiff: {
+                    label: 'Avg Diff',
+                    grow: 1,
+                    click: () => toggleSort('avgDiff'),
+                    icon: getSortIcon('avgDiff'),
+                  },
                 },
-                body: calculate()
-                  .sort((a, b) => b.received.spirit - a.received.spirit)
-                  .map(({team, received, allocated}) => {
-                    const receivedAverage =
-                      received.reportCount > 0
-                        ? received.spirit / received.reportCount
-                        : 0
-                    const allocatedAverage =
-                      allocated.reportCount > 0
-                        ? allocated.spirit / allocated.reportCount
-                        : 0
-                    const averageDifference =
-                      allocated.reportCount > 0 && received.reportCount > 0
-                        ? allocatedAverage - receivedAverage
-                        : 0
-
+                body: calculate().map(
+                  ({
+                    team,
+                    receivedSpirit,
+                    receivedReports,
+                    receivedAverage,
+                    allocatedSpirit,
+                    allocatedReports,
+                    allocatedAverage,
+                    averageDifference,
+                  }) => {
                     return {
                       key: team.id,
                       data: {
@@ -149,13 +275,13 @@ export const DashboardSpirit: FC = () => {
                           value: team.name,
                           color: team.color,
                         },
-                        spirit: {value: received.spirit},
-                        reports: {value: received.reportCount},
+                        spirit: {value: receivedSpirit},
+                        reports: {value: receivedReports},
                         average: {
                           value: formatAverage(receivedAverage),
                         },
-                        allocatedSpirit: {value: allocated.spirit},
-                        allocatedReports: {value: allocated.reportCount},
+                        allocatedSpirit: {value: allocatedSpirit},
+                        allocatedReports: {value: allocatedReports},
                         allocatedAverage: {
                           value: formatAverage(allocatedAverage),
                         },
@@ -166,7 +292,8 @@ export const DashboardSpirit: FC = () => {
                         },
                       },
                     }
-                  }),
+                  }
+                ),
               }),
             ]),
           }),
