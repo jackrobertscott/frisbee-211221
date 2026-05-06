@@ -7,6 +7,10 @@ import {
   UserCurrentEmailPrimarySetDef,
   UserCurrentEmailRemoveDef,
   UserCurrentEmailVerifyDef,
+  UserEmailAddDef,
+  UserEmailPrimarySetDef,
+  UserEmailRemoveDef,
+  UserEmailVerifiedSetDef,
   UserCurrentUpdateDef,
   UserListDef,
   UserMergeDef,
@@ -30,6 +34,14 @@ export const $UserCurrentEmailPrimarySet = createEndpoint(
 )
 
 export const $UserCurrentEmailRemove = createEndpoint(UserCurrentEmailRemoveDef)
+
+export const $UserEmailAdd = createEndpoint(UserEmailAddDef)
+
+export const $UserEmailPrimarySet = createEndpoint(UserEmailPrimarySetDef)
+
+export const $UserEmailVerifiedSet = createEndpoint(UserEmailVerifiedSetDef)
+
+export const $UserEmailRemove = createEndpoint(UserEmailRemoveDef)
 
 export const $UserCurrentChangePassword = createEndpoint(
   UserCurrentChangePasswordDef,

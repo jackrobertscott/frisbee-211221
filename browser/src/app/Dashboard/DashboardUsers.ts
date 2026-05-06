@@ -13,6 +13,10 @@ import {$FeatureDashboardUserMembershipsLoad} from '../../endpoints/Feature'
 import {
   $UserChangePassword,
   $UserCreate,
+  $UserEmailAdd,
+  $UserEmailPrimarySet,
+  $UserEmailRemove,
+  $UserEmailVerifiedSet,
   $UserList,
   $UserToggleAdmin,
   $UserUpdate,
@@ -484,10 +488,26 @@ const _DashboardUsersViewDetails: FC<{
   changePassword: () => void
   toggleAdmin: () => void
 }> = ({user, userSet, changePassword, toggleAdmin}) => {
+  const auth = useAuth()
+  const toaster = useToaster()
+  const [creating, creatingSet] = useState(false)
+  const [removing, removingSet] = useState<string>()
+  const [primaryify, primaryifySet] = useState<string>()
+  const [verifying, verifyingSet] = useState<string>()
   const $userUpdate = useEndpoint($UserUpdate)
+  const $emailAdd = useEndpoint($UserEmailAdd)
+  const $emailRemove = useEndpoint($UserEmailRemove)
+  const $emailPrimarySet = useEndpoint($UserEmailPrimarySet)
+  const $emailVerifiedSet = useEndpoint($UserEmailVerifiedSet)
   const form = useForm({
     ...user,
   })
+  const canRemoveEmail = user.emails.length > 1
+  const applyUser = (next: TUserSafe) => {
+    form.patch(next)
+    if (next.id === auth.current?.user.id) auth.userSet(next)
+    userSet(next)
+  }
   const isDifferent = !objectify.compareKeys(user, form.data, [
     'firstName',
     'lastName',
@@ -526,13 +546,76 @@ const _DashboardUsersViewDetails: FC<{
       }),
       $(FormColumn, {
         children: addkeys([
-          $(FormLabel, {label: 'Emails'}),
+          $(FormRow, {
+            children: addkeys([
+              $(FormLabel, {
+                grow: true,
+                label: 'Emails',
+              }),
+              $(FormLabel, {
+                icon: 'plus',
+                click: () => creatingSet(true),
+              }),
+            ]),
+          }),
           $(Fragment, {
             children: user.emails.map((i) => {
-              return $(InputString, {
+              return $(FormRow, {
                 key: i.value,
-                disabled: true,
-                value: i.value,
+                children: addkeys([
+                  $(FormLabel, {
+                    grow: true,
+                    label: i.value,
+                    style: {
+                      overflow: 'hidden',
+                    },
+                  }),
+                  $(Fragment, {
+                    children: i.primary
+                      ? $(FormLabel, {label: 'Primary'})
+                      : $(FormBadge, {
+                          icon: 'arrow-up',
+                          click: () => primaryifySet(i.value),
+                        }),
+                  }),
+                  $(FormBadge, {
+                    disabled: $emailVerifiedSet.loading,
+                    label:
+                      verifying === i.value && $emailVerifiedSet.loading
+                        ? 'Loading'
+                        : i.verified
+                          ? 'Verified'
+                          : 'Unverified',
+                    icon: i.verified ? 'check' : 'exclamation',
+                    background: i.verified
+                      ? theme.bgAdminButton
+                      : theme.bgDisabled,
+                    click: () => {
+                      verifyingSet(i.value)
+                      $emailVerifiedSet
+                        .fetch({
+                          userId: user.id,
+                          email: i.value,
+                          verified: !i.verified,
+                        })
+                        .then((next) => {
+                          applyUser(next)
+                          verifyingSet(undefined)
+                          toaster.notify(
+                            i.verified
+                              ? 'Email marked as unverified.'
+                              : 'Email marked as verified.',
+                          )
+                        })
+                        .finally(() => verifyingSet(undefined))
+                    },
+                  }),
+                  $(FormBadge, {
+                    disabled: !canRemoveEmail,
+                    icon: 'trash-alt',
+                    click: () => canRemoveEmail && removingSet(i.value),
+                  }),
+                ]),
               })
             }),
           }),
@@ -591,8 +674,113 @@ const _DashboardUsersViewDetails: FC<{
           disabled: $userUpdate.loading,
           label: $userUpdate.loading ? 'Loading' : 'Save Changes',
           click: () =>
-            $userUpdate.fetch({...form.data, userId: user.id}).then(userSet),
+            $userUpdate.fetch({...form.data, userId: user.id}).then(applyUser),
         }),
+      $(Fragment, {
+        children:
+          creating &&
+          $(Modal, {
+            children: addkeys([
+              $(TopBar, {
+                children: addkeys([
+                  $(TopBarBadge, {
+                    grow: true,
+                    label: 'New Email',
+                  }),
+                  $(TopBarBadge, {
+                    icon: 'times',
+                    click: () => creatingSet(false),
+                  }),
+                ]),
+              }),
+              $(_DashboardUsersViewEmailNew, {
+                loading: $emailAdd.loading,
+                submit: (email) =>
+                  $emailAdd
+                    .fetch({userId: user.id, email})
+                    .then((next) => {
+                      applyUser(next)
+                      creatingSet(false)
+                      toaster.notify('Email added to account.')
+                    }),
+              }),
+            ]),
+          }),
+      }),
+      $(Fragment, {
+        children:
+          removing &&
+          $(Question, {
+            close: () => removingSet(undefined),
+            title: 'Remove Email',
+            description: `Are you sure you wish "${removing}" to be removed from this account?`,
+            options: [
+              {label: 'Cancel', click: () => removingSet(undefined)},
+              {
+                disabled: !canRemoveEmail || $emailRemove.loading,
+                label: $emailRemove.loading ? 'Loading' : 'Delete',
+                click: () =>
+                  canRemoveEmail &&
+                  $emailRemove
+                    .fetch({userId: user.id, email: removing})
+                    .then((next) => {
+                      applyUser(next)
+                      removingSet(undefined)
+                      toaster.notify('Email removed from account.')
+                    }),
+              },
+            ],
+          }),
+      }),
+      $(Fragment, {
+        children:
+          primaryify &&
+          $(Question, {
+            close: () => primaryifySet(undefined),
+            title: 'Set As Primary',
+            description: `Are you sure you wish to make "${primaryify}" the primary email?`,
+            options: [
+              {label: 'Cancel', click: () => primaryifySet(undefined)},
+              {
+                label: $emailPrimarySet.loading ? 'Loading' : 'Set As Primary',
+                click: () =>
+                  $emailPrimarySet
+                    .fetch({userId: user.id, email: primaryify})
+                    .then((next) => {
+                      applyUser(next)
+                      primaryifySet(undefined)
+                      toaster.notify('Email set as primary.')
+                    }),
+              },
+            ],
+          }),
+      }),
+    ]),
+  })
+}
+
+const _DashboardUsersViewEmailNew: FC<{
+  loading: boolean
+  submit: (email: string) => Promise<void>
+}> = ({loading, submit}) => {
+  const [value, valueSet] = useState('')
+  return $(Form, {
+    background: theme.bgMinor,
+    children: addkeys([
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {label: 'Email'}),
+          $(InputString, {
+            value,
+            valueSet,
+          }),
+        ]),
+      }),
+      $(FormBadge, {
+        disabled: loading,
+        label: loading ? 'Loading' : 'Submit',
+        click: () => submit(value),
+      }),
     ]),
   })
 }

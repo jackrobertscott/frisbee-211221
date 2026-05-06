@@ -8,6 +8,10 @@ import {
   UserCurrentEmailPrimarySetDef,
   UserCurrentEmailRemoveDef,
   UserCurrentEmailVerifyDef,
+  UserEmailAddDef,
+  UserEmailPrimarySetDef,
+  UserEmailRemoveDef,
+  UserEmailVerifiedSetDef,
   UserCurrentUpdateDef,
   UserListDef,
   UserMergeDef,
@@ -113,6 +117,52 @@ export default new Map<string, RequestHandler>([
       ({email}, access) =>
       async (req) => {
         const [user] = await requireAccess(req, access)
+        return selectSafeUserFields(await userEmail.remove(user, email))
+      },
+  }),
+
+  createEndpoint({
+    ...UserEmailAddDef,
+    handler:
+      ({userId, email}, access) =>
+      async (req) => {
+        await requireAccess(req, access)
+        const user = await $User.getOne({id: userId})
+        return selectSafeUserFields(await userEmail.add(user, email))
+      },
+  }),
+
+  createEndpoint({
+    ...UserEmailPrimarySetDef,
+    handler:
+      ({userId, email}, access) =>
+      async (req) => {
+        await requireAccess(req, access)
+        const user = await $User.getOne({id: userId})
+        return selectSafeUserFields(await userEmail.primarySet(user, email))
+      },
+  }),
+
+  createEndpoint({
+    ...UserEmailVerifiedSetDef,
+    handler:
+      ({userId, email, verified}, access) =>
+      async (req) => {
+        await requireAccess(req, access)
+        const user = await $User.getOne({id: userId})
+        return selectSafeUserFields(
+          await userEmail.verifiedSet(user, email, verified),
+        )
+      },
+  }),
+
+  createEndpoint({
+    ...UserEmailRemoveDef,
+    handler:
+      ({userId, email}, access) =>
+      async (req) => {
+        await requireAccess(req, access)
+        const user = await $User.getOne({id: userId})
         return selectSafeUserFields(await userEmail.remove(user, email))
       },
   }),
@@ -333,25 +383,23 @@ const _getUserSort = (
 
   switch (sortBy) {
     case 'firstName':
-      return {firstName: direction, lastName: 1 as const, id: 1 as const}
+      return {firstName: direction, lastName: 1 as const}
     case 'lastName':
-      return {lastName: direction, firstName: 1 as const, id: 1 as const}
+      return {lastName: direction, firstName: 1 as const}
     case 'email':
       return {
         _sortPrimaryEmail: direction,
         lastName: 1 as const,
         firstName: 1 as const,
-        id: 1 as const,
       }
     case 'gender':
       return {
         gender: direction,
         lastName: 1 as const,
         firstName: 1 as const,
-        id: 1 as const,
       }
     case 'createdOn':
-      return {createdOn: direction, id: 1 as const}
+      return {createdOn: direction}
   }
 }
 

@@ -17,7 +17,7 @@ export default new Map<string, RequestHandler>([
       return $Season.getMany(
         {name: regex.from(body.search ?? '')},
         {
-          sort: {name: 1 as const, id: 1 as const},
+          sort: {name: -1 as const},
           collation: seasonNameCollation,
         },
       )

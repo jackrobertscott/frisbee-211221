@@ -76,6 +76,47 @@ export const UserCurrentEmailRemoveDef = {
   result: ioUserSafe,
 } satisfies TEndpointDef
 
+export const UserEmailAddDef = {
+  access: authPoint.userManage,
+  path: '/UserEmailAdd',
+  payload: io.object({
+    userId: io.string(),
+    email: io.string(),
+  }),
+  result: ioUserSafe,
+} satisfies TEndpointDef
+
+export const UserEmailPrimarySetDef = {
+  access: authPoint.userManage,
+  path: '/UserEmailPrimarySet',
+  payload: io.object({
+    userId: io.string(),
+    email: io.string(),
+  }),
+  result: ioUserSafe,
+} satisfies TEndpointDef
+
+export const UserEmailVerifiedSetDef = {
+  access: authPoint.userManage,
+  path: '/UserEmailVerifiedSet',
+  payload: io.object({
+    userId: io.string(),
+    email: io.string(),
+    verified: io.boolean(),
+  }),
+  result: ioUserSafe,
+} satisfies TEndpointDef
+
+export const UserEmailRemoveDef = {
+  access: authPoint.userManage,
+  path: '/UserEmailRemove',
+  payload: io.object({
+    userId: io.string(),
+    email: io.string(),
+  }),
+  result: ioUserSafe,
+} satisfies TEndpointDef
+
 export const UserCurrentChangePasswordDef = {
   access: authPoint.userSelf,
   path: '/UserCurrentChangePassword',

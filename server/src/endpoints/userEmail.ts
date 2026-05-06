@@ -96,6 +96,10 @@ export const userEmail = {
   },
 
   async verify(user: TUser, email: string) {
+    return userEmail.verifiedSet(user, email, true)
+  },
+
+  async verifiedSet(user: TUser, email: string, verified: boolean) {
     const emails = [...user.emails]
     const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
     if (index === -1)
@@ -103,7 +107,7 @@ export const userEmail = {
         errorCode: 'user.email_not_found',
       })
     const data = emails[index]
-    emails.splice(index, 1, {...data, verified: true})
+    emails.splice(index, 1, {...data, verified})
     return $User.updateOne({id: user.id}, {emails})
   },
 

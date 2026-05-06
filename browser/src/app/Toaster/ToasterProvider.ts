@@ -52,7 +52,7 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
           flexDirection: 'column',
           alignItems: 'center',
           padding: theme.fib[8],
-          gap: theme.fib[6],
+          gap: theme.fib[4],
           [theme.ltMedia(theme.fib[13])]: {
             padding: theme.fib[5],
           },

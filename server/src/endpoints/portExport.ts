@@ -506,7 +506,7 @@ const _exportFilename = (generatedOn: string, fileType: TExportFileType) => {
 }
 
 const _loadExportContext = async (): Promise<TExportContext> => {
-  const sort = {createdOn: 1 as const, id: 1 as const}
+  const sort = {createdOn: 1 as const}
   const [fixtures, members, reports, seasons, teams, users] = await Promise.all(
     [
       $Fixture.getMany({}, {sort}),
@@ -515,7 +515,7 @@ const _loadExportContext = async (): Promise<TExportContext> => {
       $Season.getMany(
         {},
         {
-          sort: {name: 1 as const, id: 1 as const},
+          sort: {name: 1 as const},
           collation: seasonNameCollation,
         },
       ),

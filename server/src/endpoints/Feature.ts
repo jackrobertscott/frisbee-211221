@@ -748,20 +748,19 @@ function _getTeamSort(
   const direction: 1 | -1 = sortDirection === 'asc' ? 1 : -1
   switch (sortBy) {
     case 'name':
-      return {name: direction, id: 1 as const}
+      return {name: direction}
     case 'division':
       return {
         _sortDivisionMissing: 1 as const,
         division: direction,
         name: 1 as const,
-        id: 1 as const,
       }
     case 'phone':
-      return {phone: direction, name: 1 as const, id: 1 as const}
+      return {phone: direction, name: 1 as const}
     case 'email':
-      return {email: direction, name: 1 as const, id: 1 as const}
+      return {email: direction, name: 1 as const}
     case 'createdOn':
-      return {createdOn: direction, id: 1 as const}
+      return {createdOn: direction}
   }
 }
 
