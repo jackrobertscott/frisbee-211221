@@ -2,22 +2,10 @@ import {authPoint} from '@shared/auth/authAccess'
 import {TReportSearchRow} from '@shared/endpoints/ReportDef'
 import {css} from '@emotion/css'
 import {TFixture} from '@shared/schemas/ioFixture'
-import {TReport} from '@shared/schemas/ioReport'
 import {TTeam} from '@shared/schemas/ioTeam'
-import {TUserPublic} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
-import {
-  createElement as $,
-  FC,
-  Fragment,
-  useEffect,
-  useRef,
-  useState,
-} from 'react'
-import {
-  $FeatureDashboardReportsLoad,
-  $FeatureReportEditorLoad,
-} from '../../endpoints/Feature'
+import {createElement as $, FC, Fragment, useEffect, useRef, useState} from 'react'
+import {$FeatureDashboardReportsLoad} from '../../endpoints/Feature'
 import {
   $ReportCreate,
   $ReportDelete,
@@ -27,35 +15,22 @@ import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
 import {
-  createReportFormDataFromReport,
-  renderAgainstTeamSelect,
-  renderFixtureSelect,
-  renderMVPInputs,
-  renderOfficialSpiritInputs,
-  renderScoreInputs,
-  renderSpiritInputs,
-  renderSubmitButton,
-  renderTeamSelect,
-  sanitizeReportFormMvps,
-  validateReportForm,
+  createReportCreatePayload,
+  createReportUpdatePayload,
 } from '../../utils/renderReportForm'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
 import {FormBadge} from '../Form/FormBadge'
-import {FormColumn} from '../Form/FormColumn'
 import {FormLabel} from '../Form/FormLabel'
-import {FormRow} from '../Form/FormRow'
 import {InputString} from '../Input/InputString'
-import {Modal} from '../Modal'
 import {Pager} from '../Pager/Pager'
 import {usePager} from '../Pager/usePager'
 import {Question} from '../Question'
+import {ReportModal} from '../ReportModal'
 import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useToaster} from '../Toaster/useToaster'
-import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
-import {useForm} from '../useForm'
 import {useSling} from '../useThrottle'
 import {MissingReportsControl} from './MissingReportsModal'
 
@@ -236,13 +211,19 @@ export const DashboardReports: FC = () => {
           creating &&
           teams !== undefined &&
           fixtures !== undefined &&
-          $(_DashboardReportsForm, {
+          $(ReportModal, {
             title: 'New Report',
-            teams,
-            fixtures,
+            initialTeams: teams,
+            initialFixtures: fixtures,
             loading: $reportCreate.loading,
-            dataSet: (data: any) =>
-              $reportCreate.fetch(data).then(() => {
+            variant: 'dashboard',
+            onSubmit: (data) => {
+              const payload = createReportCreatePayload(data)
+              if (!payload) {
+                return
+              }
+
+              $reportCreate.fetch(payload).then(() => {
                 const nextPager = {...pager.data, skip: 0}
                 toaster.notify('Report created.')
                 creatingSet(false)
@@ -252,7 +233,8 @@ export const DashboardReports: FC = () => {
                   pager: nextPager,
                 })
                 if (pager.skip !== 0) pager.dataSet(nextPager)
-              }),
+              })
+            },
             close: () => creatingSet(false),
           }),
       }),
@@ -261,21 +243,26 @@ export const DashboardReports: FC = () => {
           currentReport &&
           teams !== undefined &&
           fixtures !== undefined &&
-          $(_DashboardReportsForm, {
+          $(ReportModal, {
             title: 'Edit Report',
-            teams,
-            fixtures,
-            data: currentReport,
+            initialTeams: teams,
+            initialFixtures: fixtures,
+            initialData: currentReport,
             submitter: current.submitterName,
             options: [{label: 'Delete', click: () => deletingSet(true)}],
             loading: $reportUpdate.loading,
-            dataSet: (data: any) =>
-              $reportUpdate
-                .fetch({...data, reportId: currentReport.id})
-                .then(() => {
-                  toaster.notify('Report updated.')
-                  reportList()
-                }),
+            variant: 'dashboard',
+            onSubmit: (data) => {
+              const payload = createReportUpdatePayload(currentReport.id, data)
+              if (!payload) {
+                return
+              }
+
+              $reportUpdate.fetch(payload).then(() => {
+                toaster.notify('Report updated.')
+                reportList()
+              })
+            },
             close: () => currentIdSet(undefined),
           }),
       }),
@@ -300,248 +287,6 @@ export const DashboardReports: FC = () => {
               },
             ],
           }),
-      }),
-    ]),
-  })
-}
-
-const _DashboardReportsForm: FC<{
-  title: string
-  teams: TTeam[]
-  fixtures: TFixture[]
-  loading?: boolean
-  options?: {label: string; click: () => void}[]
-  data?: Partial<TReport>
-  submitter?: string
-  dataSet: (data: Partial<TReport>) => void
-  close: () => void
-}> = ({
-  title,
-  teams,
-  fixtures,
-  loading,
-  options,
-  data,
-  submitter,
-  dataSet,
-  close,
-}) => {
-  const auth = useAuth()
-  const toaster = useToaster()
-  const $reportEditorLoad = useEndpoint($FeatureReportEditorLoad)
-  const [againstOptions, againstOptionsSet] =
-    useState<Array<{team: TTeam; users: TUserPublic[]}>>()
-
-  // Check if the season uses official scoring
-  const useOfficialScoring = auth.season?.useOfficialScoring === true
-
-  const form = useForm(createReportFormDataFromReport(data))
-
-  useEffect(() => {
-    againstOptionsSet(undefined)
-    form.set(createReportFormDataFromReport(data))
-  }, [data?.id])
-
-  useEffect(() => {
-    if (!form.data.fixtureId || !form.data.teamId) {
-      againstOptionsSet(undefined)
-      return
-    }
-
-    let cancelled = false
-    const currentAgainstTeamId = form.data.againstTeamId
-
-    againstOptionsSet(undefined)
-
-    $reportEditorLoad
-      .fetch({
-        seasonId: auth.season!.id,
-        fixtureId: form.data.fixtureId,
-        teamId: form.data.teamId,
-      })
-      .then(({againstOptions: nextAgainstOptions}) => {
-        if (cancelled) return
-
-        againstOptionsSet(nextAgainstOptions)
-        const hasCurrentSelection = nextAgainstOptions.some(
-          (option) => option.team.id === currentAgainstTeamId,
-        )
-
-        form.patch({
-          againstTeamId:
-            nextAgainstOptions.length === 1
-              ? nextAgainstOptions[0].team.id
-              : hasCurrentSelection
-                ? currentAgainstTeamId
-                : undefined,
-        })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [form.data.fixtureId, form.data.teamId])
-
-  const chosenAgainst = againstOptions?.find(
-    (i) => i.team.id === form.data.againstTeamId,
-  )
-
-  useEffect(() => {
-    const nextMvps = sanitizeReportFormMvps(form.data, chosenAgainst?.users)
-
-    if (
-      nextMvps.mvpMale === form.data.mvpMale &&
-      nextMvps.mvpFemale === form.data.mvpFemale &&
-      nextMvps.mvpMale2 === form.data.mvpMale2 &&
-      nextMvps.mvpFemale2 === form.data.mvpFemale2
-    ) {
-      return
-    }
-
-    form.patch(nextMvps)
-  }, [
-    chosenAgainst,
-    form.data.mvpMale,
-    form.data.mvpFemale,
-    form.data.mvpMale2,
-    form.data.mvpFemale2,
-  ])
-
-  const handleSubmit = () => {
-    const errorMessage = validateReportForm(form.data, useOfficialScoring)
-    if (errorMessage) {
-      return toaster.error(errorMessage)
-    }
-    dataSet(form.data)
-  }
-
-  const submittedBy = submitter ?? data?.userId
-
-  return $(Fragment, {
-    children: addkeys([
-      $(Modal, {
-        width: theme.fib[13],
-        children: addkeys([
-          $(TopBar, {
-            children: addkeys([
-              $(TopBarBadge, {
-                grow: true,
-                label: title,
-              }),
-              $(Fragment, {
-                children: options?.map((i) => {
-                  return $(TopBarBadge, {
-                    key: i.label,
-                    label: i.label,
-                    click: i.click,
-                  })
-                }),
-              }),
-              $(TopBarBadge, {
-                icon: 'times',
-                click: close,
-              }),
-            ]),
-          }),
-          $(Form, {
-            background: theme.bgMinor,
-            children: addkeys([
-              submittedBy &&
-                $(FormRow, {
-                  children: addkeys([
-                    $(FormLabel, {label: 'Submitted by'}),
-                    $(FormLabel, {
-                      label: submittedBy,
-                      background: theme.bgDisabled,
-                      grow: true,
-                    }),
-                  ]),
-                }),
-              renderFixtureSelect(
-                form.data.fixtureId,
-                form.link('fixtureId'),
-                fixtures,
-                !!data?.fixtureId,
-              ),
-              $(FormColumn, {
-                children: addkeys([
-                  renderTeamSelect(
-                    form.data.teamId,
-                    form.link('teamId'),
-                    teams,
-                    !!data?.teamId,
-                  ),
-                  againstOptions &&
-                    renderAgainstTeamSelect(
-                      form.data.againstTeamId,
-                      form.link('againstTeamId'),
-                      againstOptions,
-                      !!data?.teamAgainstId,
-                    ),
-                ]),
-              }),
-              $(Fragment, {
-                children:
-                  !againstOptions &&
-                  form.data.teamId &&
-                  form.data.fixtureId &&
-                  $(Spinner),
-              }),
-              $(Fragment, {
-                children:
-                  againstOptions &&
-                  addkeys([
-                    renderScoreInputs(
-                      form.data.scoreFor,
-                      form.link('scoreFor'),
-                      form.data.scoreAgainst,
-                      form.link('scoreAgainst'),
-                      true,
-                    ),
-                    $(Fragment, {
-                      children:
-                        chosenAgainst &&
-                        renderMVPInputs(
-                          form.data.mvpMale,
-                          form.link('mvpMale'),
-                          form.data.mvpFemale,
-                          form.link('mvpFemale'),
-                          chosenAgainst.users,
-                          useOfficialScoring,
-                          form.data.mvpMale2,
-                          form.link('mvpMale2'),
-                          form.data.mvpFemale2,
-                          form.link('mvpFemale2'),
-                        ),
-                    }),
-                    // Render spirit form based on scoring type
-                    useOfficialScoring
-                      ? renderOfficialSpiritInputs(
-                          form.data.spiritP1,
-                          (value) => form.patch({spiritP1: value}),
-                          form.data.spiritP2,
-                          (value) => form.patch({spiritP2: value}),
-                          form.data.spiritP3,
-                          (value) => form.patch({spiritP3: value}),
-                          form.data.spiritP4,
-                          (value) => form.patch({spiritP4: value}),
-                          form.data.spiritP5,
-                          (value) => form.patch({spiritP5: value}),
-                          form.data.spiritComment,
-                          form.link('spiritComment'),
-                        )
-                      : renderSpiritInputs(
-                          form.data.spirit,
-                          (value) => form.patch({spirit: value}),
-                          form.data.spiritComment,
-                          form.link('spiritComment'),
-                        ),
-                    renderSubmitButton(loading, handleSubmit),
-                  ]),
-              }),
-            ]),
-          }),
-        ]),
       }),
     ]),
   })

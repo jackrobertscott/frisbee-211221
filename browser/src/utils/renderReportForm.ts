@@ -1,4 +1,8 @@
 import {theme} from '@browser/theme'
+import {
+  TReportCreatePayload,
+  TReportUpdatePayload,
+} from '@shared/endpoints/ReportDef'
 import {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TReport} from '@shared/schemas/ioReport'
@@ -107,6 +111,87 @@ export const createReportFormDataFromReport = (
     spiritP4: report?.spiritP4,
     spiritP5: report?.spiritP5,
   })
+
+function getRequiredCreateFields(formData: ReportFormData) {
+  if (
+    !formData.teamId ||
+    !formData.againstTeamId ||
+    !formData.fixtureId ||
+    formData.scoreFor === undefined ||
+    formData.scoreAgainst === undefined
+  ) {
+    return undefined
+  }
+
+  return {
+    teamId: formData.teamId,
+    againstTeamId: formData.againstTeamId,
+    fixtureId: formData.fixtureId,
+    scoreFor: formData.scoreFor,
+    scoreAgainst: formData.scoreAgainst,
+  }
+}
+
+function getRequiredUpdateFields(formData: ReportFormData) {
+  if (formData.scoreFor === undefined || formData.scoreAgainst === undefined) {
+    return undefined
+  }
+
+  return {
+    scoreFor: formData.scoreFor,
+    scoreAgainst: formData.scoreAgainst,
+  }
+}
+
+export function createReportCreatePayload(
+  formData: ReportFormData,
+): TReportCreatePayload | undefined {
+  const required = getRequiredCreateFields(formData)
+  if (!required) {
+    return undefined
+  }
+
+  return {
+    ...required,
+    mvpMale: formData.mvpMale,
+    mvpFemale: formData.mvpFemale,
+    mvpMale2: formData.mvpMale2,
+    mvpFemale2: formData.mvpFemale2,
+    spirit: formData.spirit,
+    spiritComment: formData.spiritComment,
+    spiritP1: formData.spiritP1,
+    spiritP2: formData.spiritP2,
+    spiritP3: formData.spiritP3,
+    spiritP4: formData.spiritP4,
+    spiritP5: formData.spiritP5,
+  }
+}
+
+export function createReportUpdatePayload(
+  reportId: string,
+  formData: ReportFormData,
+): TReportUpdatePayload | undefined {
+  const required = getRequiredUpdateFields(formData)
+  if (!required) {
+    return undefined
+  }
+
+  return {
+    reportId,
+    ...required,
+    mvpMale: formData.mvpMale,
+    mvpFemale: formData.mvpFemale,
+    mvpMale2: formData.mvpMale2,
+    mvpFemale2: formData.mvpFemale2,
+    spirit: formData.spirit,
+    spiritComment: formData.spiritComment,
+    spiritP1: formData.spiritP1,
+    spiritP2: formData.spiritP2,
+    spiritP3: formData.spiritP3,
+    spiritP4: formData.spiritP4,
+    spiritP5: formData.spiritP5,
+  }
+}
 
 export function sanitizeReportFormMvps(
   formData: Pick<ReportFormData, ReportMvpField>,

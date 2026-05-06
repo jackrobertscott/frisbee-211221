@@ -39,6 +39,8 @@ export const ReportCreateDef = {
   result: ioReport,
 } satisfies TEndpointDef
 
+export type TReportCreatePayload = TypeIoValue<typeof ReportCreateDef.payload>
+
 export const ReportUpdateDef = {
   access: authPoint.reportManage,
   path: '/ReportUpdate',
@@ -60,6 +62,8 @@ export const ReportUpdateDef = {
   }),
   result: ioReport,
 } satisfies TEndpointDef
+
+export type TReportUpdatePayload = TypeIoValue<typeof ReportUpdateDef.payload>
 
 export const ReportDeleteDef = {
   access: authPoint.reportManage,

@@ -3,6 +3,7 @@
 - Prefer the minimum number of new files when refactoring shared features.
 - If shared logic can live cleanly in the same new or existing file, do not split it into extra helper/control files.
 - Do not add multiple small files for a refactor unless there is a clear structural reason.
+- Do not use `as any` in TypeScript code. Add explicit types, typed conversions, or proper narrowing instead.
 - Always make sure the `server` and `browser` packages pass their type checks before finishing.
 
 ## Backend Integration
