@@ -3,6 +3,7 @@ import {ClientSession, MongoClient, ObjectId} from 'mongodb'
 import config from '../config'
 
 let cachedClient: MongoClient
+let cachedTransactionSupport: boolean | undefined
 const sessionStore = new AsyncLocalStorage<ClientSession>()
 
 export default {
@@ -20,12 +21,30 @@ export default {
     return cachedClient
   },
 
+  async supportsTransactions() {
+    if (cachedTransactionSupport !== undefined) return cachedTransactionSupport
+    const client = await this.client()
+    if (client.options.loadBalanced) {
+      cachedTransactionSupport = true
+      return cachedTransactionSupport
+    }
+    const hello = await (await this.database('admin')).command({hello: 1})
+    cachedTransactionSupport = Boolean(
+      typeof hello.setName === 'string' || hello.msg === 'isdbgrid',
+    )
+    return cachedTransactionSupport
+  },
+
   options() {
     const session = sessionStore.getStore()
     return session ? {session} : undefined
   },
 
   async transaction(cb: () => Promise<void>) {
+    if (!(await this.supportsTransactions())) {
+      await cb()
+      return
+    }
     const client = await this.client()
     const session = client.startSession()
     try {
