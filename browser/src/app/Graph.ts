@@ -40,9 +40,25 @@ export const Graph: FC<{
         const a = alpha?.toString() ?? rootStyle.getPropertyValue(`--theme-${name}-a`).trim()
         return `hsla(${h}, ${s}, ${l}, ${a})`
       }
+      const channel = (name: string, suffix: 'h' | 's' | 'l' | 'a') =>
+        parseFloat(
+          rootStyle.getPropertyValue(`--theme-${name}-${suffix}`).trim(),
+        )
+      const contrastBarColor = () => {
+        const bgLightness = channel('bg', 'l')
+        const hue = channel('bg-admin-button', 'h')
+        const saturation = channel('bg-admin-button', 's')
+        const lightness = channel('bg-admin-button', 'l')
+        return `hsla(${hue}, ${Math.min(62, saturation + 8)}%, ${
+          bgLightness >= 50
+            ? Math.max(36, Math.min(58, lightness - 24))
+            : Math.min(82, Math.max(68, lightness + 10))
+        }%, 0.98)`
+      }
       const axisColor = color('font')
       const gridColor = color('border-color', 0.6)
       const dataColor = color('bg-highlight')
+      const barColor = contrastBarColor()
       const axis = 55
       const yMaxDots = dots ? Math.max(...dots.map((i) => i[1])) : 0
       const yMaxLine = line ? Math.max(...line) : 0
@@ -62,6 +78,55 @@ export const Graph: FC<{
       ctx.clearRect(0, 0, width, height)
       ctx.font = '14px ' + theme.fontFamily
       {
+        // y grid
+        const x = axis
+        ctx.beginPath()
+        ctx.strokeStyle = gridColor
+        for (let i = 0; i < yCount; i += 2) {
+          const y = height - axis - Math.round(i * yIncrement)
+          ctx.moveTo(x, y)
+          ctx.lineTo(width, y)
+        }
+        ctx.setLineDash([5])
+        ctx.stroke()
+        ctx.setLineDash([])
+      }
+      if (dots) {
+        ctx.beginPath()
+        ctx.fillStyle = dataColor
+        for (let i = 0; i < dots.length; i++) {
+          const x = axis + Math.round((dots[i][0] + 1) * xIncrement)
+          const y = height - axis - Math.round(dots[i][1] * yIncrement)
+          ctx.moveTo(x, y)
+          ctx.arc(x, y, 3, 0, Math.PI * 2)
+        }
+        ctx.fill()
+      }
+      if (line) {
+        ctx.beginPath()
+        ctx.lineWidth = 2
+        ctx.strokeStyle = dataColor
+        for (let i = 0; i < line.length; i++) {
+          const x = axis + Math.round((i + 1) * xIncrement)
+          const y = height - axis - Math.round(line[i] * yIncrement)
+          if (i === 0) ctx.moveTo(x, y)
+          else ctx.lineTo(x, y)
+        }
+        ctx.stroke()
+      }
+      if (bars) {
+        ctx.beginPath()
+        ctx.lineWidth = Math.round(xIncrement / 2)
+        ctx.strokeStyle = barColor
+        for (let i = 0; i < bars.length; i++) {
+          const x = axis + Math.round((i + 1) * xIncrement)
+          const y = height - axis - Math.round(bars[i] * yIncrement)
+          ctx.moveTo(x, y)
+          ctx.lineTo(x, height - axis)
+        }
+        ctx.stroke()
+      }
+      {
         // y axis
         const x = axis
         ctx.beginPath()
@@ -79,16 +144,6 @@ export const Graph: FC<{
           if (!ySmall || i % 2 === 0) ctx.fillText(i.toString(), x - 10, y + 5)
         }
         ctx.stroke()
-        ctx.beginPath()
-        ctx.strokeStyle = gridColor
-        for (let i = 0; i < yCount; i += 2) {
-          const y = height - axis - Math.round(i * yIncrement)
-          ctx.moveTo(x, y)
-          ctx.lineTo(width, y)
-        }
-        ctx.setLineDash([5])
-        ctx.stroke()
-        ctx.setLineDash([])
         if (yLabel) {
           ctx.beginPath()
           ctx.save()
@@ -122,41 +177,6 @@ export const Graph: FC<{
           ctx.textAlign = 'center'
           ctx.fillText(xLabel, axis + xLength / 2, height - 10)
         }
-      }
-      if (dots) {
-        ctx.beginPath()
-        ctx.fillStyle = dataColor
-        for (let i = 0; i < dots.length; i++) {
-          const x = axis + Math.round((dots[i][0] + 1) * xIncrement)
-          const y = height - axis - Math.round(dots[i][1] * yIncrement)
-          ctx.moveTo(x, y)
-          ctx.arc(x, y, 3, 0, Math.PI * 2)
-        }
-        ctx.fill()
-      }
-      if (line) {
-        ctx.beginPath()
-        ctx.lineWidth = 2
-        ctx.strokeStyle = dataColor
-        for (let i = 0; i < line.length; i++) {
-          const x = axis + Math.round((i + 1) * xIncrement)
-          const y = height - axis - Math.round(line[i] * yIncrement)
-          if (i === 0) ctx.moveTo(x, y)
-          else ctx.lineTo(x, y)
-        }
-        ctx.stroke()
-      }
-      if (bars) {
-        ctx.beginPath()
-        ctx.lineWidth = Math.round(xIncrement / 2)
-        ctx.strokeStyle = dataColor
-        for (let i = 0; i < bars.length; i++) {
-          const x = axis + Math.round((i + 1) * xIncrement)
-          const y = height - axis - Math.round(bars[i] * yIncrement)
-          ctx.moveTo(x, y)
-          ctx.lineTo(x, height - axis)
-        }
-        ctx.stroke()
       }
       if (title) {
         ctx.beginPath()
