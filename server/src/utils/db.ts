@@ -28,6 +28,7 @@ export const db = {
         const collection = await mongo.collection(options.key)
         return collection.countDocuments(
           query as Filter<Document>,
+          mongo.options(),
         ) as Promise<number>
       },
 
@@ -38,7 +39,7 @@ export const db = {
         const collection = await mongo.collection(options.key)
         const result = await collection.findOne(
           query as Filter<Document>,
-          queryOptions as FindOptions,
+          {...(queryOptions as FindOptions), ...mongo.options()},
         )
         return result ? this._clean(result as any) : undefined
       },
@@ -58,7 +59,7 @@ export const db = {
         queryOptions?: TQueryOptions<V>,
       ): Promise<V[]> {
         const collection = await mongo.collection(options.key)
-        let chain = collection.find(query as Filter<Document>)
+        let chain = collection.find(query as Filter<Document>, mongo.options())
         if (queryOptions?.collation)
           chain = chain.collation(queryOptions.collation)
         for (const i of Object.entries(queryOptions?.sort ?? {})) {
@@ -78,7 +79,7 @@ export const db = {
         const i = options.schema.validate({...defaults, ...value})
         if (!i.ok) throw i.error
         const collection = await mongo.collection(options.key)
-        const result = await collection.insertOne(i.value)
+        const result = await collection.insertOne(i.value, mongo.options())
         return this.getOne({_id: result.insertedId} as any)
       },
 
@@ -93,7 +94,7 @@ export const db = {
           all.push(i.value)
         }
         const collection = await mongo.collection(options.key)
-        await collection.insertMany(all)
+        await collection.insertMany(all, mongo.options())
         return all.length
       },
 
@@ -108,7 +109,11 @@ export const db = {
         if (!i.ok) throw i.error
         const collection = await mongo.collection(options.key)
         const {_id, id, ...$set} = i.value as Record<string, any>
-        await collection.updateOne(query as Filter<Document>, {$set})
+        await collection.updateOne(
+          query as Filter<Document>,
+          {$set},
+          mongo.options(),
+        )
         return i.value as V
       },
 
@@ -120,24 +125,33 @@ export const db = {
             update: {$set: i.value},
           },
         }))
-        if (operations.length) await collection.bulkWrite(operations)
+        if (operations.length)
+          await collection.bulkWrite(operations, mongo.options())
       },
 
       async aggregate<T = V>(pipeline: Document[]): Promise<T[]> {
         const collection = await mongo.collection(options.key)
-        const result = await collection.aggregate(pipeline).toArray()
+        const result = await collection
+          .aggregate(pipeline, mongo.options())
+          .toArray()
         return result.map((i) => this._clean(i as any)) as T[]
       },
 
       async deleteOne(query: Filter<V>): Promise<number> {
         const collection = await mongo.collection(options.key)
-        const result = await collection.deleteOne(query as Filter<Document>)
+        const result = await collection.deleteOne(
+          query as Filter<Document>,
+          mongo.options(),
+        )
         return result.deletedCount
       },
 
       async deleteMany(query: Filter<V>): Promise<number> {
         const collection = await mongo.collection(options.key)
-        const result = await collection.deleteMany(query as Filter<Document>)
+        const result = await collection.deleteMany(
+          query as Filter<Document>,
+          mongo.options(),
+        )
         return result.deletedCount
       },
 

@@ -1,7 +1,9 @@
-import {MongoClient, ObjectId} from 'mongodb'
+import {AsyncLocalStorage} from 'node:async_hooks'
+import {ClientSession, MongoClient, ObjectId} from 'mongodb'
 import config from '../config'
 
 let cachedClient: MongoClient
+const sessionStore = new AsyncLocalStorage<ClientSession>()
 
 export default {
   async database(db: string = config.MONGODB_DB) {
@@ -18,11 +20,19 @@ export default {
     return cachedClient
   },
 
+  options() {
+    const session = sessionStore.getStore()
+    return session ? {session} : undefined
+  },
+
   async transaction(cb: () => Promise<void>) {
     const client = await this.client()
     const session = client.startSession()
-    await session.withTransaction(cb)
-    session.endSession()
+    try {
+      await session.withTransaction(() => sessionStore.run(session, cb))
+    } finally {
+      await session.endSession()
+    }
   },
 
   ids: {

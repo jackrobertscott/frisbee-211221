@@ -16,9 +16,12 @@ import {
   TUserListSortDirection,
   TUserListSortKey,
 } from '@shared/endpoints/UserDef'
+import {TReport} from '@shared/schemas/ioReport'
+import {TUser} from '@shared/schemas/ioUser'
 import {Document} from 'mongodb'
 import {RequestHandler} from 'micro'
 import {$Comment} from '../tables/$Comment'
+import {$Fixture} from '../tables/$Fixture'
 import {$Member} from '../tables/$Member'
 import {$Post} from '../tables/$Post'
 import {$Report} from '../tables/$Report'
@@ -214,6 +217,10 @@ export default new Map<string, RequestHandler>([
       ({user1Id, user2Id}, access) =>
       async (req) => {
         await requireAccess(req, access)
+        if (user1Id === user2Id)
+          throw badRequestError('Cannot merge a user into itself.', {
+            errorCode: 'user.merge_invalid',
+          })
         let [user1, user2, u1Members, u2Members] = await Promise.all([
           $User.getOne({id: user1Id}),
           $User.getOne({id: user2Id}),
@@ -221,33 +228,42 @@ export default new Map<string, RequestHandler>([
           $Member.getMany({userId: user2Id}),
         ])
         await mongo.transaction(async () => {
+          const updatedOn = new Date().toISOString()
           // members
-          const taskMembers = u2Members.map(async (u2m) => {
+          for (const u2m of u2Members) {
             const u1mOverlap = u1Members.find((u1m) => {
               return u1m.seasonId === u2m.seasonId && u1m.teamId === u2m.teamId
             })
             if (u1mOverlap) {
               if (u1mOverlap.pending && !u2m.pending) {
-                return Promise.all([
-                  $Member.deleteOne({id: u1mOverlap.id}),
-                  $Member.updateOne({id: u2m.id}, {userId: user1.id}),
-                ])
-              } else return $Member.deleteOne({id: u2m.id})
-            } else return $Member.updateOne({id: u2m.id}, {userId: user1.id})
-          })
-          await Promise.all(taskMembers)
+                await $Member.deleteOne({id: u1mOverlap.id})
+                await $Member.updateOne({id: u2m.id}, {userId: user1.id, updatedOn})
+              } else await $Member.deleteOne({id: u2m.id})
+            } else
+              await $Member.updateOne(
+                {id: u2m.id},
+                {userId: user1.id, updatedOn},
+              )
+          }
           // comments
           const u2cs = await $Comment.getMany({userId: user2.id})
           const u2csBulk = u2cs.map((u2c) => ({
             query: {id: u2c.id},
-            value: {userId: user1.id},
+            value: {userId: user1.id, updatedOn},
           }))
           await $Comment.updateBulk(u2csBulk)
+          // fixtures
+          const u2fs = await $Fixture.getMany({userId: user2.id})
+          const u2fsBulk = u2fs.map((u2f) => ({
+            query: {id: u2f.id},
+            value: {userId: user1.id, updatedOn},
+          }))
+          await $Fixture.updateBulk(u2fsBulk)
           // posts
           const u2ps = await $Post.getMany({userId: user2.id})
           const u2psBulk = u2ps.map((u2p) => ({
             query: {id: u2p.id},
-            value: {userId: user1.id},
+            value: {userId: user1.id, updatedOn},
           }))
           await $Post.updateBulk(u2psBulk)
           // reports
@@ -255,43 +271,39 @@ export default new Map<string, RequestHandler>([
             $or: [
               {userId: user2.id},
               {mvpMale: user2.id},
+              {mvpMale2: user2.id},
               {mvpFemale: user2.id},
+              {mvpFemale2: user2.id},
             ],
           })
-          const u2rsBulk = u2rs
-            .map((u2r) => ({
-              query: {id: u2r.id},
-              value: {
-                userId: u2r.userId === user2.id ? user1.id : u2r.userId,
-                mvpMale: u2r.mvpMale === user2.id ? user1.id : u2r.mvpMale,
-                mvpFemale:
-                  u2r.mvpFemale === user2.id ? user1.id : u2r.mvpFemale,
-              },
-            }))
-            .map(({query, value}) => ({
-              query,
-              value:
-                value.mvpMale === value.mvpFemale
-                  ? {...value, mvpFemale: ''}
-                  : value,
-            }))
+          const u2rsBulk = u2rs.map((u2r) => ({
+            query: {id: u2r.id},
+            value: _mergeReportUserReferences(u2r, user1.id, user2.id, updatedOn),
+          }))
           await $Report.updateBulk(u2rsBulk)
           // sessions
           const u2ss = await $Session.getMany({userId: user2.id})
           const u2ssBulk = u2ss.map((u2s) => ({
             query: {id: u2s.id},
-            value: {userId: user1.id},
+            value: {userId: user1.id, updatedOn},
           }))
           await $Session.updateBulk(u2ssBulk)
           // users
-          const u1Emails = [...(user1.emails ?? []), ...(user2.emails ?? [])]
-          const u2MergedIds = [...(user1.userMergedIds ?? []), user2.id]
+          const emails = _mergeUserEmails(user1, user2)
+          const userMergedIds = _mergeUserMergedIds(user1, user2)
           await $User.deleteOne({id: user2.id})
           user1 = await $User.updateOne(
             {id: user1.id},
             {
-              emails: u1Emails,
-              userMergedIds: u2MergedIds,
+              admin: Boolean(user1.admin || user2.admin),
+              avatarUrl: user1.avatarUrl ?? user2.avatarUrl,
+              bio: user1.bio ?? user2.bio,
+              emails,
+              lastSeasonId: user1.lastSeasonId ?? user2.lastSeasonId,
+              password: user1.password ?? user2.password,
+              termsAccepted: user1.termsAccepted || user2.termsAccepted,
+              updatedOn,
+              userMergedIds,
             },
           )
         })
@@ -404,4 +416,78 @@ const _getUserListPipeline = (
   if (sortBy === 'email') pipeline.push({$project: {_sortPrimaryEmail: 0}})
 
   return pipeline
+}
+
+const _mergeUserMergedIds = (user1: TUser, user2: TUser) => {
+  return [
+    ...new Set([...(user1.userMergedIds ?? []), user2.id, ...(user2.userMergedIds ?? [])]),
+  ].filter((id) => id !== user1.id)
+}
+
+const _mergeUserEmails = (user1: TUser, user2: TUser): TUser['emails'] => {
+  const emails = new Map<string, TUser['emails'][number]>()
+  const primaryKey = _normalizeEmail(
+    userEmail.primary(user1)?.value ?? userEmail.primary(user2)?.value ?? '',
+  )
+
+  for (const email of [...user1.emails, ...user2.emails]) {
+    const key = _normalizeEmail(email.value)
+    const current = emails.get(key)
+    const preferred = current?.verified
+      ? current
+      : email.verified
+        ? email
+        : current ?? email
+    const createdOn = current
+      ? new Date(
+          Math.min(
+            new Date(current.createdOn).getTime(),
+            new Date(email.createdOn).getTime(),
+          ),
+        ).toISOString()
+      : preferred.createdOn
+    emails.set(key, {
+      ...preferred,
+      createdOn,
+      primary: key === primaryKey,
+      value: preferred.value.trim(),
+      verified: Boolean(current?.verified || email.verified),
+    })
+  }
+
+  const merged = [...emails.values()]
+  const primaryCount = merged.filter((email) => email.primary).length
+  if (primaryCount !== 1 && merged.length) {
+    merged.forEach((email, index) => {
+      email.primary = index === 0
+    })
+  }
+  return merged
+}
+
+const _normalizeEmail = (value: string) => value.trim().toLowerCase()
+
+const _mergeReportUserReferences = (
+  report: TReport,
+  targetUserId: string,
+  sourceUserId: string,
+  updatedOn: string,
+) => {
+  const next = {
+    userId: report.userId === sourceUserId ? targetUserId : report.userId,
+    mvpMale: report.mvpMale === sourceUserId ? targetUserId : report.mvpMale,
+    mvpMale2: report.mvpMale2 === sourceUserId ? targetUserId : report.mvpMale2,
+    mvpFemale:
+      report.mvpFemale === sourceUserId ? targetUserId : report.mvpFemale,
+    mvpFemale2:
+      report.mvpFemale2 === sourceUserId ? targetUserId : report.mvpFemale2,
+    updatedOn,
+  }
+
+  if (next.mvpMale && next.mvpMale === next.mvpMale2) next.mvpMale2 = ''
+  if (next.mvpFemale && next.mvpFemale === next.mvpFemale2)
+    next.mvpFemale2 = ''
+  if (next.mvpMale && next.mvpMale === next.mvpFemale) next.mvpFemale = ''
+
+  return next
 }
