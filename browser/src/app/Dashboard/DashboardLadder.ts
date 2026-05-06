@@ -370,8 +370,8 @@ const _LadderDivision: FC<{
           ratio: {label: 'Ratio', grow: 1.05},
           for: {label: 'For', grow: 1},
           against: {label: 'Agnst', grow: 1.15},
-          aveFor: {label: 'Av.For', grow: 1.2},
-          aveAgainst: {label: 'Av.Agt', grow: 1.25},
+          aveFor: {label: 'Avg For', grow: 1.2},
+          aveAgainst: {label: 'Avg Agt', grow: 1.25},
         },
         body: teams
           .sort((a, b) => {
