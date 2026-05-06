@@ -10,6 +10,7 @@ import {
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
 import {hsla} from '../utils/hsla'
+import {random} from '../utils/random'
 import {Portal} from './Portal'
 import {StackProvider} from './Stack/StackProvider'
 import {useStack} from './Stack/useStack'
@@ -38,6 +39,7 @@ export const Popup: FC<{
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const popupRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
+  const [stackId] = useState(() => random.randomString())
   const [box, boxSet] = useState<DOMRect>()
   const [adjust, adjustSet] = useState({x: 0, y: 0})
   const offset = {x: 0, y: 3}
@@ -47,20 +49,21 @@ export const Popup: FC<{
   useEffect(() => {
     if (open) {
       boxSet(wrapRef.current?.getBoundingClientRect())
-      const clickOutsideHandler = (event: MouseEvent) => {
-        if (!stack.top() || !clickOutside) return
+      const clickOutsideHandler = (event: PointerEvent) => {
+        if (!clickOutside || !stack.top(stackId)) return
         const clickedOutside =
           popupRef.current &&
           event.target instanceof HTMLElement &&
           !popupRef.current.contains(event.target)
         if (clickedOutside) clickOutside()
       }
-      document.addEventListener('click', clickOutsideHandler)
-      return () => document.removeEventListener('click', clickOutsideHandler)
+      document.addEventListener('pointerdown', clickOutsideHandler, true)
+      return () =>
+        document.removeEventListener('pointerdown', clickOutsideHandler, true)
     } else if (box) {
       boxSet(undefined)
     }
-  }, [open])
+  }, [box, clickOutside, open, stack, stackId])
   useEffect(() => {
     if (box) {
       const data = contentRef.current?.getBoundingClientRect()
@@ -91,6 +94,7 @@ export const Popup: FC<{
       open &&
         box &&
         $(StackProvider, {
+          id: stackId,
           children: $(Portal, {
             children: $('div', {
               ref: popupRef,

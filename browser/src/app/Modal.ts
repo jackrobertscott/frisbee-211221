@@ -1,8 +1,9 @@
 import {css} from '@emotion/css'
-import {createElement as $, FC, ReactNode, useRef} from 'react'
+import {createElement as $, FC, ReactNode, useState} from 'react'
 import {theme} from '../theme'
 import {hsla} from '../utils/hsla'
 import {fadein} from '../utils/keyframes'
+import {random} from '../utils/random'
 import {Center} from './Center'
 import {useMedia} from './Media/useMedia'
 import {Portal} from './Portal'
@@ -17,14 +18,14 @@ export const Modal: FC<{
 }> = ({close, children, width = theme.fib[12] + theme.fib[9], height}) => {
   const stack = useStack()
   const media = useMedia()
-  const unfocused = useRef<boolean>(!document.querySelector(':focus-within'))
+  const [stackId] = useState(() => random.randomString())
   const handleClose = (event: MouseEvent) => {
-    if (!stack.top()) return
-    if (event.target === event.currentTarget && unfocused.current) close?.()
-    else unfocused.current = !document.querySelector(':focus-within')
+    if (!stack.top(stackId)) return
+    if (event.target === event.currentTarget) close?.()
   }
   return $(Portal, {
     children: $(StackProvider, {
+      id: stackId,
       children: $('div', {
         className: css({
           top: 0,
