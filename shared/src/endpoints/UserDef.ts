@@ -34,7 +34,7 @@ export const UserCurrentEmailAddDef = {
   access: authPoint.userSelf,
   path: '/UserCurrentEmailAdd',
   payload: io.object({
-    email: io.string(),
+    email: io.string().email().trim(),
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef
@@ -81,7 +81,7 @@ export const UserEmailAddDef = {
   path: '/UserEmailAdd',
   payload: io.object({
     userId: io.string(),
-    email: io.string(),
+    email: io.string().email().trim(),
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef

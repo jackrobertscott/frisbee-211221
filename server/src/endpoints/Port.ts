@@ -7,7 +7,7 @@ import {
   PortMockGenerateDef,
 } from '@shared/endpoints/PortDef'
 import {normalizeUserGender, TUserGender} from '@shared/schemas/ioUserGender'
-import {TUser, TUserEmail} from '@shared/schemas/ioUser'
+import {TUserEmail} from '@shared/schemas/ioUser'
 import {RequestHandler} from 'micro'
 import {$Member} from '../tables/$Member'
 import {$Report} from '../tables/$Report'
@@ -417,8 +417,7 @@ const _createUsersFromObjects = async (
   objects: Record<string, string>[],
   seasonId: string,
 ) => {
-  const userCSVEmailList = [] as string[]
-  let userCSVList = objects
+  const userCSVList = objects
     .map((i, index) => {
       const gender = normalizeUserGender(i.gender)
       if (!gender)
@@ -426,62 +425,81 @@ const _createUsersFromObjects = async (
           `Failed: row ${index + 2} has invalid gender "${i.gender}".`,
           {errorCode: 'upload.invalid_gender'},
         )
+      const email = userEmail.sanitizeValue(i.email_address)
+      const userId = random.generateId()
       return {
-        _team: i.team_name,
-        _captain: i.type === 'team',
-        _email: i.email_address,
-        firstName: i.first_name,
-        lastName: i.last_name,
-        gender,
-        termsAccepted: false,
-        emails: [userEmail.create(i.email_address, true)],
+        teamName: i.team_name,
+        captain: i.type === 'team',
+        email,
+        emailKey: email?.toLowerCase(),
+        userId,
+        user: {
+          id: userId,
+          firstName: i.first_name,
+          lastName: i.last_name,
+          gender,
+          termsAccepted: false,
+          emails: email ? [userEmail.create(email, true)] : [],
+        },
       }
     })
-    .filter((i) => {
-      if (userCSVEmailList.includes(i._email)) return false
-      userCSVEmailList.push(i._email)
-      return true
+    .filter((row, index, all) => {
+      if (!row.emailKey) return true
+      return all.findIndex((i) => i.emailKey === row.emailKey) === index
     })
-  const loadDBUsers = () => {
-    const csvEmails = userCSVEmailList.map(regex.normalize)
-    return $User.getMany({
-      'emails.value': {$in: csvEmails},
-    })
-  }
-  let userDBList = await loadDBUsers()
-  const allUserEmails = (user: TUser) =>
-    user.emails.map((i) => i.value.toLowerCase().trim())
-  const userDBEmailList = userDBList.flatMap(allUserEmails)
-  const userCSVNewList = userCSVList.filter((i) => {
-    return !userDBEmailList.includes(i._email.toLowerCase().trim())
-  })
-  if (userCSVNewList.length) await $User.createMany(userCSVNewList)
-  userDBList = await loadDBUsers()
-  const teamDBList = await $Team.getMany({seasonId})
-  const memberCSVList = userDBList
-    .map((i) => {
-      const userCSV = userCSVList.find((x) => {
-        return allUserEmails(i).includes(x._email.toLowerCase().trim())
+
+  const csvEmailList = userCSVList.flatMap((i) => (i.email ? [i.email] : []))
+  const userDBList = csvEmailList.length
+    ? await $User.getMany({
+        'emails.value': {$in: csvEmailList.map(regex.normalize)},
       })
-      if (!userCSV) return undefined
-      const userCSVTeamName = userCSV?._team.toLowerCase().trim()
-      const teamDBOfUser = teamDBList.find((i) => {
-        return i.name.toLowerCase().trim() === userCSVTeamName
+    : []
+  const userIdByEmail = new Map<string, string>()
+  for (const user of userDBList) {
+    for (const email of user.emails) {
+      userIdByEmail.set(email.value.toLowerCase().trim(), user.id)
+    }
+  }
+
+  const userCSVNewList = userCSVList.filter((i) => {
+    return !i.emailKey || !userIdByEmail.has(i.emailKey)
+  })
+  if (userCSVNewList.length)
+    await $User.createMany(userCSVNewList.map((i) => i.user))
+
+  const importedUserIds = [...new Set(
+    userCSVList.map((i) => {
+      return i.emailKey ? (userIdByEmail.get(i.emailKey) ?? i.userId) : i.userId
+    }),
+  )]
+  const teamDBList = await $Team.getMany({seasonId})
+  const memberCSVList = userCSVList
+    .map((i) => {
+      const userId = i.emailKey ? (userIdByEmail.get(i.emailKey) ?? i.userId) : i.userId
+      const userCSVTeamName = i.teamName.toLowerCase().trim()
+      const teamDBOfUser = teamDBList.find((team) => {
+        return team.name.toLowerCase().trim() === userCSVTeamName
       })
       if (!teamDBOfUser) return undefined
       return {
         seasonId: teamDBOfUser.seasonId,
         teamId: teamDBOfUser.id,
-        userId: i.id,
-        captain: userCSV._captain,
+        userId,
+        captain: i.captain,
         pending: false,
       }
     })
-    .filter((i) => !!i)
-    .map((i) => i!)
+    .filter((i): i is {
+      seasonId: string
+      teamId: string
+      userId: string
+      captain: boolean
+      pending: false
+    } => !!i)
+
   const memberDBList = await $Member.getMany({
     seasonId,
-    userId: {$in: userDBList.map((i) => i.id)},
+    userId: {$in: importedUserIds},
   })
   const memberDBUserIdList = memberDBList.map((i) => i.userId)
   const memberCSVNewList = memberCSVList.filter((i) => {

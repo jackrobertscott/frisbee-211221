@@ -14,6 +14,21 @@ const normalizeCode = (value: string) =>
 const isHashedCode = (value: string) => /^[a-f0-9]{64}$/i.test(value)
 
 export const userEmail = {
+  sanitizeValue(email: string) {
+    const value = email.trim()
+    if (!value || !userEmail.isValueValid(value)) return
+    return value
+  },
+
+  assertValueValid(email: string) {
+    const value = userEmail.sanitizeValue(email)
+    if (!value)
+      throw badRequestError('Email must be a valid email address.', {
+        errorCode: 'user.email_invalid',
+      })
+    return value
+  },
+
   isValueValid(email: string) {
     return regex.email().test(email.trim())
   },
@@ -34,14 +49,16 @@ export const userEmail = {
   },
 
   async maybeUser(email: string) {
-    const emailNormalized = regex.normalize(email)
+    const value = email.trim()
+    const emailNormalized = regex.normalize(value)
     return $User.maybeOne({'emails.value': emailNormalized})
   },
 
   create(email: string, primary: boolean = false, code?: string) {
+    const value = userEmail.assertValueValid(email)
     const rawCode = normalizeCode(code ?? random.randomString(8))
     return {
-      value: email.trim(),
+      value,
       verified: false,
       code: hash.digest(rawCode),
       createdOn: new Date().toISOString(),
@@ -58,15 +75,16 @@ export const userEmail = {
   },
 
   async add(user: TUser, email: string) {
-    if (userEmail.get(user, email))
+    const value = userEmail.assertValueValid(email)
+    if (userEmail.get(user, value))
       throw conflictError('Email already exists on this user.', {
         errorCode: 'user.email_exists',
       })
-    if (await userEmail.maybeUser(email))
+    if (await userEmail.maybeUser(value))
       throw conflictError('Another account already has this email.', {
         errorCode: 'user.email_exists',
       })
-    const i = userEmail.create(email)
+    const i = userEmail.create(value)
     const rawCode = await userEmail.codeSend(
       i.value,
       user.firstName,
