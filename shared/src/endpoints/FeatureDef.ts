@@ -51,11 +51,11 @@ export const ioFeatureSpiritRow = io.object({
 export type TFeatureSpiritRow = TypeIoValue<typeof ioFeatureSpiritRow>
 
 export const ioFeatureMvpRow = io.object({
-  userId: io.string(),
+  userId: ioUserPublic.shape.id,
   userName: io.string(),
-  teamId: io.optional(io.string()),
-  teamName: io.optional(io.string()),
-  division: io.optional(io.number()),
+  teamId: io.optional(ioTeam.shape.id),
+  teamName: io.optional(ioTeam.shape.name),
+  division: ioTeam.shape.division,
   votes: io.number(),
   gender: io.number(),
 })
@@ -65,7 +65,7 @@ export type TFeatureMvpRow = TypeIoValue<typeof ioFeatureMvpRow>
 export const FeatureCompetitionLoadDef = {
   path: '/FeatureCompetitionLoad',
   payload: io.object({
-    seasonId: io.string(),
+    seasonId: ioSeason.shape.id,
   }),
   result: io.object({
     teams: io.array(ioTeam),
@@ -76,7 +76,7 @@ export const FeatureCompetitionLoadDef = {
 export const FeatureDashboardTeamsLoadDef = {
   path: '/FeatureDashboardTeamsLoad',
   payload: io.object({
-    seasonId: io.string(),
+    seasonId: ioSeason.shape.id,
     search: io.optional(io.string().emptyok()),
     sortBy: io.optional(io.enum([...TEAM_LIST_SORT_KEYS])),
     sortDirection: io.optional(io.enum([...TEAM_LIST_SORT_DIRECTIONS])),
@@ -93,7 +93,7 @@ export const FeatureDashboardReportsLoadDef = {
   access: authPoint.reportManage,
   path: '/FeatureDashboardReportsLoad',
   payload: io.object({
-    seasonId: io.string(),
+    seasonId: ioSeason.shape.id,
     search: io.optional(io.string().emptyok()),
     limit: io.optional(io.number()),
     skip: io.optional(io.number()),
@@ -110,9 +110,9 @@ export const FeatureReportEditorLoadDef = {
   access: authPoint.reportWrite,
   path: '/FeatureReportEditorLoad',
   payload: io.object({
-    seasonId: io.string(),
-    fixtureId: io.optional(io.string()),
-    teamId: io.optional(io.string()),
+    seasonId: ioSeason.shape.id,
+    fixtureId: io.optional(ioFixture.shape.id),
+    teamId: io.optional(ioTeam.shape.id),
   }),
   result: io.object({
     fixtures: io.array(ioFixture),
@@ -125,7 +125,7 @@ export const FeatureDashboardSpiritLoadDef = {
   access: authPoint.reportManage,
   path: '/FeatureDashboardSpiritLoad',
   payload: io.object({
-    seasonId: io.string(),
+    seasonId: ioSeason.shape.id,
     sortBy: io.optional(io.enum([...FEATURE_SPIRIT_SORT_KEYS])),
     sortDirection: io.optional(io.enum([...FEATURE_SORT_DIRECTIONS])),
   }),
@@ -138,7 +138,7 @@ export const FeatureDashboardMvpLoadDef = {
   access: authPoint.reportManage,
   path: '/FeatureDashboardMvpLoad',
   payload: io.object({
-    seasonId: io.string(),
+    seasonId: ioSeason.shape.id,
   }),
   result: io.object({
     rows: io.array(ioFeatureMvpRow),
@@ -149,7 +149,7 @@ export const FeatureFixtureSetupLoadDef = {
   access: authPoint.fixtureManage,
   path: '/FeatureFixtureSetupLoad',
   payload: io.object({
-    seasonId: io.string(),
+    seasonId: ioSeason.shape.id,
   }),
   result: io.object({
     teams: io.array(ioTeam),
@@ -160,7 +160,7 @@ export const FeatureFixtureTallyLoadDef = {
   access: authPoint.fixtureManage,
   path: '/FeatureFixtureTallyLoad',
   payload: io.object({
-    fixtureId: io.string(),
+    fixtureId: ioFixture.shape.id,
   }),
   result: io.object({
     fixture: ioFixture,
@@ -172,7 +172,7 @@ export const FeatureFixtureTallyLoadDef = {
 export const FeatureFixtureViewLoadDef = {
   path: '/FeatureFixtureViewLoad',
   payload: io.object({
-    fixtureId: io.string(),
+    fixtureId: ioFixture.shape.id,
   }),
   result: io.object({
     fixture: ioFixture,
@@ -184,7 +184,7 @@ export const FeatureTeamSetupLoadDef = {
   access: authPoint.teamJoin,
   path: '/FeatureTeamSetupLoad',
   payload: io.object({
-    seasonId: io.string(),
+    seasonId: ioSeason.shape.id,
     search: io.optional(io.string().emptyok()),
   }),
   result: io.object({
@@ -197,7 +197,7 @@ export const FeatureDashboardUserMembershipsLoadDef = {
   access: authPoint.userManage,
   path: '/FeatureDashboardUserMembershipsLoad',
   payload: io.object({
-    userId: io.string(),
+    userId: ioUserPublic.shape.id,
   }),
   result: io.object({
     members: io.array(ioMember),

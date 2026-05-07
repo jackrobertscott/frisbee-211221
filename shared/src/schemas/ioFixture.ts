@@ -1,9 +1,9 @@
 import {io, TypeIoValue} from '@shared/torva'
 
 export const ioFixtureGame = io.object({
-  id: io.string(),
-  team1Id: io.string(),
-  team2Id: io.string(),
+  id: io.id(),
+  team1Id: io.id(),
+  team2Id: io.id(),
   place: io.string(),
   time: io.string(),
   team1Score: io.optional(io.number()),
@@ -11,11 +11,11 @@ export const ioFixtureGame = io.object({
 })
 
 export const ioFixture = io.object({
-  id: io.string(),
+  id: io.id(),
   createdOn: io.date(),
   updatedOn: io.date(),
-  seasonId: io.string(),
-  userId: io.string(),
+  seasonId: io.id(),
+  userId: io.id(),
   title: io.string(),
   date: io.date(),
   games: io.array(ioFixtureGame),

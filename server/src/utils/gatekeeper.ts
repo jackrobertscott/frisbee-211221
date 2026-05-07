@@ -93,7 +93,7 @@ export default {
 }
 
 const ioJWT = io.object({
-  sessionId: io.string(),
-  userId: io.string(),
+  sessionId: io.id(),
+  userId: io.id(),
   createdOn: io.date(),
 })

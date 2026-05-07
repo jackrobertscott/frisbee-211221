@@ -1,21 +1,21 @@
 import {io, TypeIoValue} from '@shared/torva'
 
 export const ioReport = io.object({
-  id: io.string(),
+  id: io.id(),
   createdOn: io.date(),
   updatedOn: io.date(),
-  teamId: io.string(),
-  teamAgainstId: io.string(),
-  fixtureId: io.string(),
-  userId: io.optional(io.string()),
+  teamId: io.id(),
+  teamAgainstId: io.id(),
+  fixtureId: io.id(),
+  userId: io.optional(io.id()),
   scoreFor: io.number(),
   scoreAgainst: io.number(),
 
   // MVPs
-  mvpMale: io.optional(io.string()), // 5 points
-  mvpMale2: io.optional(io.string()), // 3 points
-  mvpFemale: io.optional(io.string()), // 5 points
-  mvpFemale2: io.optional(io.string()), // 3 points
+  mvpMale: io.optional(io.id()), // 5 points
+  mvpMale2: io.optional(io.id()), // 3 points
+  mvpFemale: io.optional(io.id()), // 5 points
+  mvpFemale2: io.optional(io.id()), // 3 points
 
   // Spirit
   spirit: io.optional(io.number()), // Non-Official version of the Spirit of the Game

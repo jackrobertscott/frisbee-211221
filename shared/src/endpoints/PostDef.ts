@@ -19,23 +19,18 @@ export const PostListDef = {
 export const PostCreateDef = {
   access: authPoint.postWrite,
   path: '/PostCreate',
-  payload: io.object({
-    seasonId: io.optional(io.string()),
-    title: io.string(),
-    content: io.string(),
-    sendEmail: io.optional(io.boolean()),
-  }),
+  payload: ioPost
+    .pick(['seasonId', 'title', 'content'])
+    .extend({sendEmail: io.optional(io.boolean())}),
   result: ioPost,
 } satisfies TEndpointDef
 
 export const PostUpdateDef = {
   access: authPoint.postWrite,
   path: '/PostUpdate',
-  payload: io.object({
-    postId: io.string(),
-    title: io.string(),
-    content: io.string(),
-  }),
+  payload: ioPost
+    .pick(['title', 'content'])
+    .extend({postId: ioPost.shape.id}),
   result: ioPost,
 } satisfies TEndpointDef
 
@@ -43,6 +38,6 @@ export const PostDeleteDef = {
   access: authPoint.postWrite,
   path: '/PostDelete',
   payload: io.object({
-    postId: io.string(),
+    postId: ioPost.shape.id,
   }),
 } satisfies TEndpointDef

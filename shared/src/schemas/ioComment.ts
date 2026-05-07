@@ -1,13 +1,13 @@
 import {io, TypeIoValue} from '@shared/torva'
 
 export const ioComment = io.object({
-  id: io.string(),
+  id: io.id(),
   createdOn: io.date(),
   updatedOn: io.date(),
-  userId: io.string(),
-  postId: io.string(),
+  userId: io.id(),
+  postId: io.id(),
   content: io.string(),
-  commentParentId: io.optional(io.string()),
+  commentParentId: io.optional(io.id()),
 })
 
 export type TComment = TypeIoValue<typeof ioComment>

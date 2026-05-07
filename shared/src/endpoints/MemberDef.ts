@@ -1,14 +1,13 @@
 import {authPoint} from '@shared/auth/authAccess'
 import {ioMember} from '@shared/schemas/ioMember'
-import {ioUserGender} from '@shared/schemas/ioUserGender'
-import {ioUserPublic} from '@shared/schemas/ioUser'
+import {ioUser, ioUserEmail, ioUserPublic} from '@shared/schemas/ioUser'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
 export const MemberListOfTeamDef = {
   access: authPoint.memberRead,
   path: '/MemberListOfTeam',
-  payload: io.string(),
+  payload: ioMember.shape.teamId,
   result: io.object({
     current: io.optional(ioMember),
     members: io.array(ioMember),
@@ -20,11 +19,11 @@ export const MemberCreateDef = {
   access: authPoint.memberManage,
   path: '/MemberCreate',
   payload: io.object({
-    teamId: io.string(),
-    email: io.string().email().trim(),
-    firstName: io.optional(io.string()),
-    lastName: io.optional(io.string()),
-    gender: io.optional(ioUserGender),
+    teamId: ioMember.shape.teamId,
+    email: ioUserEmail.shape.value,
+    firstName: io.optional(ioUser.shape.firstName),
+    lastName: io.optional(ioUser.shape.lastName),
+    gender: io.optional(ioUser.shape.gender),
   }),
   result: ioMember,
 } satisfies TEndpointDef
@@ -33,8 +32,8 @@ export const MemberLookupByEmailDef = {
   access: authPoint.memberManage,
   path: '/MemberLookupByEmail',
   payload: io.object({
-    teamId: io.string(),
-    email: io.string().email().trim(),
+    teamId: ioMember.shape.teamId,
+    email: ioUserEmail.shape.value,
   }),
   result: io.object({
     exists: io.boolean(),
@@ -45,13 +44,13 @@ export const MemberLookupByEmailDef = {
 export const MemberRemoveDef = {
   access: authPoint.memberManage,
   path: '/MemberRemove',
-  payload: io.string(),
+  payload: ioMember.shape.id,
 } satisfies TEndpointDef
 
 export const MemberRequestCreateDef = {
   access: authPoint.teamJoin,
   path: '/MemberRequestCreate',
-  payload: io.string(),
+  payload: ioMember.shape.teamId,
   result: ioMember,
 } satisfies TEndpointDef
 
@@ -59,7 +58,7 @@ export const MemberAcceptOrDeclineDef = {
   access: authPoint.memberManage,
   path: '/MemberAcceptOrDecline',
   payload: io.object({
-    memberId: io.string(),
+    memberId: ioMember.shape.id,
     accept: io.boolean(),
   }),
 } satisfies TEndpointDef
@@ -67,6 +66,6 @@ export const MemberAcceptOrDeclineDef = {
 export const MemberSetCaptainDef = {
   access: authPoint.memberManage,
   path: '/MemberSetCaptain',
-  payload: io.string(),
+  payload: ioMember.shape.id,
   result: ioMember,
 } satisfies TEndpointDef

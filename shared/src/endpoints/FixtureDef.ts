@@ -6,26 +6,16 @@ import {io} from '@shared/torva'
 export const FixtureCreateDef = {
   access: authPoint.fixtureManage,
   path: '/FixtureCreate',
-  payload: io.object({
-    seasonId: io.string(),
-    title: io.string(),
-    date: io.date(),
-    games: io.array(ioFixtureGame),
-    grading: io.optional(io.boolean()),
-  }),
+  payload: ioFixture.pick(['seasonId', 'title', 'date', 'games', 'grading']),
   result: ioFixture,
 } satisfies TEndpointDef
 
 export const FixtureUpdateDef = {
   access: authPoint.fixtureManage,
   path: '/FixtureUpdate',
-  payload: io.object({
-    fixtureId: io.string(),
-    title: io.string(),
-    date: io.date(),
-    games: io.array(ioFixtureGame),
-    grading: io.optional(io.boolean()),
-  }),
+  payload: ioFixture
+    .pick(['title', 'date', 'games', 'grading'])
+    .extend({fixtureId: ioFixture.shape.id}),
   result: ioFixture,
 } satisfies TEndpointDef
 
@@ -33,14 +23,14 @@ export const FixtureDeleteDef = {
   access: authPoint.fixtureManage,
   path: '/FixtureDelete',
   payload: io.object({
-    fixtureId: io.string(),
+    fixtureId: ioFixture.shape.id,
   }),
 } satisfies TEndpointDef
 
 export const FixtureSnapshotDef = {
   path: '/FixtureSnapshot',
   payload: io.object({
-    fixtureId: io.string(),
+    fixtureId: ioFixture.shape.id,
   }),
 } satisfies TEndpointDef
 
@@ -48,8 +38,8 @@ export const FixtureAdjustMultipleDef = {
   access: authPoint.fixtureManage,
   path: '/FixtureAdjustMultiple',
   payload: io.object({
-    seasonId: io.string(),
-    referenceFixtureId: io.string(),
+    seasonId: ioFixture.shape.seasonId,
+    referenceFixtureId: ioFixture.shape.id,
     amount: io.number(),
     unit: io.string(),
     direction: io.string(),
@@ -63,14 +53,14 @@ export const FixtureGenerateDef = {
   access: authPoint.fixtureManage,
   path: '/FixtureGenerate',
   payload: io.object({
-    seasonId: io.string(),
-    startingDate: io.date(),
+    seasonId: ioFixture.shape.seasonId,
+    startingDate: ioFixture.shape.date,
     roundCount: io.number(),
     slots: io.array(
       io.object({
-        id: io.string(),
-        time: io.string(),
-        place: io.string(),
+        id: ioFixtureGame.shape.id,
+        time: ioFixtureGame.shape.time,
+        place: ioFixtureGame.shape.place,
       }),
     ),
   }),

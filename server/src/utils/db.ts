@@ -118,13 +118,30 @@ export const db = {
       },
 
       async updateBulk(tasks: Array<{query: Filter<V>; value: Partial<V>}>) {
-        const collection = await mongo.collection(options.key)
-        const operations = tasks.map((i) => ({
+        const operations = [] as Array<{
           updateOne: {
-            filter: i.query as Filter<Document>,
-            update: {$set: i.value},
-          },
-        }))
+            filter: Filter<Document>
+            update: {$set: Record<string, any>}
+          }
+        }>
+        for (const task of tasks) {
+          const current = await this.maybeOne(task.query)
+          if (!current)
+            throw notFoundError('Failed to find document.', {
+              errorCode: 'db.record_not_found',
+              meta: {table: options.key},
+            })
+          const validated = options.schema.validate({...current, ...task.value})
+          if (!validated.ok) throw validated.error
+          const {_id, id, ...$set} = validated.value as Record<string, any>
+          operations.push({
+            updateOne: {
+              filter: task.query as Filter<Document>,
+              update: {$set},
+            },
+          })
+        }
+        const collection = await mongo.collection(options.key)
         if (operations.length)
           await collection.bulkWrite(operations, mongo.options())
       },

@@ -1,6 +1,5 @@
 import {authPoint} from '@shared/auth/authAccess'
-import {ioUserSafe} from '@shared/schemas/ioUser'
-import {ioUserGender} from '@shared/schemas/ioUserGender'
+import {ioUser, ioUserEmail, ioUserSafe} from '@shared/schemas/ioUser'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
@@ -22,10 +21,10 @@ export const UserCurrentUpdateDef = {
   access: authPoint.userSelf,
   path: '/UserCurrentUpdate',
   payload: io.object({
-    firstName: io.optional(io.string()),
-    lastName: io.optional(io.string()),
-    gender: io.optional(ioUserGender),
-    avatarUrl: io.optional(io.string()),
+    firstName: io.optional(ioUser.shape.firstName),
+    lastName: io.optional(ioUser.shape.lastName),
+    gender: io.optional(ioUser.shape.gender),
+    avatarUrl: ioUser.shape.avatarUrl,
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef
@@ -34,7 +33,7 @@ export const UserCurrentEmailAddDef = {
   access: authPoint.userSelf,
   path: '/UserCurrentEmailAdd',
   payload: io.object({
-    email: io.string().email().trim(),
+    email: ioUserEmail.shape.value,
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef
@@ -43,8 +42,8 @@ export const UserCurrentEmailVerifyDef = {
   access: authPoint.userSelf,
   path: '/UserCurrentEmailVerify',
   payload: io.object({
-    email: io.string(),
-    code: io.string(),
+    email: ioUserEmail.shape.value,
+    code: ioUserEmail.shape.code,
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef
@@ -53,7 +52,7 @@ export const UserCurrentEmailCodeResendDef = {
   access: authPoint.userSelf,
   path: '/UserCurrentEmailCodeResend',
   payload: io.object({
-    email: io.string(),
+    email: ioUserEmail.shape.value,
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef
@@ -62,7 +61,7 @@ export const UserCurrentEmailPrimarySetDef = {
   access: authPoint.userSelf,
   path: '/UserCurrentEmailPrimarySet',
   payload: io.object({
-    email: io.string(),
+    email: ioUserEmail.shape.value,
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef
@@ -71,7 +70,7 @@ export const UserCurrentEmailRemoveDef = {
   access: authPoint.userSelf,
   path: '/UserCurrentEmailRemove',
   payload: io.object({
-    email: io.string(),
+    email: ioUserEmail.shape.value,
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef
@@ -80,8 +79,8 @@ export const UserEmailAddDef = {
   access: authPoint.userManage,
   path: '/UserEmailAdd',
   payload: io.object({
-    userId: io.string(),
-    email: io.string().email().trim(),
+    userId: ioUser.shape.id,
+    email: ioUserEmail.shape.value,
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef
@@ -90,8 +89,8 @@ export const UserEmailPrimarySetDef = {
   access: authPoint.userManage,
   path: '/UserEmailPrimarySet',
   payload: io.object({
-    userId: io.string(),
-    email: io.string(),
+    userId: ioUser.shape.id,
+    email: ioUserEmail.shape.value,
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef
@@ -100,9 +99,9 @@ export const UserEmailVerifiedSetDef = {
   access: authPoint.userManage,
   path: '/UserEmailVerifiedSet',
   payload: io.object({
-    userId: io.string(),
-    email: io.string(),
-    verified: io.boolean(),
+    userId: ioUser.shape.id,
+    email: ioUserEmail.shape.value,
+    verified: ioUserEmail.shape.verified,
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef
@@ -111,8 +110,8 @@ export const UserEmailRemoveDef = {
   access: authPoint.userManage,
   path: '/UserEmailRemove',
   payload: io.object({
-    userId: io.string(),
-    email: io.string(),
+    userId: ioUser.shape.id,
+    email: ioUserEmail.shape.value,
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef
@@ -147,11 +146,11 @@ export const UserCreateDef = {
   access: authPoint.userManage,
   path: '/UserCreate',
   payload: io.object({
-    email: io.string().email().trim(),
-    firstName: io.string(),
-    lastName: io.string(),
-    gender: ioUserGender,
-    termsAccepted: io.boolean(),
+    email: ioUserEmail.shape.value,
+    firstName: ioUser.shape.firstName,
+    lastName: ioUser.shape.lastName,
+    gender: ioUser.shape.gender,
+    termsAccepted: ioUser.shape.termsAccepted,
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef
@@ -160,11 +159,11 @@ export const UserUpdateDef = {
   access: authPoint.userManage,
   path: '/UserUpdate',
   payload: io.object({
-    userId: io.string(),
-    firstName: io.optional(io.string()),
-    lastName: io.optional(io.string()),
-    gender: io.optional(ioUserGender),
-    avatarUrl: io.optional(io.string()),
+    userId: ioUser.shape.id,
+    firstName: io.optional(ioUser.shape.firstName),
+    lastName: io.optional(ioUser.shape.lastName),
+    gender: io.optional(ioUser.shape.gender),
+    avatarUrl: ioUser.shape.avatarUrl,
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef
@@ -173,7 +172,7 @@ export const UserToggleAdminDef = {
   access: authPoint.userManage,
   path: '/UserToggleAdmin',
   payload: io.object({
-    userId: io.string(),
+    userId: ioUser.shape.id,
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef
@@ -182,8 +181,8 @@ export const UserMergeDef = {
   access: authPoint.userManage,
   path: '/UserMerge',
   payload: io.object({
-    user1Id: io.string(),
-    user2Id: io.string(),
+    user1Id: ioUser.shape.id,
+    user2Id: ioUser.shape.id,
   }),
   result: ioUserSafe,
 } satisfies TEndpointDef
@@ -192,7 +191,7 @@ export const UserChangePasswordDef = {
   access: authPoint.userManage,
   path: '/UserChangePassword',
   payload: io.object({
-    userId: io.string(),
+    userId: ioUser.shape.id,
     newPassword: io.string(),
   }),
   result: ioUserSafe,

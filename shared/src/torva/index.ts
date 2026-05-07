@@ -29,6 +29,8 @@ export interface TypeIoDate extends TypeIo_<'date', string> {}
 export interface TypeIoEnum<C extends string = string>
   extends TypeIo_<'enum', C> {}
 
+export interface TypeIoId extends TypeIo_<'id', string> {}
+
 export interface TypeIoLazy<T extends TypeIoAll = TypeIoAll>
   extends TypeIo_<'lazy', TypeIoValue<T>> {}
 
@@ -78,9 +80,12 @@ export interface TypeIoObject<
       [K in keyof F]: TypeIoValue<F[K]>
     }>
   > {
+  shape: F
   extend<X extends Record<string, TypeIoAll>>(
     fields: X,
   ): TypeIoObject<Omit<F, keyof X> & X>
+  pick<K extends keyof F>(keys: K[]): TypeIoObject<Pick<F, K>>
+  omit<K extends keyof F>(keys: K[]): TypeIoObject<Omit<F, K>>
 }
 
 export interface TypeIoOptional<T extends TypeIoAll = TypeIoAll>
@@ -102,6 +107,8 @@ export interface TypeIoString extends TypeIo_<'string', string> {
   emptyok(): TypeIoString
 }
 
+export interface TypeIoTimestamp extends TypeIo_<'timestamp', number> {}
+
 export type TypeIoAll =
   | TypeIoAny
   | TypeIoArray
@@ -110,12 +117,14 @@ export type TypeIoAll =
   | TypeIoCustom
   | TypeIoDate
   | TypeIoEnum
+  | TypeIoId
   | TypeIoNull
   | TypeIoNumber
   | TypeIoLazy
   | TypeIoObject
   | TypeIoOptional
   | TypeIoString
+  | TypeIoTimestamp
 
 export type TypeIoValue<T extends TypeIo_> =
   T extends TypeIo_<string, infer X> ? X : never
@@ -274,6 +283,22 @@ export function ioEnum<C extends string>(choices: C[]): TypeIoEnum<C> {
   }
 }
 
+export function ioId(): TypeIoId {
+  return {
+    _type: 'id',
+    validate(value) {
+      if (typeof value !== 'string')
+        return {ok: false, error: `ID value is not a string.`}
+      const normalizedValue = value.trim()
+      if (!normalizedValue.length)
+        return {ok: false, error: `ID can not be empty.`}
+      if (/\s/.test(normalizedValue))
+        return {ok: false, error: `ID can not contain whitespace.`}
+      return {ok: true, value: normalizedValue}
+    },
+  }
+}
+
 export function ioLazy<T extends TypeIoAll = TypeIoAll>(
   callback: () => T,
 ): TypeIoLazy<T> {
@@ -352,12 +377,26 @@ export function ioObject<
 >(fields: F): TypeIoObject<F> {
   return {
     _type: 'object',
+    shape: fields,
     extend<X extends Record<string, TypeIoAll>>(newFields: X) {
       const currentFields = fields
       return ioObject({
         ...currentFields,
         ...newFields,
       }) as TypeIoObject<Omit<F, keyof X> & X>
+    },
+    pick<K extends keyof F>(keys: K[]) {
+      return ioObject(
+        Object.fromEntries(keys.map((key) => [key, fields[key]])) as Pick<F, K>,
+      )
+    },
+    omit<K extends keyof F>(keys: K[]) {
+      const omitted = new Set<keyof F>(keys)
+      return ioObject(
+        Object.fromEntries(
+          Object.entries(fields).filter(([key]) => !omitted.has(key as keyof F)),
+        ) as Omit<F, K>,
+      )
     },
     validate(value) {
       if (!ensure.object(value))
@@ -430,6 +469,8 @@ export function ioString(options?: TypeIoStringOptions): TypeIoString {
       if (options?.trim) normalizedValue = normalizedValue.trim()
       if (options?.nowhitespace)
         normalizedValue = normalizedValue.replace(/\s+/g, '')
+      if (!normalizedValue.length && options?.emptyok)
+        return {ok: true, value: normalizedValue}
       if (!options?.emptyok && !normalizedValue.length)
         return {ok: false, error: `Value can not be empty.`}
       if (options?.regex) {
@@ -444,6 +485,23 @@ export function ioString(options?: TypeIoStringOptions): TypeIoString {
   }
 }
 
+export function ioTimestamp(): TypeIoTimestamp {
+  return {
+    _type: 'timestamp',
+    validate(value) {
+      if (typeof value !== 'number')
+        return {ok: false, error: `Timestamp value is not a number.`}
+      if (!Number.isFinite(value))
+        return {ok: false, error: `Timestamp must be a finite number.`}
+      if (!Number.isInteger(value))
+        return {ok: false, error: `Timestamp must be an integer.`}
+      if (value < 0)
+        return {ok: false, error: `Timestamp must be zero or greater.`}
+      return {ok: true, value}
+    },
+  }
+}
+
 export const io = {
   any: ioAny,
   array: ioArray,
@@ -452,10 +510,12 @@ export const io = {
   custom: ioCustom,
   date: ioDate,
   enum: ioEnum,
+  id: ioId,
   lazy: ioLazy,
   null: ioNull,
   number: ioNumber,
   object: ioObject,
   optional: ioOptional,
   string: ioString,
+  timestamp: ioTimestamp,
 }

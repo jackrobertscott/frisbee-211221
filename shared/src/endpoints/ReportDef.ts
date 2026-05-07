@@ -1,15 +1,17 @@
 import {authPoint} from '@shared/auth/authAccess'
+import {ioFixture} from '@shared/schemas/ioFixture'
 import {ioReport} from '@shared/schemas/ioReport'
+import {ioTeam} from '@shared/schemas/ioTeam'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io, TypeIoValue} from '@shared/torva'
 
 export const ioReportSearchRow = io.object({
   report: ioReport,
-  fixtureTitle: io.string(),
-  teamName: io.string(),
-  teamColor: io.optional(io.string()),
-  againstName: io.string(),
-  againstColor: io.optional(io.string()),
+  fixtureTitle: ioFixture.shape.title,
+  teamName: ioTeam.shape.name,
+  teamColor: io.optional(ioTeam.shape.color),
+  againstName: ioTeam.shape.name,
+  againstColor: io.optional(ioTeam.shape.color),
   submitterName: io.string(),
 })
 
@@ -18,24 +20,24 @@ export type TReportSearchRow = TypeIoValue<typeof ioReportSearchRow>
 export const ReportCreateDef = {
   access: authPoint.reportWrite,
   path: '/ReportCreate',
-  payload: io.object({
-    teamId: io.string(),
-    againstTeamId: io.string(),
-    fixtureId: io.string(),
-    scoreFor: io.number(),
-    scoreAgainst: io.number(),
-    mvpMale: io.optional(io.string()),
-    mvpFemale: io.optional(io.string()),
-    mvpMale2: io.optional(io.string()),
-    mvpFemale2: io.optional(io.string()),
-    spirit: io.optional(io.number()),
-    spiritComment: io.string().emptyok(),
-    spiritP1: io.optional(io.number()), // Rules Knowledge and Use
-    spiritP2: io.optional(io.number()), // Fouls and Body Contact
-    spiritP3: io.optional(io.number()), // Fair-Mindedness
-    spiritP4: io.optional(io.number()), // Attitude and Self-Control
-    spiritP5: io.optional(io.number()), // Communication
-  }),
+  payload: ioReport.pick([
+    'teamId',
+    'teamAgainstId',
+    'fixtureId',
+    'scoreFor',
+    'scoreAgainst',
+    'mvpMale',
+    'mvpFemale',
+    'mvpMale2',
+    'mvpFemale2',
+    'spirit',
+    'spiritComment',
+    'spiritP1',
+    'spiritP2',
+    'spiritP3',
+    'spiritP4',
+    'spiritP5',
+  ]),
   result: ioReport,
 } satisfies TEndpointDef
 
@@ -44,22 +46,21 @@ export type TReportCreatePayload = TypeIoValue<typeof ReportCreateDef.payload>
 export const ReportUpdateDef = {
   access: authPoint.reportManage,
   path: '/ReportUpdate',
-  payload: io.object({
-    reportId: io.string(),
-    scoreFor: io.number(),
-    scoreAgainst: io.number(),
-    mvpMale: io.optional(io.string()),
-    mvpFemale: io.optional(io.string()),
-    mvpMale2: io.optional(io.string()),
-    mvpFemale2: io.optional(io.string()),
-    spirit: io.optional(io.number()),
-    spiritComment: io.string().emptyok(),
-    spiritP1: io.optional(io.number()),
-    spiritP2: io.optional(io.number()),
-    spiritP3: io.optional(io.number()),
-    spiritP4: io.optional(io.number()),
-    spiritP5: io.optional(io.number()),
-  }),
+  payload: ioReport.pick([
+    'scoreFor',
+    'scoreAgainst',
+    'mvpMale',
+    'mvpFemale',
+    'mvpMale2',
+    'mvpFemale2',
+    'spirit',
+    'spiritComment',
+    'spiritP1',
+    'spiritP2',
+    'spiritP3',
+    'spiritP4',
+    'spiritP5',
+  ]).extend({reportId: ioReport.shape.id}),
   result: ioReport,
 } satisfies TEndpointDef
 
@@ -69,7 +70,7 @@ export const ReportDeleteDef = {
   access: authPoint.reportManage,
   path: '/ReportDelete',
   payload: io.object({
-    reportId: io.string(),
+    reportId: ioReport.shape.id,
   }),
 } satisfies TEndpointDef
 
@@ -77,20 +78,20 @@ export const ReportMissingListDef = {
   access: authPoint.reportManage,
   path: '/ReportMissingList',
   payload: io.object({
-    seasonId: io.string(),
+    seasonId: ioFixture.shape.seasonId,
   }),
   result: io.array(
     io.object({
-      title: io.string(),
-      fixtureId: io.string(),
-      date: io.date(),
+      title: ioFixture.shape.title,
+      fixtureId: ioFixture.shape.id,
+      date: ioFixture.shape.date,
       missingTeams: io.array(
         io.object({
-          id: io.string(),
-          name: io.string(),
-          color: io.optional(io.string()),
-          againstId: io.optional(io.string()),
-          againstName: io.optional(io.string()),
+          id: ioTeam.shape.id,
+          name: ioTeam.shape.name,
+          color: io.optional(ioTeam.shape.color),
+          againstId: io.optional(ioTeam.shape.id),
+          againstName: io.optional(ioTeam.shape.name),
         }),
       ),
     }),

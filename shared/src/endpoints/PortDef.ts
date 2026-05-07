@@ -1,4 +1,5 @@
 import {authPoint} from '@shared/auth/authAccess'
+import {ioSeason} from '@shared/schemas/ioSeason'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
@@ -21,7 +22,7 @@ export const PortMockGenerateDef = {
   access: authPoint.portManage,
   path: '/PortMockGenerate',
   payload: io.object({
-    seasonId: io.string().trim(),
+    seasonId: ioSeason.shape.id,
     teams: io.number(),
     usersPerTeam: io.number(),
   }),

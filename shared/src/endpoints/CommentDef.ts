@@ -7,7 +7,7 @@ import {io} from '@shared/torva'
 export const CommentListOfPostDef = {
   path: '/CommentListOfPost',
   payload: io.object({
-    postId: io.string(),
+    postId: ioComment.shape.postId,
     limit: io.optional(io.number()),
   }),
   result: io.object({
@@ -19,21 +19,14 @@ export const CommentListOfPostDef = {
 export const CommentCreateDef = {
   access: authPoint.commentWrite,
   path: '/CommentCreate',
-  payload: io.object({
-    postId: io.string(),
-    content: io.string(),
-    commentParentId: io.optional(io.string()),
-  }),
+  payload: ioComment.pick(['postId', 'content', 'commentParentId']),
   result: ioComment,
 } satisfies TEndpointDef
 
 export const CommentUpdateDef = {
   access: authPoint.commentWrite,
   path: '/CommentUpdate',
-  payload: io.object({
-    commentId: io.string(),
-    content: io.string(),
-  }),
+  payload: ioComment.pick(['content']).extend({commentId: ioComment.shape.id}),
   result: ioComment,
 } satisfies TEndpointDef
 
@@ -41,6 +34,6 @@ export const CommentDeleteDef = {
   access: authPoint.commentWrite,
   path: '/CommentDelete',
   payload: io.object({
-    commentId: io.string(),
+    commentId: ioComment.shape.id,
   }),
 } satisfies TEndpointDef

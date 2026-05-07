@@ -1,8 +1,7 @@
 import {ioSeason} from '@shared/schemas/ioSeason'
 import {ioSession} from '@shared/schemas/ioSession'
 import {ioTeam} from '@shared/schemas/ioTeam'
-import {ioUserSafe} from '@shared/schemas/ioUser'
-import {ioUserGender} from '@shared/schemas/ioUserGender'
+import {ioUser, ioUserEmail, ioUserSafe} from '@shared/schemas/ioUser'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
@@ -17,7 +16,7 @@ export const ioAuthPayload = io.object({
 export const SecurityCurrentDef = {
   path: '/SecurityCurrent',
   payload: io.object({
-    seasonId: io.optional(io.string()),
+    seasonId: io.optional(ioSeason.shape.id),
   }),
   result: io.object({
     season: ioSeason,
@@ -28,22 +27,22 @@ export const SecurityCurrentDef = {
 export const SecurityStatusDef = {
   path: '/SecurityStatus',
   payload: io.object({
-    email: io.string().email().trim(),
+    email: ioUserEmail.shape.value,
   }),
   result: io.object({
     status: io.enum(['unknown', 'password', 'unverified', 'good']),
-    email: io.string(),
-    firstName: io.optional(io.string()),
+    email: ioUserEmail.shape.value,
+    firstName: io.optional(ioUser.shape.firstName),
   }),
 } satisfies TEndpointDef
 
 export const SecurityLoginDef = {
   path: '/SecurityLogin',
   payload: io.object({
-    seasonId: io.optional(io.string()),
-    email: io.string().email().trim(),
+    seasonId: io.optional(ioSeason.shape.id),
+    email: ioUserEmail.shape.value,
     password: io.string(),
-    userAgent: io.optional(io.string()),
+    userAgent: ioSession.shape.userAgent,
   }),
   result: ioAuthPayload,
 } satisfies TEndpointDef
@@ -51,30 +50,30 @@ export const SecurityLoginDef = {
 export const SecuritySignUpDef = {
   path: '/SecuritySignUp',
   payload: io.object({
-    seasonId: io.optional(io.string()),
-    email: io.string().email().trim(),
-    firstName: io.string(),
-    lastName: io.string(),
-    gender: ioUserGender,
-    termsAccepted: io.boolean(),
-    userAgent: io.optional(io.string()),
+    seasonId: io.optional(ioSeason.shape.id),
+    email: ioUserEmail.shape.value,
+    firstName: ioUser.shape.firstName,
+    lastName: ioUser.shape.lastName,
+    gender: ioUser.shape.gender,
+    termsAccepted: ioUser.shape.termsAccepted,
+    userAgent: ioSession.shape.userAgent,
   }),
   result: ioAuthPayload,
 } satisfies TEndpointDef
 
 export const SecurityForgotDef = {
   path: '/SecurityForgot',
-  payload: io.string().email().trim(),
+  payload: ioUserEmail.shape.value,
 } satisfies TEndpointDef
 
 export const SecurityVerifyDef = {
   path: '/SecurityVerify',
   payload: io.object({
-    seasonId: io.optional(io.string()),
-    email: io.string().email().trim(),
-    code: io.string(),
+    seasonId: io.optional(ioSeason.shape.id),
+    email: ioUserEmail.shape.value,
+    code: ioUserEmail.shape.code,
     newPassword: io.string(),
-    userAgent: io.optional(io.string()),
+    userAgent: ioSession.shape.userAgent,
   }),
   result: ioAuthPayload,
 } satisfies TEndpointDef

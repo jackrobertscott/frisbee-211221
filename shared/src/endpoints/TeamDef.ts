@@ -21,11 +21,7 @@ export type TTeamListSortDirection = (typeof TEAM_LIST_SORT_DIRECTIONS)[number]
 export const TeamCurrentCreateDef = {
   access: authPoint.teamJoin,
   path: '/TeamCurrentCreate',
-  payload: io.object({
-    seasonId: io.string(),
-    name: io.string(),
-    color: io.string(),
-  }),
+  payload: ioTeam.pick(['seasonId', 'name', 'color']),
   result: io.object({
     team: ioTeam,
     member: ioMember,
@@ -35,40 +31,25 @@ export const TeamCurrentCreateDef = {
 export const TeamCurrentUpdateDef = {
   access: authPoint.teamManage,
   path: '/TeamCurrentUpdate',
-  payload: io.object({
-    teamId: io.string(),
-    name: io.string(),
-    color: io.string(),
-    phone: io.optional(io.string().emptyok()),
-    email: io.optional(io.string().emptyok()),
-  }),
+  payload: ioTeam
+    .pick(['name', 'color', 'phone', 'email'])
+    .extend({teamId: ioTeam.shape.id}),
   result: ioTeam,
 } satisfies TEndpointDef
 
 export const TeamCreateDef = {
   access: authPoint.teamDirectoryManage,
   path: '/TeamCreate',
-  payload: io.object({
-    seasonId: io.string(),
-    name: io.string(),
-    color: io.string(),
-    phone: io.optional(io.string().emptyok()),
-    email: io.optional(io.string().emptyok()),
-  }),
+  payload: ioTeam.pick(['seasonId', 'name', 'color', 'phone', 'email']),
   result: ioTeam,
 } satisfies TEndpointDef
 
 export const TeamUpdateDef = {
   access: authPoint.teamDirectoryManage,
   path: '/TeamUpdate',
-  payload: io.object({
-    teamId: io.string(),
-    name: io.string(),
-    color: io.string(),
-    phone: io.optional(io.string().emptyok()),
-    email: io.optional(io.string().emptyok()),
-    division: io.optional(io.number()),
-  }),
+  payload: ioTeam
+    .pick(['name', 'color', 'phone', 'email', 'division'])
+    .extend({teamId: ioTeam.shape.id}),
   result: ioTeam,
 } satisfies TEndpointDef
 
@@ -76,6 +57,6 @@ export const TeamDeleteDef = {
   access: authPoint.teamDirectoryManage,
   path: '/TeamDelete',
   payload: io.object({
-    teamId: io.string(),
+    teamId: ioTeam.shape.id,
   }),
 } satisfies TEndpointDef
