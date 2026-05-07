@@ -493,6 +493,10 @@ const _DashboardUsersViewDetails: FC<{
   const [creating, creatingSet] = useState(false)
   const [removing, removingSet] = useState<string>()
   const [primaryify, primaryifySet] = useState<string>()
+  const [verifyCheck, verifyCheckSet] = useState<{
+    email: string
+    verified: boolean
+  }>()
   const [verifying, verifyingSet] = useState<string>()
   const $userUpdate = useEndpoint($UserUpdate)
   const $emailAdd = useEndpoint($UserEmailAdd)
@@ -590,25 +594,11 @@ const _DashboardUsersViewDetails: FC<{
                     background: i.verified
                       ? theme.bgAdminButton
                       : theme.bgDisabled,
-                    click: () => {
-                      verifyingSet(i.value)
-                      $emailVerifiedSet
-                        .fetch({
-                          userId: user.id,
-                          email: i.value,
-                          verified: !i.verified,
-                        })
-                        .then((next) => {
-                          applyUser(next)
-                          verifyingSet(undefined)
-                          toaster.notify(
-                            i.verified
-                              ? 'Email marked as unverified.'
-                              : 'Email marked as verified.',
-                          )
-                        })
-                        .finally(() => verifyingSet(undefined))
-                    },
+                    click: () =>
+                      verifyCheckSet({
+                        email: i.value,
+                        verified: !i.verified,
+                      }),
                   }),
                   $(FormBadge, {
                     disabled: !canRemoveEmail,
@@ -751,6 +741,48 @@ const _DashboardUsersViewDetails: FC<{
                       primaryifySet(undefined)
                       toaster.notify('Email set as primary.')
                     }),
+              },
+            ],
+          }),
+      }),
+      $(Fragment, {
+        children:
+          verifyCheck &&
+          $(Question, {
+            close: () => verifyCheckSet(undefined),
+            title: verifyCheck.verified ? 'Mark Email As Verified' : 'Mark Email As Unverified',
+            description: verifyCheck.verified
+              ? `Are you sure you wish to mark "${verifyCheck.email}" as verified?`
+              : `Are you sure you wish to mark "${verifyCheck.email}" as unverified?`,
+            options: [
+              {label: 'Cancel', click: () => verifyCheckSet(undefined)},
+              {
+                disabled: $emailVerifiedSet.loading,
+                label: $emailVerifiedSet.loading
+                  ? 'Loading'
+                  : verifyCheck.verified
+                    ? 'Mark As Verified'
+                    : 'Mark As Unverified',
+                click: () => {
+                  const nextCheck = verifyCheck
+                  verifyingSet(nextCheck.email)
+                  $emailVerifiedSet
+                    .fetch({
+                      userId: user.id,
+                      email: nextCheck.email,
+                      verified: nextCheck.verified,
+                    })
+                    .then((next) => {
+                      applyUser(next)
+                      verifyCheckSet(undefined)
+                      toaster.notify(
+                        nextCheck.verified
+                          ? 'Email marked as verified.'
+                          : 'Email marked as unverified.',
+                      )
+                    })
+                    .finally(() => verifyingSet(undefined))
+                },
               },
             ],
           }),
