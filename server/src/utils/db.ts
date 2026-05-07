@@ -24,6 +24,10 @@ export const db = {
         return options.schema
       },
 
+      key() {
+        return options.key
+      },
+
       async count(query: Filter<V>): Promise<number> {
         const collection = await mongo.collection(options.key)
         return collection.countDocuments(
@@ -70,6 +74,20 @@ export const db = {
           .limit(queryOptions?.limit ?? Number.MAX_SAFE_INTEGER)
         const result = await chain.toArray()
         return result.map((i) => this._clean(i as any))
+      },
+
+      async scanStored(
+        callback: (value: unknown) => Promise<void> | void,
+        query: Filter<V> = {},
+      ): Promise<number> {
+        const collection = await mongo.collection(options.key)
+        const cursor = collection.find(query as Filter<Document>, mongo.options())
+        let count = 0
+        for await (const result of cursor) {
+          await callback(this._clean(result as any) as unknown)
+          count += 1
+        }
+        return count
       },
 
       async createOne(

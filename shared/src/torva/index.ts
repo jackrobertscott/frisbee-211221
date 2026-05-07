@@ -16,7 +16,9 @@ export interface TypeIo_<K extends string = string, T = any> {
 export interface TypeIoAny extends TypeIo_<'any', any> {}
 
 export interface TypeIoArray<T extends TypeIoAll = TypeIoAll>
-  extends TypeIo_<'array', Array<TypeIoValue<T>>> {}
+  extends TypeIo_<'array', Array<TypeIoValue<T>>> {
+  ofType: T
+}
 
 export interface TypeIoBoolean extends TypeIo_<'boolean', boolean> {}
 
@@ -32,10 +34,14 @@ export interface TypeIoEnum<C extends string = string>
 export interface TypeIoId extends TypeIo_<'id', string> {}
 
 export interface TypeIoLazy<T extends TypeIoAll = TypeIoAll>
-  extends TypeIo_<'lazy', TypeIoValue<T>> {}
+  extends TypeIo_<'lazy', TypeIoValue<T>> {
+  getType(): T
+}
 
 export interface TypeIoNull<T extends TypeIoAll = TypeIoAll>
-  extends TypeIo_<'null', TypeIoValue<T> | null> {}
+  extends TypeIo_<'null', TypeIoValue<T> | null> {
+  ofType: T
+}
 
 export interface TypeIoNumberOptions {
   coerce?: boolean
@@ -89,7 +95,9 @@ export interface TypeIoObject<
 }
 
 export interface TypeIoOptional<T extends TypeIoAll = TypeIoAll>
-  extends TypeIo_<'optional', TypeIoValue<T> | undefined> {}
+  extends TypeIo_<'optional', TypeIoValue<T> | undefined> {
+  ofType: T
+}
 
 export interface TypeIoStringOptions {
   regex?: RegExp
@@ -181,6 +189,7 @@ export function ioArray<T extends TypeIoAll = TypeIoAll>(
 ): TypeIoArray<T> {
   return {
     _type: 'array',
+    ofType,
     validate(value) {
       if (!Array.isArray(value))
         return {
@@ -304,6 +313,9 @@ export function ioLazy<T extends TypeIoAll = TypeIoAll>(
 ): TypeIoLazy<T> {
   return {
     _type: 'lazy',
+    getType() {
+      return callback()
+    },
     validate(value) {
       return callback().validate(value as TypeIoValue<T>)
     },
@@ -315,6 +327,7 @@ export function ioNull<T extends TypeIoAll = TypeIoAll>(
 ): TypeIoNull<T> {
   return {
     _type: 'null',
+    ofType,
     validate(value) {
       if (value === null) return {ok: true, value}
       if (!ofType)
@@ -435,6 +448,7 @@ export function ioOptional<T extends TypeIoAll = TypeIoAll>(
 ): TypeIoOptional<T> {
   return {
     _type: 'optional',
+    ofType,
     validate(value) {
       if (value === undefined) return {ok: true, value}
       if (!ofType)
