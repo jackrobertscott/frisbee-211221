@@ -46,7 +46,7 @@ export const MockDeleteConfirmation: FC<{
             label: $deleteData.loading ? 'Deleting...' : 'Delete All Mock Data',
             click: () => {
               $deleteData
-                .fetch({})
+                .fetch()
                 .then(() => {
                   toaster.notify('All mock data has been deleted successfully')
                   done()

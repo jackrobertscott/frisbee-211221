@@ -7,8 +7,8 @@ import {
   unauthorizedError,
 } from '@shared/errors'
 import {useMemo, useRef, useState} from 'react'
-import {TypeIoAll, TypeIoValue} from '@shared/torva'
-import {TEndpoint} from '../utils/endpoints'
+import {TypeIoAll} from '@shared/torva'
+import {TEndpoint, TEndpointInput, TEndpointOutput} from '../utils/endpoints'
 import {throttle} from '../utils/throttle'
 import {readAuthState} from './Auth/authAccess'
 import {useAuth} from './Auth/useAuth'
@@ -16,10 +16,7 @@ import {useToaster} from './Toaster/useToaster'
 import {useMountedRef} from './useMountedRef'
 
 export const useEndpoint = <
-  I extends TypeIoAll,
-  O extends TypeIoAll,
-  M extends boolean,
-  E extends TEndpoint<I, O, M>,
+  E extends TEndpoint<TypeIoAll | undefined, TypeIoAll | undefined, boolean>,
 >(
   endpoint: E,
   timeout?: number,
@@ -28,8 +25,8 @@ export const useEndpoint = <
   const toaster = useToaster()
   const mounted = useMountedRef()
   const [loading, loadingSet] = useState(false)
-  type P = M extends true ? FormData : TypeIoValue<NonNullable<E['IN']>>
-  type R = TypeIoValue<NonNullable<E['OUT']>>
+  type P = TEndpointInput<E['IN'], E['MULTIPART']>
+  type R = TEndpointOutput<E['OUT']>
   const cbNext = async (payload?: P) => {
     if (endpoint.access) {
       const deny = readAuthDeny(readAuthState(auth.current), endpoint.access)

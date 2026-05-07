@@ -3,6 +3,7 @@ import {
   TReportCreatePayload,
   TReportUpdatePayload,
 } from '@shared/endpoints/ReportDef'
+import {exactShape} from '@shared/utils/endpointDef'
 import {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TReport} from '@shared/schemas/ioReport'
@@ -151,8 +152,12 @@ export function createReportCreatePayload(
     return undefined
   }
 
-  return {
-    ...required,
+  return exactShape<TReportCreatePayload>()({
+    teamId: required.teamId,
+    teamAgainstId: required.againstTeamId,
+    fixtureId: required.fixtureId,
+    scoreFor: required.scoreFor,
+    scoreAgainst: required.scoreAgainst,
     mvpMale: formData.mvpMale,
     mvpFemale: formData.mvpFemale,
     mvpMale2: formData.mvpMale2,
@@ -164,7 +169,7 @@ export function createReportCreatePayload(
     spiritP3: formData.spiritP3,
     spiritP4: formData.spiritP4,
     spiritP5: formData.spiritP5,
-  }
+  })
 }
 
 export function createReportUpdatePayload(
@@ -176,7 +181,7 @@ export function createReportUpdatePayload(
     return undefined
   }
 
-  return {
+  return exactShape<TReportUpdatePayload>()({
     reportId,
     ...required,
     mvpMale: formData.mvpMale,
@@ -190,7 +195,7 @@ export function createReportUpdatePayload(
     spiritP3: formData.spiritP3,
     spiritP4: formData.spiritP4,
     spiritP5: formData.spiritP5,
-  }
+  })
 }
 
 export function sanitizeReportFormMvps(

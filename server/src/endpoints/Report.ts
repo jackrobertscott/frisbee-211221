@@ -42,7 +42,7 @@ export default new Map<string, RequestHandler>([
       else [team] = await requireTeam(user, body.teamId)
       const fixture = await $Fixture.getOne({id: body.fixtureId})
       const season = await $Season.getOne({id: fixture.seasonId})
-      const teamAgainst = await $Team.getOne({id: body.againstTeamId})
+      const teamAgainst = await $Team.getOne({id: body.teamAgainstId})
       assertOfficialSpiritComment(season.useOfficialScoring, body)
       if (
         await $Report.count({

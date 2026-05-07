@@ -60,11 +60,16 @@ export const DashboardFixtures: FC = () => {
               }),
               children: addkeys([
                 $(FormBadge, {
-                  grow: true,
-                  icon: 'magic',
+                  icon: 'wand-sparkles',
                   label: 'Magic Generate',
                   background: theme.bgAdminButton,
                   click: () => generatingSet(true),
+                }),
+                $(FormBadge, {
+                  icon: 'calendar-days',
+                  label: 'Adjust Multiple Fixtures',
+                  background: theme.bgAdminButton,
+                  click: () => adjustingSet(true),
                 }),
                 $(FormBadge, {
                   grow: true,
@@ -72,13 +77,6 @@ export const DashboardFixtures: FC = () => {
                   label: 'Add Fixture',
                   background: theme.bgAdminButton,
                   click: () => creatingSet(true),
-                }),
-                $(FormBadge, {
-                  grow: true,
-                  icon: 'clock',
-                  label: 'Adjust Multiple Fixtures',
-                  background: theme.bgAdminButton,
-                  click: () => adjustingSet(true),
                 }),
               ]),
             }),
