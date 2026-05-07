@@ -532,10 +532,10 @@ const _mergeReportUserReferences = (
     updatedOn,
   }
 
-  if (next.mvpMale && next.mvpMale === next.mvpMale2) next.mvpMale2 = ''
+  if (next.mvpMale && next.mvpMale === next.mvpMale2) next.mvpMale2 = undefined
   if (next.mvpFemale && next.mvpFemale === next.mvpFemale2)
-    next.mvpFemale2 = ''
-  if (next.mvpMale && next.mvpMale === next.mvpFemale) next.mvpFemale = ''
+    next.mvpFemale2 = undefined
+  if (next.mvpMale && next.mvpMale === next.mvpFemale) next.mvpFemale = undefined
 
   return next
 }

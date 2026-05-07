@@ -127,9 +127,17 @@ export const db = {
         if (!i.ok) throw i.error
         const collection = await mongo.collection(options.key)
         const {_id, id, ...$set} = i.value as Record<string, any>
+        const $unset = Object.fromEntries(
+          Object.entries(value as Record<string, unknown>)
+            .filter(([, item]) => item === undefined)
+            .map(([key]) => [key, '']),
+        )
         await collection.updateOne(
           query as Filter<Document>,
-          {$set},
+          {
+            $set,
+            ...(Object.keys($unset).length ? {$unset} : {}),
+          },
           mongo.options(),
         )
         return i.value as V
@@ -152,10 +160,18 @@ export const db = {
           const validated = options.schema.validate({...current, ...task.value})
           if (!validated.ok) throw validated.error
           const {_id, id, ...$set} = validated.value as Record<string, any>
+          const $unset = Object.fromEntries(
+            Object.entries(task.value as Record<string, unknown>)
+              .filter(([, item]) => item === undefined)
+              .map(([key]) => [key, '']),
+          )
           operations.push({
             updateOne: {
               filter: task.query as Filter<Document>,
-              update: {$set},
+              update: {
+                $set,
+                ...(Object.keys($unset).length ? {$unset} : {}),
+              },
             },
           })
         }
