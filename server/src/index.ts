@@ -12,7 +12,7 @@ import capture from './utils/capture'
 import cors from './utils/cors'
 import intrusion from './utils/intrusion'
 import prerequest from './utils/prerequest'
-import {runStartupSchemaAudit} from './utils/startupSchemaAudit'
+import {runStartupTasks} from './utils/startupTasks'
 
 void bootstrap().catch((error) => {
   console.error('Failed to start server.', error)
@@ -20,19 +20,24 @@ void bootstrap().catch((error) => {
 })
 
 async function bootstrap() {
-  if (!config.IS_PRODUCTION) {
-    await runStartupSchemaAudit()
-    startServer()
-    return
+  if (shouldRunStartupTasks()) {
+    await runStartupTasks()
   }
 
-  if (cluster.isPrimary && config.IS_PRODUCTION) {
-    await runStartupSchemaAudit()
+  if (shouldStartPrimaryCluster()) {
     startPrimaryCluster()
     return
   }
 
   startServer()
+}
+
+function shouldRunStartupTasks() {
+  return !config.IS_PRODUCTION || cluster.isPrimary
+}
+
+function shouldStartPrimaryCluster() {
+  return config.IS_PRODUCTION && cluster.isPrimary
 }
 
 function startServer() {
