@@ -1,7 +1,6 @@
 import {runStartupSchemaAudit} from './startupSchemaAudit'
-import {runStartupSessionMigration} from './startupSessionMigration'
 
-const startupTasks = [runStartupSessionMigration, runStartupSchemaAudit]
+const startupTasks = [runStartupSchemaAudit]
 
 export async function runStartupTasks() {
   for (const task of startupTasks) {
