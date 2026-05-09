@@ -124,7 +124,7 @@ function isNamespaceMissing(error: unknown) {
 
 function normalizeIndex(index: Record<string, unknown> | TCompiledTableIndex) {
   return {
-    key: stableStringify(index.key ?? {}),
+    key: normalizeIndexKey(index.key),
     options: stableStringify({
       unique: Boolean(index.unique),
       sparse: Boolean(index.sparse),
@@ -136,6 +136,17 @@ function normalizeIndex(index: Record<string, unknown> | TCompiledTableIndex) {
       collation: index.collation,
     }),
   }
+}
+
+function normalizeIndexKey(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    return JSON.stringify(value)
+  return JSON.stringify(
+    Object.entries(value as Record<string, unknown>).map(([key, direction]) => [
+      key,
+      direction,
+    ]),
+  )
 }
 
 function stableStringify(value: unknown): string {

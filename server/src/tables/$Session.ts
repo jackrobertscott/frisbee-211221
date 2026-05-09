@@ -7,7 +7,7 @@ export const $Session = db.table({
   indexes: [
     {key: {id: 1}, unique: true},
     {key: {userId: 1}},
-    {key: {expiresOn: 1}, expireAfterSeconds: 0},
+    {key: {expiresOn: 1}},
   ],
   schema: ioSession,
   defaults: {

@@ -6,7 +6,6 @@ export const $AuthAttemptLimit = db.table({
   indexes: [
     {key: {id: 1}, unique: true},
     {key: {blockedUntil: 1, lastSeenAt: 1}},
-    {key: {lastSeenAt: 1}, expireAfterSeconds: 1800},
   ],
   schema: ioAuthAttemptLimit,
   defaults: {
