@@ -103,9 +103,14 @@ export default new Map<string, RequestHandler>([
       async (req) => {
         await requireAccess(req, access)
         await $Season.getOne({id: seasonId})
-        const [searchResult, fixtures, teams] = await Promise.all([
-          _getReportSearchResult({seasonId, search, limit, skip}),
-          _getSeasonFixtures(seasonId),
+        const fixtures = await _getSeasonFixtures(seasonId)
+        const [searchResult, teams] = await Promise.all([
+          _getReportSearchResult({
+            fixtureIds: fixtures.map((fixture) => fixture.id),
+            search,
+            limit,
+            skip,
+          }),
           _getSeasonTeams(seasonId),
         ])
         return {
@@ -147,15 +152,16 @@ export default new Map<string, RequestHandler>([
       async (req) => {
         await requireAccess(req, access)
         const season = await $Season.getOne({id: seasonId})
-        const [teams, [aggregate]] = await Promise.all([
+        const [teams, fixtures] = await Promise.all([
           _getSeasonTeams(seasonId),
-          $Report.aggregate<TSpiritAggregate>(
-            _createSpiritAggregatePipeline(
-              seasonId,
-              !!season.useOfficialScoring,
-            ),
-          ),
+          _getSeasonFixtures(seasonId),
         ])
+        const [aggregate] = await $Report.aggregate<TSpiritAggregate>(
+          _createSpiritAggregatePipeline(
+            fixtures.map((fixture) => fixture.id),
+            !!season.useOfficialScoring,
+          ),
+        )
         const receivedMap = new Map(
           (aggregate?.received ?? []).map((row) => [row._id, row]),
         )
@@ -204,12 +210,16 @@ export default new Map<string, RequestHandler>([
       async (req) => {
         await requireAccess(req, access)
         const season = await $Season.getOne({id: seasonId})
-        const [aggregateRows, teams] = await Promise.all([
-          $Report.aggregate<TMvpAggregateRow>(
-            _createMvpAggregatePipeline(seasonId, !!season.useOfficialScoring),
-          ),
+        const [teams, fixtures] = await Promise.all([
           _getSeasonTeams(seasonId),
+          _getSeasonFixtures(seasonId),
         ])
+        const aggregateRows = await $Report.aggregate<TMvpAggregateRow>(
+          _createMvpAggregatePipeline(
+            fixtures.map((fixture) => fixture.id),
+            !!season.useOfficialScoring,
+          ),
+        )
         const teamMap = new Map(teams.map((team) => [team.id, team]))
         const users = await $User.getMany({
           id: {$in: aggregateRows.map((row) => row.userId)},
@@ -351,12 +361,12 @@ async function _getSeasonFixtures(seasonId: string) {
 }
 
 async function _getReportSearchResult({
-  seasonId,
+  fixtureIds,
   search,
   limit,
   skip,
 }: {
-  seasonId: string
+  fixtureIds: string[]
   search?: string
   limit?: number
   skip?: number
@@ -364,7 +374,7 @@ async function _getReportSearchResult({
   const [result] = await $Report.aggregate<{
     count: number
     reports: TReportSearchRow[]
-  }>(_createReportSearchPipeline({seasonId, search, limit, skip}))
+  }>(_createReportSearchPipeline({fixtureIds, search, limit, skip}))
   return result ?? {count: 0, reports: []}
 }
 
@@ -443,7 +453,7 @@ function _sortSpiritRows(
 }
 
 function _createSpiritAggregatePipeline(
-  seasonId: string,
+  fixtureIds: string[],
   useOfficialScoring: boolean,
 ): Document[] {
   const spiritExpression = useOfficialScoring
@@ -458,16 +468,7 @@ function _createSpiritAggregatePipeline(
       }
     : {$ifNull: ['$spirit', 0]}
   return [
-    {
-      $lookup: {
-        from: 'fixture',
-        localField: 'fixtureId',
-        foreignField: 'id',
-        as: 'fixture',
-      },
-    },
-    {$unwind: '$fixture'},
-    {$match: {'fixture.seasonId': seasonId}},
+    {$match: {fixtureId: {$in: fixtureIds}}},
     {$addFields: {spiritTotal: spiritExpression}},
     {
       $facet: {
@@ -495,20 +496,11 @@ function _createSpiritAggregatePipeline(
 }
 
 function _createMvpAggregatePipeline(
-  seasonId: string,
+  fixtureIds: string[],
   useOfficialScoring: boolean,
 ): Document[] {
   return [
-    {
-      $lookup: {
-        from: 'fixture',
-        localField: 'fixtureId',
-        foreignField: 'id',
-        as: 'fixture',
-      },
-    },
-    {$unwind: '$fixture'},
-    {$match: {'fixture.seasonId': seasonId}},
+    {$match: {fixtureId: {$in: fixtureIds}}},
     {
       $project: {
         votes: {
@@ -584,18 +576,19 @@ function _createMvpAggregatePipeline(
 }
 
 function _createReportSearchPipeline({
-  seasonId,
+  fixtureIds,
   search,
   limit,
   skip,
 }: {
-  seasonId: string
+  fixtureIds: string[]
   search?: string
   limit?: number
   skip?: number
 }) {
   const trimmedSearch = search?.trim()
   const pipeline: Document[] = [
+    {$match: {fixtureId: {$in: fixtureIds}}},
     {
       $lookup: {
         from: 'fixture',
@@ -605,7 +598,6 @@ function _createReportSearchPipeline({
       },
     },
     {$unwind: '$fixture'},
-    {$match: {'fixture.seasonId': seasonId}},
     {
       $lookup: {
         from: 'team',

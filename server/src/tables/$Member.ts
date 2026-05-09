@@ -10,6 +10,7 @@ export const $Member = db.table({
     {key: {teamId: 1, userId: 1}},
     {key: {teamId: 1, pending: 1}},
     {key: {userId: 1, pending: 1}},
+    {key: {createdOn: 1}},
   ],
   schema: ioMember,
   defaults: {

@@ -261,9 +261,7 @@ export default new Map<string, RequestHandler>([
           fixture.games.push(game)
         })
       }
-      await Promise.all(
-        newFixtures.map((fixture) => $Fixture.createOne(fixture)),
-      )
+      if (newFixtures.length) await $Fixture.createMany(newFixtures)
     },
   }),
 ])

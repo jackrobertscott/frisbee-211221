@@ -15,6 +15,7 @@ export const $Report = db.table({
     {key: {mvpFemale2: 1}},
     {key: {teamId: 1}},
     {key: {teamAgainstId: 1}},
+    {key: {createdOn: 1}},
   ],
   schema: ioReport,
   defaults: {
