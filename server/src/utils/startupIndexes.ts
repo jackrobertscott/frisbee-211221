@@ -42,14 +42,11 @@ export async function runStartupIndexSync() {
 async function syncTableIndexes(table: TIndexedTable) {
   const collection = await mongo.collection(table.key())
   const desiredIndexes = table.indexes()
-  const desiredByName = new Map(desiredIndexes.map((index) => [index.name, index]))
+  const desiredNormalized = new Set(desiredIndexes.map((index) => normalizeIndex(index)))
   const existingIndexes = await listIndexesSafely(collection)
   const dropNames = existingIndexes
     .filter((index) => index.name !== '_id_')
-    .filter((index) => {
-      const desired = desiredByName.get(index.name)
-      return !desired || !indexesMatch(index, desired)
-    })
+    .filter((index) => !desiredNormalized.has(normalizeIndex(index)))
     .map((index) => index.name)
 
   for (const name of dropNames) {
@@ -91,18 +88,6 @@ async function syncTableIndexes(table: TIndexedTable) {
   )
 }
 
-function indexesMatch(
-  existing: Record<string, unknown>,
-  desired: TCompiledTableIndex,
-) {
-  const existingNormalized = normalizeIndex(existing)
-  const desiredNormalized = normalizeIndex(desired)
-  return (
-    existingNormalized.key === desiredNormalized.key &&
-    existingNormalized.options === desiredNormalized.options
-  )
-}
-
 async function listIndexesSafely(collection: Awaited<ReturnType<typeof mongo.collection>>) {
   try {
     return await collection.listIndexes().toArray()
@@ -123,9 +108,10 @@ function isNamespaceMissing(error: unknown) {
 }
 
 function normalizeIndex(index: Record<string, unknown> | TCompiledTableIndex) {
-  return {
+  return stableStringify({
+    name: index.name,
     key: normalizeIndexKey(index.key),
-    options: stableStringify({
+    options: {
       unique: Boolean(index.unique),
       sparse: Boolean(index.sparse),
       expireAfterSeconds:
@@ -133,9 +119,9 @@ function normalizeIndex(index: Record<string, unknown> | TCompiledTableIndex) {
           ? index.expireAfterSeconds
           : undefined,
       partialFilterExpression: index.partialFilterExpression,
-      collation: index.collation,
-    }),
-  }
+      collation: normalizeCollation(index.collation),
+    },
+  })
 }
 
 function normalizeIndexKey(value: unknown) {
@@ -160,5 +146,26 @@ function stableValue(value: unknown): unknown {
     Object.entries(value as Record<string, unknown>)
       .sort(([left], [right]) => left.localeCompare(right))
       .map(([key, child]) => [key, stableValue(child)]),
+  )
+}
+
+function normalizeCollation(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value
+  const collation = value as Record<string, unknown>
+
+  return Object.fromEntries(
+    Object.entries(collation).filter(([key, item]) => {
+      if (item === undefined) return false
+      if (key === 'version') return false
+      if (key === 'caseLevel') return item !== false
+      if (key === 'caseFirst') return item !== 'off'
+      if (key === 'strength') return item !== 3
+      if (key === 'numericOrdering') return item !== false
+      if (key === 'alternate') return item !== 'non-ignorable'
+      if (key === 'maxVariable') return item !== 'punct'
+      if (key === 'normalization') return item !== false
+      if (key === 'backwards') return item !== false
+      return true
+    }),
   )
 }
