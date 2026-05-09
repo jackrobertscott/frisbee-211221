@@ -4,7 +4,11 @@ import {random} from '../utils/random'
 
 export const $Post = db.table({
   key: 'post',
-  index: ['id'],
+  indexes: [
+    {key: {id: 1}, unique: true},
+    {key: {createdOn: -1}},
+    {key: {userId: 1}},
+  ],
   schema: ioPost,
   defaults: {
     id: () => random.generateId(),

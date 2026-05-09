@@ -11,14 +11,37 @@ export interface TQueryOptions<T> {
   collation?: CollationOptions
 }
 
+export type TTableIndex = {
+  key: Record<string, 1 | -1>
+  name?: string
+  unique?: boolean
+  sparse?: boolean
+  expireAfterSeconds?: number
+  partialFilterExpression?: Document
+  collation?: CollationOptions
+}
+
+export type TCompiledTableIndex = TTableIndex & {
+  name: string
+}
+
 export const db = {
   table<T extends TypeIoAll, P extends Partial<TypeIoValue<T>>>(options: {
     key: string
-    index: string[]
+    indexes: TTableIndex[]
     schema: T
     defaults?: {[K in keyof P]?: () => P[K]}
   }) {
     type V = TypeIoValue<T>
+    const indexes = options.indexes.map(_compileTableIndex)
+    const duplicateIndex = indexes.find(
+      (index, current) =>
+        indexes.findIndex((other) => other.name === index.name) !== current,
+    )
+    if (duplicateIndex)
+      throw new Error(
+        `Duplicate index name "${duplicateIndex.name}" on table "${options.key}".`,
+      )
     return {
       validator() {
         return options.schema
@@ -26,6 +49,10 @@ export const db = {
 
       key() {
         return options.key
+      },
+
+      indexes() {
+        return indexes
       },
 
       async count(query: Filter<V>): Promise<number> {
@@ -224,4 +251,17 @@ export const db = {
       },
     }
   },
+}
+
+function _compileTableIndex(index: TTableIndex): TCompiledTableIndex {
+  const entries = Object.entries(index.key)
+  if (!entries.length) throw new Error('Mongo index requires at least one field.')
+  return {
+    ...index,
+    name:
+      index.name ??
+      entries
+        .map(([field, direction]) => `${field}_${direction === 1 ? 'asc' : 'desc'}`)
+        .join('__'),
+  }
 }

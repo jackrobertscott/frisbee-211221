@@ -22,6 +22,8 @@ import {createExportArchive} from './portExport'
 import {requireAccess} from './requireAccess'
 import {userEmail} from './userEmail'
 
+const EMAIL_COLLATION = {locale: 'en', strength: 2 as const}
+
 export default new Map<string, RequestHandler>([
   createEndpoint({
     ...PortImportDef,
@@ -451,8 +453,8 @@ const _createUsersFromObjects = async (
   const csvEmailList = userCSVList.flatMap((i) => (i.email ? [i.email] : []))
   const userDBList = csvEmailList.length
     ? await $User.getMany({
-        'emails.value': {$in: csvEmailList.map(regex.normalize)},
-      })
+        'emails.value': {$in: csvEmailList},
+      }, {collation: EMAIL_COLLATION})
     : []
   const userIdByEmail = new Map<string, string>()
   for (const user of userDBList) {

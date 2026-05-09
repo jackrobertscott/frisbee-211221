@@ -4,7 +4,11 @@ import {random} from '../utils/random'
 
 export const $Session = db.table({
   key: 'session',
-  index: ['id'],
+  indexes: [
+    {key: {id: 1}, unique: true},
+    {key: {userId: 1}},
+    {key: {expiresOn: 1}, expireAfterSeconds: 0},
+  ],
   schema: ioSession,
   defaults: {
     id: () => random.generateId(),

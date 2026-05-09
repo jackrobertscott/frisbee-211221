@@ -2,9 +2,15 @@ import {ioUser} from '@shared/schemas/ioUser'
 import {db} from '../utils/db'
 import {random} from '../utils/random'
 
+const EMAIL_COLLATION = {locale: 'en', strength: 2 as const}
+
 export const $User = db.table({
   key: 'user',
-  index: ['id'],
+  indexes: [
+    {key: {id: 1}, unique: true},
+    {key: {'emails.value': 1}, collation: EMAIL_COLLATION},
+    {key: {createdOn: -1}},
+  ],
   schema: ioUser,
   defaults: {
     id: () => random.generateId(),

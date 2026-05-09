@@ -1,4 +1,7 @@
+import {runStartupIndexSync} from './startupIndexes'
+
 const startupTasks: Array<() => Promise<void>> = [
+  runStartupIndexSync,
   // runStartupSchemaAudit // uncomment to enable Mongo schema audit on startup
 ]
 

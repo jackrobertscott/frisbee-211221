@@ -8,6 +8,8 @@ import {mail} from '../utils/mail'
 import {random} from '../utils/random'
 import {regex} from '../utils/regex'
 
+const EMAIL_COLLATION = {locale: 'en', strength: 2 as const}
+
 const normalizeCode = (value: string) =>
   value.split('-').join('').split(' ').join('').trim().toUpperCase()
 
@@ -50,8 +52,7 @@ export const userEmail = {
 
   async maybeUser(email: string) {
     const value = email.trim()
-    const emailNormalized = regex.normalize(value)
-    return $User.maybeOne({'emails.value': emailNormalized})
+    return $User.maybeOne({'emails.value': value}, {collation: EMAIL_COLLATION})
   },
 
   create(email: string, primary: boolean = false, code?: string) {

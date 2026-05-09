@@ -4,7 +4,13 @@ import {random} from '../utils/random'
 
 export const $Report = db.table({
   key: 'report',
-  index: ['id'],
+  indexes: [
+    {key: {id: 1}, unique: true},
+    {key: {fixtureId: 1, createdOn: -1}},
+    {key: {fixtureId: 1, teamId: 1, teamAgainstId: 1}},
+    {key: {teamId: 1}},
+    {key: {teamAgainstId: 1}},
+  ],
   schema: ioReport,
   defaults: {
     id: () => random.generateId(),

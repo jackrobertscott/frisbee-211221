@@ -4,7 +4,12 @@ import {random} from '../utils/random'
 
 export const $Team = db.table({
   key: 'team',
-  index: ['id'],
+  indexes: [
+    {key: {id: 1}, unique: true},
+    {key: {seasonId: 1, division: 1, name: 1}},
+    {key: {seasonId: 1, name: 1}},
+    {key: {isMock: 1}},
+  ],
   schema: ioTeam,
   defaults: {
     id: () => random.generateId(),

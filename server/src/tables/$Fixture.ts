@@ -4,7 +4,11 @@ import {random} from '../utils/random'
 
 export const $Fixture = db.table({
   key: 'fixture',
-  index: ['id'],
+  indexes: [
+    {key: {id: 1}, unique: true},
+    {key: {seasonId: 1, date: 1}},
+    {key: {userId: 1}},
+  ],
   schema: ioFixture,
   defaults: {
     id: () => random.generateId(),

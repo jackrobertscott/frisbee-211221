@@ -4,7 +4,11 @@ import {random} from '../utils/random'
 
 export const $Comment = db.table({
   key: 'comment',
-  index: ['id'],
+  indexes: [
+    {key: {id: 1}, unique: true},
+    {key: {postId: 1, createdOn: -1}},
+    {key: {userId: 1}},
+  ],
   schema: ioComment,
   defaults: {
     id: () => random.generateId(),
