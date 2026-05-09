@@ -295,27 +295,17 @@ export default new Map<string, RequestHandler>([
                 {userId: user1.id, updatedOn},
               )
           }
-          // comments
-          const u2cs = await $Comment.getMany({userId: user2.id})
-          const u2csBulk = u2cs.map((u2c) => ({
-            query: {id: u2c.id},
-            value: {userId: user1.id, updatedOn},
-          }))
-          await $Comment.updateBulk(u2csBulk)
-          // fixtures
-          const u2fs = await $Fixture.getMany({userId: user2.id})
-          const u2fsBulk = u2fs.map((u2f) => ({
-            query: {id: u2f.id},
-            value: {userId: user1.id, updatedOn},
-          }))
-          await $Fixture.updateBulk(u2fsBulk)
-          // posts
-          const u2ps = await $Post.getMany({userId: user2.id})
-          const u2psBulk = u2ps.map((u2p) => ({
-            query: {id: u2p.id},
-            value: {userId: user1.id, updatedOn},
-          }))
-          await $Post.updateBulk(u2psBulk)
+          await Promise.all([
+            $Comment.updateMany(
+              {userId: user2.id},
+              {userId: user1.id, updatedOn},
+            ),
+            $Fixture.updateMany(
+              {userId: user2.id},
+              {userId: user1.id, updatedOn},
+            ),
+            $Post.updateMany({userId: user2.id}, {userId: user1.id, updatedOn}),
+          ])
           // reports
           const u2rs = await $Report.getMany({
             $or: [
@@ -331,13 +321,10 @@ export default new Map<string, RequestHandler>([
             value: _mergeReportUserReferences(u2r, user1.id, user2.id, updatedOn),
           }))
           await $Report.updateBulk(u2rsBulk)
-          // sessions
-          const u2ss = await $Session.getMany({userId: user2.id})
-          const u2ssBulk = u2ss.map((u2s) => ({
-            query: {id: u2s.id},
-            value: {userId: user1.id, updatedOn},
-          }))
-          await $Session.updateBulk(u2ssBulk)
+          await $Session.updateMany(
+            {userId: user2.id},
+            {userId: user1.id, updatedOn},
+          )
           // users
           const emails = _mergeUserEmails(user1, user2)
           const userMergedIds = _mergeUserMergedIds(user1, user2)

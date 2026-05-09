@@ -170,6 +170,31 @@ export const db = {
         return i.value as V
       },
 
+      async updateMany(query: Filter<V>, value: Partial<V>): Promise<number> {
+        const collection = await mongo.collection(options.key)
+        const $set = {...(value as Record<string, unknown>)}
+        delete $set.id
+        delete $set._id
+        const $unset = Object.fromEntries(
+          Object.entries($set)
+            .filter(([, item]) => item === undefined)
+            .map(([key]) => [key, '']),
+        )
+        const nextSet = Object.fromEntries(
+          Object.entries($set).filter(([, item]) => item !== undefined),
+        )
+        if (!Object.keys(nextSet).length && !Object.keys($unset).length) return 0
+        const result = await collection.updateMany(
+          query as Filter<Document>,
+          {
+            ...(Object.keys(nextSet).length ? {$set: nextSet} : {}),
+            ...(Object.keys($unset).length ? {$unset} : {}),
+          },
+          mongo.options(),
+        )
+        return result.modifiedCount
+      },
+
       async updateBulk(tasks: Array<{query: Filter<V>; value: Partial<V>}>) {
         const operations = [] as Array<{
           updateOne: {
