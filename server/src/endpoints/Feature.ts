@@ -41,6 +41,7 @@ const TEAM_DEFAULT_SORT_DIRECTION: TTeamListSortDirection = 'asc'
 
 type TSpiritAggregate = {
   received?: Array<{_id: string; spirit: number; reports: number}>
+  normalizedReceived?: Array<{_id: string; average: number; reports: number}>
   allocated?: Array<{_id: string; spirit: number; reports: number}>
 }
 
@@ -165,11 +166,15 @@ export default new Map<string, RequestHandler>([
         const receivedMap = new Map(
           (aggregate?.received ?? []).map((row) => [row._id, row]),
         )
+        const normalizedReceivedMap = new Map(
+          (aggregate?.normalizedReceived ?? []).map((row) => [row._id, row]),
+        )
         const allocatedMap = new Map(
           (aggregate?.allocated ?? []).map((row) => [row._id, row]),
         )
-        const rows = teams.map((team) => {
+        const rowsWithoutNormalizedAllocated = teams.map((team) => {
           const received = receivedMap.get(team.id)
+          const normalizedReceived = normalizedReceivedMap.get(team.id)
           const allocated = allocatedMap.get(team.id)
           const receivedSpirit = received?.spirit ?? 0
           const receivedReports = received?.reports ?? 0
@@ -184,6 +189,7 @@ export default new Map<string, RequestHandler>([
             receivedSpirit,
             receivedReports,
             receivedAverage,
+            normalizedReceivedAverage: normalizedReceived?.average ?? 0,
             allocatedSpirit,
             allocatedReports,
             allocatedAverage,
@@ -193,10 +199,38 @@ export default new Map<string, RequestHandler>([
                 : 0,
           }
         })
+        const rowsWithAllocatedReports = rowsWithoutNormalizedAllocated.filter(
+          (row) => row.allocatedReports > 0,
+        )
+        const allocatedAverageMean =
+          rowsWithAllocatedReports.reduce(
+            (total, row) => total + row.allocatedAverage,
+            0,
+          ) / (rowsWithAllocatedReports.length || 1)
+        const allocatedAverageStandardDeviation = Math.sqrt(
+          rowsWithAllocatedReports.reduce(
+            (total, row) =>
+              total + (row.allocatedAverage - allocatedAverageMean) ** 2,
+            0,
+          ) / (rowsWithAllocatedReports.length || 1),
+        )
+        const rows = rowsWithoutNormalizedAllocated.map((row) => {
+          const normalizedAllocatedAverage =
+            row.allocatedReports > 0 && allocatedAverageStandardDeviation > 0
+              ? (row.allocatedAverage - allocatedAverageMean) /
+                allocatedAverageStandardDeviation
+              : 0
+          return {
+            ...row,
+            normalizedAllocatedAverage,
+            normalizedDifference:
+              normalizedAllocatedAverage - row.normalizedReceivedAverage,
+          }
+        })
         return {
           rows: _sortSpiritRows(
             rows,
-            sortBy ?? 'receivedAverage',
+            sortBy ?? 'normalizedReceivedAverage',
             sortDirection ?? 'desc',
           ),
         }
@@ -486,6 +520,46 @@ function _createSpiritAggregatePipeline(
             $group: {
               _id: '$teamId',
               spirit: {$sum: '$spiritTotal'},
+              reports: {$sum: 1},
+            },
+          },
+        ],
+        normalizedReceived: [
+          {
+            $group: {
+              _id: '$teamId',
+              average: {$avg: '$spiritTotal'},
+              standardDeviation: {$stdDevPop: '$spiritTotal'},
+              reports: {
+                $push: {
+                  teamAgainstId: '$teamAgainstId',
+                  spirit: '$spiritTotal',
+                },
+              },
+            },
+          },
+          {$unwind: '$reports'},
+          {
+            $project: {
+              teamAgainstId: '$reports.teamAgainstId',
+              normalizedSpirit: {
+                $cond: [
+                  {$gt: ['$standardDeviation', 0]},
+                  {
+                    $divide: [
+                      {$subtract: ['$reports.spirit', '$average']},
+                      '$standardDeviation',
+                    ],
+                  },
+                  0,
+                ],
+              },
+            },
+          },
+          {
+            $group: {
+              _id: '$teamAgainstId',
+              average: {$avg: '$normalizedSpirit'},
               reports: {$sum: 1},
             },
           },

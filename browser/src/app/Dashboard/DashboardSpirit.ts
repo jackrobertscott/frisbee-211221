@@ -23,16 +23,19 @@ type TSpiritSortKey =
   | 'spirit'
   | 'reports'
   | 'average'
+  | 'normalizedAverage'
   | 'allocatedSpirit'
   | 'allocatedReports'
   | 'allocatedAverage'
+  | 'normalizedAllocatedAverage'
   | 'avgDiff'
+  | 'normalizedDifference'
 
 export const DashboardSpirit: FC = () => {
   const auth = useAuth()
   const $spiritLoad = useEndpoint($FeatureDashboardSpiritLoad)
   const [rows, rowsSet] = useState<TFeatureSpiritRow[]>()
-  const [sortKey, sortKeySet] = useState<TSpiritSortKey>('average')
+  const [sortKey, sortKeySet] = useState<TSpiritSortKey>('normalizedAverage')
   const [sortDirection, sortDirectionSet] = useState<'asc' | 'desc'>('desc')
   const seasonId = auth.season!.id
   const averageFormatter = new Intl.NumberFormat(undefined, {
@@ -50,10 +53,13 @@ export const DashboardSpirit: FC = () => {
       spirit: 'receivedSpirit',
       reports: 'receivedReports',
       average: 'receivedAverage',
+      normalizedAverage: 'normalizedReceivedAverage',
       allocatedSpirit: 'allocatedSpirit',
       allocatedReports: 'allocatedReports',
       allocatedAverage: 'allocatedAverage',
+      normalizedAllocatedAverage: 'normalizedAllocatedAverage',
       avgDiff: 'averageDifference',
+      normalizedDifference: 'normalizedDifference',
     }
     $spiritLoad
       .fetch({
@@ -145,6 +151,12 @@ export const DashboardSpirit: FC = () => {
                     click: () => toggleSort('average'),
                     icon: getSortIcon('average'),
                   },
+                  normalizedAverage: {
+                    label: 'Norm Got',
+                    grow: 1,
+                    click: () => toggleSort('normalizedAverage'),
+                    icon: getSortIcon('normalizedAverage'),
+                  },
                   allocatedSpirit: {
                     label: 'Pnts Sent',
                     grow: 1,
@@ -163,11 +175,23 @@ export const DashboardSpirit: FC = () => {
                     click: () => toggleSort('allocatedAverage'),
                     icon: getSortIcon('allocatedAverage'),
                   },
+                  normalizedAllocatedAverage: {
+                    label: 'Norm Sent',
+                    grow: 1,
+                    click: () => toggleSort('normalizedAllocatedAverage'),
+                    icon: getSortIcon('normalizedAllocatedAverage'),
+                  },
                   avgDiff: {
                     label: 'Avg Diff',
                     grow: 1,
                     click: () => toggleSort('avgDiff'),
                     icon: getSortIcon('avgDiff'),
+                  },
+                  normalizedDifference: {
+                    label: 'Norm Diff',
+                    grow: 1,
+                    click: () => toggleSort('normalizedDifference'),
+                    icon: getSortIcon('normalizedDifference'),
                   },
                 },
                 body: rows.map(
@@ -176,10 +200,13 @@ export const DashboardSpirit: FC = () => {
                     receivedSpirit,
                     receivedReports,
                     receivedAverage,
+                    normalizedReceivedAverage,
                     allocatedSpirit,
                     allocatedReports,
                     allocatedAverage,
+                    normalizedAllocatedAverage,
                     averageDifference,
+                    normalizedDifference,
                   }) => {
                     return {
                       key: team.id,
@@ -193,14 +220,23 @@ export const DashboardSpirit: FC = () => {
                         average: {
                           value: formatAverage(receivedAverage),
                         },
+                        normalizedAverage: {
+                          value: formatAverage(normalizedReceivedAverage),
+                        },
                         allocatedSpirit: {value: allocatedSpirit},
                         allocatedReports: {value: allocatedReports},
                         allocatedAverage: {
                           value: formatAverage(allocatedAverage),
                         },
+                        normalizedAllocatedAverage: {
+                          value: formatAverage(normalizedAllocatedAverage),
+                        },
                         avgDiff: {
                           children:
                             getAverageDifferenceBadge(averageDifference),
+                        },
+                        normalizedDifference: {
+                          value: formatAverage(normalizedDifference),
                         },
                       },
                     }
