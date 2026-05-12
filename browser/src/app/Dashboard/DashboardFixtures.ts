@@ -277,8 +277,8 @@ const _DashboardFixturesView: FC<{
             head: {
               one: {label: 'Team 1', grow: isSmall ? 2 : 3},
               two: {label: 'Team 2', grow: isSmall ? 2 : 3},
-              time: {label: 'Time', grow: isSmall ? 3 : 2},
-              place: {label: 'Place', grow: isSmall ? 3 : 2},
+              time: {label: 'Time', grow: 2},
+              place: {label: 'Place', grow: 2},
             },
             body: fixture.games
               .sort((a, b) => {
