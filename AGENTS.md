@@ -1,16 +1,27 @@
-## File Count
+## Do
 
-- Prefer the minimum number of new files when refactoring shared features.
-- If shared logic can live cleanly in the same new or existing file, do not split it into extra helper/control files.
-- Do not add multiple small files for a refactor unless there is a clear structural reason.
-- Do not use `as any` in TypeScript code. Add explicit types, typed conversions, or proper narrowing instead.
-- Always make sure the `server` and `browser` packages pass their type checks before finishing.
+- Do add explicit TypeScript types, typed conversions, or proper narrowing.
+- Do run and pass the `server` and `browser` package type checks before finishing.
+- Do implement sorting and filtering for paginated or shared list views in the shared endpoint contract and server handler.
+- Do update endpoint payloads and backend logic before wiring frontend controls for list ordering changes across requests or pages.
+- Do apply sorted paginated list ordering in the database query path before `skip` and `limit`.
+- Do use meaningful domain fields for sorting.
+- Do prefer database sorting through typed table queries when the database can express the ordering.
+- Do use typed table helpers for all database access outside the DB/table definition layer.
+- Do commit all current changes to `stage`, merge them into `master`, push both `stage` and `master` to `origin`, then check out `stage` when asked to publish changes.
+- Do use short lowercase word groups for commit messages.
 
-## Backend Integration
+## Don't
 
-- For paginated or shared list views, implement sorting/filtering behavior in the shared endpoint contract and server handler, not only in browser state.
-- When a UI change affects list ordering across requests or pages, update the endpoint payloads and backend logic first, then wire the frontend controls to those server-backed parameters.
-- For sorted paginated lists, the sort must be applied in the database query path before `skip`/`limit`. Do not fetch a page unsorted and reorder it in application code.
-- Never use `id` as a sort field or sort tie-breaker. Sort by meaningful domain fields only.
-- If the database can express the required ordering, always change the typed table query to sort in the database instead of sorting the returned data in memory. Prefer query improvements such as proper sort fields or collation over post-fetch sorting.
-- All database access outside the DB/table definition layer must go through the typed table helpers (for example `$Report.getMany(...)` or `$Report.aggregate(...)`). Do not call `mongo.collection('...')` or access collections by raw string names anywhere else in the codebase.
+- Don't use `as any` in TypeScript code.
+- Don't implement sorting or filtering only in browser state for paginated or shared list views.
+- Don't fetch a page unsorted and reorder it in application code.
+- Don't use `id` as a sort field or sort tie-breaker.
+- Don't sort returned database data in memory when the database can express the required ordering.
+- Don't call `mongo.collection('...')` or access collections by raw string names outside the DB/table definition layer.
+
+## Facts
+
+- Typed table helper examples include `$Report.getMany(...)` and `$Report.aggregate(...)`.
+- The publishing branches are `stage` and `master`.
+- The remote is `origin`.
