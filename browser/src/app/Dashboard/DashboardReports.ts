@@ -107,6 +107,12 @@ export const DashboardReports: FC = () => {
                   className: css({
                     display: 'flex',
                     gap: theme.fib[5],
+                    [theme.ltMedia(theme.fib[13])]: {
+                      flexDirection: 'column',
+                      '& > *': {
+                        width: '100%',
+                      },
+                    },
                   }),
                   children: addkeys([
                     $(InputString, {
@@ -115,6 +121,9 @@ export const DashboardReports: FC = () => {
                       placeholder: 'Search',
                     }),
                     $('div', {
+                      className: css({
+                        display: 'flex',
+                      }),
                       children: $(MissingReportsControl, {
                         seasonId,
                       }),

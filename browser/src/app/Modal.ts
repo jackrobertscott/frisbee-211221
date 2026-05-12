@@ -41,6 +41,7 @@ export const Modal: FC<{
           },
         }),
         children: $(Center, {
+          breakpoint: theme.fib[13],
           click: handleClose,
           padding: media.width < theme.fib[13] ? 0 : theme.fib[6],
           children: $('div', {
@@ -48,11 +49,14 @@ export const Modal: FC<{
             className: css({
               width,
               height,
+              maxHeight: '100%',
               maxWidth: '100%',
               display: 'flex',
               flexDirection: 'column',
+              overflowY: 'auto',
               boxShadow: `0 0 10px ${hsla.string(0, 0, 0, 0.1)}`,
-              background: hsla.string(0, 0, 100),
+              background: theme.bg.string(),
+              color: theme.bg.compliment().string(),
               border: theme.border(),
             }),
           }),

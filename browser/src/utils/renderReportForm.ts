@@ -77,6 +77,9 @@ const MVP_LABEL_STYLE: CSSObject = {
     width: theme.fib[10],
   },
 }
+const TEAM_SELECT_LABEL_STYLE: CSSObject = {
+  width: theme.fib[9],
+}
 const OFFICIAL_SPIRIT_LABEL_STYLE: CSSObject = {
   width: theme.fib[11],
   [theme.ltMedia(theme.fib[12] + theme.fib[9])]: {
@@ -363,8 +366,8 @@ export function renderTeamSelect(
   return $(FormRow, {
     children: addkeys([
       $(FormLabel, {
-        width: theme.fib[11],
         label: 'For',
+        style: TEAM_SELECT_LABEL_STYLE,
       }),
       $(InputSelect, {
         disabled,
@@ -385,8 +388,8 @@ export function renderAgainstTeamSelect(
   return $(FormRow, {
     children: addkeys([
       $(FormLabel, {
-        width: theme.fib[11],
         label: 'Against',
+        style: TEAM_SELECT_LABEL_STYLE,
       }),
       $(InputSelect, {
         disabled,

@@ -59,6 +59,7 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
         }),
         children: toasts.map((toast) => {
           const isError = toast.type === 'error'
+          const background = isError ? hsla.create(0, 100, 75) : theme.bg
           return $('div', {
             key: toast.id,
             className: css({
@@ -70,9 +71,8 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
               animation: `${fadedown} 0.25s linear`,
               transition: '150ms',
               border: theme.border(),
-              background: isError
-                ? hsla.string(0, 100, 75)
-                : hsla.string(0, 0, 100),
+              background: background.string(),
+              color: background.compliment().string(),
               boxShadow: [
                 `0 0 10px ${hsla.string(0, 0, 0, 0.1)}`,
                 `0 0 50px ${hsla.string(0, 0, 0, 0.1)}`,
