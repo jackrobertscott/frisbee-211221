@@ -72,6 +72,9 @@ export const DashboardLadder: FC = () => {
                 className: css({
                   display: 'flex',
                   gap: theme.fib[5],
+                  [theme.ltMedia(theme.fib[13])]: {
+                    flexDirection: 'column',
+                  },
                 }),
                 children: addkeys([
                   $(FormBadge, {

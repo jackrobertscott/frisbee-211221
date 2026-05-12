@@ -22,8 +22,11 @@ import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useEndpoint} from '../useEndpoint'
 
-export const DashboardFixtures: FC = () => {
+export const DashboardFixtures: FC<{
+  reportScore: () => void
+}> = ({reportScore}) => {
   const auth = useAuth()
+  const media = useMedia()
   const $competitionLoad = useEndpoint($FeatureCompetitionLoad)
   const [teams, teamsSet] = useState<TTeam[]>()
   const [fixtures, fixturesSet] = useState<TFixture[]>()
@@ -32,6 +35,7 @@ export const DashboardFixtures: FC = () => {
   const [generating, generatingSet] = useState(false)
   const [adjusting, adjustingSet] = useState(false)
   const [openfxs, openfxsSet] = useState<string[]>([])
+  const isSmall = media.width < theme.fib[13]
   const reload = () => {
     const seasonId = auth.season!.id
     $competitionLoad.fetch({seasonId}).then((data) => {
@@ -49,6 +53,13 @@ export const DashboardFixtures: FC = () => {
       $(Form, {
         background: theme.bgMinor,
         children: addkeys([
+          isSmall &&
+            $(FormBadge, {
+              label: 'Report Score',
+              font: theme.bgHighlight.compliment(),
+              background: theme.bgHighlight,
+              click: reportScore,
+            }),
           auth.can(authPoint.fixtureManage) &&
             $('div', {
               className: css({

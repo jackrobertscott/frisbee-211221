@@ -50,6 +50,20 @@ export const Dashboard: FC = () => {
   const [settings, settingsSet] = useState(false)
   const bpSmall = theme.fib[13]
   const isSmall = media.width < bpSmall
+  const reportScore = () => {
+    if (auth.current) {
+      if (auth.can(authPoint.reportWrite)) {
+        reportingSet(true)
+        openSet(false)
+      } else {
+        toaster.notify('Please join a team to submit a score report.')
+        teamSetupSet(true)
+      }
+    } else {
+      toaster.notify('Please sign in to submit a score report.')
+      go.to('/auth')
+    }
+  }
   return $(Fragment, {
     children: addkeys([
       $(Center, {
@@ -147,7 +161,7 @@ export const Dashboard: FC = () => {
                       {
                         path: '/fixtures',
                         label: 'Fixtures',
-                        render: () => $(DashboardFixtures),
+                        render: () => $(DashboardFixtures, {reportScore}),
                       },
                       {
                         path: '/ladder',
@@ -243,24 +257,7 @@ export const Dashboard: FC = () => {
                                       label: 'Report Score',
                                       font: theme.bgHighlight.compliment(),
                                       background: theme.bgHighlight,
-                                      click: () => {
-                                        if (auth.current) {
-                                          if (auth.can(authPoint.reportWrite)) {
-                                            reportingSet(true)
-                                            openSet(false)
-                                          } else {
-                                            toaster.notify(
-                                              'Please join a team to submit a score report.',
-                                            )
-                                            teamSetupSet(true)
-                                          }
-                                        } else {
-                                          toaster.notify(
-                                            'Please sign in to submit a score report.',
-                                          )
-                                          go.to('/auth')
-                                        }
-                                      },
+                                      click: reportScore,
                                     }),
                                   }),
                                   $(Fragment, {
