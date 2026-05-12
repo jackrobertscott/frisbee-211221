@@ -5,7 +5,7 @@ import {
 } from '@shared/endpoints/FeatureDef'
 import {createElement as $, FC, useEffect, useState} from 'react'
 import {$FeatureDashboardSpiritLoad} from '../../endpoints/Feature'
-import {theme} from '../../theme'
+import {theme, useTheme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {go} from '../../utils/go'
 import {hsla} from '../../utils/hsla'
@@ -33,6 +33,7 @@ type TSpiritSortKey =
 
 export const DashboardSpirit: FC = () => {
   const auth = useAuth()
+  const themeMode = useTheme()
   const $spiritLoad = useEndpoint($FeatureDashboardSpiritLoad)
   const [rows, rowsSet] = useState<TFeatureSpiritRow[]>()
   const [sortKey, sortKeySet] = useState<TSpiritSortKey>('normalizedAverage')
@@ -75,8 +76,9 @@ export const DashboardSpirit: FC = () => {
     return averageFormatter.format(normalized)
   }
 
-  const getAverageDifferenceBadge = (value: number) => {
+  const getDifferenceBadge = (value: number) => {
     const normalized = Math.abs(value) < 0.005 ? 0 : value
+    const isDarkMode = themeMode.current === 'dark'
     const background =
       normalized > 1
         ? hsla.create(60, 70, 50, 0.2)
@@ -85,9 +87,9 @@ export const DashboardSpirit: FC = () => {
           : undefined
     const font =
       normalized > 1
-        ? hsla.create(60, 70, 30, 1)
+        ? hsla.create(60, 70, isDarkMode ? 74 : 30, 1)
         : normalized < -1
-          ? hsla.create(0, 70, 30, 1)
+          ? hsla.create(0, 70, isDarkMode ? 78 : 30, 1)
           : undefined
 
     return $(FormLabel, {
@@ -131,67 +133,67 @@ export const DashboardSpirit: FC = () => {
                     label: 'Team',
                     grow: 3,
                     click: () => toggleSort('team'),
-                    icon: getSortIcon('team'),
+                    prefixIcon: getSortIcon('team'),
                   },
                   spirit: {
                     label: 'Pnts Got',
                     grow: 1,
                     click: () => toggleSort('spirit'),
-                    icon: getSortIcon('spirit'),
+                    prefixIcon: getSortIcon('spirit'),
                   },
                   reports: {
                     label: 'Rpts Got',
                     grow: 1,
                     click: () => toggleSort('reports'),
-                    icon: getSortIcon('reports'),
+                    prefixIcon: getSortIcon('reports'),
                   },
                   average: {
                     label: 'Avg Got',
                     grow: 1,
                     click: () => toggleSort('average'),
-                    icon: getSortIcon('average'),
+                    prefixIcon: getSortIcon('average'),
                   },
                   normalizedAverage: {
                     label: 'Norm Got',
                     grow: 1,
                     click: () => toggleSort('normalizedAverage'),
-                    icon: getSortIcon('normalizedAverage'),
+                    prefixIcon: getSortIcon('normalizedAverage'),
                   },
                   allocatedSpirit: {
                     label: 'Pnts Sent',
                     grow: 1,
                     click: () => toggleSort('allocatedSpirit'),
-                    icon: getSortIcon('allocatedSpirit'),
+                    prefixIcon: getSortIcon('allocatedSpirit'),
                   },
                   allocatedReports: {
                     label: 'Rpts Sent',
                     grow: 1,
                     click: () => toggleSort('allocatedReports'),
-                    icon: getSortIcon('allocatedReports'),
+                    prefixIcon: getSortIcon('allocatedReports'),
                   },
                   allocatedAverage: {
                     label: 'Avg Sent',
                     grow: 1,
                     click: () => toggleSort('allocatedAverage'),
-                    icon: getSortIcon('allocatedAverage'),
+                    prefixIcon: getSortIcon('allocatedAverage'),
                   },
                   normalizedAllocatedAverage: {
                     label: 'Norm Sent',
                     grow: 1,
                     click: () => toggleSort('normalizedAllocatedAverage'),
-                    icon: getSortIcon('normalizedAllocatedAverage'),
+                    prefixIcon: getSortIcon('normalizedAllocatedAverage'),
                   },
                   avgDiff: {
                     label: 'Avg Diff',
                     grow: 1,
                     click: () => toggleSort('avgDiff'),
-                    icon: getSortIcon('avgDiff'),
+                    prefixIcon: getSortIcon('avgDiff'),
                   },
                   normalizedDifference: {
                     label: 'Norm Diff',
                     grow: 1,
                     click: () => toggleSort('normalizedDifference'),
-                    icon: getSortIcon('normalizedDifference'),
+                    prefixIcon: getSortIcon('normalizedDifference'),
                   },
                 },
                 body: rows.map(
@@ -232,11 +234,10 @@ export const DashboardSpirit: FC = () => {
                           value: formatAverage(normalizedAllocatedAverage),
                         },
                         avgDiff: {
-                          children:
-                            getAverageDifferenceBadge(averageDifference),
+                          children: getDifferenceBadge(averageDifference),
                         },
                         normalizedDifference: {
-                          value: formatAverage(normalizedDifference),
+                          children: getDifferenceBadge(normalizedDifference),
                         },
                       },
                     }
