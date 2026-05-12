@@ -485,6 +485,18 @@ function _sortSpiritRows(
     if (sortBy === 'team') {
       return a.team.name.localeCompare(b.team.name) * direction
     }
+    if (sortBy === 'division') {
+      const aDivision = a.team.division
+      const bDivision = b.team.division
+      if (typeof aDivision !== 'number' && typeof bDivision !== 'number') {
+        return a.team.name.localeCompare(b.team.name)
+      }
+      if (typeof aDivision !== 'number') return 1
+      if (typeof bDivision !== 'number') return -1
+      const divisionDiff = aDivision - bDivision
+      if (divisionDiff !== 0) return divisionDiff * direction
+      return a.team.name.localeCompare(b.team.name)
+    }
     return (a[sortBy] - b[sortBy]) * direction
   })
 }

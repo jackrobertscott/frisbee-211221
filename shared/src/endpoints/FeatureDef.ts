@@ -15,6 +15,7 @@ import {io, TypeIoValue} from '@shared/torva'
 
 export const FEATURE_SPIRIT_SORT_KEYS = [
   'team',
+  'division',
   'receivedSpirit',
   'receivedReports',
   'receivedAverage',
