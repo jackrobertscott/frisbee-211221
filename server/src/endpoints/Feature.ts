@@ -217,9 +217,12 @@ export default new Map<string, RequestHandler>([
         const rows = rowsWithoutNormalizedAllocated.map((row) => {
           const normalizedAllocatedAverage =
             row.allocatedReports > 0 && allocatedAverageStandardDeviation > 0
-              ? (row.allocatedAverage - allocatedAverageMean) /
-                allocatedAverageStandardDeviation
-              : 0
+              ? 10 +
+                (row.allocatedAverage - allocatedAverageMean) /
+                  allocatedAverageStandardDeviation
+              : row.allocatedReports > 0
+                ? 10
+                : 0
           return {
             ...row,
             normalizedAllocatedAverage,
@@ -546,12 +549,17 @@ function _createSpiritAggregatePipeline(
                 $cond: [
                   {$gt: ['$standardDeviation', 0]},
                   {
-                    $divide: [
-                      {$subtract: ['$reports.spirit', '$average']},
-                      '$standardDeviation',
+                    $add: [
+                      10,
+                      {
+                        $divide: [
+                          {$subtract: ['$reports.spirit', '$average']},
+                          '$standardDeviation',
+                        ],
+                      },
                     ],
                   },
-                  0,
+                  10,
                 ],
               },
             },
