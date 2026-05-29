@@ -74,10 +74,10 @@ export const MockGenerate: FC<{
             click: () => {
               const {teams, usersPerTeam} = form.data
               if (typeof teams !== 'number' || teams < 1)
-                return toaster.error('Please enter a valid number of teams')
+                return toaster.error('Please enter a valid number of teams.')
               if (typeof usersPerTeam !== 'number' || usersPerTeam < 1)
                 return toaster.error(
-                  'Please enter a valid number of users per team',
+                  'Please enter a valid number of users per team.',
                 )
               $generate.fetch({seasonId, teams, usersPerTeam}).then(() => {
                 toaster.notify('Mock data generated successfully')

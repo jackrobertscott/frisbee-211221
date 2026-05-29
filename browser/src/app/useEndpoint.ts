@@ -1,7 +1,7 @@
 import {readAuthDeny} from '@shared/auth/authAccess'
 import {
   forbiddenError,
-  getErrorMessage,
+  getUserErrorMessage,
   hasStatusCode,
   toAppError,
   unauthorizedError,
@@ -54,7 +54,7 @@ export const useEndpoint = <
     (() => {
       const cb = (
         resolve: (data: R) => void,
-        reject: (error: any) => void,
+        reject: (error: unknown) => void,
         payload?: P,
       ) => cbRef.current(payload).then(resolve).catch(reject)
       return timeout ? throttle.sling(timeout, cb) : cb
@@ -78,7 +78,7 @@ export const useEndpoint = <
           ) {
             auth.invalidate()
           }
-          toaster.error(getErrorMessage(appError))
+          toaster.error(getUserErrorMessage(appError))
           throw appError
         } finally {
           if (mounted.current) loadingSet(false)

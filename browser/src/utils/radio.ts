@@ -6,12 +6,12 @@ import {
 import {config} from '../config'
 
 export const radio = {
-  async send(path: string, payload?: any, token?: string) {
+  async send(path: string, payload?: unknown, token?: string) {
     if (!config.urlServer)
       throw serviceUnavailableError('Server url not set in config.', {
         errorCode: 'client.server_url_missing',
       })
-    return fetch(`${config.urlServer}${path}`, {
+    const response = await fetch(`${config.urlServer}${path}`, {
       method: 'POST',
       body: JSON.stringify({
         payload,
@@ -21,17 +21,39 @@ export const radio = {
         'Content-Type': 'application/json',
         Authorization: token ?? '',
       },
-    }).then(this.handleResponse)
+    }).catch((error: unknown) => {
+      throw serviceUnavailableError('The app could not reach the service.', {
+        errorCode: 'request.failed',
+        retryable: true,
+        cause: error,
+        userMessage:
+          'We could not complete that action. Please check your connection and try again.',
+      })
+    })
+    return this.handleResponse(response)
   },
 
   async multipart(path: string, payload?: FormData, token?: string) {
-    return fetch(`${config.urlServer}${path}`, {
+    if (!config.urlServer)
+      throw serviceUnavailableError('Server url not set in config.', {
+        errorCode: 'client.server_url_missing',
+      })
+    const response = await fetch(`${config.urlServer}${path}`, {
       method: 'POST',
       body: payload,
       headers: {
         Authorization: token ?? '',
       },
-    }).then(this.handleResponse)
+    }).catch((error: unknown) => {
+      throw serviceUnavailableError('The app could not reach the service.', {
+        errorCode: 'request.failed',
+        retryable: true,
+        cause: error,
+        userMessage:
+          'We could not complete that action. Please check your connection and try again.',
+      })
+    })
+    return this.handleResponse(response)
   },
 
   async handleResponse(i: Response) {

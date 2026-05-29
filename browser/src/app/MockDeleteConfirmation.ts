@@ -51,8 +51,7 @@ export const MockDeleteConfirmation: FC<{
                   toaster.notify('All mock data has been deleted successfully')
                   done()
                 })
-                .catch((err) => {
-                  toaster.error(`Error deleting mock data: ${err.message}`)
+                .catch(() => {
                   close()
                 })
             },

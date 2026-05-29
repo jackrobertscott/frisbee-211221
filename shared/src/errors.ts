@@ -32,6 +32,7 @@ const JWT_ERROR_NAMES = new Set([
 
 export interface AppErrorOptions {
   message: string
+  userMessage?: string
   statusCode?: number
   errorCode?: string
   expose?: boolean
@@ -47,6 +48,7 @@ export interface SerializedAppError {
   type: 'app_error'
   name: 'AppError'
   message: string
+  userMessage: string
   statusCode: number
   code: number
   status: string
@@ -59,6 +61,7 @@ export interface SerializedAppError {
 }
 
 type AppErrorLike = Error & {
+  userMessage?: unknown
   statusCode?: unknown
   code?: unknown
   errorCode?: unknown
@@ -108,6 +111,184 @@ const getDefaultErrorCode = (statusCode: number) => {
   }
 }
 
+const INTERNAL_USER_MESSAGE =
+  'Something went wrong while completing your request. Please try again in a moment.'
+
+const STATUS_USER_MESSAGE_BY_CODE: Record<number, string> = {
+  [HTTP_STATUS.BAD_REQUEST]:
+    'Please check the information you entered and try again.',
+  [HTTP_STATUS.UNAUTHORIZED]: 'Please sign in to continue.',
+  [HTTP_STATUS.FORBIDDEN]: 'You do not have permission to do that.',
+  [HTTP_STATUS.NOT_FOUND]: 'We could not find what you were looking for.',
+  [HTTP_STATUS.METHOD_NOT_ALLOWED]: 'This action is not available from here.',
+  [HTTP_STATUS.CONFLICT]:
+    'That change could not be saved because it conflicts with existing information.',
+  [HTTP_STATUS.UNPROCESSABLE_ENTITY]:
+    'Please check the information you entered and try again.',
+  [HTTP_STATUS.TOO_MANY_REQUESTS]:
+    'Too many attempts were made. Please wait a little while before trying again.',
+  [HTTP_STATUS.INTERNAL_SERVER_ERROR]: INTERNAL_USER_MESSAGE,
+  [HTTP_STATUS.SERVICE_UNAVAILABLE]:
+    'This feature is temporarily unavailable. Please try again later.',
+}
+
+const USER_MESSAGE_BY_ERROR_CODE: Record<string, string> = {
+  bad_request: STATUS_USER_MESSAGE_BY_CODE[HTTP_STATUS.BAD_REQUEST],
+  conflict: STATUS_USER_MESSAGE_BY_CODE[HTTP_STATUS.CONFLICT],
+  forbidden: STATUS_USER_MESSAGE_BY_CODE[HTTP_STATUS.FORBIDDEN],
+  internal_error: INTERNAL_USER_MESSAGE,
+  method_not_allowed:
+    STATUS_USER_MESSAGE_BY_CODE[HTTP_STATUS.METHOD_NOT_ALLOWED],
+  not_found: STATUS_USER_MESSAGE_BY_CODE[HTTP_STATUS.NOT_FOUND],
+  service_unavailable:
+    STATUS_USER_MESSAGE_BY_CODE[HTTP_STATUS.SERVICE_UNAVAILABLE],
+  too_many_requests: STATUS_USER_MESSAGE_BY_CODE[HTTP_STATUS.TOO_MANY_REQUESTS],
+  unauthorized: STATUS_USER_MESSAGE_BY_CODE[HTTP_STATUS.UNAUTHORIZED],
+  validation_error:
+    STATUS_USER_MESSAGE_BY_CODE[HTTP_STATUS.UNPROCESSABLE_ENTITY],
+
+  'auth.admin_required': 'You need admin access to do that.',
+  'auth.invalid_login': 'The email or password is not correct.',
+  'auth.login_rate_limited':
+    'Too many login attempts were made. Please wait before trying again.',
+  'auth.sign_in_required': 'Please sign in to continue.',
+  'auth.team_required': 'Please join a team before doing that.',
+  'auth.team_season_mismatch': INTERNAL_USER_MESSAGE,
+  'auth.team_set_without_current': INTERNAL_USER_MESSAGE,
+  'auth.terms_required': 'Please accept the terms to create an account.',
+  'auth.token_invalid': 'Please sign in again to continue.',
+  'auth.token_missing': 'Please sign in to continue.',
+  'auth.user_mismatch': INTERNAL_USER_MESSAGE,
+  'auth.user_set_without_current': INTERNAL_USER_MESSAGE,
+
+  'client.server_url_missing':
+    'The app is not set up correctly. Please contact support.',
+
+  'comment.delete_forbidden': 'You can only delete comments you wrote.',
+  'comment.update_forbidden': 'You can only change comments you wrote.',
+
+  'db.record_not_found':
+    'We could not find the item you were trying to open.',
+
+  'fixture.division_missing':
+    'Every team needs a division before fixtures can be created.',
+  'fixture.round_robin_invalid':
+    'The existing fixtures do not match the expected pattern. Please review the rounds and try again.',
+  'fixture.slots_insufficient':
+    'There are not enough time slots for the number of teams.',
+  'fixture.snapshot_disabled':
+    'Fixture snapshots are not available right now.',
+  'fixture.uneven_division':
+    'Each division needs an even number of teams before fixtures can be created.',
+
+  'intrusion.blocked': 'This page is not available.',
+  'intrusion.exploit_probe': 'This page is not available.',
+  'intrusion.origin_forbidden': 'This action is not available from here.',
+  'intrusion.suspicious_request': 'This page is not available.',
+
+  'portal.element_missing': INTERNAL_USER_MESSAGE,
+
+  'member.already_captain': 'This member is already the captain.',
+  'member.already_on_other_team':
+    'This person is already on another team for this season.',
+  'member.captain_required': 'Only a team captain can do that.',
+  'member.request_exists':
+    'A membership request has already been sent for this season.',
+  'member.user_details_required':
+    'Please enter the first name, last name, and gender for the new member.',
+
+  'post.delete_forbidden': 'You can only delete posts you wrote.',
+  'post.update_forbidden': 'You can only change posts you wrote.',
+
+  'report.already_submitted':
+    'A score report has already been submitted for this game.',
+  'report.fixture_invalid':
+    'That fixture does not belong to the selected season.',
+  'report.matchup_invalid':
+    'That opposition team is not listed for your fixture.',
+  'report.spirit_comment_required':
+    'Please add a spirit comment before submitting the report.',
+
+  'request.failed':
+    'We could not complete that action. Please try again in a moment.',
+  'request.invalid_handler_response': INTERNAL_USER_MESSAGE,
+  'request.method_not_allowed': 'This action is not available from here.',
+  'request.origin_invalid': 'This action is not available from here.',
+  'request.payload_missing':
+    'The page could not send the information needed. Please refresh and try again.',
+  'request.route_not_found': 'This page is not available.',
+  'request.url_missing': INTERNAL_USER_MESSAGE,
+
+  'router.context_missing': INTERNAL_USER_MESSAGE,
+  'router.routes_missing': INTERNAL_USER_MESSAGE,
+
+  'season.id_missing': 'Please choose a season and try again.',
+  'season.not_found': 'No season is available yet.',
+
+  'team.access_forbidden': 'You do not have access to that team.',
+  'team.captain_required': 'Only a team captain can do that.',
+  'team.pending_member_forbidden':
+    'Your team membership needs to be accepted before you can do that.',
+  'team.signup_closed': 'Team signup is closed for this season.',
+
+  'theme.padify_pixels_invalid': INTERNAL_USER_MESSAGE,
+  'throttle.dribble_max_invalid': INTERNAL_USER_MESSAGE,
+  unreachable: INTERNAL_USER_MESSAGE,
+
+  'upload.aborted': 'The upload was cancelled before it finished.',
+  'upload.fields_limit': 'Too much information was included in the upload.',
+  'upload.file_missing': 'Please choose a file to upload.',
+  'upload.files_limit': 'Please upload fewer files.',
+  'upload.invalid_file_type': 'Please upload a CSV file.',
+  'upload.invalid_gender':
+    'One of the uploaded gender values was not recognised.',
+  'upload.parts_limit': 'The upload was too large to process.',
+  'upload.size_limit': 'The uploaded file is too large.',
+
+  'user.code_delivery_rate_limited':
+    'Too many codes were requested. Please wait before asking for another one.',
+  'user.code_expired':
+    'That code has expired. A new code has been sent to your email.',
+  'user.code_invalid': 'That code is not correct.',
+  'user.code_rate_limited':
+    'Too many code attempts were made. Please wait before trying again.',
+  'user.email_exists': 'That email is already connected to an account.',
+  'user.email_invalid': 'Please enter a valid email address.',
+  'user.email_not_found': 'We could not find that email on this account.',
+  'user.email_required': 'Your account needs at least one email address.',
+  'user.merge_invalid': 'Please choose two different users to merge.',
+  'user.old_password_invalid': 'The current password is not correct.',
+  'user.password_missing': 'This account does not have a password yet.',
+  'user.password_too_short': 'Please use a password with at least 5 characters.',
+}
+
+const VALIDATION_FIELD_LABELS: Record<string, string> = {
+  code: 'code',
+  comment: 'comment',
+  direction: 'direction',
+  email: 'email address',
+  fileType: 'file type',
+  firstName: 'first name',
+  fixtureId: 'fixture',
+  gender: 'gender',
+  lastName: 'last name',
+  memberId: 'member',
+  newPassword: 'new password',
+  password: 'password',
+  postId: 'post',
+  referenceFixtureId: 'reference fixture',
+  reportId: 'report',
+  roundCount: 'number of rounds',
+  seasonId: 'season',
+  startingDate: 'starting date',
+  teamAgainstId: 'opposition team',
+  teamId: 'team',
+  termsAccepted: 'terms',
+  title: 'title',
+  unit: 'unit',
+  userId: 'user',
+}
+
 const defaultExposeForStatus = (statusCode: number) =>
   statusCode < HTTP_STATUS.INTERNAL_SERVER_ERROR
 
@@ -123,6 +304,75 @@ const extractStatusCode = (value: unknown): number | undefined => {
 const extractErrorCode = (value: unknown): string | undefined => {
   if (typeof value !== 'string') return undefined
   return /^\d+$/.test(value) ? undefined : value
+}
+
+const extractUserMessage = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.replace(/\s+/g, ' ').trim()
+  return trimmed || undefined
+}
+
+const humanizeFieldName = (field: string) => {
+  const key = field.replace(/^\[|\]$/g, '').split('.').at(-1) ?? field
+  const cleaned = key.replace(/\[\d+\]/g, '').trim()
+  if (VALIDATION_FIELD_LABELS[cleaned]) return VALIDATION_FIELD_LABELS[cleaned]
+  return cleaned
+    .replace(/Id$/, '')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .toLowerCase()
+}
+
+const getValidationField = (details: unknown) => {
+  if (typeof details !== 'string') return undefined
+  const match = details.match(/^\[([^\]]+)\]:/)
+  return match?.[1] ? humanizeFieldName(match[1]) : undefined
+}
+
+export const getValidationUserMessage = (details: unknown) => {
+  const field = getValidationField(details)
+  if (!field) return STATUS_USER_MESSAGE_BY_CODE[HTTP_STATUS.UNPROCESSABLE_ENTITY]
+  return `Please check ${field} and try again.`
+}
+
+const cleanExposedMessage = (message: string) => {
+  const cleaned = message
+    .replace(/^failed:\s*/i, '')
+    .replace(/^an error occurred:\s*/i, '')
+    .replace(/\bcan not\b/gi, 'cannot')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return cleaned || undefined
+}
+
+const getStatusUserMessage = (statusCode: number) =>
+  STATUS_USER_MESSAGE_BY_CODE[statusCode] ?? INTERNAL_USER_MESSAGE
+
+const buildUserMessage = ({
+  message,
+  userMessage,
+  statusCode,
+  errorCode,
+  expose,
+  details,
+}: {
+  message: string
+  userMessage?: string
+  statusCode: number
+  errorCode: string
+  expose: boolean
+  details?: unknown
+}) => {
+  const explicit = extractUserMessage(userMessage)
+  if (explicit) return explicit
+  if (errorCode === 'validation_error') return getValidationUserMessage(details)
+  const coded = USER_MESSAGE_BY_ERROR_CODE[errorCode]
+  if (coded) return coded
+  if (statusCode >= HTTP_STATUS.INTERNAL_SERVER_ERROR || !expose) {
+    return getStatusUserMessage(statusCode)
+  }
+  return cleanExposedMessage(message) ?? getStatusUserMessage(statusCode)
 }
 
 const inferStatusCode = (error: AppErrorLike, fallbackStatusCode?: number) => {
@@ -141,6 +391,7 @@ const inferStatusCode = (error: AppErrorLike, fallbackStatusCode?: number) => {
 export class AppError extends Error {
   readonly statusCode: number
   readonly errorCode: string
+  readonly userMessage: string
   readonly expose: boolean
   readonly details?: unknown
   readonly retryable: boolean
@@ -160,6 +411,14 @@ export class AppError extends Error {
     this.cause = options.cause
     this.meta = options.meta
     this.tarpit = options.tarpit
+    this.userMessage = buildUserMessage({
+      message: this.message,
+      userMessage: options.userMessage,
+      statusCode: this.statusCode,
+      errorCode: this.errorCode,
+      expose: this.expose,
+      details: this.details,
+    })
   }
 }
 
@@ -174,6 +433,7 @@ export const createError = (
     ...base,
     ...overrides,
     message: overrides.message ?? base.message,
+    userMessage: overrides.userMessage ?? base.userMessage,
     statusCode,
     errorCode:
       overrides.errorCode ?? base.errorCode ?? getDefaultErrorCode(statusCode),
@@ -276,6 +536,7 @@ export const toAppError = (
   if (isSerializedAppError(error)) {
     return createError({
       message: error.message,
+      userMessage: error.userMessage,
       statusCode: error.statusCode,
       errorCode: error.errorCode,
       expose: error.expose,
@@ -299,6 +560,8 @@ export const toAppError = (
       {
         message:
           appError.message || fallback.message || getStatusText(statusCode),
+        userMessage:
+          extractUserMessage(appError.userMessage) ?? fallback.userMessage,
         statusCode,
         errorCode:
           extractErrorCode(appError.errorCode) ??
@@ -354,6 +617,7 @@ export const serializeError = (
     type: 'app_error',
     name: 'AppError',
     message: shouldRedact ? status : appError.message || status,
+    userMessage: appError.userMessage,
     statusCode: appError.statusCode,
     code: appError.statusCode,
     status,
@@ -382,6 +646,13 @@ export const getErrorMessage = (
   error: unknown,
   fallback: string = 'An error occurred.',
 ) => toAppError(error, {message: fallback}).message || fallback
+
+export const getUserErrorMessage = (
+  error: unknown,
+  fallback: string = INTERNAL_USER_MESSAGE,
+) =>
+  toAppError(error, {message: fallback, userMessage: fallback}).userMessage ||
+  fallback
 
 export const getErrorStatusCode = (
   error: unknown,

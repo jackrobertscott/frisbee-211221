@@ -1,8 +1,16 @@
 import {TAuthPoint} from '@shared/auth/authAccess'
-import {badRequestError, forbiddenError, validationError} from '@shared/errors'
+import {
+  badRequestError,
+  forbiddenError,
+  getValidationUserMessage,
+  validationError,
+} from '@shared/errors'
 import {json, RequestHandler} from 'micro'
 import {TypeIoAll, TypeIoValue} from '@shared/torva'
 import {origin} from './origin'
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
 
 export const createEndpoint = <
   P extends TypeIoAll,
@@ -32,16 +40,15 @@ export const createEndpoint = <
           errorCode: 'request.origin_invalid',
         })
       }
-      const body: any = multipart ? {} : await json(req)
-      let result: any
+      const body: unknown = multipart ? {} : await json(req)
+      let result: TypeIoValue<P> | undefined
       if (payload) {
-        if (!('payload' in body))
+        if (!isRecord(body) || !('payload' in body))
           throw badRequestError('Body missing payload.', {
             errorCode: 'request.payload_missing',
           })
-        const data = payload.validate(body.payload)
+        const data = payload.validate(body.payload as TypeIoValue<P>)
         if (!data.ok) {
-          console.log(data)
           let prettyError: string | undefined
           if (data.error?.includes(':')) {
             const [first, ...rest] = data.error.split(':')
@@ -56,12 +63,13 @@ export const createEndpoint = <
             prettyError ?? `The input provided is invalid.`,
             {
               details: data.error,
+              userMessage: getValidationUserMessage(data.error),
             },
           )
         }
         result = data.value
       }
-      return handler(result, access as A)(req, res)
+      return handler(result as TypeIoValue<P>, access as A)(req, res)
     },
   ]
 }

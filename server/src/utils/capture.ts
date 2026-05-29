@@ -8,7 +8,18 @@ import {
 import {IncomingMessage} from 'http'
 import {RequestHandler, send} from 'micro'
 import config from '../config'
-import tarpit from './tarpit'
+import tarpit, {ITarpitPlan} from './tarpit'
+
+const isTarpitPlan = (value: unknown): value is ITarpitPlan => {
+  if (typeof value !== 'object' || value === null) return false
+  const plan = value as Partial<ITarpitPlan>
+  return (
+    typeof plan.body === 'string' &&
+    typeof plan.dripIntervalMs === 'number' &&
+    typeof plan.holdMs === 'number' &&
+    typeof plan.statusCode === 'number'
+  )
+}
 
 export default {
   shouldLogError(error: unknown) {
@@ -49,12 +60,12 @@ export default {
         return data
       } catch (error) {
         const appError = toAppError(error)
-        if (typeof appError.tarpit === 'object' && appError.tarpit) {
+        if (isTarpitPlan(appError.tarpit)) {
           if (this.shouldLogError(error)) {
             const pretty = this.pretty(error, req)
             console.error(this.formatLogLine(pretty, req), error)
           }
-          await tarpit.respond(res, appError.tarpit as any)
+          await tarpit.respond(res, appError.tarpit)
           return null
         }
 

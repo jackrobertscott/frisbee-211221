@@ -32,11 +32,11 @@ export const FixtureAdjustForm: FC<{
 
   const onSubmit = async () => {
     if (!referenceFixtureId) {
-      toaster.error('Please select a reference fixture')
+      toaster.error('Please select a reference fixture.')
       return
     }
     if (!amount || amount <= 0) {
-      toaster.error('Amount must be greater than 0')
+      toaster.error('Please enter an amount greater than 0.')
       return
     }
 

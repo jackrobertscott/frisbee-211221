@@ -144,9 +144,9 @@ export const FixtureGenerate: FC<{
             click: () => {
               const {roundCount, startingDate, slots} = form.data
               if (typeof roundCount !== 'number' || roundCount < 1)
-                return toaster.error('Please enter a valid number of rounds')
+                return toaster.error('Please enter a valid number of rounds.')
               if (!startingDate)
-                return toaster.error('Please enter a valid starting date')
+                return toaster.error('Please enter a valid starting date.')
               $generate
                 .fetch({startingDate, roundCount, slots, seasonId})
                 .then(() => done())
