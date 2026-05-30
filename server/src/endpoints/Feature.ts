@@ -21,7 +21,12 @@ import {
   TTeamListSortKey,
 } from '@shared/endpoints/TeamDef'
 import {TReportSearchRow} from '@shared/endpoints/ReportDef'
+import {TSeason} from '@shared/schemas/ioSeason'
 import {TTeam} from '@shared/schemas/ioTeam'
+import {
+  getSeasonMvpSlots,
+  isSeasonMvpSlotEnabled,
+} from '@shared/utils/seasonGenderDivision'
 import {Document} from 'mongodb'
 import {RequestHandler} from 'micro'
 import {$Fixture} from '../tables/$Fixture'
@@ -103,11 +108,12 @@ export default new Map<string, RequestHandler>([
       ({seasonId, search, limit, skip}, access) =>
       async (req) => {
         await requireAccess(req, access)
-        await $Season.getOne({id: seasonId})
+        const season = await $Season.getOne({id: seasonId})
         const fixtures = await _getSeasonFixtures(seasonId)
         const [searchResult, teams] = await Promise.all([
           _getReportSearchResult({
             fixtureIds: fixtures.map((fixture) => fixture.id),
+            season,
             search,
             limit,
             skip,
@@ -255,6 +261,7 @@ export default new Map<string, RequestHandler>([
           _createMvpAggregatePipeline(
             fixtures.map((fixture) => fixture.id),
             !!season.useOfficialScoring,
+            season,
           ),
         )
         const teamMap = new Map(teams.map((team) => [team.id, team]))
@@ -399,11 +406,13 @@ async function _getSeasonFixtures(seasonId: string) {
 
 async function _getReportSearchResult({
   fixtureIds,
+  season,
   search,
   limit,
   skip,
 }: {
   fixtureIds: string[]
+  season: TSeason
   search?: string
   limit?: number
   skip?: number
@@ -411,7 +420,7 @@ async function _getReportSearchResult({
   const [result] = await $Report.aggregate<{
     count: number
     reports: TReportSearchRow[]
-  }>(_createReportSearchPipeline({fixtureIds, search, limit, skip}))
+  }>(_createReportSearchPipeline({fixtureIds, season, search, limit, skip}))
   return result ?? {count: 0, reports: []}
 }
 
@@ -592,39 +601,49 @@ function _createSpiritAggregatePipeline(
 function _createMvpAggregatePipeline(
   fixtureIds: string[],
   useOfficialScoring: boolean,
+  season: TSeason,
 ): Document[] {
+  const votes: Document[] = [
+    ...(isSeasonMvpSlotEnabled(season, 'male')
+      ? [
+          {
+            userId: '$mvpMale',
+            points: useOfficialScoring ? 5 : 1,
+            gender: 0,
+            teamId: '$teamAgainstId',
+          },
+          {
+            userId: '$mvpMale2',
+            points: useOfficialScoring ? 3 : 0,
+            gender: 0,
+            teamId: '$teamAgainstId',
+          },
+        ]
+      : []),
+    ...(isSeasonMvpSlotEnabled(season, 'female')
+      ? [
+          {
+            userId: '$mvpFemale',
+            points: useOfficialScoring ? 5 : 1,
+            gender: 1,
+            teamId: '$teamAgainstId',
+          },
+          {
+            userId: '$mvpFemale2',
+            points: useOfficialScoring ? 3 : 0,
+            gender: 1,
+            teamId: '$teamAgainstId',
+          },
+        ]
+      : []),
+  ]
   return [
     {$match: {fixtureId: {$in: fixtureIds}}},
     {
       $project: {
         votes: {
           $filter: {
-            input: [
-              {
-                userId: '$mvpMale',
-                points: useOfficialScoring ? 5 : 1,
-                gender: 0,
-                teamId: '$teamAgainstId',
-              },
-              {
-                userId: '$mvpFemale',
-                points: useOfficialScoring ? 5 : 1,
-                gender: 1,
-                teamId: '$teamAgainstId',
-              },
-              {
-                userId: '$mvpMale2',
-                points: useOfficialScoring ? 3 : 0,
-                gender: 0,
-                teamId: '$teamAgainstId',
-              },
-              {
-                userId: '$mvpFemale2',
-                points: useOfficialScoring ? 3 : 0,
-                gender: 1,
-                teamId: '$teamAgainstId',
-              },
-            ],
+            input: votes,
             as: 'vote',
             cond: {
               $and: [
@@ -671,16 +690,19 @@ function _createMvpAggregatePipeline(
 
 function _createReportSearchPipeline({
   fixtureIds,
+  season,
   search,
   limit,
   skip,
 }: {
   fixtureIds: string[]
+  season: TSeason
   search?: string
   limit?: number
   skip?: number
 }) {
   const trimmedSearch = search?.trim()
+  const slots = getSeasonMvpSlots(season)
   const pipeline: Document[] = [
     {$match: {fixtureId: {$in: fixtureIds}}},
     {
@@ -787,10 +809,16 @@ function _createReportSearchPipeline({
               userId: {$ifNull: ['$userId', '$$REMOVE']},
               scoreFor: '$scoreFor',
               scoreAgainst: '$scoreAgainst',
-              mvpMale: {$ifNull: ['$mvpMale', '$$REMOVE']},
-              mvpMale2: {$ifNull: ['$mvpMale2', '$$REMOVE']},
-              mvpFemale: {$ifNull: ['$mvpFemale', '$$REMOVE']},
-              mvpFemale2: {$ifNull: ['$mvpFemale2', '$$REMOVE']},
+              mvpMale: slots.male ? {$ifNull: ['$mvpMale', '$$REMOVE']} : '$$REMOVE',
+              mvpMale2: slots.male
+                ? {$ifNull: ['$mvpMale2', '$$REMOVE']}
+                : '$$REMOVE',
+              mvpFemale: slots.female
+                ? {$ifNull: ['$mvpFemale', '$$REMOVE']}
+                : '$$REMOVE',
+              mvpFemale2: slots.female
+                ? {$ifNull: ['$mvpFemale2', '$$REMOVE']}
+                : '$$REMOVE',
               spirit: {$ifNull: ['$spirit', '$$REMOVE']},
               spiritComment: '$spiritComment',
               spiritP1: {$ifNull: ['$spiritP1', '$$REMOVE']},

@@ -5,6 +5,10 @@ import {TSeason} from '@shared/schemas/ioSeason'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUser, TUserEmail} from '@shared/schemas/ioUser'
 import {compareSeasonNames, seasonNameCollation} from '@shared/utils/seasonName'
+import {
+  getSeasonGenderDivision,
+  getSeasonMvpSlots,
+} from '@shared/utils/seasonGenderDivision'
 import AdmZip from 'adm-zip'
 import {$Fixture} from '../tables/$Fixture'
 import {$Member} from '../tables/$Member'
@@ -126,13 +130,20 @@ const EXPORT_DATASETS = [
   },
   {
     filename: 'seasons',
-    fields: ['name', 'signUpOpen', 'scoringSystem', 'isHidden'],
+    fields: [
+      'name',
+      'signUpOpen',
+      'scoringSystem',
+      'genderDivision',
+      'isHidden',
+    ],
     build: ({seasons}) => {
       return seasons.map((season) => ({
         name: season.name,
         signUpOpen: season.signUpOpen ? 'Yes' : '',
         isHidden: season.isHidden ? 'Yes' : '',
         scoringSystem: season.useOfficialScoring ? 'Official' : 'Simple',
+        genderDivision: getSeasonGenderDivision(season),
       }))
     },
   },
@@ -221,6 +232,7 @@ const EXPORT_DATASETS = [
           const season =
             (fixture ? seasonsById.get(fixture.seasonId) : undefined) ??
             (team ? seasonsById.get(team.seasonId) : undefined)
+          const slots = getSeasonMvpSlots(season)
 
           return {
             seasonName: _seasonLabel(season),
@@ -232,26 +244,30 @@ const EXPORT_DATASETS = [
             submittedByEmail: _primaryEmail(submittedBy),
             scoreFor: report.scoreFor,
             scoreAgainst: report.scoreAgainst,
-            mvpMaleName: report.mvpMale
+            mvpMaleName: slots.male && report.mvpMale
               ? _userLabel(usersById.get(report.mvpMale))
               : undefined,
-            mvpMaleEmail: _primaryEmail(usersById.get(report.mvpMale ?? '')),
-            mvpMale2Name: report.mvpMale2
+            mvpMaleEmail: slots.male
+              ? _primaryEmail(usersById.get(report.mvpMale ?? ''))
+              : undefined,
+            mvpMale2Name: slots.male && report.mvpMale2
               ? _userLabel(usersById.get(report.mvpMale2))
               : undefined,
-            mvpMale2Email: _primaryEmail(usersById.get(report.mvpMale2 ?? '')),
-            mvpFemaleName: report.mvpFemale
+            mvpMale2Email: slots.male
+              ? _primaryEmail(usersById.get(report.mvpMale2 ?? ''))
+              : undefined,
+            mvpFemaleName: slots.female && report.mvpFemale
               ? _userLabel(usersById.get(report.mvpFemale))
               : undefined,
-            mvpFemaleEmail: _primaryEmail(
-              usersById.get(report.mvpFemale ?? ''),
-            ),
-            mvpFemale2Name: report.mvpFemale2
+            mvpFemaleEmail: slots.female
+              ? _primaryEmail(usersById.get(report.mvpFemale ?? ''))
+              : undefined,
+            mvpFemale2Name: slots.female && report.mvpFemale2
               ? _userLabel(usersById.get(report.mvpFemale2))
               : undefined,
-            mvpFemale2Email: _primaryEmail(
-              usersById.get(report.mvpFemale2 ?? ''),
-            ),
+            mvpFemale2Email: slots.female
+              ? _primaryEmail(usersById.get(report.mvpFemale2 ?? ''))
+              : undefined,
             spiritSimple: report.spirit,
             spiritP1: report.spiritP1,
             spiritP2: report.spiritP2,

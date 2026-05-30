@@ -17,6 +17,7 @@ import {go} from '../../utils/go'
 import {
   createReportCreatePayload,
   createReportUpdatePayload,
+  isReportMvpCompleteForSeason,
 } from '../../utils/renderReportForm'
 import {useAuth} from '../Auth/useAuth'
 import {Form} from '../Form/Form'
@@ -154,6 +155,11 @@ export const DashboardReports: FC = () => {
                   },
                   body: reportRows.map((row) => {
                     const report = row.report
+                    const mvpStatus = isReportMvpCompleteForSeason(
+                      report,
+                      auth.season,
+                      auth.season?.useOfficialScoring,
+                    )
                     return {
                       key: row.report.id,
                       click: () => currentIdSet(row.report.id),
@@ -179,18 +185,12 @@ export const DashboardReports: FC = () => {
                         mvps: {
                           children: $(FormLabel, {
                             multiple: 0.9,
-                            icon: auth.season?.useOfficialScoring
-                              ? report.mvpFemale &&
-                                report.mvpMale &&
-                                report.mvpFemale2 &&
-                                report.mvpMale2
+                            icon:
+                              mvpStatus === 'complete'
                                 ? 'check'
-                                : report.mvpFemale && report.mvpMale // At least primary MVPs are selected
+                                : mvpStatus === 'partial'
                                   ? 'exclamation-circle'
-                                  : 'times'
-                              : report.mvpFemale && report.mvpMale
-                                ? 'check'
-                                : 'times',
+                                  : 'times',
                           }),
                         },
                         comment: {
@@ -227,7 +227,7 @@ export const DashboardReports: FC = () => {
             loading: $reportCreate.loading,
             variant: 'dashboard',
             onSubmit: (data) => {
-              const payload = createReportCreatePayload(data)
+              const payload = createReportCreatePayload(data, auth.season)
               if (!payload) {
                 return
               }
@@ -262,7 +262,11 @@ export const DashboardReports: FC = () => {
             loading: $reportUpdate.loading,
             variant: 'dashboard',
             onSubmit: (data) => {
-              const payload = createReportUpdatePayload(currentReport.id, data)
+              const payload = createReportUpdatePayload(
+                currentReport.id,
+                data,
+                auth.season,
+              )
               if (!payload) {
                 return
               }

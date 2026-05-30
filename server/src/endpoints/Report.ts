@@ -7,6 +7,7 @@ import {
 } from '@shared/endpoints/ReportDef'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {validateOfficialSpiritComment} from '@shared/utils/reportValidation'
+import {sanitizeSeasonMvpFields} from '@shared/utils/seasonGenderDivision'
 import {RequestHandler} from 'micro'
 import {$Fixture} from '../tables/$Fixture'
 import {$Report} from '../tables/$Report'
@@ -43,7 +44,11 @@ export default new Map<string, RequestHandler>([
       const fixture = await $Fixture.getOne({id: body.fixtureId})
       const season = await $Season.getOne({id: fixture.seasonId})
       const teamAgainst = await $Team.getOne({id: body.teamAgainstId})
-      assertOfficialSpiritComment(season.useOfficialScoring, body)
+      const reportBody = {
+        ...body,
+        ...sanitizeSeasonMvpFields(season, body),
+      }
+      assertOfficialSpiritComment(season.useOfficialScoring, reportBody)
       if (
         await $Report.count({
           fixtureId: fixture.id,
@@ -74,7 +79,7 @@ export default new Map<string, RequestHandler>([
         })
       }
       return $Report.createOne({
-        ...body,
+        ...reportBody,
         userId: user.id,
         teamAgainstId: teamAgainst.id,
       })
@@ -90,11 +95,15 @@ export default new Map<string, RequestHandler>([
         const report = await $Report.getOne({id: reportId})
         const fixture = await $Fixture.getOne({id: report.fixtureId})
         const season = await $Season.getOne({id: fixture.seasonId})
-        assertOfficialSpiritComment(season.useOfficialScoring, body)
+        const reportBody = {
+          ...body,
+          ...sanitizeSeasonMvpFields(season, body),
+        }
+        assertOfficialSpiritComment(season.useOfficialScoring, reportBody)
         return $Report.updateOne(
           {id: reportId},
           {
-            ...body,
+            ...reportBody,
             updatedOn: new Date().toISOString(),
           },
         )

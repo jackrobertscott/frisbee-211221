@@ -14,7 +14,12 @@ export const SeasonListDef = {
 export const SeasonCreateDef = {
   access: authPoint.seasonManage,
   path: '/SeasonCreate',
-  payload: ioSeason.pick(['name', 'signUpOpen', 'useOfficialScoring']),
+  payload: ioSeason.pick([
+    'name',
+    'signUpOpen',
+    'useOfficialScoring',
+    'genderDivision',
+  ]),
   result: ioSeason,
 } satisfies TEndpointDef
 
@@ -22,7 +27,7 @@ export const SeasonUpdateDef = {
   access: authPoint.seasonManage,
   path: '/SeasonUpdate',
   payload: ioSeason
-    .pick(['name', 'isHidden', 'signUpOpen', 'finalResults'])
+    .pick(['name', 'isHidden', 'signUpOpen', 'genderDivision', 'finalResults'])
     .extend({seasonId: ioSeason.shape.id}),
   result: ioSeason,
 } satisfies TEndpointDef

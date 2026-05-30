@@ -7,9 +7,16 @@ import {exactShape} from '@shared/utils/endpointDef'
 import {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TReport} from '@shared/schemas/ioReport'
+import {TSeason} from '@shared/schemas/ioSeason'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUserPublic} from '@shared/schemas/ioUser'
 import {validateOfficialSpiritComment} from '@shared/utils/reportValidation'
+import {
+  getSeasonMvpSlots,
+  isReportMvpCompleteForSeason,
+  isSeasonMvpSlotEnabled,
+  sanitizeSeasonMvpFields,
+} from '@shared/utils/seasonGenderDivision'
 import dayjs from 'dayjs'
 import {createElement as $} from 'react'
 import {FormBadge} from '../app/Form/FormBadge'
@@ -150,11 +157,13 @@ function getRequiredUpdateFields(formData: ReportFormData) {
 
 export function createReportCreatePayload(
   formData: ReportFormData,
+  season?: TSeason,
 ): TReportCreatePayload | undefined {
   const required = getRequiredCreateFields(formData)
   if (!required) {
     return undefined
   }
+  const mvps = sanitizeSeasonMvpFields(season, formData)
 
   return exactShape<TReportCreatePayload>()({
     teamId: required.teamId,
@@ -162,10 +171,10 @@ export function createReportCreatePayload(
     fixtureId: required.fixtureId,
     scoreFor: required.scoreFor,
     scoreAgainst: required.scoreAgainst,
-    mvpMale: formData.mvpMale,
-    mvpFemale: formData.mvpFemale,
-    mvpMale2: formData.mvpMale2,
-    mvpFemale2: formData.mvpFemale2,
+    mvpMale: mvps.mvpMale,
+    mvpFemale: mvps.mvpFemale,
+    mvpMale2: mvps.mvpMale2,
+    mvpFemale2: mvps.mvpFemale2,
     spirit: formData.spirit,
     spiritComment: formData.spiritComment,
     spiritP1: formData.spiritP1,
@@ -179,19 +188,21 @@ export function createReportCreatePayload(
 export function createReportUpdatePayload(
   reportId: string,
   formData: ReportFormData,
+  season?: TSeason,
 ): TReportUpdatePayload | undefined {
   const required = getRequiredUpdateFields(formData)
   if (!required) {
     return undefined
   }
+  const mvps = sanitizeSeasonMvpFields(season, formData)
 
   return exactShape<TReportUpdatePayload>()({
     reportId,
     ...required,
-    mvpMale: formData.mvpMale,
-    mvpFemale: formData.mvpFemale,
-    mvpMale2: formData.mvpMale2,
-    mvpFemale2: formData.mvpFemale2,
+    mvpMale: mvps.mvpMale,
+    mvpFemale: mvps.mvpFemale,
+    mvpMale2: mvps.mvpMale2,
+    mvpFemale2: mvps.mvpFemale2,
     spirit: formData.spirit,
     spiritComment: formData.spiritComment,
     spiritP1: formData.spiritP1,
@@ -205,11 +216,19 @@ export function createReportUpdatePayload(
 export function sanitizeReportFormMvps(
   formData: Pick<ReportFormData, ReportMvpField>,
   users: TUserPublic[] | undefined,
+  season?: TSeason,
 ): Pick<ReportFormData, ReportMvpField> {
   if (users === undefined) {
-    return formData
+    const mvps = sanitizeSeasonMvpFields(season, formData)
+    return {
+      mvpMale: mvps.mvpMale,
+      mvpFemale: mvps.mvpFemale,
+      mvpMale2: mvps.mvpMale2,
+      mvpFemale2: mvps.mvpFemale2,
+    }
   }
 
+  const slots = getSeasonMvpSlots(season)
   const usersById = new Map(users?.map((user) => [user.id, user]) ?? [])
   const getValidUserId = (
     field: ReportMvpField,
@@ -225,14 +244,23 @@ export function sanitizeReportFormMvps(
     }
 
     const slot = field === 'mvpMale' || field === 'mvpMale2' ? 'male' : 'female'
+    if (!isSeasonMvpSlotEnabled(season, slot)) {
+      return undefined
+    }
     return isEligibleForMvpSlot(user, slot) ? userId : undefined
   }
 
   const nextMvps = {
-    mvpMale: getValidUserId('mvpMale', formData.mvpMale),
-    mvpFemale: getValidUserId('mvpFemale', formData.mvpFemale),
-    mvpMale2: getValidUserId('mvpMale2', formData.mvpMale2),
-    mvpFemale2: getValidUserId('mvpFemale2', formData.mvpFemale2),
+    mvpMale: slots.male ? getValidUserId('mvpMale', formData.mvpMale) : undefined,
+    mvpFemale: slots.female
+      ? getValidUserId('mvpFemale', formData.mvpFemale)
+      : undefined,
+    mvpMale2: slots.male
+      ? getValidUserId('mvpMale2', formData.mvpMale2)
+      : undefined,
+    mvpFemale2: slots.female
+      ? getValidUserId('mvpFemale2', formData.mvpFemale2)
+      : undefined,
   }
 
   if (nextMvps.mvpMale && nextMvps.mvpMale === nextMvps.mvpMale2) {
@@ -485,15 +513,19 @@ export function renderMVPInputs(
   setMvpMale2?: (value: string | undefined) => void,
   mvpFemale2?: string | undefined,
   setMvpFemale2?: (value: string | undefined) => void,
+  season?: TSeason,
 ) {
+  const slots = getSeasonMvpSlots(season)
   const rows = [
-    renderClearableUserSelectRow(
-      `MVP Male${useOfficialScoring ? ' 1' : ''}`,
-      mvpMale,
-      setMvpMale,
-      formatUserOptions(users, 'male', mvpMale2),
-    ),
-    useOfficialScoring && setMvpMale2
+    slots.male
+      ? renderClearableUserSelectRow(
+          `MVP Male${useOfficialScoring ? ' 1' : ''}`,
+          mvpMale,
+          setMvpMale,
+          formatUserOptions(users, 'male', mvpMale2),
+        )
+      : undefined,
+    slots.male && useOfficialScoring && setMvpMale2
       ? renderClearableUserSelectRow(
           'MVP Male 2',
           mvpMale2,
@@ -501,13 +533,15 @@ export function renderMVPInputs(
           formatUserOptions(users, 'male', mvpMale),
         )
       : undefined,
-    renderClearableUserSelectRow(
-      `MVP Female${useOfficialScoring ? ' 1' : ''}`,
-      mvpFemale,
-      setMvpFemale,
-      formatUserOptions(users, 'female', mvpFemale2),
-    ),
-    useOfficialScoring && setMvpFemale2
+    slots.female
+      ? renderClearableUserSelectRow(
+          `MVP Female${useOfficialScoring ? ' 1' : ''}`,
+          mvpFemale,
+          setMvpFemale,
+          formatUserOptions(users, 'female', mvpFemale2),
+        )
+      : undefined,
+    slots.female && useOfficialScoring && setMvpFemale2
       ? renderClearableUserSelectRow(
           'MVP Female 2',
           mvpFemale2,
@@ -655,6 +689,7 @@ export function renderSubmitButton(
 export function validateReportForm(
   formData: ReportFormData,
   useOfficialScoring?: boolean,
+  season?: TSeason,
 ): string | undefined {
   if (!formData.fixtureId) {
     return 'Fixture is required.'
@@ -672,24 +707,54 @@ export function validateReportForm(
     return 'Both scores are required.'
   }
 
-  if (formData.mvpMale && formData.mvpMale === formData.mvpFemale) {
+  const slots = getSeasonMvpSlots(season)
+
+  if (
+    slots.male &&
+    slots.female &&
+    formData.mvpMale &&
+    formData.mvpMale === formData.mvpFemale
+  ) {
     return 'The male and female MVP cannot be the same person.'
   }
 
   if (useOfficialScoring) {
-    if (formData.mvpMale && formData.mvpMale === formData.mvpMale2) {
+    if (
+      slots.male &&
+      formData.mvpMale &&
+      formData.mvpMale === formData.mvpMale2
+    ) {
       return 'The 5-point and 3-point male MVPs cannot be the same person.'
     }
-    if (formData.mvpFemale && formData.mvpFemale === formData.mvpFemale2) {
+    if (
+      slots.female &&
+      formData.mvpFemale &&
+      formData.mvpFemale === formData.mvpFemale2
+    ) {
       return 'The 5-point and 3-point female MVPs cannot be the same person.'
     }
-    if (formData.mvpMale2 && formData.mvpMale2 === formData.mvpFemale2) {
+    if (
+      slots.male &&
+      slots.female &&
+      formData.mvpMale2 &&
+      formData.mvpMale2 === formData.mvpFemale2
+    ) {
       return 'The 3-point male and female MVPs cannot be the same person.'
     }
-    if (formData.mvpMale && formData.mvpMale === formData.mvpFemale2) {
+    if (
+      slots.male &&
+      slots.female &&
+      formData.mvpMale &&
+      formData.mvpMale === formData.mvpFemale2
+    ) {
       return 'The 5-point male MVP and 3-point female MVP cannot be the same person.'
     }
-    if (formData.mvpFemale && formData.mvpFemale === formData.mvpMale2) {
+    if (
+      slots.male &&
+      slots.female &&
+      formData.mvpFemale &&
+      formData.mvpFemale === formData.mvpMale2
+    ) {
       return 'The 5-point female MVP and 3-point male MVP cannot be the same person.'
     }
 
@@ -713,6 +778,8 @@ export function validateReportForm(
 
   return undefined
 }
+
+export {isReportMvpCompleteForSeason}
 
 export function shuffleArray<T>(array: T[]): T[] {
   const newArray = [...array]

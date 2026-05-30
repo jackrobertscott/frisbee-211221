@@ -206,7 +206,11 @@ export const ReportModal: FC<{
   const selectedTeam = teams?.find((team) => team.id === form.data.teamId)
 
   useEffect(() => {
-    const nextMvps = sanitizeReportFormMvps(form.data, chosenAgainst?.users)
+    const nextMvps = sanitizeReportFormMvps(
+      form.data,
+      chosenAgainst?.users,
+      auth.season,
+    )
 
     if (
       nextMvps.mvpMale === form.data.mvpMale &&
@@ -224,6 +228,7 @@ export const ReportModal: FC<{
     form.data.mvpFemale2,
     form.data.mvpMale,
     form.data.mvpMale2,
+    auth.season?.genderDivision,
   ])
 
   const shuffledUsers = useMemo(
@@ -232,7 +237,11 @@ export const ReportModal: FC<{
   )
 
   const handleSubmit = () => {
-    const errorMessage = validateReportForm(form.data, useOfficialScoring)
+    const errorMessage = validateReportForm(
+      form.data,
+      useOfficialScoring,
+      auth.season,
+    )
     if (errorMessage) {
       return toaster.error(errorMessage)
     }
@@ -263,6 +272,7 @@ export const ReportModal: FC<{
             form.link('mvpMale2'),
             form.data.mvpFemale2,
             form.link('mvpFemale2'),
+            auth.season,
           ),
       }),
       useOfficialScoring
@@ -414,6 +424,7 @@ export const ReportCreate: FC<{
   close: () => void
   done: () => void
 }> = ({close, done}) => {
+  const auth = useAuth()
   const $create = useEndpoint($ReportCreate)
 
   return $(ReportModal, {
@@ -422,7 +433,7 @@ export const ReportCreate: FC<{
     loading: $create.loading,
     variant: 'public',
     onSubmit: (data) => {
-      const payload = createReportCreatePayload(data)
+      const payload = createReportCreatePayload(data, auth.season)
       if (!payload) {
         return
       }

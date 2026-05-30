@@ -1,7 +1,9 @@
 import {FormHelp} from '@browser/app/Form/FormHelp'
 import {InputBoolean} from '@browser/app/Input/InputBoolean'
+import {InputSelect} from '@browser/app/Input/InputSelect'
 import {$SeasonUpdate} from '@browser/endpoints/Season'
 import {theme} from '@browser/theme'
+import {isSeasonGenderDivision} from '@shared/schemas/ioSeason'
 import {createElement as $, FC} from 'react'
 import {addkeys} from '../../utils/addkeys'
 import {useAuth} from '../Auth/useAuth'
@@ -22,7 +24,13 @@ export const SettingsSeason: FC = () => {
   const {finalResults, ...season} = auth.season!
   const form = useForm({
     ...season,
+    genderDivision: season.genderDivision ?? 'mixed',
   })
+  const setGenderDivision = (value: string) => {
+    if (isSeasonGenderDivision(value)) {
+      form.patch({genderDivision: value})
+    }
+  }
   return $(Form, {
     children: addkeys([
       $(FormRow, {
@@ -65,6 +73,31 @@ export const SettingsSeason: FC = () => {
           }),
           $(FormHelp, {
             children: 'Teams and players can sign up while this is active.',
+          }),
+        ]),
+      }),
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {
+            label: 'Season Type',
+          }),
+          $(InputSelect, {
+            value: form.data.genderDivision,
+            valueSet: setGenderDivision,
+            options: [
+              {
+                key: 'mixed',
+                label: 'Mixed\nShow male and female controls',
+              },
+              {
+                key: 'men',
+                label: "Men's\nHide female-only controls",
+              },
+              {
+                key: 'women',
+                label: "Women's\nHide male-only controls",
+              },
+            ],
           }),
         ]),
       }),

@@ -1,6 +1,10 @@
 import {InputSelect} from '@browser/app/Input/InputSelect'
 import {css} from '@emotion/css'
-import {TSeason} from '@shared/schemas/ioSeason'
+import {
+  isSeasonGenderDivision,
+  TSeason,
+  TSeasonGenderDivision,
+} from '@shared/schemas/ioSeason'
 import {createElement as $, FC} from 'react'
 import {$SeasonCreate} from '../endpoints/Season'
 import {theme} from '../theme'
@@ -16,15 +20,37 @@ import {InputString} from './Input/InputString'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
 
+type TSeasonScoringSystem = 'simple' | 'official'
+
+function isSeasonScoringSystem(value: string): value is TSeasonScoringSystem {
+  return value === 'simple' || value === 'official'
+}
+
 export const SeasonCreate: FC<{
   seasonSet: (season: TSeason) => void
 }> = ({seasonSet}) => {
   const $seasonCreate = useEndpoint($SeasonCreate)
-  const form = useForm({
+  const form = useForm<{
+    name: string
+    signUpOpen: boolean
+    scoringSystem: 'simple' | 'official'
+    genderDivision: TSeasonGenderDivision
+  }>({
     name: '',
     signUpOpen: false,
     scoringSystem: 'simple',
+    genderDivision: 'mixed',
   })
+  const setScoringSystem = (value: string) => {
+    if (isSeasonScoringSystem(value)) {
+      form.patch({scoringSystem: value})
+    }
+  }
+  const setGenderDivision = (value: string) => {
+    if (isSeasonGenderDivision(value)) {
+      form.patch({genderDivision: value})
+    }
+  }
   return $(Form, {
     background: theme.bgAdmin,
     children: addkeys([
@@ -51,7 +77,7 @@ export const SeasonCreate: FC<{
           }),
           $(InputSelect, {
             value: form.data.scoringSystem,
-            valueSet: form.link('scoringSystem'),
+            valueSet: setScoringSystem,
             options: [
               {
                 key: 'simple',
@@ -60,6 +86,31 @@ export const SeasonCreate: FC<{
               {
                 key: 'official',
                 label: 'Official Scoring\n2 MVP per gender, 20 spirit points',
+              },
+            ],
+          }),
+        ]),
+      }),
+      $(FormRow, {
+        children: addkeys([
+          $(FormLabel, {
+            label: 'Season Type',
+          }),
+          $(InputSelect, {
+            value: form.data.genderDivision,
+            valueSet: setGenderDivision,
+            options: [
+              {
+                key: 'mixed',
+                label: 'Mixed\nShow male and female controls',
+              },
+              {
+                key: 'men',
+                label: "Men's\nHide female-only controls",
+              },
+              {
+                key: 'women',
+                label: "Women's\nHide male-only controls",
               },
             ],
           }),

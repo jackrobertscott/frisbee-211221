@@ -1,5 +1,6 @@
 import {authPoint} from '@shared/auth/authAccess'
 import {TFeatureMvpRow} from '@shared/endpoints/FeatureDef'
+import {getSeasonMvpSlots} from '@shared/utils/seasonGenderDivision'
 import {css} from '@emotion/css'
 import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {$FeatureDashboardMvpLoad} from '../../endpoints/Feature'
@@ -20,6 +21,7 @@ export const DashboardMVP: FC = () => {
   const $mvpLoad = useEndpoint($FeatureDashboardMvpLoad)
   const [rows, rowsSet] = useState<TFeatureMvpRow[]>()
   const seasonId = auth.season!.id
+  const slots = getSeasonMvpSlots(auth.season)
 
   useEffect(() => {
     if (!auth.can(authPoint.reportManage)) {
@@ -59,60 +61,62 @@ export const DashboardMVP: FC = () => {
                 },
               }),
               children: addkeys([
-                $(FormColumn, {
-                  children: addkeys([
-                    $(FormBadge, {
-                      label: 'Male MVP Votes',
-                      background: theme.bgMinor,
-                    }),
-                    $(Table, {
-                      head: {
-                        user: {label: 'User', grow: 3},
-                        division: {label: 'Division', grow: 1},
-                        team: {label: 'Team', grow: 2},
-                        votes: {label: 'Points', grow: 1},
-                      },
-                      body: rows
-                        .filter((row) => row.gender === 0)
-                        .map((row) => ({
-                          key: row.userId,
-                          data: {
-                            user: {value: row.userName},
-                            division: {value: row.division ?? '...'},
-                            team: {value: row.teamName ?? '...'},
-                            votes: {value: row.votes},
-                          },
-                        })),
-                    }),
-                  ]),
-                }),
-                $(FormColumn, {
-                  children: addkeys([
-                    $(FormBadge, {
-                      label: 'Female MVP Points',
-                      background: theme.bgMinor,
-                    }),
-                    $(Table, {
-                      head: {
-                        user: {label: 'User', grow: 3},
-                        division: {label: 'Division', grow: 1},
-                        team: {label: 'Team', grow: 2},
-                        votes: {label: 'Points', grow: 1},
-                      },
-                      body: rows
-                        .filter((row) => row.gender === 1)
-                        .map((row) => ({
-                          key: row.userId,
-                          data: {
-                            user: {value: row.userName},
-                            division: {value: row.division ?? '...'},
-                            team: {value: row.teamName ?? '...'},
-                            votes: {value: row.votes},
-                          },
-                        })),
-                    }),
-                  ]),
-                }),
+                slots.male &&
+                  $(FormColumn, {
+                    children: addkeys([
+                      $(FormBadge, {
+                        label: 'Male MVP Votes',
+                        background: theme.bgMinor,
+                      }),
+                      $(Table, {
+                        head: {
+                          user: {label: 'User', grow: 3},
+                          division: {label: 'Division', grow: 1},
+                          team: {label: 'Team', grow: 2},
+                          votes: {label: 'Points', grow: 1},
+                        },
+                        body: rows
+                          .filter((row) => row.gender === 0)
+                          .map((row) => ({
+                            key: row.userId,
+                            data: {
+                              user: {value: row.userName},
+                              division: {value: row.division ?? '...'},
+                              team: {value: row.teamName ?? '...'},
+                              votes: {value: row.votes},
+                            },
+                          })),
+                      }),
+                    ]),
+                  }),
+                slots.female &&
+                  $(FormColumn, {
+                    children: addkeys([
+                      $(FormBadge, {
+                        label: 'Female MVP Points',
+                        background: theme.bgMinor,
+                      }),
+                      $(Table, {
+                        head: {
+                          user: {label: 'User', grow: 3},
+                          division: {label: 'Division', grow: 1},
+                          team: {label: 'Team', grow: 2},
+                          votes: {label: 'Points', grow: 1},
+                        },
+                        body: rows
+                          .filter((row) => row.gender === 1)
+                          .map((row) => ({
+                            key: row.userId,
+                            data: {
+                              user: {value: row.userName},
+                              division: {value: row.division ?? '...'},
+                              team: {value: row.teamName ?? '...'},
+                              votes: {value: row.votes},
+                            },
+                          })),
+                      }),
+                    ]),
+                  }),
               ]),
             }),
           ]),
