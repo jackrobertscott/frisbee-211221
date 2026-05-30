@@ -8,6 +8,8 @@ import {compareSeasonNames, seasonNameCollation} from '@shared/utils/seasonName'
 import {
   getSeasonGenderDivision,
   getSeasonMvpSlots,
+  isUserEligibleForMvpSlot,
+  TMvpGenderSlot,
 } from '@shared/utils/seasonGenderDivision'
 import AdmZip from 'adm-zip'
 import {$Fixture} from '../tables/$Fixture'
@@ -233,6 +235,18 @@ const EXPORT_DATASETS = [
             (fixture ? seasonsById.get(fixture.seasonId) : undefined) ??
             (team ? seasonsById.get(team.seasonId) : undefined)
           const slots = getSeasonMvpSlots(season)
+          const mvpMale = slots.male
+            ? _mvpUserForSlot(usersById, report.mvpMale, 'male')
+            : undefined
+          const mvpMale2 = slots.male
+            ? _mvpUserForSlot(usersById, report.mvpMale2, 'male')
+            : undefined
+          const mvpFemale = slots.female
+            ? _mvpUserForSlot(usersById, report.mvpFemale, 'female')
+            : undefined
+          const mvpFemale2 = slots.female
+            ? _mvpUserForSlot(usersById, report.mvpFemale2, 'female')
+            : undefined
 
           return {
             seasonName: _seasonLabel(season),
@@ -244,30 +258,14 @@ const EXPORT_DATASETS = [
             submittedByEmail: _primaryEmail(submittedBy),
             scoreFor: report.scoreFor,
             scoreAgainst: report.scoreAgainst,
-            mvpMaleName: slots.male && report.mvpMale
-              ? _userLabel(usersById.get(report.mvpMale))
-              : undefined,
-            mvpMaleEmail: slots.male
-              ? _primaryEmail(usersById.get(report.mvpMale ?? ''))
-              : undefined,
-            mvpMale2Name: slots.male && report.mvpMale2
-              ? _userLabel(usersById.get(report.mvpMale2))
-              : undefined,
-            mvpMale2Email: slots.male
-              ? _primaryEmail(usersById.get(report.mvpMale2 ?? ''))
-              : undefined,
-            mvpFemaleName: slots.female && report.mvpFemale
-              ? _userLabel(usersById.get(report.mvpFemale))
-              : undefined,
-            mvpFemaleEmail: slots.female
-              ? _primaryEmail(usersById.get(report.mvpFemale ?? ''))
-              : undefined,
-            mvpFemale2Name: slots.female && report.mvpFemale2
-              ? _userLabel(usersById.get(report.mvpFemale2))
-              : undefined,
-            mvpFemale2Email: slots.female
-              ? _primaryEmail(usersById.get(report.mvpFemale2 ?? ''))
-              : undefined,
+            mvpMaleName: mvpMale ? _userLabel(mvpMale) : undefined,
+            mvpMaleEmail: _primaryEmail(mvpMale),
+            mvpMale2Name: mvpMale2 ? _userLabel(mvpMale2) : undefined,
+            mvpMale2Email: _primaryEmail(mvpMale2),
+            mvpFemaleName: mvpFemale ? _userLabel(mvpFemale) : undefined,
+            mvpFemaleEmail: _primaryEmail(mvpFemale),
+            mvpFemale2Name: mvpFemale2 ? _userLabel(mvpFemale2) : undefined,
+            mvpFemale2Email: _primaryEmail(mvpFemale2),
             spiritSimple: report.spirit,
             spiritP1: report.spiritP1,
             spiritP2: report.spiritP2,
@@ -601,6 +599,17 @@ const _userName = (user?: Pick<TUser, 'firstName' | 'lastName'>) => {
 }
 
 const _userLabel = (user?: TUser) => _userName(user)
+
+const _mvpUserForSlot = (
+  usersById: Map<string, TUser>,
+  userId: string | undefined,
+  slot: TMvpGenderSlot,
+) => {
+  if (!userId) return undefined
+  const user = usersById.get(userId)
+  if (!user || !isUserEligibleForMvpSlot(user, slot)) return undefined
+  return user
+}
 
 const _primaryEmail = (user?: TUser) => {
   if (!user) return undefined

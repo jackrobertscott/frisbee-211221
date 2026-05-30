@@ -3,8 +3,13 @@ import {
   TSeason,
   TSeasonGenderDivision,
 } from '@shared/schemas/ioSeason'
+import {TUserGender} from '@shared/schemas/ioUserGender'
 
 export type TMvpGenderSlot = 'male' | 'female'
+
+type TGenderedUser = {
+  gender: TUserGender
+}
 
 export type TSeasonMvpFields = Pick<
   Partial<TReport>,
@@ -29,6 +34,13 @@ export function isSeasonMvpSlotEnabled(
     (division === 'men' && slot === 'male') ||
     (division === 'women' && slot === 'female')
   )
+}
+
+export function isUserEligibleForMvpSlot(
+  user: TGenderedUser,
+  slot: TMvpGenderSlot,
+): boolean {
+  return slot === 'male' ? user.gender !== 'female' : user.gender !== 'male'
 }
 
 export function getSeasonMvpSlots(season: TSeasonGenderDivisionSource): {

@@ -271,6 +271,7 @@ export default new Map<string, RequestHandler>([
         const userMap = new Map(
           users.map((user) => [user.id, selectPublicUserFields(user)]),
         )
+        const slots = getSeasonMvpSlots(season)
         const result: TFeatureMvpRow[] = aggregateRows
           .map((row) => {
             const user = userMap.get(row.userId)
@@ -296,7 +297,12 @@ export default new Map<string, RequestHandler>([
                       : 1,
             }
           })
-          .filter((row) => row.votes > 0)
+          .filter(
+            (row) =>
+              row.votes > 0 &&
+              ((row.gender === 0 && slots.male) ||
+                (row.gender === 1 && slots.female)),
+          )
           .sort((a, b) => {
             const diff = b.votes - a.votes
             if (diff !== 0) return diff

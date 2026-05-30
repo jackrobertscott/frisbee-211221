@@ -15,6 +15,7 @@ import {
   getSeasonMvpSlots,
   isReportMvpCompleteForSeason,
   isSeasonMvpSlotEnabled,
+  isUserEligibleForMvpSlot,
   sanitizeSeasonMvpFields,
 } from '@shared/utils/seasonGenderDivision'
 import dayjs from 'dayjs'
@@ -247,7 +248,7 @@ export function sanitizeReportFormMvps(
     if (!isSeasonMvpSlotEnabled(season, slot)) {
       return undefined
     }
-    return isEligibleForMvpSlot(user, slot) ? userId : undefined
+    return isUserEligibleForMvpSlot(user, slot) ? userId : undefined
   }
 
   const nextMvps = {
@@ -299,18 +300,13 @@ function formatAgainstOptions(
   }))
 }
 
-function isEligibleForMvpSlot(user: TUserPublic, slot: MvpSlot) {
-  const gender = user.gender.toLowerCase()
-  return slot === 'male' ? gender !== 'female' : gender !== 'male'
-}
-
 function formatUserOptions(
   users: TUserPublic[],
   slot: MvpSlot,
   excludedUserId?: string,
 ): TSelectOption[] {
   return users
-    .filter((user) => isEligibleForMvpSlot(user, slot))
+    .filter((user) => isUserEligibleForMvpSlot(user, slot))
     .filter((user) => user.id !== excludedUserId)
     .map((user) => ({
       key: user.id,

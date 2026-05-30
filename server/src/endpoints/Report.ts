@@ -5,14 +5,20 @@ import {
   ReportMissingListDef,
   ReportUpdateDef,
 } from '@shared/endpoints/ReportDef'
+import {TSeason} from '@shared/schemas/ioSeason'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {validateOfficialSpiritComment} from '@shared/utils/reportValidation'
-import {sanitizeSeasonMvpFields} from '@shared/utils/seasonGenderDivision'
+import {
+  isUserEligibleForMvpSlot,
+  sanitizeSeasonMvpFields,
+  TSeasonMvpFields,
+} from '@shared/utils/seasonGenderDivision'
 import {RequestHandler} from 'micro'
 import {$Fixture} from '../tables/$Fixture'
 import {$Report} from '../tables/$Report'
 import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
+import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
 import {requireAccess} from './requireAccess'
 import {requireTeam} from './requireTeam'
@@ -33,6 +39,44 @@ function assertOfficialSpiritComment(
   }
 }
 
+async function sanitizeReportMvpFieldsForSeason(
+  season: TSeason,
+  body: TSeasonMvpFields,
+): Promise<TSeasonMvpFields> {
+  const fields = sanitizeSeasonMvpFields(season, body)
+  const userIds = Object.values(fields).filter(
+    (userId): userId is string => typeof userId === 'string' && !!userId,
+  )
+  if (!userIds.length) {
+    return fields
+  }
+
+  const users = await $User.getMany({id: {$in: userIds}})
+  const usersById = new Map(users.map((user) => [user.id, user]))
+  const getValidUserId = (
+    slot: 'male' | 'female',
+    userId: string | undefined,
+  ) => {
+    if (!userId) {
+      return undefined
+    }
+
+    const user = usersById.get(userId)
+    if (user && !isUserEligibleForMvpSlot(user, slot)) {
+      return undefined
+    }
+
+    return userId
+  }
+
+  return {
+    mvpMale: getValidUserId('male', fields.mvpMale),
+    mvpMale2: getValidUserId('male', fields.mvpMale2),
+    mvpFemale: getValidUserId('female', fields.mvpFemale),
+    mvpFemale2: getValidUserId('female', fields.mvpFemale2),
+  }
+}
+
 export default new Map<string, RequestHandler>([
   createEndpoint({
     ...ReportCreateDef,
@@ -46,7 +90,7 @@ export default new Map<string, RequestHandler>([
       const teamAgainst = await $Team.getOne({id: body.teamAgainstId})
       const reportBody = {
         ...body,
-        ...sanitizeSeasonMvpFields(season, body),
+        ...(await sanitizeReportMvpFieldsForSeason(season, body)),
       }
       assertOfficialSpiritComment(season.useOfficialScoring, reportBody)
       if (
@@ -97,7 +141,7 @@ export default new Map<string, RequestHandler>([
         const season = await $Season.getOne({id: fixture.seasonId})
         const reportBody = {
           ...body,
-          ...sanitizeSeasonMvpFields(season, body),
+          ...(await sanitizeReportMvpFieldsForSeason(season, body)),
         }
         assertOfficialSpiritComment(season.useOfficialScoring, reportBody)
         return $Report.updateOne(
