@@ -10,6 +10,8 @@ export const GENDER_OPTIONS: Array<{
   {key: 'other', label: 'Other'},
 ]
 
+export const SPIRIT_DEFAULT_SCORE = 2
+
 export const SPIRIT_OPTIONS: Array<{
   key: string
   label: string

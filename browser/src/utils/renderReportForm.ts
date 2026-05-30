@@ -25,6 +25,7 @@ import {addkeys} from './addkeys'
 import {
   SPIRIT_CATEGORY_DESCRIPTIONS,
   SPIRIT_CATEGORY_OPTIONS,
+  SPIRIT_DEFAULT_SCORE,
   SPIRIT_OPTIONS,
 } from './constants'
 import {hsla} from './hsla'
@@ -62,13 +63,13 @@ const REPORT_FORM_DEFAULTS: ReportFormData = {
   mvpFemale: undefined,
   mvpMale2: undefined,
   mvpFemale2: undefined,
-  spirit: undefined,
+  spirit: SPIRIT_DEFAULT_SCORE,
   spiritComment: '',
-  spiritP1: undefined,
-  spiritP2: undefined,
-  spiritP3: undefined,
-  spiritP4: undefined,
-  spiritP5: undefined,
+  spiritP1: SPIRIT_DEFAULT_SCORE,
+  spiritP2: SPIRIT_DEFAULT_SCORE,
+  spiritP3: SPIRIT_DEFAULT_SCORE,
+  spiritP4: SPIRIT_DEFAULT_SCORE,
+  spiritP5: SPIRIT_DEFAULT_SCORE,
 }
 
 const MVP_ROW_BP = theme.fib[12] - theme.fib[7]
@@ -107,13 +108,13 @@ export const createReportFormDataFromReport = (
     mvpFemale: report?.mvpFemale,
     mvpMale2: report?.mvpMale2,
     mvpFemale2: report?.mvpFemale2,
-    spirit: report?.spirit,
+    spirit: report?.spirit ?? SPIRIT_DEFAULT_SCORE,
     spiritComment: report?.spiritComment ?? '',
-    spiritP1: report?.spiritP1,
-    spiritP2: report?.spiritP2,
-    spiritP3: report?.spiritP3,
-    spiritP4: report?.spiritP4,
-    spiritP5: report?.spiritP5,
+    spiritP1: report?.spiritP1 ?? SPIRIT_DEFAULT_SCORE,
+    spiritP2: report?.spiritP2 ?? SPIRIT_DEFAULT_SCORE,
+    spiritP3: report?.spiritP3 ?? SPIRIT_DEFAULT_SCORE,
+    spiritP4: report?.spiritP4 ?? SPIRIT_DEFAULT_SCORE,
+    spiritP5: report?.spiritP5 ?? SPIRIT_DEFAULT_SCORE,
   })
 
 function getRequiredCreateFields(formData: ReportFormData) {
@@ -542,7 +543,7 @@ export function renderSpiritInputs(
           }),
           $(InputSelect, {
             value: spirit?.toString(),
-            valueSet: (value) => setSpirit(+value),
+            valueSet: (value: string) => setSpirit(Number(value)),
             placeholder: 'Select...',
             options: SPIRIT_OPTIONS,
           }),
@@ -620,7 +621,7 @@ export function renderOfficialSpiritInputs(
             }),
             $(InputSelect, {
               value: field.value?.toString(),
-              valueSet: (value) => field.valueSet(+value),
+              valueSet: (value: string) => field.valueSet(Number(value)),
               placeholder: 'Select...',
               options: SPIRIT_CATEGORY_OPTIONS,
             }),
