@@ -11,6 +11,8 @@ import {MediaProvider} from './app/Media/MediaProvider'
 import {RouterProvider} from './app/Router/RouterProvider'
 import {StackProvider} from './app/Stack/StackProvider'
 import {ToasterProvider} from './app/Toaster/ToasterProvider'
+import marlowFavicon from './assets/marlow-favicon.ico'
+import pulFavicon from './assets/pul-favicon.ico'
 import './index.css'
 import {THEME_STORAGE_KEY, ThemeProvider, theme} from './theme'
 import {local} from './utils/local'
@@ -21,8 +23,15 @@ document.title = config.title
 // add favicon
 const favicon = document.createElement('link')
 favicon.rel = 'icon'
-favicon.type = 'image/svg+xml'
-favicon.href = new URL('./assets/frisbee-favicon.svg', import.meta.url).href
+favicon.type = 'image/x-icon'
+switch (config.leagueKey) {
+  case 'marlow':
+    favicon.href = marlowFavicon
+    break
+  case 'pul':
+    favicon.href = pulFavicon
+    break
+}
 document.head.appendChild(favicon)
 
 document.documentElement.dataset.theme = local.get(THEME_STORAGE_KEY) ?? 'light'

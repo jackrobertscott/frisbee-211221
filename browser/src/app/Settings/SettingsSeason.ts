@@ -87,15 +87,15 @@ export const SettingsSeason: FC = () => {
             options: [
               {
                 key: 'mixed',
-                label: 'Mixed\nShow male and female controls',
+                label: 'Mixed',
               },
               {
                 key: 'men',
-                label: "Men's\nHide female-only controls",
+                label: "Men's",
               },
               {
                 key: 'women',
-                label: "Women's\nHide male-only controls",
+                label: "Women's",
               },
             ],
           }),
