@@ -11,9 +11,14 @@ import {TypeIoAll} from '@shared/torva'
 import {TEndpoint, TEndpointInput, TEndpointOutput} from '../utils/endpoints'
 import {throttle} from '../utils/throttle'
 import {readAuthState} from './Auth/authAccess'
+import {clearStoredAppState} from './Auth/authStorage'
 import {useAuth} from './Auth/useAuth'
 import {useToaster} from './Toaster/useToaster'
 import {useMountedRef} from './useMountedRef'
+
+const isMissingStoredRecord = (error: ReturnType<typeof toAppError>) => {
+  return error.errorCode === 'db.record_not_found'
+}
 
 export const useEndpoint = <
   E extends TEndpoint<TypeIoAll | undefined, TypeIoAll | undefined, boolean>,
@@ -77,6 +82,9 @@ export const useEndpoint = <
             appError.errorCode !== 'auth.invalid_login'
           ) {
             auth.invalidate()
+          }
+          if (isMissingStoredRecord(appError) && clearStoredAppState()) {
+            window.location.replace('/')
           }
           toaster.error(getUserErrorMessage(appError))
           throw appError

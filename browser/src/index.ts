@@ -34,7 +34,8 @@ switch (config.leagueKey) {
 }
 document.head.appendChild(favicon)
 
-document.documentElement.dataset.theme = local.get(THEME_STORAGE_KEY) ?? 'light'
+document.documentElement.dataset.theme =
+  local.get<string>(THEME_STORAGE_KEY) ?? 'light'
 
 // add global styles
 // override the CSS fallback font-family with the themed font

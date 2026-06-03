@@ -5,11 +5,14 @@ import {$SecurityCurrent, $SecurityLogout} from '../../endpoints/Security'
 import {useLocalState} from '../useLocalState'
 import {canAccess} from './authAccess'
 import {AuthContext, TAuth, TAuthPayload} from './AuthContext'
+import {AUTH_STORAGE_KEY, SEASON_STORAGE_KEY} from './authStorage'
 
 export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
   const [loaded, loadedSet] = useState(false)
-  const [season, seasonSet] = useLocalState<TSeason | undefined>('season')
-  const [current, currentSet] = useLocalState<TAuth | undefined>('auth')
+  const [season, seasonSet] =
+    useLocalState<TSeason | undefined>(SEASON_STORAGE_KEY)
+  const [current, currentSet] =
+    useLocalState<TAuth | undefined>(AUTH_STORAGE_KEY)
   const currentSessionExpired =
     current?.session?.expiresOn !== undefined &&
     new Date(current.session.expiresOn).valueOf() <= Date.now()
