@@ -17,6 +17,7 @@ import {$Post} from '../tables/$Post'
 import {$Report} from '../tables/$Report'
 import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
+import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
 import hash from '../utils/hash'
 import mongo from '../utils/mongo'
@@ -97,6 +98,13 @@ export default new Map<string, RequestHandler>([
           await $Member.deleteMany({seasonId})
           await $Fixture.deleteMany({seasonId})
           await $Team.deleteMany({seasonId})
+          await $User.updateMany(
+            {lastSeasonId: seasonId},
+            {
+              lastSeasonId: undefined,
+              updatedOn: new Date().toISOString(),
+            },
+          )
           await $Season.deleteOne({id: seasonId})
         })
       },
