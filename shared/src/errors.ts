@@ -223,6 +223,8 @@ const USER_MESSAGE_BY_ERROR_CODE: Record<string, string> = {
   'router.routes_missing': INTERNAL_USER_MESSAGE,
 
   'season.id_missing': 'Please choose a season and try again.',
+  'season.delete_has_reports':
+    'This season cannot be deleted because it has score reports.',
   'season.not_found': 'No season is available yet.',
 
   'team.access_forbidden': 'You do not have access to that team.',

@@ -31,3 +31,23 @@ export const SeasonUpdateDef = {
     .extend({seasonId: ioSeason.shape.id}),
   result: ioSeason,
 } satisfies TEndpointDef
+
+export const SeasonDeleteStatusDef = {
+  access: authPoint.seasonManage,
+  path: '/SeasonDeleteStatus',
+  payload: io.object({
+    seasonId: ioSeason.shape.id,
+  }),
+  result: io.object({
+    canDelete: io.boolean(),
+  }),
+} satisfies TEndpointDef
+
+export const SeasonDeleteDef = {
+  access: authPoint.seasonManage,
+  path: '/SeasonDelete',
+  payload: io.object({
+    seasonId: ioSeason.shape.id,
+    password: io.string(),
+  }),
+} satisfies TEndpointDef
