@@ -43,11 +43,24 @@ import {selectPublicUserFields} from './userPublic'
 
 const TEAM_DEFAULT_SORT_BY: TTeamListSortKey = 'division'
 const TEAM_DEFAULT_SORT_DIRECTION: TTeamListSortDirection = 'asc'
+const SPIRIT_SCORER_BIAS_SHRINKAGE_REPORTS = 3
 
 type TSpiritAggregate = {
   received?: Array<{_id: string; spirit: number; reports: number}>
   normalizedReceived?: Array<{_id: string; average: number; reports: number}>
   allocated?: Array<{_id: string; spirit: number; reports: number}>
+  reports?: TSpiritReportAggregateRow[]
+}
+
+type TSpiritReportAggregateRow = {
+  teamId: string
+  teamAgainstId: string
+  spirit: number
+}
+
+type TSpiritReportStats = {
+  spirit: number
+  reports: number
 }
 
 type TMvpAggregateRow = {
@@ -178,6 +191,9 @@ export default new Map<string, RequestHandler>([
         const allocatedMap = new Map(
           (aggregate?.allocated ?? []).map((row) => [row._id, row]),
         )
+        const adjustedSpiritMaps = _getAdjustedSpiritMaps(
+          aggregate?.reports ?? [],
+        )
         const rowsWithoutNormalizedAllocated = teams.map((team) => {
           const received = receivedMap.get(team.id)
           const normalizedReceived = normalizedReceivedMap.get(team.id)
@@ -190,18 +206,29 @@ export default new Map<string, RequestHandler>([
             receivedReports > 0 ? receivedSpirit / receivedReports : 0
           const allocatedAverage =
             allocatedReports > 0 ? allocatedSpirit / allocatedReports : 0
+          const normalizedReceivedAverage = normalizedReceived?.average ?? 0
+          const adjustedReceivedAverage =
+            adjustedSpiritMaps.receivedAverageMap.get(team.id) ?? 0
+          const adjustedAllocatedAverage =
+            adjustedSpiritMaps.allocatedAverageMap.get(team.id) ?? 0
           return {
             team,
             receivedSpirit,
             receivedReports,
             receivedAverage,
-            normalizedReceivedAverage: normalizedReceived?.average ?? 0,
+            normalizedReceivedAverage,
+            adjustedReceivedAverage,
             allocatedSpirit,
             allocatedReports,
             allocatedAverage,
+            adjustedAllocatedAverage,
             averageDifference:
               receivedReports > 0 && allocatedReports > 0
                 ? allocatedAverage - receivedAverage
+                : 0,
+            adjustedDifference:
+              receivedReports > 0 && allocatedReports > 0
+                ? adjustedAllocatedAverage - adjustedReceivedAverage
                 : 0,
           }
         })
@@ -221,14 +248,15 @@ export default new Map<string, RequestHandler>([
           ) / (rowsWithAllocatedReports.length || 1),
         )
         const rows = rowsWithoutNormalizedAllocated.map((row) => {
-          const normalizedAllocatedAverage =
+          const allocatedNormalizedOffset =
             row.allocatedReports > 0 && allocatedAverageStandardDeviation > 0
-              ? 10 +
-                (row.allocatedAverage - allocatedAverageMean) /
-                  allocatedAverageStandardDeviation
-              : row.allocatedReports > 0
-                ? 10
-                : 0
+              ? (row.allocatedAverage - allocatedAverageMean) /
+                allocatedAverageStandardDeviation
+              : 0
+          const normalizedAllocatedAverage =
+            row.allocatedReports > 0
+              ? 10 + allocatedNormalizedOffset
+              : 0
           return {
             ...row,
             normalizedAllocatedAverage,
@@ -239,7 +267,7 @@ export default new Map<string, RequestHandler>([
         return {
           rows: _sortSpiritRows(
             rows,
-            sortBy ?? 'normalizedReceivedAverage',
+            sortBy ?? 'adjustedReceivedAverage',
             sortDirection ?? 'desc',
           ),
         }
@@ -554,6 +582,16 @@ function _createSpiritAggregatePipeline(
             },
           },
         ],
+        reports: [
+          {
+            $project: {
+              _id: 0,
+              teamId: '$teamId',
+              teamAgainstId: '$teamAgainstId',
+              spirit: '$spiritTotal',
+            },
+          },
+        ],
         normalizedReceived: [
           {
             $group: {
@@ -602,6 +640,60 @@ function _createSpiritAggregatePipeline(
       },
     },
   ]
+}
+
+function _getAdjustedSpiritMaps(reports: TSpiritReportAggregateRow[]) {
+  const globalAverage =
+    reports.reduce((total, report) => total + report.spirit, 0) /
+    (reports.length || 1)
+  const reporterStatsMap = new Map<string, TSpiritReportStats>()
+  for (const report of reports) {
+    _addSpiritReportStat(reporterStatsMap, report.teamId, report.spirit)
+  }
+  const reporterBiasMap = new Map<string, number>()
+  for (const [teamId, stats] of reporterStatsMap) {
+    // Pull scorer bias toward zero until there are enough reports to trust it.
+    const confidence =
+      stats.reports /
+      (stats.reports + SPIRIT_SCORER_BIAS_SHRINKAGE_REPORTS)
+    const average = stats.spirit / stats.reports
+    reporterBiasMap.set(teamId, confidence * (average - globalAverage))
+  }
+  const receivedStatsMap = new Map<string, TSpiritReportStats>()
+  const allocatedStatsMap = new Map<string, TSpiritReportStats>()
+  for (const report of reports) {
+    const adjustedSpirit =
+      report.spirit - (reporterBiasMap.get(report.teamId) ?? 0)
+    _addSpiritReportStat(
+      receivedStatsMap,
+      report.teamAgainstId,
+      adjustedSpirit,
+    )
+    _addSpiritReportStat(allocatedStatsMap, report.teamId, adjustedSpirit)
+  }
+  return {
+    receivedAverageMap: _getSpiritAverageMap(receivedStatsMap),
+    allocatedAverageMap: _getSpiritAverageMap(allocatedStatsMap),
+  }
+}
+
+function _addSpiritReportStat(
+  map: Map<string, TSpiritReportStats>,
+  teamId: string,
+  spirit: number,
+) {
+  const stats = map.get(teamId) ?? {spirit: 0, reports: 0}
+  stats.spirit += spirit
+  stats.reports += 1
+  map.set(teamId, stats)
+}
+
+function _getSpiritAverageMap(map: Map<string, TSpiritReportStats>) {
+  const averageMap = new Map<string, number>()
+  for (const [teamId, stats] of map) {
+    averageMap.set(teamId, stats.spirit / stats.reports)
+  }
+  return averageMap
 }
 
 function _createMvpAggregatePipeline(

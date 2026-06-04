@@ -20,12 +20,15 @@ export const FEATURE_SPIRIT_SORT_KEYS = [
   'receivedReports',
   'receivedAverage',
   'normalizedReceivedAverage',
+  'adjustedReceivedAverage',
   'allocatedSpirit',
   'allocatedReports',
   'allocatedAverage',
   'normalizedAllocatedAverage',
+  'adjustedAllocatedAverage',
   'averageDifference',
   'normalizedDifference',
+  'adjustedDifference',
 ] as const
 
 export type TFeatureSpiritSortKey = (typeof FEATURE_SPIRIT_SORT_KEYS)[number]
@@ -47,12 +50,15 @@ export const ioFeatureSpiritRow = io.object({
   receivedReports: io.number(),
   receivedAverage: io.number(),
   normalizedReceivedAverage: io.number(),
+  adjustedReceivedAverage: io.number(),
   allocatedSpirit: io.number(),
   allocatedReports: io.number(),
   allocatedAverage: io.number(),
   normalizedAllocatedAverage: io.number(),
+  adjustedAllocatedAverage: io.number(),
   averageDifference: io.number(),
   normalizedDifference: io.number(),
+  adjustedDifference: io.number(),
 })
 
 export type TFeatureSpiritRow = TypeIoValue<typeof ioFeatureSpiritRow>

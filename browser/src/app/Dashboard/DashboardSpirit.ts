@@ -25,19 +25,24 @@ type TSpiritSortKey =
   | 'reports'
   | 'average'
   | 'normalizedAverage'
+  | 'adjustedReceivedAverage'
   | 'allocatedSpirit'
   | 'allocatedReports'
   | 'allocatedAverage'
   | 'normalizedAllocatedAverage'
+  | 'adjustedAllocatedAverage'
   | 'avgDiff'
   | 'normalizedDifference'
+  | 'adjustedDifference'
 
 export const DashboardSpirit: FC = () => {
   const auth = useAuth()
   const themeMode = useTheme()
   const $spiritLoad = useEndpoint($FeatureDashboardSpiritLoad)
   const [rows, rowsSet] = useState<TFeatureSpiritRow[]>()
-  const [sortKey, sortKeySet] = useState<TSpiritSortKey>('normalizedAverage')
+  const [sortKey, sortKeySet] = useState<TSpiritSortKey>(
+    'adjustedReceivedAverage',
+  )
   const [sortDirection, sortDirectionSet] = useState<'asc' | 'desc'>('desc')
   const seasonId = auth.season!.id
   const averageFormatter = new Intl.NumberFormat(undefined, {
@@ -57,12 +62,15 @@ export const DashboardSpirit: FC = () => {
       reports: 'receivedReports',
       average: 'receivedAverage',
       normalizedAverage: 'normalizedReceivedAverage',
+      adjustedReceivedAverage: 'adjustedReceivedAverage',
       allocatedSpirit: 'allocatedSpirit',
       allocatedReports: 'allocatedReports',
       allocatedAverage: 'allocatedAverage',
       normalizedAllocatedAverage: 'normalizedAllocatedAverage',
+      adjustedAllocatedAverage: 'adjustedAllocatedAverage',
       avgDiff: 'averageDifference',
       normalizedDifference: 'normalizedDifference',
+      adjustedDifference: 'adjustedDifference',
     }
     $spiritLoad
       .fetch({
@@ -167,6 +175,12 @@ export const DashboardSpirit: FC = () => {
                     click: () => toggleSort('normalizedAverage'),
                     prefixIcon: getSortIcon('normalizedAverage'),
                   },
+                  adjustedReceivedAverage: {
+                    label: 'Adj Got',
+                    grow: 2,
+                    click: () => toggleSort('adjustedReceivedAverage'),
+                    prefixIcon: getSortIcon('adjustedReceivedAverage'),
+                  },
                   allocatedSpirit: {
                     label: 'Pnts Sent',
                     grow: 2,
@@ -191,6 +205,12 @@ export const DashboardSpirit: FC = () => {
                     click: () => toggleSort('normalizedAllocatedAverage'),
                     prefixIcon: getSortIcon('normalizedAllocatedAverage'),
                   },
+                  adjustedAllocatedAverage: {
+                    label: 'Adj Sent',
+                    grow: 2,
+                    click: () => toggleSort('adjustedAllocatedAverage'),
+                    prefixIcon: getSortIcon('adjustedAllocatedAverage'),
+                  },
                   avgDiff: {
                     label: 'Avg Diff',
                     grow: 2,
@@ -203,6 +223,12 @@ export const DashboardSpirit: FC = () => {
                     click: () => toggleSort('normalizedDifference'),
                     prefixIcon: getSortIcon('normalizedDifference'),
                   },
+                  adjustedDifference: {
+                    label: 'Adj Diff',
+                    grow: 2,
+                    click: () => toggleSort('adjustedDifference'),
+                    prefixIcon: getSortIcon('adjustedDifference'),
+                  },
                 },
                 body: rows.map(
                   ({
@@ -211,12 +237,15 @@ export const DashboardSpirit: FC = () => {
                     receivedReports,
                     receivedAverage,
                     normalizedReceivedAverage,
+                    adjustedReceivedAverage,
                     allocatedSpirit,
                     allocatedReports,
                     allocatedAverage,
                     normalizedAllocatedAverage,
+                    adjustedAllocatedAverage,
                     averageDifference,
                     normalizedDifference,
+                    adjustedDifference,
                   }) => {
                     return {
                       key: team.id,
@@ -236,6 +265,9 @@ export const DashboardSpirit: FC = () => {
                         normalizedAverage: {
                           value: formatAverage(normalizedReceivedAverage),
                         },
+                        adjustedReceivedAverage: {
+                          value: formatAverage(adjustedReceivedAverage),
+                        },
                         allocatedSpirit: {value: allocatedSpirit},
                         allocatedReports: {value: allocatedReports},
                         allocatedAverage: {
@@ -244,11 +276,17 @@ export const DashboardSpirit: FC = () => {
                         normalizedAllocatedAverage: {
                           value: formatAverage(normalizedAllocatedAverage),
                         },
+                        adjustedAllocatedAverage: {
+                          value: formatAverage(adjustedAllocatedAverage),
+                        },
                         avgDiff: {
                           children: getDifferenceBadge(averageDifference),
                         },
                         normalizedDifference: {
                           children: getDifferenceBadge(normalizedDifference),
+                        },
+                        adjustedDifference: {
+                          children: getDifferenceBadge(adjustedDifference),
                         },
                       },
                     }
