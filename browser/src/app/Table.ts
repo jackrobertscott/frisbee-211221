@@ -52,6 +52,8 @@ export const Table: TFCTable = ({head, body, grow}) => {
       maxWidth: '100%',
       children: addkeys([
         $(FormRow, {
+          shrink: false,
+          className: _tableHeadRow,
           children: Object.entries(head).map(
             ([key, {grow, label, click, icon, prefixIcon}]) => {
               return $(_TableCell, {
@@ -123,6 +125,13 @@ export const Table: TFCTable = ({head, body, grow}) => {
     }),
   })
 }
+
+const _tableHeadRow = css({
+  position: 'sticky',
+  top: 0,
+  zIndex: 1,
+  background: theme.bgMinor.string(),
+})
 
 const _tableClickableRow = css({
   '& > div > div': {
