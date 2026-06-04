@@ -120,6 +120,7 @@ export const DashboardTeams: FC = () => {
                       ]),
                     }),
                     $(Table, {
+                      grow: true,
                       head: {
                         name: {
                           label: 'Name',

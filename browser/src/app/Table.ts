@@ -8,6 +8,7 @@ import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
 
 type TFCTable<T extends string = string> = FC<{
+  grow?: boolean
   head: Record<
     T,
     {
@@ -33,9 +34,15 @@ type TFCTable<T extends string = string> = FC<{
   }>
 }>
 
-export const Table: TFCTable = ({head, body}) => {
+export const Table: TFCTable = ({head, body, grow}) => {
   return $('div', {
     className: css({
+      display: 'flex',
+      flexDirection: 'column',
+      flexBasis: grow ? 0 : undefined,
+      flexGrow: grow ? 1 : undefined,
+      minHeight: 0,
+      maxWidth: '100%',
       overflow: 'auto',
       background: theme.bg.string(),
       borderBottom: theme.border(),

@@ -138,6 +138,7 @@ export const DashboardReports: FC = () => {
                   ]),
                 }),
                 $(Table, {
+                  grow: true,
                   head: {
                     fixture: {label: 'Fixture', grow: 2},
                     by: {label: 'By', grow: 3},

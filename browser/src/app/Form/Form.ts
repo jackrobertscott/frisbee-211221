@@ -19,6 +19,7 @@ export const Form: FC<{
         flexDirection: 'column',
         gap: theme.fib[5],
         flexGrow: width ? undefined : 1,
+        minHeight: 0,
         background: background?.string(),
         color: font?.string(),
         padding: theme.fib[5],

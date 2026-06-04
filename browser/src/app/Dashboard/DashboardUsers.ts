@@ -139,6 +139,7 @@ export const DashboardUsers: FC = () => {
                   ]),
                 }),
                 $(Table, {
+                  grow: true,
                   head: {
                     firstName: {
                       label: 'First Name',

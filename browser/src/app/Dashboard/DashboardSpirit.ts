@@ -132,6 +132,7 @@ export const DashboardSpirit: FC = () => {
                 background: theme.bgMinor,
               }),
               $(Table, {
+                grow: true,
                 head: {
                   team: {
                     label: 'Team',

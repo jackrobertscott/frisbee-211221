@@ -52,9 +52,13 @@ export const DashboardMVP: FC = () => {
             $('div', {
               className: css({
                 flexGrow: 1,
+                minHeight: 0,
                 display: 'flex',
                 gap: theme.fib[5],
-                '& > *': {flexGrow: 1},
+                '& > *': {
+                  flexGrow: 1,
+                  minHeight: 0,
+                },
                 [theme.ltMedia(theme.fib[14])]: {
                   flexDirection: 'column',
                   '& > *': {flexGrow: 0},
@@ -69,6 +73,7 @@ export const DashboardMVP: FC = () => {
                         background: theme.bgMinor,
                       }),
                       $(Table, {
+                        grow: true,
                         head: {
                           user: {label: 'User', grow: 3},
                           division: {label: 'Division', grow: 1},
@@ -97,6 +102,7 @@ export const DashboardMVP: FC = () => {
                         background: theme.bgMinor,
                       }),
                       $(Table, {
+                        grow: true,
                         head: {
                           user: {label: 'User', grow: 3},
                           division: {label: 'Division', grow: 1},

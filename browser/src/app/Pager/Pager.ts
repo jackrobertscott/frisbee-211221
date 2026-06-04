@@ -21,6 +21,7 @@ export const Pager: FC<{
       skip: data.skip - data.limit < 0 ? 0 : data.skip - data.limit,
     })
   return $(FormRow, {
+    shrink: false,
     children: addkeys([
       $('div', {
         children: $(InputSelect, {
