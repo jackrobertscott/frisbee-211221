@@ -1,4 +1,4 @@
-import {css} from '@emotion/css'
+import {css, cx} from '@emotion/css'
 import {createElement as $, FC, Fragment, ReactNode} from 'react'
 import {theme} from '../theme'
 import {addkeys} from '../utils/addkeys'
@@ -44,11 +44,14 @@ export const Table: TFCTable = ({head, body, grow}) => {
       minHeight: 0,
       maxWidth: '100%',
       overflow: 'auto',
-      background: theme.bg.string(),
+      background: theme.bgMinor.string(),
       borderBottom: theme.border(),
+      boxShadow: [
+        `inset ${theme.borderWidth}px 0 0 ${theme.borderColor.string()}`,
+        `inset -${theme.borderWidth}px 0 0 ${theme.borderColor.string()}`,
+      ].join(', '),
     }),
     children: $(FormColumn, {
-      grow: true,
       maxWidth: '100%',
       children: addkeys([
         $(FormRow, {
@@ -78,11 +81,14 @@ export const Table: TFCTable = ({head, body, grow}) => {
         }),
         $(Fragment, {
           children: body.length
-            ? body.map((entry) => {
+            ? body.map((entry, index) => {
                 return $(FormRow, {
                   key: entry.key,
                   click: entry.click,
-                  className: entry.click ? _tableClickableRow : undefined,
+                  className: cx(
+                    entry.click ? _tableClickableRow : undefined,
+                    index === body.length - 1 ? _tableBottomRow : undefined,
+                  ),
                   children: Object.entries(head).map(([key, {grow}]) => {
                     const data = entry.data[key]
                     const bg = data?.color
@@ -131,6 +137,15 @@ const _tableHeadRow = css({
   top: 0,
   zIndex: 1,
   background: theme.bgMinor.string(),
+  '& > div > div': {
+    borderBottom: theme.border(),
+  },
+})
+
+const _tableBottomRow = css({
+  '& > div > div': {
+    borderBottom: theme.border(),
+  },
 })
 
 const _tableClickableRow = css({
