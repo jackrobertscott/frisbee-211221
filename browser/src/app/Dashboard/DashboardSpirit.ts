@@ -24,15 +24,12 @@ type TSpiritSortKey =
   | 'spirit'
   | 'reports'
   | 'average'
-  | 'normalizedAverage'
   | 'adjustedReceivedAverage'
   | 'allocatedSpirit'
   | 'allocatedReports'
   | 'allocatedAverage'
-  | 'normalizedAllocatedAverage'
   | 'adjustedAllocatedAverage'
   | 'avgDiff'
-  | 'normalizedDifference'
   | 'adjustedDifference'
 
 export const DashboardSpirit: FC = () => {
@@ -61,15 +58,12 @@ export const DashboardSpirit: FC = () => {
       spirit: 'receivedSpirit',
       reports: 'receivedReports',
       average: 'receivedAverage',
-      normalizedAverage: 'normalizedReceivedAverage',
       adjustedReceivedAverage: 'adjustedReceivedAverage',
       allocatedSpirit: 'allocatedSpirit',
       allocatedReports: 'allocatedReports',
       allocatedAverage: 'allocatedAverage',
-      normalizedAllocatedAverage: 'normalizedAllocatedAverage',
       adjustedAllocatedAverage: 'adjustedAllocatedAverage',
       avgDiff: 'averageDifference',
-      normalizedDifference: 'normalizedDifference',
       adjustedDifference: 'adjustedDifference',
     }
     $spiritLoad
@@ -82,28 +76,28 @@ export const DashboardSpirit: FC = () => {
   }, [auth.current, seasonId, sortKey, sortDirection])
 
   const formatAverage = (value: number) => {
-    const normalized = Math.abs(value) < 0.005 ? 0 : value
-    return averageFormatter.format(normalized)
+    const displayValue = Math.abs(value) < 0.005 ? 0 : value
+    return averageFormatter.format(displayValue)
   }
 
   const getDifferenceBadge = (value: number) => {
-    const normalized = Math.abs(value) < 0.005 ? 0 : value
+    const displayValue = Math.abs(value) < 0.005 ? 0 : value
     const isDarkMode = themeMode.current === 'dark'
     const background =
-      normalized > 1
+      displayValue > 1
         ? hsla.create(60, 70, 50, 0.2)
-        : normalized < -1
+        : displayValue < -1
           ? hsla.create(0, 70, 50, 0.2)
           : undefined
     const font =
-      normalized > 1
+      displayValue > 1
         ? hsla.create(60, 70, isDarkMode ? 74 : 30, 1)
-        : normalized < -1
+        : displayValue < -1
           ? hsla.create(0, 70, isDarkMode ? 78 : 30, 1)
           : undefined
 
     return $(FormLabel, {
-      label: formatAverage(normalized),
+      label: formatAverage(displayValue),
       background,
       font,
       grow: true,
@@ -169,12 +163,6 @@ export const DashboardSpirit: FC = () => {
                     click: () => toggleSort('average'),
                     prefixIcon: getSortIcon('average'),
                   },
-                  normalizedAverage: {
-                    label: 'Norm Got',
-                    grow: 2,
-                    click: () => toggleSort('normalizedAverage'),
-                    prefixIcon: getSortIcon('normalizedAverage'),
-                  },
                   adjustedReceivedAverage: {
                     label: 'Adj Got',
                     grow: 2,
@@ -199,12 +187,6 @@ export const DashboardSpirit: FC = () => {
                     click: () => toggleSort('allocatedAverage'),
                     prefixIcon: getSortIcon('allocatedAverage'),
                   },
-                  normalizedAllocatedAverage: {
-                    label: 'Norm Sent',
-                    grow: 2,
-                    click: () => toggleSort('normalizedAllocatedAverage'),
-                    prefixIcon: getSortIcon('normalizedAllocatedAverage'),
-                  },
                   adjustedAllocatedAverage: {
                     label: 'Adj Sent',
                     grow: 2,
@@ -216,12 +198,6 @@ export const DashboardSpirit: FC = () => {
                     grow: 2,
                     click: () => toggleSort('avgDiff'),
                     prefixIcon: getSortIcon('avgDiff'),
-                  },
-                  normalizedDifference: {
-                    label: 'Norm Diff',
-                    grow: 2,
-                    click: () => toggleSort('normalizedDifference'),
-                    prefixIcon: getSortIcon('normalizedDifference'),
                   },
                   adjustedDifference: {
                     label: 'Adj Diff',
@@ -236,15 +212,12 @@ export const DashboardSpirit: FC = () => {
                     receivedSpirit,
                     receivedReports,
                     receivedAverage,
-                    normalizedReceivedAverage,
                     adjustedReceivedAverage,
                     allocatedSpirit,
                     allocatedReports,
                     allocatedAverage,
-                    normalizedAllocatedAverage,
                     adjustedAllocatedAverage,
                     averageDifference,
-                    normalizedDifference,
                     adjustedDifference,
                   }) => {
                     return {
@@ -262,9 +235,6 @@ export const DashboardSpirit: FC = () => {
                         average: {
                           value: formatAverage(receivedAverage),
                         },
-                        normalizedAverage: {
-                          value: formatAverage(normalizedReceivedAverage),
-                        },
                         adjustedReceivedAverage: {
                           value: formatAverage(adjustedReceivedAverage),
                         },
@@ -273,17 +243,11 @@ export const DashboardSpirit: FC = () => {
                         allocatedAverage: {
                           value: formatAverage(allocatedAverage),
                         },
-                        normalizedAllocatedAverage: {
-                          value: formatAverage(normalizedAllocatedAverage),
-                        },
                         adjustedAllocatedAverage: {
                           value: formatAverage(adjustedAllocatedAverage),
                         },
                         avgDiff: {
                           children: getDifferenceBadge(averageDifference),
-                        },
-                        normalizedDifference: {
-                          children: getDifferenceBadge(normalizedDifference),
                         },
                         adjustedDifference: {
                           children: getDifferenceBadge(adjustedDifference),
@@ -292,6 +256,14 @@ export const DashboardSpirit: FC = () => {
                     }
                   },
                 ),
+              }),
+              $(FormLabel, {
+                label:
+                  'Adjusted Got is the average spirit score received after correcting for how generous or harsh the reporting teams usually score.',
+                background: theme.bgMinor,
+                font: theme.fontMinor,
+                select: 'text',
+                wrap: true,
               }),
             ]),
           }),

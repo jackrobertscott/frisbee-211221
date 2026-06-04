@@ -19,15 +19,12 @@ export const FEATURE_SPIRIT_SORT_KEYS = [
   'receivedSpirit',
   'receivedReports',
   'receivedAverage',
-  'normalizedReceivedAverage',
   'adjustedReceivedAverage',
   'allocatedSpirit',
   'allocatedReports',
   'allocatedAverage',
-  'normalizedAllocatedAverage',
   'adjustedAllocatedAverage',
   'averageDifference',
-  'normalizedDifference',
   'adjustedDifference',
 ] as const
 
@@ -49,15 +46,12 @@ export const ioFeatureSpiritRow = io.object({
   receivedSpirit: io.number(),
   receivedReports: io.number(),
   receivedAverage: io.number(),
-  normalizedReceivedAverage: io.number(),
   adjustedReceivedAverage: io.number(),
   allocatedSpirit: io.number(),
   allocatedReports: io.number(),
   allocatedAverage: io.number(),
-  normalizedAllocatedAverage: io.number(),
   adjustedAllocatedAverage: io.number(),
   averageDifference: io.number(),
-  normalizedDifference: io.number(),
   adjustedDifference: io.number(),
 })
 

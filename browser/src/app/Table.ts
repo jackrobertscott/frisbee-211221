@@ -59,7 +59,7 @@ export const Table: TFCTable = ({head, body}) => {
                   click,
                   suffixIcon: icon,
                   style: {
-                    justifyContent: 'space-between',
+                    justifyContent: icon ? 'space-between' : 'flex-start',
                     cursor: click ? 'pointer' : undefined,
                   },
                 }),
