@@ -9,6 +9,7 @@ import {FormRow} from './Form/FormRow'
 
 type TFCTable<T extends string = string> = FC<{
   grow?: boolean
+  trimBottom?: boolean
   head: Record<
     T,
     {
@@ -34,7 +35,8 @@ type TFCTable<T extends string = string> = FC<{
   }>
 }>
 
-export const Table: TFCTable = ({head, body, grow}) => {
+export const Table: TFCTable = ({head, body, grow, trimBottom = !grow}) => {
+  const showFooterSpace = !trimBottom
   return $('div', {
     className: css({
       display: 'flex',
@@ -45,13 +47,12 @@ export const Table: TFCTable = ({head, body, grow}) => {
       maxWidth: '100%',
       overflow: 'auto',
       background: theme.bgMinor.string(),
+      borderLeft: theme.border(),
+      borderRight: theme.border(),
       borderBottom: theme.border(),
-      boxShadow: [
-        `inset ${theme.borderWidth}px 0 0 ${theme.borderColor.string()}`,
-        `inset -${theme.borderWidth}px 0 0 ${theme.borderColor.string()}`,
-      ].join(', '),
     }),
     children: $(FormColumn, {
+      className: _tableContent,
       maxWidth: '100%',
       children: addkeys([
         $(FormRow, {
@@ -87,7 +88,9 @@ export const Table: TFCTable = ({head, body, grow}) => {
                   click: entry.click,
                   className: cx(
                     entry.click ? _tableClickableRow : undefined,
-                    index === body.length - 1 ? _tableBottomRow : undefined,
+                    showFooterSpace && index === body.length - 1
+                      ? _tableBottomRow
+                      : undefined,
                   ),
                   children: Object.entries(head).map(([key, {grow}]) => {
                     const data = entry.data[key]
@@ -123,14 +126,29 @@ export const Table: TFCTable = ({head, body, grow}) => {
                 label: 'Empty',
                 font: theme.fontMinor,
                 style: {
+                  borderLeft: 'none',
+                  borderRight: 'none',
                   borderBottom: 'none',
                 },
               }),
         }),
+        showFooterSpace &&
+          $('div', {
+            className: _tableFooterSpace,
+          }),
       ]),
     }),
   })
 }
+
+const _tableContent = css({
+  '& > div > div:first-child > div': {
+    borderLeft: 'none',
+  },
+  '& > div > div:last-child > div': {
+    borderRight: 'none',
+  },
+})
 
 const _tableHeadRow = css({
   position: 'sticky',
@@ -146,6 +164,13 @@ const _tableBottomRow = css({
   '& > div > div': {
     borderBottom: theme.border(),
   },
+})
+
+const _tableFooterSpace = css({
+  flexShrink: 0,
+  marginTop: theme.borderWidth,
+  minHeight: theme.fib[5],
+  background: theme.bgMinor.string(),
 })
 
 const _tableClickableRow = css({
