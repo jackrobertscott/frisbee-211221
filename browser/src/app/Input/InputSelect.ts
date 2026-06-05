@@ -63,7 +63,7 @@ export const InputSelect = <T extends string = string>({
         whiteSpace: 'pre-line',
         background: bg.string(),
         color: current ? bg?.compliment()?.string() : theme.fontMinor.string(),
-        padding: theme.padify(theme.fib[4]),
+        ...theme.cellPadding(),
         border: theme.border(),
       }),
       children: addkeys([

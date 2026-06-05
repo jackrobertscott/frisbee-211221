@@ -86,14 +86,14 @@ export const ToasterProvider: FC<{children: ReactNode}> = ({children}) => {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 2,
-                  padding: theme.padify(8),
+                  ...theme.cellPadding(),
                 }),
               }),
               $('div', {
                 onClick: toast.remove,
                 className: css({
                   transition: '150ms',
-                  padding: theme.padify(8),
+                  ...theme.cellPadding(),
                   borderLeft: theme.border(),
                   '&:hover': {
                     background: theme.bg.hover(),

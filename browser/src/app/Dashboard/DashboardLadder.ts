@@ -267,7 +267,7 @@ const _LadderFixture: FC<{
               userSelect: 'none',
               border: theme.border(),
               background: theme.bgMinor.string(),
-              padding: theme.padify(theme.fib[4]),
+              ...theme.cellPadding(),
               '&:hover': {
                 background: theme.bgMinor.hover(),
               },

@@ -122,7 +122,7 @@ export const DashboardFixtures: FC<{
                           children: 'No Fixtures Yet',
                           className: css({
                             color: theme.fontMinor.string(),
-                            padding: theme.padify(theme.fib[4]),
+                            ...theme.cellPadding(),
                             textAlign: 'center',
                           }),
                         }),
@@ -209,7 +209,7 @@ const _DashboardFixturesView: FC<{
               justifyContent: 'space-between',
               border: theme.border(),
               background: theme.bgMinor.string(),
-              padding: theme.padify(theme.fib[4]),
+              ...theme.cellPadding(),
               // [theme.ltMedia(theme.fib[14])]: {
               //   flexDirection: 'column',
               // },

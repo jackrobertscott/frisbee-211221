@@ -43,7 +43,7 @@ export const FormMenu: FC<{
               fontFamily: option.family,
               color: font?.string(),
               background: bg.string(),
-              padding: theme.padify(theme.fib[4]),
+              ...theme.cellPadding(),
               '&:hover': option.click && {
                 background: bg.hover(),
               },
@@ -65,7 +65,7 @@ export const FormMenu: FC<{
           className: css({
             display: 'flex',
             justifyContent: 'center',
-            padding: theme.padify(theme.fib[4]),
+            ...theme.cellPadding(),
             color: theme.fontMinor.string(),
             textAlign: 'center',
           }),

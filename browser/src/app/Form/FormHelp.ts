@@ -13,7 +13,7 @@ export const FormHelp: FC<{
       border: theme.border(),
       color: theme.fontMinor.string(),
       background: theme.bgMinor.string(),
-      padding: theme.padify(theme.fib[4]),
+      ...theme.cellPadding(),
     }),
   })
 }

@@ -219,7 +219,7 @@ export const MissingReportsModal: FC<{
                           overflow: 'auto',
                           minHeight: theme.fib[12],
                           border: theme.border(),
-                          padding: theme.padify(theme.fib[4]),
+                          ...theme.cellPadding(),
                           background: theme.bg.string(),
                           whiteSpace: 'pre-wrap',
                         }),

@@ -41,7 +41,7 @@ export const FixtureView: FC<{
             display: 'flex',
             justifyContent: 'center',
             background: theme.bgMinor.string(),
-            padding: theme.padify(theme.fib[4]),
+            ...theme.cellPadding(),
             border: theme.border(),
           }),
           children: addkeys([

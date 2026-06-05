@@ -49,7 +49,7 @@ export const InputDate: FC<{
         whiteSpace: 'nowrap',
         background: disabled ? theme.bgDisabled.string() : theme.bg.string(),
         color: value ? undefined : theme.fontPlaceholder.string(),
-        padding: theme.padify(theme.fib[4]),
+        ...theme.cellPadding(),
         border: theme.border(),
       }),
     }),
@@ -110,7 +110,7 @@ const _InputDatePicker: FC<{
                   textAlign: 'center',
                   color: theme.fontMinor.string(),
                   background: theme.bgMinor.string(),
-                  padding: theme.padify(theme.fib[4]),
+                  ...theme.cellPadding(),
                   border: theme.border(),
                 }),
               })
@@ -144,7 +144,7 @@ const _InputDatePicker: FC<{
                       flexBasis: 0,
                       textAlign: 'center',
                       border: theme.border(),
-                      padding: theme.padify(theme.fib[4]),
+                      ...theme.cellPadding(),
                       color: isSelected
                         ? hsla.string(0, 0, 100)
                         : sameMonth

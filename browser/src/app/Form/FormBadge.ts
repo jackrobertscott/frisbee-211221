@@ -64,7 +64,7 @@ export const FormBadge: FC<TFormBadge> = ({
         userSelect: select ?? 'none',
         whiteSpace: wrap ? undefined : 'nowrap',
         border: theme.border(),
-        padding: theme.padify(padding ?? theme.fib[4]),
+        ...theme.cellPadding(padding ?? theme.fib[4]),
         color: fontColor?.string(),
         background:
           typeof background === 'string' ? background : background.string(),

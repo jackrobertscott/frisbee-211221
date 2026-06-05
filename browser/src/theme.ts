@@ -1,4 +1,5 @@
 import {internalError} from '@shared/errors'
+import type {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 import {
   createContext,
   createElement as $,
@@ -11,6 +12,13 @@ import {
 } from 'react'
 import {useLocalState} from './app/useLocalState'
 import {hsla} from './utils/hsla'
+
+const THEME_FIB = [
+  1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597,
+]
+const CELL_PADDING_DEFAULT = THEME_FIB[4]
+const CELL_PADDING_MOBILE = THEME_FIB[5]
+const CELL_PADDING_MOBILE_BREAKPOINT = THEME_FIB[13]
 
 export type TThemeMode = 'light' | 'dark'
 
@@ -55,7 +63,7 @@ export const useTheme = () => useContext(ThemeContext)
 const color = (name: string, compliment?: string) => hsla.variable(name, compliment)
 
 export const theme = {
-  fib: [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597],
+  fib: THEME_FIB,
   fontFamily: 'Atkinson Hyperlegible Next',
   font: color('font'),
   fontComplement: color('font-complement'),
@@ -85,6 +93,16 @@ export const theme = {
         errorCode: 'theme.padify_pixels_invalid',
       })
     return `${pixels - this.fontInset}px ${pixels}px`
+  },
+  cellPadding(pixels: number = CELL_PADDING_DEFAULT): CSSObject {
+    const mobilePixels =
+      pixels === CELL_PADDING_DEFAULT ? CELL_PADDING_MOBILE : pixels
+    return {
+      padding: this.padify(pixels),
+      [this.ltMedia(CELL_PADDING_MOBILE_BREAKPOINT)]: {
+        padding: this.padify(mobilePixels),
+      },
+    }
   },
   gtMedia(pixels: number) {
     return `@media (min-width: ${pixels}px)`

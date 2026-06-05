@@ -57,7 +57,7 @@ export const InputNumber: FC<{
       flexBasis: 0,
       width: width ?? '100%',
       border: theme.border(),
-      padding: theme.padify(theme.fib[4]),
+      ...theme.cellPadding(),
       background:
         backgroundColor ||
         (disabled ? theme.bgDisabled.string() : theme.bg.string()),

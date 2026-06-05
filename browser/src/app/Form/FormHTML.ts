@@ -19,7 +19,7 @@ export const FormHTML: FC<{
       overflow: 'auto',
       border: theme.border(),
       background: theme.bg.string(),
-      padding: theme.padify(theme.fib[4]),
+      ...theme.cellPadding(),
     }),
   })
 }

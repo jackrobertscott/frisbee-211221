@@ -53,7 +53,7 @@ export const MenuBarOption: FC<{
       flexDirection: 'row',
       userSelect: 'none',
       gap: theme.fib[4],
-      padding: theme.padify(theme.fib[4]),
+      ...theme.cellPadding(),
       background: bg?.string(),
       color: font
         ? font.string()

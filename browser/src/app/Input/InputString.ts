@@ -37,7 +37,7 @@ export const InputString: FC<{
       flexBasis: 0,
       width: '100%',
       border: theme.border(),
-      padding: theme.padify(theme.fib[4]),
+      ...theme.cellPadding(),
       background: disabled ? theme.bgDisabled.string() : theme.bg.string(),
       '&::placeholder': {
         color: theme.fontPlaceholder.string(),

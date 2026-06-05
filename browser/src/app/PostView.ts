@@ -409,7 +409,7 @@ const _PostViewCommentContent: FC<{
     className: css({
       border: theme.border(),
       background: theme.bg.string(),
-      padding: theme.padify(theme.fib[4]),
+      ...theme.cellPadding(),
       position: 'relative',
       '&:hover .options': {
         opacity: 1,

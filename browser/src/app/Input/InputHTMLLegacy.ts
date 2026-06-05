@@ -57,7 +57,7 @@ export const InputHTMLLegacy: FC<{
           maxWidth: '100%',
           border: theme.border(),
           background: theme.bg.string(),
-          padding: theme.padify(theme.fib[4]),
+          ...theme.cellPadding(),
           whiteSpace: 'pre-line',
           '&::placeholder': {
             color: theme.fontPlaceholder.string(),
