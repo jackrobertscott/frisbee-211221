@@ -278,6 +278,11 @@ export const Dashboard: FC = () => {
                             '& > *': {
                               animation: `150ms linear ${fadein}`,
                             },
+                            [theme.ltMedia(bpSmall)]: {
+                              '& > *': {
+                                flexShrink: 0,
+                              },
+                            },
                           }),
                           children: addkeys([
                             $(Fragment, {children}),
@@ -287,7 +292,7 @@ export const Dashboard: FC = () => {
                                 $('div', {
                                   children: $(_DashboardFooter),
                                   className: css({
-                                    flexGrow: 1,
+                                    flexShrink: 0,
                                     width: '100%',
                                     display: 'flex',
                                     flexDirection: 'column',
