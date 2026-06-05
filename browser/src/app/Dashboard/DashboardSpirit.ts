@@ -18,6 +18,9 @@ import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useEndpoint} from '../useEndpoint'
 
+const POSITIVE_DIFFERENCE_HUE = 120
+const NEGATIVE_DIFFERENCE_HUE = 210
+
 type TSpiritSortKey =
   | 'team'
   | 'division'
@@ -85,15 +88,15 @@ export const DashboardSpirit: FC = () => {
     const isDarkMode = themeMode.current === 'dark'
     const background =
       displayValue > 1
-        ? hsla.create(60, 70, 50, 0.2)
+        ? hsla.create(POSITIVE_DIFFERENCE_HUE, 70, 50, 0.2)
         : displayValue < -1
-          ? hsla.create(0, 70, 50, 0.2)
+          ? hsla.create(NEGATIVE_DIFFERENCE_HUE, 70, 50, 0.2)
           : undefined
     const font =
       displayValue > 1
-        ? hsla.create(60, 70, isDarkMode ? 74 : 30, 1)
+        ? hsla.create(POSITIVE_DIFFERENCE_HUE, 70, isDarkMode ? 74 : 30, 1)
         : displayValue < -1
-          ? hsla.create(0, 70, isDarkMode ? 78 : 30, 1)
+          ? hsla.create(NEGATIVE_DIFFERENCE_HUE, 70, isDarkMode ? 78 : 30, 1)
           : undefined
 
     return $(FormLabel, {

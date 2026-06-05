@@ -7,6 +7,8 @@ import {FormColumn} from './Form/FormColumn'
 import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
 
+const MOBILE_TABLE_MIN_HEIGHT = 300
+
 type TFCTable<T extends string = string> = FC<{
   grow?: boolean
   trimBottom?: boolean
@@ -50,6 +52,9 @@ export const Table: TFCTable = ({head, body, grow, trimBottom = !grow}) => {
       borderLeft: theme.border(),
       borderRight: theme.border(),
       borderBottom: theme.border(),
+      [theme.ltMedia(theme.fib[13])]: {
+        minHeight: grow ? MOBILE_TABLE_MIN_HEIGHT : undefined,
+      },
     }),
     children: $(FormColumn, {
       className: _tableContent,
