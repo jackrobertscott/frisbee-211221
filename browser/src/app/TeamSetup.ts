@@ -56,7 +56,7 @@ export const TeamSetup: FC<{
   return $(Fragment, {
     children: addkeys([
       $(Modal, {
-        width: theme.fib[12] + theme.fib[8],
+        width: theme.fib[13],
         children: addkeys([
           $(TopBar, {
             children: addkeys([

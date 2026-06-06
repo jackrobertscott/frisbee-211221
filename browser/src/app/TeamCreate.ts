@@ -27,7 +27,7 @@ export const TeamCreate: FC<{
     color: SIMPLE_COLORS[0].string(),
   })
   return $(Modal, {
-    width: theme.fib[12],
+    width: theme.fib[13],
     children: addkeys([
       $(TopBar, {
         children: addkeys([

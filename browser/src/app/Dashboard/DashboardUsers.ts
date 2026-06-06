@@ -368,7 +368,7 @@ export const _DashboardUsersView: FC<{
   return $(Fragment, {
     children: addkeys([
       $(Modal, {
-        width: theme.fib[13] + theme.fib[10],
+        width: theme.fib[14],
         children: addkeys([
           $(TopBar, {
             children: addkeys([
@@ -898,7 +898,7 @@ export const _DashboardUsersViewChangePassword: FC<{
     newPassword: '',
   })
   return $(Modal, {
-    width: theme.fib[12] + theme.fib[10],
+    width: theme.fib[13],
     children: addkeys([
       $(TopBar, {
         children: addkeys([

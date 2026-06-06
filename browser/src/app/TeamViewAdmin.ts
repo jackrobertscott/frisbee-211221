@@ -57,7 +57,7 @@ export const TeamViewAdmin: FC<{
   return $(Fragment, {
     children: addkeys([
       $(Modal, {
-        width: theme.fib[13],
+        width: theme.fib[14],
         children: addkeys([
           $(TopBar, {
             children: addkeys([

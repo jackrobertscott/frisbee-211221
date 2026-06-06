@@ -82,7 +82,7 @@ export const FixtureAdjustForm: FC<{
 
   return $(Modal, {
     close,
-    width: theme.fib[12] + theme.fib[9],
+    width: theme.fib[13],
     children: addkeys([
       $(TopBar, {
         children: addkeys([

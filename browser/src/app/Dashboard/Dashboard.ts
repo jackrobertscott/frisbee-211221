@@ -79,7 +79,7 @@ export const Dashboard: FC = () => {
               display: 'flex',
               flexDirection: 'column',
               maxWidth: '100%',
-              width: theme.fib[14] + theme.fib[10],
+              width: theme.fib[15],
               height: '100%',
               minHeight: 0,
             }),

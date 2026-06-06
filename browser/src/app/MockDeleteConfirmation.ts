@@ -18,7 +18,7 @@ export const MockDeleteConfirmation: FC<{
   const $deleteData = useEndpoint($PortDeleteAllMockData)
 
   return $(Modal, {
-    width: theme.fib[12],
+    width: theme.fib[13],
     children: addkeys([
       $(TopBar, {
         children: addkeys([

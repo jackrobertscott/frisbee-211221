@@ -29,7 +29,7 @@ export const PostUpdate: FC<{
     content: post.content,
   })
   return $(Modal, {
-    width: 610,
+    width: theme.fib[14],
     children: addkeys([
       $(TopBar, {
         children: addkeys([

@@ -63,7 +63,7 @@ export const Settings: FC<{close: () => void}> = ({close}) => {
     },
   ])
   return $(Modal, {
-    width: theme.fib[13],
+    width: theme.fib[14],
     children: addkeys([
       $(TopBar, {
         children: addkeys([

@@ -15,7 +15,7 @@ export const Modal: FC<{
   children: ReactNode
   width?: number
   height?: number
-}> = ({close, children, width = theme.fib[12] + theme.fib[9], height}) => {
+}> = ({close, children, width = theme.fib[13], height}) => {
   const stack = useStack()
   const media = useMedia()
   const [stackId] = useState(() => random.randomString())

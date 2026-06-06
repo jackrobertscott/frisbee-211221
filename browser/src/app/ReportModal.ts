@@ -300,7 +300,7 @@ export const ReportModal: FC<{
     ])
 
   return $(Modal, {
-    width: theme.fib[13],
+    width: theme.fib[14],
     children: addkeys([
       $(TopBar, {
         children: addkeys([

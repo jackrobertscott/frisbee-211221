@@ -178,7 +178,7 @@ const SeasonDeleteConfirmation: FC<{
     })
   }
   return $(Modal, {
-    width: theme.fib[12],
+    width: theme.fib[13],
     children: addkeys([
       $(TopBar, {
         children: addkeys([

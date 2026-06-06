@@ -21,7 +21,7 @@ export const CommentEdit: FC<{
     content: comment.content,
   })
   return $(Modal, {
-    width: 610,
+    width: theme.fib[14],
     children: addkeys([
       $(TopBar, {
         children: addkeys([

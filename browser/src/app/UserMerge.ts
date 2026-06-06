@@ -37,7 +37,7 @@ export const UserMerge: FC<{
   return $(Fragment, {
     children: addkeys([
       $(Modal, {
-        width: user2 === undefined ? theme.fib[14] : theme.fib[13],
+        width: theme.fib[14],
         children: addkeys([
           $(TopBar, {
             children: addkeys([

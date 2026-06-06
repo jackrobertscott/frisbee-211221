@@ -34,7 +34,7 @@ export const PostCreate: FC<{
   })
   const canNotifyCaptains = auth.can(authPoint.postNotifyCaptains)
   return $(Modal, {
-    width: 610,
+    width: theme.fib[14],
     children: addkeys([
       $(TopBar, {
         children: addkeys([
