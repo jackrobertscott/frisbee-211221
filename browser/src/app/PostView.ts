@@ -426,7 +426,7 @@ const _PostViewCommentContent: FC<{
           gap: theme.fib[4],
           color: theme.fontMinor.string(),
           fontSize: theme.fontSizeMinor,
-          marginTop: theme.fib[4] - theme.fontInset * 2,
+          marginTop: theme.fib[4],
         }),
         children: addkeys([
           $(Fragment, {

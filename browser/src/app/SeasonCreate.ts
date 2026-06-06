@@ -1,5 +1,4 @@
 import {InputSelect} from '@browser/app/Input/InputSelect'
-import {css} from '@emotion/css'
 import {
   isSeasonGenderDivision,
   TSeason,
@@ -56,9 +55,6 @@ export const SeasonCreate: FC<{
     children: addkeys([
       $('div', {
         children: `A season contains a fixed number of games. A single team will be determined the winner at the end of the season.`,
-        className: css({
-          margin: `-${theme.fontInset}px 0`,
-        }),
       }),
       $(FormRow, {
         children: addkeys([

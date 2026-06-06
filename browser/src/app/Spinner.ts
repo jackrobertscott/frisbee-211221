@@ -12,7 +12,7 @@ export const Spinner: FC<{
       display: 'flex',
       justifyContent: 'center',
       textAlign: 'center',
-      padding: theme.padify(theme.fib[4]),
+      padding: theme.fib[4],
       fontSize: size,
       opacity: 0.25,
     }),

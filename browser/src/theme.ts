@@ -1,4 +1,3 @@
-import {internalError} from '@shared/errors'
 import type {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 import {
   createContext,
@@ -16,7 +15,6 @@ import {hsla} from './utils/hsla'
 const THEME_FIB = [
   1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597,
 ]
-const CELL_PADDING_DEFAULT = THEME_FIB[5]
 
 export type TThemeMode = 'light' | 'dark'
 
@@ -78,23 +76,15 @@ export const theme = {
   bgAdminButton: color('bg-admin-button', 'bg-admin-button-compliment'),
   borderColor: color('border-color'),
   borderWidth: 1,
-  fontInset: 3,
   fontSizeMinor: 14,
   fontSizeMajor: 21,
   dateFormat: 'D MMM YYYY h:mma',
   border() {
     return `${this.borderWidth}px solid ${this.borderColor.string()}`
   },
-  padify(pixels: number) {
-    if (pixels < this.fontInset)
-      throw internalError('Pixels must be greater than 3.', {
-        errorCode: 'theme.padify_pixels_invalid',
-      })
-    return `${pixels - this.fontInset}px ${pixels}px`
-  },
-  cellPadding(pixels: number = CELL_PADDING_DEFAULT): CSSObject {
+  cellPadding(pixels: number = THEME_FIB[5]): CSSObject {
     return {
-      padding: this.padify(pixels),
+      padding: `${THEME_FIB[4]}px ${pixels}px`,
     }
   },
   gtMedia(pixels: number) {

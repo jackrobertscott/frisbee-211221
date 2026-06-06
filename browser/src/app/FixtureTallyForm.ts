@@ -280,14 +280,6 @@ export const FixtureTallyForm: FC<{
                 },
               }),
               children: addkeys([
-                $('div', {
-                  children: 'Reports',
-                  className: css({
-                    margin: `-${theme.fontInset}px 0 ${
-                      theme.fib[5] - theme.fontInset
-                    }px`,
-                  }),
-                }),
                 reports.length && teams?.length
                   ? $(Table, {
                       head: {
@@ -331,9 +323,7 @@ export const FixtureTallyForm: FC<{
                   $('div', {
                     children: 'Missing Reports',
                     className: css({
-                      margin: `${theme.fib[6]}px 0 ${
-                        theme.fib[5] - theme.fontInset
-                      }px`,
+                      margin: `${theme.fib[6]}px 0 ${theme.fib[4]}px`,
                     }),
                   }),
                 teams?.length &&
