@@ -54,6 +54,9 @@ export const Modal: FC<{
               display: 'flex',
               flexDirection: 'column',
               overflowY: 'auto',
+              '& > *': {
+                flexShrink: 0,
+              },
               boxShadow: `0 0 10px ${hsla.string(0, 0, 0, 0.1)}`,
               background: theme.bg.string(),
               color: theme.bg.compliment().string(),
