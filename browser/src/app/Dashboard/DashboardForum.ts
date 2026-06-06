@@ -116,7 +116,7 @@ const _NewsPost: FC<{
           whiteSpace: 'pre-line',
           border: theme.border(),
           background: theme.bg.string(),
-          padding: theme.padify(theme.fib[5]),
+          ...theme.cellPadding(),
           '&:hover': {
             background: theme.bg.hover(),
           },

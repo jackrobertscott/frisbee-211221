@@ -13,7 +13,7 @@ export const InputBoolean: FC<{
   return $('div', {
     onClick: () => !disabled && valueSet?.(!value),
     className: css({
-      padding: 5,
+      ...theme.cellPadding(),
       flexGrow: grow ? 1 : undefined,
       display: 'flex',
       userSelect: 'none',

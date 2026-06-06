@@ -169,7 +169,7 @@ export const Security: FC = () => {
                 $('div', {
                   className: css({
                     borderBottom: theme.border(),
-                    padding: theme.padify(theme.fib[5]),
+                    ...theme.cellPadding(),
                   }),
                   children: addkeys([
                     $('div', {
