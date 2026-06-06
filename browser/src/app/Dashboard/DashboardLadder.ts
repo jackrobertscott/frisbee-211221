@@ -365,16 +365,16 @@ const _LadderDivision: FC<{
       $(Table, {
         head: {
           name: {label: 'Name', grow: 5},
-          games: {label: 'Games', grow: 1.35},
-          points: {label: 'Points', grow: 1.2},
-          wins: {label: 'Wins', grow: 1.05},
-          loses: {label: 'Loses', grow: 1.15},
-          draws: {label: 'Draws', grow: 1.2},
-          ratio: {label: 'Ratio', grow: 1.05},
-          for: {label: 'For', grow: 1},
-          against: {label: 'Agnst', grow: 1.15},
-          aveFor: {label: 'Avg For', grow: 1.2},
-          aveAgainst: {label: 'Avg Agt', grow: 1.25},
+          games: {label: 'Games', grow: 1.5},
+          points: {label: 'Points', grow: 1.5},
+          wins: {label: 'Wins', grow: 1.5},
+          loses: {label: 'Loses', grow: 1.5},
+          draws: {label: 'Draws', grow: 1.5},
+          ratio: {label: 'Ratio', grow: 1.5},
+          for: {label: 'For', grow: 1.5},
+          against: {label: 'Agnst', grow: 1.5},
+          aveFor: {label: 'Avg For', grow: 1.5},
+          aveAgainst: {label: 'Avg Agt', grow: 1.5},
         },
         body: teams
           .sort((a, b) => {
