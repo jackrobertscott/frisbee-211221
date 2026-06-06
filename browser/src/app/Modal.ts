@@ -10,8 +10,8 @@ import {Portal} from './Portal'
 import {StackProvider} from './Stack/StackProvider'
 import {useStack} from './Stack/useStack'
 
-const MODAL_MOBILE_BOTTOM_PADDING: string =
-  `calc(${theme.fib[5]}px + env(safe-area-inset-bottom, 0px))`
+const MODAL_MOBILE_CONTENT_BOTTOM_PADDING: string =
+  `calc(${theme.fib[5] * 2}px + env(safe-area-inset-bottom, 0px))`
 
 export const Modal: FC<{
   close?: () => void
@@ -60,13 +60,15 @@ export const Modal: FC<{
               '& > *': {
                 flexShrink: 0,
               },
-              [theme.ltMedia(theme.fib[13])]: {
-                paddingBottom: MODAL_MOBILE_BOTTOM_PADDING,
-              },
               boxShadow: `0 0 10px ${hsla.string(0, 0, 0, 0.1)}`,
               background: theme.bg.string(),
               color: theme.bg.compliment().string(),
               border: theme.border(),
+              [theme.ltMedia(theme.fib[13])]: {
+                '& > *:last-child': {
+                  paddingBottom: MODAL_MOBILE_CONTENT_BOTTOM_PADDING,
+                },
+              },
             }),
           }),
         }),
