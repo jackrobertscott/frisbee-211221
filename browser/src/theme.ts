@@ -16,9 +16,7 @@ import {hsla} from './utils/hsla'
 const THEME_FIB = [
   1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597,
 ]
-const CELL_PADDING_DEFAULT = THEME_FIB[4]
-const CELL_PADDING_MOBILE = THEME_FIB[5]
-const CELL_PADDING_MOBILE_BREAKPOINT = THEME_FIB[13]
+const CELL_PADDING_DEFAULT = THEME_FIB[5]
 
 export type TThemeMode = 'light' | 'dark'
 
@@ -95,13 +93,8 @@ export const theme = {
     return `${pixels - this.fontInset}px ${pixels}px`
   },
   cellPadding(pixels: number = CELL_PADDING_DEFAULT): CSSObject {
-    const mobilePixels =
-      pixels === CELL_PADDING_DEFAULT ? CELL_PADDING_MOBILE : pixels
     return {
       padding: this.padify(pixels),
-      [this.ltMedia(CELL_PADDING_MOBILE_BREAKPOINT)]: {
-        padding: this.padify(mobilePixels),
-      },
     }
   },
   gtMedia(pixels: number) {
