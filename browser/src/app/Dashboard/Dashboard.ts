@@ -38,6 +38,8 @@ import {DashboardSpirit} from './DashboardSpirit'
 import {DashboardTeams} from './DashboardTeams'
 import {DashboardUsers} from './DashboardUsers'
 
+const DASHBOARD_PANEL_MIN_HEIGHT = theme.fib[13]
+
 export const Dashboard: FC = () => {
   const auth = useAuth()
   const media = useMedia()
@@ -69,8 +71,9 @@ export const Dashboard: FC = () => {
       $(Center, {
         padding: isSmall ? 0 : theme.fib[6],
         breakpoint: bpSmall,
+        constrainHeight: false,
         className: css({
-          height: '100%',
+          minHeight: '100%',
           gap: theme.fib[5],
         }),
         children: addkeys([
@@ -80,8 +83,8 @@ export const Dashboard: FC = () => {
               flexDirection: 'column',
               maxWidth: '100%',
               width: theme.fib[15],
-              height: '100%',
-              minHeight: 0,
+              flexGrow: 1,
+              minHeight: isSmall ? undefined : DASHBOARD_PANEL_MIN_HEIGHT,
             }),
             children: addkeys([
               $('div', {
@@ -317,6 +320,7 @@ export const Dashboard: FC = () => {
                 children: $(_DashboardFooter),
                 className: css({
                   display: 'flex',
+                  flexShrink: 0,
                   justifyContent: 'center',
                   gap: theme.fib[5],
                 }),

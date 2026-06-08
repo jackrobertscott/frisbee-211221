@@ -7,12 +7,14 @@ export const Center: FC<{
   click?: (event: MouseEvent) => void
   breakpoint?: number
   padding?: number
+  constrainHeight?: boolean
   className?: string
 }> = ({
   children,
   click,
   breakpoint = theme.fib[12],
   padding,
+  constrainHeight = true,
   className: _className,
 }) => {
   return $('div', {
@@ -35,11 +37,11 @@ export const Center: FC<{
       className: cx(
         css({
           width: '100%',
-          maxHeight: '100%',
+          maxHeight: constrainHeight ? '100%' : undefined,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          overflowY: 'auto',
+          overflowY: constrainHeight ? 'auto' : undefined,
           padding,
           [theme.ltMedia(breakpoint)]: {
             flexGrow: 1,
