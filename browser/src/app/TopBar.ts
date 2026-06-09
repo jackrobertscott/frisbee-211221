@@ -12,6 +12,7 @@ export const TopBar: FC<{
     children,
     className: css({
       display: 'flex',
+      flexShrink: 0,
       borderBottom: theme.border(),
       '& > *:not(:last-child)': {
         borderRight: theme.border(),

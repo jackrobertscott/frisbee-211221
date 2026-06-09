@@ -96,6 +96,11 @@ export const Dashboard: FC = () => {
                   border: theme.border(),
                   background: theme.bg.string(),
                   overflow: 'hidden',
+                  [theme.ltMedia(bpSmall)]: {
+                    position: 'fixed',
+                    inset: 0,
+                    border: 'none',
+                  },
                 }),
                 children: addkeys([
                   $(TopBar, {
@@ -297,9 +302,6 @@ export const Dashboard: FC = () => {
                                   className: css({
                                     flexShrink: 0,
                                     width: '100%',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: theme.fib[5],
                                     padding: theme.fib[6],
                                     borderTop: theme.border(),
                                   }),
@@ -315,16 +317,7 @@ export const Dashboard: FC = () => {
           }),
           $(Fragment, {
             children:
-              media.width >= bpSmall &&
-              $('div', {
-                children: $(_DashboardFooter),
-                className: css({
-                  display: 'flex',
-                  flexShrink: 0,
-                  justifyContent: 'center',
-                  gap: theme.fib[5],
-                }),
-              }),
+              media.width >= bpSmall && $(_DashboardFooter),
           }),
         ]),
       }),
@@ -469,7 +462,16 @@ const _DashboardSeasonBadge: FC = () => {
 }
 
 const _DashboardFooter: FC = () => {
-  return $(Fragment, {
+  return $('div', {
+    className: css({
+      display: 'flex',
+      flexShrink: 0,
+      flexWrap: 'wrap',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: theme.fib[5],
+      width: '100%',
+    }),
     children: addkeys([
       config.leagueKey === 'marlow'
         ? $(Link, {
