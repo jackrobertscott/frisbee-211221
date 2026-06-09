@@ -39,8 +39,7 @@ import {DashboardTeams} from './DashboardTeams'
 import {DashboardUsers} from './DashboardUsers'
 
 const DASHBOARD_PANEL_MIN_HEIGHT = theme.fib[13]
-const DASHBOARD_MOBILE_BREAKPOINT = theme.fib[13]
-const DASHBOARD_MENU_BREAKPOINT = theme.fib[14]
+const DASHBOARD_BREAKPOINT = theme.fib[14]
 
 export const Dashboard: FC = () => {
   const auth = useAuth()
@@ -52,10 +51,8 @@ export const Dashboard: FC = () => {
   const [reporting, reportingSet] = useState(false)
   const [teamSetup, teamSetupSet] = useState(false)
   const [settings, settingsSet] = useState(false)
-  const bpSmall = DASHBOARD_MOBILE_BREAKPOINT
-  const bpMenu = DASHBOARD_MENU_BREAKPOINT
+  const bpSmall = DASHBOARD_BREAKPOINT
   const isSmall = media.width < bpSmall
-  const isMenuCollapsed = media.width < bpMenu
   const reportScore = () => {
     if (auth.current) {
       if (auth.can(authPoint.reportWrite)) {
@@ -111,7 +108,7 @@ export const Dashboard: FC = () => {
                   $(TopBar, {
                     children: addkeys([
                       $(Fragment, {
-                        children: isMenuCollapsed
+                        children: isSmall
                           ? addkeys([
                               $(TopBarBadge, {
                                 icon: 'bars',
@@ -216,17 +213,17 @@ export const Dashboard: FC = () => {
                       addkeys([
                         $(Fragment, {
                           children:
-                            (open || !isMenuCollapsed) &&
+                            (open || !isSmall) &&
                             $(MenuBarShadow, {
                               click: () => openSet(false),
-                              deactivated: !isMenuCollapsed,
+                              deactivated: !isSmall,
                               children: $(MenuBar, {
-                                horizon: !isMenuCollapsed,
+                                horizon: !isSmall,
                                 strongBorder: true,
                                 children: addkeys([
                                   $(Fragment, {
                                     children:
-                                      isMenuCollapsed &&
+                                      isSmall &&
                                       $('div', {
                                         className: css({
                                           height: theme.fib[8],
@@ -263,8 +260,7 @@ export const Dashboard: FC = () => {
                                       },
                                     }),
                                   $(Fragment, {
-                                    children:
-                                      !isMenuCollapsed && $(MenuBarSpacer),
+                                    children: !isSmall && $(MenuBarSpacer),
                                   }),
                                   $(Fragment, {
                                     children: $(MenuBarOption, {
@@ -275,8 +271,7 @@ export const Dashboard: FC = () => {
                                     }),
                                   }),
                                   $(Fragment, {
-                                    children:
-                                      isMenuCollapsed && $(MenuBarSpacer),
+                                    children: isSmall && $(MenuBarSpacer),
                                   }),
                                 ]),
                               }),
@@ -385,7 +380,7 @@ const _DashboardSeasonBadge: FC = () => {
   const [creating, creatingSet] = useState(false)
   const $seasonList = useEndpoint($SeasonList)
   const seasonList = () => $seasonList.fetch({}).then(seasonsSet)
-  const isSmall = media.width < theme.fib[13]
+  const isSmall = media.width < DASHBOARD_BREAKPOINT
   useEffect(() => {
     seasonList()
   }, [])
