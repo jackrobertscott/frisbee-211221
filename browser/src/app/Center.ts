@@ -45,7 +45,7 @@ export const Center: FC<{
           padding,
           [theme.ltMedia(breakpoint)]: {
             flexGrow: 1,
-            justifyContent: 'end',
+            justifyContent: 'safe flex-end',
           },
         }),
         _className,
