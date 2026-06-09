@@ -62,7 +62,7 @@ export const InputSelect = <T extends string = string>({
         justifyContent: 'space-between',
         whiteSpace: 'pre-line',
         background: bg.string(),
-        color: current ? bg?.compliment()?.string() : theme.fontMinor.string(),
+        color: current ? bg?.compliment()?.string() : theme.fontPlaceholder.string(),
         ...theme.cellPadding(),
         border: theme.border(),
       }),
