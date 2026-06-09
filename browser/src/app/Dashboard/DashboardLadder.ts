@@ -30,6 +30,11 @@ import {TopBar, TopBarBadge} from '../TopBar'
 import {useEndpoint} from '../useEndpoint'
 import {MissingReportsControl} from './MissingReportsModal'
 
+const formatRatioPercent = (ratio: number | undefined): string | undefined => {
+  if (ratio === undefined || !Number.isFinite(ratio)) return undefined
+  return `${Math.round(ratio * 100)}%`
+}
+
 export const DashboardLadder: FC = () => {
   const auth = useAuth()
   const media = useMedia()
@@ -398,7 +403,7 @@ const _LadderDivision: FC<{
                 wins: {value: results?.wins},
                 loses: {value: results?.loses},
                 draws: {value: results?.draws},
-                ratio: {value: results?.ratio},
+                ratio: {value: formatRatioPercent(results?.ratio)},
                 for: {value: results?.for},
                 against: {value: results?.against},
                 aveFor: {value: results?.aveFor},
