@@ -27,6 +27,7 @@ export const ioPortMemberImportSummary = io.object({
   teamsCreated: io.number(),
   usersCreated: io.number(),
   membersCreated: io.number(),
+  note: io.optional(io.string().emptyok()),
 })
 
 export const PortGamedayImportLoadDef = {

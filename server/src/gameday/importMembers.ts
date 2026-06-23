@@ -33,7 +33,7 @@ interface TGamedayInvalidMemberRow {
 export const runGamedayImportWithHistory = async (
   config: TGamedayImportConfig,
   trigger: TGamedayImportTrigger,
-): Promise<TMemberImportSummary> => {
+): Promise<TGamedayImportSummary> => {
   const now = new Date().toISOString()
   const run = await $GamedayImportRun.createOne({
     configId: config.id,
@@ -123,7 +123,7 @@ const prepareGamedayImport = (
     formatUnrecognisedGendersNote(unrecognisedGenders),
   ].filter((note): note is string => Boolean(note))
 
-  const note = notes.join(' ')
+  const note = notes.join('\n\n')
   return {
     objects,
     note: note || undefined,
@@ -146,37 +146,74 @@ const formatInvalidGamedayRowsNote = (
   if (!invalidRows.length) return undefined
   const visibleRows = invalidRows.slice(0, MAX_GAMEDAY_INVALID_ROW_NOTE_DETAILS)
   const hiddenCount = invalidRows.length - visibleRows.length
-  const details = visibleRows.map(formatInvalidGamedayRowNote)
-  if (hiddenCount > 0) details.push(`${hiddenCount} more row(s)`)
-  return `Skipped ${invalidRows.length} invalid GameDay member row(s): ${details.join('; ')}.`
+  const lines = [
+    `Skipped ${formatCount(
+      invalidRows.length,
+      'invalid GameDay member row',
+      'invalid GameDay member rows',
+    )}.`,
+    '',
+    'Rows skipped:',
+    ...visibleRows.map(formatInvalidGamedayRowNote),
+  ]
+  if (hiddenCount > 0) {
+    lines.push(
+      `- ${formatCount(hiddenCount, 'additional row', 'additional rows')} omitted from this note.`,
+    )
+  }
+  return lines.join('\n')
 }
 
 const formatInvalidGamedayRowNote = (row: TGamedayInvalidMemberRow): string => {
-  return `row ${row.rowNumber} ${row.reasons.join(', ')} (${formatGamedayMemberContext(row.member)})`
+  const problemLabel = row.reasons.length === 1 ? 'Problem' : 'Problems'
+  return [
+    `- Row ${row.rowNumber}`,
+    `  ${problemLabel}: ${row.reasons.join('; ')}`,
+    formatGamedayMemberContext(row.member),
+  ].join('\n')
 }
 
 const formatGamedayMemberContext = (member: TGamedayExportMember): string => {
   return [
-    formatGamedayMemberContextValue('team', member.teamName),
-    formatGamedayMemberContextValue('first', member.firstName),
-    formatGamedayMemberContextValue('last', member.lastName),
-    formatGamedayMemberContextValue('email', member.email),
-  ].join(', ')
+    formatGamedayMemberContextValue('Team', member.teamName),
+    formatGamedayMemberContextValue('First', member.firstName),
+    formatGamedayMemberContextValue('Last', member.lastName),
+    formatGamedayMemberContextValue('Email', member.email),
+  ].join('\n')
 }
 
-const formatGamedayMemberContextValue = (label: string, value: string) => {
+const formatGamedayMemberContextValue = (
+  label: string,
+  value: string,
+): string => {
   const trimmedValue = value.trim()
-  return `${label}: ${trimmedValue ? `"${trimmedValue}"` : '<blank>'}`
+  const displayValue = trimmedValue ? `"${trimmedValue}"` : '<blank>'
+  return `  ${label}: ${displayValue}`
 }
 
 const formatUnrecognisedGendersNote = (
   unrecognisedGenders: Set<string>,
 ): string | undefined => {
   if (unrecognisedGenders.size === 0) return undefined
-  const values = [...unrecognisedGenders].join(', ')
-  const note = `Unrecognised GameDay gender value(s) imported as "other": ${values}.`
+  const values = [...unrecognisedGenders].sort()
+  const note = [
+    `Imported ${formatCount(
+      values.length,
+      'unrecognised GameDay gender value',
+      'unrecognised GameDay gender values',
+    )} as "other":`,
+    ...values.map((value) => `- "${value}"`),
+  ].join('\n')
   console.warn(note)
   return note
+}
+
+const formatCount = (
+  count: number,
+  singular: string,
+  plural: string,
+): string => {
+  return `${count} ${count === 1 ? singular : plural}`
 }
 
 const normalizeGamedayGender = (

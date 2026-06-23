@@ -87,6 +87,9 @@ interface TGamedayCompetitionSeasonFilterResult {
   selectedLabel: string
 }
 
+// GameDay sometimes appends a footer row like "525 rows" after the CSV body.
+const GAMEDAY_SUMMARY_ROW_PATTERN = /^(?:\d+|\d{1,3}(?:,\d{3})*)\s+rows?$/i
+
 const DEFAULT_FIELD_DEFS: TGamedayFieldDefinition[] = [
   {
     header: 'Team Name',
@@ -1271,9 +1274,10 @@ const downloadCompletedReport = async (
 }
 
 const parseMemberRows = (csvBuffer: Buffer): TGamedayExportMember[] => {
-  const rows = parseCSVRows(csvBuffer.toString('utf8')).filter((row) =>
+  const nonEmptyRows = parseCSVRows(csvBuffer.toString('utf8')).filter((row) =>
     row.some((token) => token.trim().length > 0),
   )
+  const rows = removeTrailingGamedaySummaryRow(nonEmptyRows)
   const [rawHeaders, ...body] = rows
   if (!rawHeaders) return []
 
@@ -1289,6 +1293,20 @@ const parseMemberRows = (csvBuffer: Buffer): TGamedayExportMember[] => {
       gender: (row[columnIndexes.gender] ?? '').trim(),
     }))
     .filter((member) => Object.values(member).some((value) => value.length > 0))
+}
+
+const removeTrailingGamedaySummaryRow = (rows: string[][]): string[][] => {
+  const lastRow = rows.at(-1)
+  if (!lastRow || !isGamedaySummaryRow(lastRow)) return rows
+  return rows.slice(0, -1)
+}
+
+const isGamedaySummaryRow = (row: string[]): boolean => {
+  const populatedTokens = row.map((token) => token.trim()).filter(Boolean)
+  return (
+    populatedTokens.length === 1 &&
+    GAMEDAY_SUMMARY_ROW_PATTERN.test(populatedTokens[0] ?? '')
+  )
 }
 
 const resolveMemberColumnIndexes = (headers: string[]) => {
