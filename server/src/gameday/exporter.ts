@@ -79,6 +79,14 @@ interface TGamedayCompetitionListItem {
   id: string
 }
 
+interface TGamedayCompetitionSeasonFilterResult {
+  found: boolean
+  changed: boolean
+  label: string
+  previousLabel: string
+  selectedLabel: string
+}
+
 const DEFAULT_FIELD_DEFS: TGamedayFieldDefinition[] = [
   {
     header: 'Team Name',
@@ -478,13 +486,28 @@ const selectCompetition = async (
     waitUntil: 'domcontentloaded',
     timeout: 60_000,
   })
+  await setCompetitionListSeasonFilterToAll(page, debugDir)
   await maybeDebug(page, debugDir, 'competition-list')
 
-  const competitionListItems = await readCompetitionListItems(page)
-  const matchingCompetition = findCompetitionListItem(
+  let competitionListItems = await readCompetitionListItems(page)
+  let matchingCompetition = findCompetitionListItem(
     competitionListItems,
     competition,
   )
+
+  if (!matchingCompetition) {
+    const filtersApplied = await applyCompetitionListFilters(page)
+    if (filtersApplied) {
+      await waitForCompetitionListRefresh(page)
+      await maybeDebug(page, debugDir, 'competition-list-filters-applied')
+      competitionListItems = await readCompetitionListItems(page)
+      matchingCompetition = findCompetitionListItem(
+        competitionListItems,
+        competition,
+      )
+    }
+  }
+
   if (matchingCompetition) {
     const season = matchingCompetition.seasonName
       ? ` (${matchingCompetition.seasonName})`
@@ -516,6 +539,241 @@ const selectCompetition = async (
   ])
   await page.waitForTimeout(1_500)
   await maybeDebug(page, debugDir, 'competition-home')
+}
+
+const setCompetitionListSeasonFilterToAll = async (
+  page: Page,
+  debugDir: string | undefined,
+) => {
+  const result: TGamedayCompetitionSeasonFilterResult = await page.evaluate(() => {
+    const clean = (value: string | null | undefined) =>
+      String(value || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+
+    const normalized = (value: string | null | undefined) =>
+      clean(value).toLowerCase()
+
+    const selectLabels = (select: HTMLSelectElement) => {
+      const labels = Array.from(document.querySelectorAll('label'))
+        .filter((label) => {
+          if (select.id && label.htmlFor === select.id) return true
+          return label.contains(select)
+        })
+        .map((label) => clean(label.textContent))
+
+      return [
+        ...labels,
+        select.getAttribute('aria-label') || '',
+        select.getAttribute('title') || '',
+        select.name,
+        select.id,
+      ].filter((label) => label.length > 0)
+    }
+
+    const optionLabel = (option: HTMLOptionElement | undefined) => {
+      if (!option) return ''
+      return clean(option.textContent || option.label || option.value)
+    }
+
+    const allOptionScore = (option: HTMLOptionElement) => {
+      if (option.disabled) return 0
+      const text = normalized(option.textContent || option.label || option.value)
+      const value = normalized(option.value)
+      const looksLikeYear = /(?:19|20)\d{2}/.test(text)
+
+      const looksLikeNoFilter = /\b(any|none|no filter)\b/.test(text)
+
+      if (/\ball\s+seasons?\b/.test(text) || text === 'all seasons') return 7
+      if (text === 'all') return 6
+      if (['all', 'all_seasons', 'all-seasons'].includes(value)) return 5
+      if (value === '-1' && !looksLikeYear) return 4
+      if (value === '0' && (looksLikeNoFilter || text === '')) return 3
+      if (value === '' && (looksLikeNoFilter || text === '')) return 2
+      return 0
+    }
+
+    const findAllOption = (options: HTMLOptionElement[]) => {
+      return options
+        .map((option) => ({option, score: allOptionScore(option)}))
+        .filter((item) => item.score > 0)
+        .sort((left, right) => right.score - left.score)[0]?.option
+    }
+
+    const selectScore = (select: HTMLSelectElement) => {
+      const options = Array.from(select.options)
+      const labels = selectLabels(select).map(normalized)
+      const optionLabels = options.map((option) => normalized(option.textContent))
+      const labelMentionsSeason = labels.some((label) => label.includes('season'))
+      const optionMentionsSeason = optionLabels.some((label) =>
+        label.includes('season'),
+      )
+      const yearOptionCount = optionLabels.filter((label) =>
+        /(?:19|20)\d{2}/.test(label),
+      ).length
+      const hasAllOption = !!findAllOption(options)
+
+      if (labelMentionsSeason) return 4
+      if (optionMentionsSeason && hasAllOption) return 3
+      if (yearOptionCount > 0 && hasAllOption) return 2
+      return 0
+    }
+
+    const candidates = Array.from(document.querySelectorAll('select'))
+      .map((select) => ({
+        select,
+        option: findAllOption(Array.from(select.options)),
+        score: selectScore(select),
+        label: selectLabels(select).join(' / ') || 'season filter',
+      }))
+      .filter(
+        (
+          candidate,
+        ): candidate is {
+          select: HTMLSelectElement
+          option: HTMLOptionElement
+          score: number
+          label: string
+        } => candidate.score > 0 && !!candidate.option,
+      )
+      .sort((left, right) => right.score - left.score)
+
+    const candidate = candidates[0]
+    if (!candidate) {
+      return {
+        found: false,
+        changed: false,
+        label: '',
+        previousLabel: '',
+        selectedLabel: '',
+      }
+    }
+
+    const previousOption = candidate.select.selectedOptions[0]
+    const previousLabel = optionLabel(previousOption)
+    const selectedLabel = optionLabel(candidate.option)
+    const previousValue = candidate.select.value
+
+    if (candidate.option.selected && previousValue === candidate.option.value) {
+      return {
+        found: true,
+        changed: false,
+        label: candidate.label,
+        previousLabel,
+        selectedLabel,
+      }
+    }
+
+    candidate.option.selected = true
+    candidate.select.value = candidate.option.value
+    candidate.select.dispatchEvent(new Event('input', {bubbles: true}))
+    candidate.select.dispatchEvent(new Event('change', {bubbles: true}))
+
+    return {
+      found: true,
+      changed: previousValue !== candidate.select.value,
+      label: candidate.label,
+      previousLabel,
+      selectedLabel,
+    }
+  })
+
+  if (!result.found) {
+    log('No GameDay competition season filter was found; using the current competition list.')
+    return
+  }
+
+  if (!result.changed) {
+    log(
+      `GameDay competition season filter "${result.label}" is already "${result.selectedLabel}".`,
+    )
+    return
+  }
+
+  log(
+    `Changed GameDay competition season filter "${result.label}" from "${result.previousLabel}" to "${result.selectedLabel}".`,
+  )
+  await waitForCompetitionListRefresh(page)
+  await maybeDebug(page, debugDir, 'competition-list-all-seasons')
+}
+
+const applyCompetitionListFilters = async (page: Page) => {
+  const applied: boolean = await page.evaluate(() => {
+    const clean = (value: string | null | undefined) =>
+      String(value || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase()
+
+    const selectLooksLikeSeasonFilter = (select: HTMLSelectElement) => {
+      const optionLabels = Array.from(select.options).map((option) =>
+        clean(option.textContent || option.label || option.value),
+      )
+      const labels = [
+        select.name,
+        select.id,
+        select.getAttribute('aria-label') || '',
+        select.getAttribute('title') || '',
+        ...optionLabels,
+      ].map(clean)
+      const hasAllOption = optionLabels.some(
+        (label) =>
+          /\ball\s+seasons?\b/.test(label) ||
+          label === 'all' ||
+          label === 'all seasons',
+      )
+      const yearOptionCount = optionLabels.filter((label) =>
+        /(?:19|20)\d{2}/.test(label),
+      ).length
+      return (
+        labels.some((label) => label.includes('season')) ||
+        (hasAllOption && yearOptionCount > 0)
+      )
+    }
+
+    const seasonSelects = Array.from(document.querySelectorAll('select')).filter(
+      selectLooksLikeSeasonFilter,
+    )
+
+    const seasonSelect = seasonSelects[0]
+    const scope = seasonSelect?.form || document
+    const controls = Array.from(
+      scope.querySelectorAll('button, input[type="submit"], input[type="button"], a'),
+    )
+
+    const trigger = controls.find((control) => {
+      const label =
+        control instanceof HTMLInputElement
+          ? clean(control.value)
+          : clean(control.textContent)
+      return /^(apply|filter|go|search|show|view|update)(\s|$)/.test(label)
+    })
+
+    if (trigger instanceof HTMLElement) {
+      trigger.click()
+      return true
+    }
+
+    if (seasonSelect?.form) {
+      if (typeof seasonSelect.form.requestSubmit === 'function') {
+        seasonSelect.form.requestSubmit()
+      } else {
+        seasonSelect.form.submit()
+      }
+      return true
+    }
+
+    return false
+  })
+
+  if (applied) log('Applied GameDay competition list filters.')
+  return applied
+}
+
+const waitForCompetitionListRefresh = async (page: Page) => {
+  await page.waitForLoadState('domcontentloaded', {timeout: 30_000}).catch(() => null)
+  await page.waitForLoadState('networkidle', {timeout: 10_000}).catch(() => null)
+  await page.waitForTimeout(1_500)
 }
 
 const readCompetitionListItems = async (page: Page) => {
