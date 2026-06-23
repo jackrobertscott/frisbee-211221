@@ -6,8 +6,15 @@ import {hsla} from '../utils/hsla'
 import {FormColumn} from './Form/FormColumn'
 import {FormLabel} from './Form/FormLabel'
 import {FormRow} from './Form/FormRow'
+import {Icon} from './Icon'
 
 const MOBILE_TABLE_MIN_HEIGHT = 300
+
+type TTableEmpty = {
+  label?: string
+  description?: string
+  icon?: string
+}
 
 type TFCTable<T extends string = string> = FC<{
   grow?: boolean
@@ -22,6 +29,7 @@ type TFCTable<T extends string = string> = FC<{
       prefixIcon?: string
     }
   >
+  empty?: string | TTableEmpty
   body: Array<{
     key: string
     click?: () => void
@@ -37,7 +45,13 @@ type TFCTable<T extends string = string> = FC<{
   }>
 }>
 
-export const Table: TFCTable = ({head, body, grow, trimBottom = !grow}) => {
+export const Table: TFCTable = ({
+  head,
+  body,
+  empty,
+  grow,
+  trimBottom = !grow,
+}) => {
   const showFooterSpace = !trimBottom
   return $('div', {
     className: css({
@@ -58,6 +72,7 @@ export const Table: TFCTable = ({head, body, grow, trimBottom = !grow}) => {
     }),
     children: $(FormColumn, {
       className: _tableContent,
+      grow,
       maxWidth: '100%',
       children: addkeys([
         $(FormRow, {
@@ -127,17 +142,10 @@ export const Table: TFCTable = ({head, body, grow, trimBottom = !grow}) => {
                   }),
                 })
               })
-            : $(FormLabel, {
-                label: 'Empty',
-                font: theme.fontMinor,
-                style: {
-                  borderLeft: 'none',
-                  borderRight: 'none',
-                  borderBottom: 'none',
-                },
-              }),
+            : $(_TableEmpty, {empty}),
         }),
         showFooterSpace &&
+          body.length > 0 &&
           $('div', {
             className: _tableFooterSpace,
           }),
@@ -192,6 +200,102 @@ const _tableClickableRow = css({
       .merge({a: -0.74})
       .string()}`,
   },
+})
+
+const _TableEmpty: FC<{
+  empty?: string | TTableEmpty
+}> = ({empty}) => {
+  const label = typeof empty === 'string' ? empty : empty?.label
+  const description = typeof empty === 'string' ? undefined : empty?.description
+  const icon = typeof empty === 'string' ? undefined : empty?.icon
+  return $('div', {
+    role: 'status',
+    className: _tableEmpty,
+    children: $('div', {
+      className: _tableEmptyCard,
+      children: addkeys([
+        $(Icon, {
+          icon: icon ?? 'inbox',
+          multiple: 1,
+        }),
+        $('div', {
+          className: _tableEmptyTitle,
+          children: label ?? 'No rows to show',
+        }),
+        $('div', {
+          className: _tableEmptyDescription,
+          children:
+            description ?? "Rows will appear here when they're available.",
+        }),
+      ]),
+    }),
+  })
+}
+
+const _tableEmpty = css({
+  flexGrow: 1,
+  minHeight: theme.fib[11],
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: theme.fib[8],
+  borderTop: theme.border(),
+  background: `radial-gradient(circle at center, ${theme.bgHighlight
+    .merge({a: -0.78})
+    .string()} 0, transparent 62%), linear-gradient(135deg, ${theme.bgMinor.string()}, ${theme.bg
+    .merge({a: -0.08})
+    .string()})`,
+  color: theme.fontMinor.string(),
+})
+
+const _tableEmptyCard = css({
+  width: 'min(100%, 377px)',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: theme.fib[4],
+  padding: `${theme.fib[7]}px ${theme.fib[8]}px`,
+  border: theme.border(),
+  borderRadius: theme.fib[6],
+  background: theme.bg.merge({a: -0.06}).string(),
+  boxShadow: `0 ${theme.fib[4]}px ${theme.fib[8]}px ${hsla.string(
+    0,
+    0,
+    0,
+    0.08,
+  )}`,
+  textAlign: 'center',
+  '& > div:first-child': {
+    width: theme.fib[9],
+    height: theme.fib[9],
+    borderRadius: '50%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: theme.bgHighlight.compliment().string(),
+    background: `linear-gradient(135deg, ${theme.bgHighlight.string()}, ${theme.bgHighlight
+      .lighten(8)
+      .string()})`,
+    boxShadow: `0 ${theme.fib[3]}px ${theme.fib[6]}px ${hsla.string(
+      0,
+      0,
+      0,
+      0.1,
+    )}`,
+  },
+})
+
+const _tableEmptyTitle = css({
+  color: theme.font.string(),
+  fontSize: theme.fontSizeMajor,
+  fontWeight: 700,
+  lineHeight: 1.2,
+})
+
+const _tableEmptyDescription = css({
+  maxWidth: theme.fib[12],
+  color: theme.fontMinor.string(),
+  fontSize: theme.fontSizeMinor,
+  lineHeight: 1.45,
 })
 
 const _TableCell: FC<{
