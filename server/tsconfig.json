@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     // Input
-    "lib": ["ESNext"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "target": "ESNext",
 
     // Output

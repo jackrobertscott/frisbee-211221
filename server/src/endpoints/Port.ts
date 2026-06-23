@@ -3,6 +3,7 @@ import {random} from '@server/utils/random'
 import {
   PortDeleteAllMockDataDef,
   PortExportDef,
+  PortGamedayImportDef,
   PortImportDef,
   PortMockGenerateDef,
 } from '@shared/endpoints/PortDef'
@@ -15,13 +16,16 @@ import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
 import {blob} from '../utils/blob'
+import {parseCSVString} from '../utils/csv'
 import {createEndpoint} from '../utils/endpoints'
 import mongo from '../utils/mongo'
 import {regex} from '../utils/regex'
+import {runGamedayExportProcess} from '../gameday/runExportProcess'
 import {createExportArchive} from './portExport'
 import {requireAccess} from './requireAccess'
 import {userEmail} from './userEmail'
 
+const GAMEDAY_STARTING_URL = 'https://membership.mygameday.app/'
 const EMAIL_COLLATION = {locale: 'en', strength: 2 as const}
 
 export default new Map<string, RequestHandler>([
@@ -46,7 +50,7 @@ export default new Map<string, RequestHandler>([
         })
       const csvBuffer = await blob.filepathBuffer(rawFiles[0].filepath)
       const content = csvBuffer.toString()
-      const objects = _parseCSVString(content)
+      const objects = parseCSVString(content)
       const requiredHeadings = [
         'team_name',
         'email_address',
@@ -79,10 +83,7 @@ export default new Map<string, RequestHandler>([
           `Unexpected headings found: ${unexpectedHeadings.join(', ')}`,
         )
       }
-      await mongo.transaction(async () => {
-        await _createTeamsFromObjects(objects, season.id)
-        await _createUsersFromObjects(objects, season.id)
-      })
+      await _importMemberObjects(objects, season.id)
     },
   }),
 
@@ -104,6 +105,33 @@ export default new Map<string, RequestHandler>([
       res.setHeader('X-Content-Type-Options', 'nosniff')
       res.end(buffer)
       return null
+    },
+  }),
+
+  createEndpoint({
+    ...PortGamedayImportDef,
+    handler: (body, access) => async (req) => {
+      await requireAccess(req, access)
+      if (!body.seasonId?.trim())
+        throw badRequestError('Season id missing from request.', {
+          errorCode: 'season.id_missing',
+        })
+      const season = await $Season.getOne({id: body.seasonId})
+      const result = await runGamedayExportProcess({
+        startingUrl: GAMEDAY_STARTING_URL,
+        username: body.username,
+        password: body.password,
+        association: body.association,
+        competition: body.competition,
+      })
+      const objects = result.members.map((member) => ({
+        team_name: member.teamName,
+        email_address: member.email,
+        first_name: member.firstName,
+        last_name: member.lastName,
+        gender: member.gender,
+      }))
+      return await _importMemberObjects(objects, season.id)
     },
   }),
 
@@ -384,26 +412,69 @@ const _randEmail = (firstName: string, lastName: string) => {
   return `${_slugify(firstName)}.${_slugify(lastName)}.${random.randomString(6).toLowerCase()}@example.com`
 }
 
+interface TPortMemberImportSummary {
+  rowsImported: number
+  teamsCreated: number
+  usersCreated: number
+  membersCreated: number
+}
+
+const _importMemberObjects = async (
+  objects: Record<string, string>[],
+  seasonId: string,
+): Promise<TPortMemberImportSummary> => {
+  let teamsCreated = 0
+  let usersCreated = 0
+  let membersCreated = 0
+
+  await mongo.transaction(async () => {
+    teamsCreated = await _createTeamsFromObjects(objects, seasonId)
+    const userSummary = await _createUsersFromObjects(objects, seasonId)
+    usersCreated = userSummary.usersCreated
+    membersCreated = userSummary.membersCreated
+  })
+
+  return {
+    rowsImported: objects.length,
+    teamsCreated,
+    usersCreated,
+    membersCreated,
+  }
+}
+
 const _createTeamsFromObjects = async (
   objects: Record<string, string>[],
   seasonId: string,
 ) => {
-  const teamCSVMap = new Map(
-    objects.map((i) => {
-      const div = i.team_division && parseInt(i.team_division)
-      return [
-        i.team_name,
-        {
-          seasonId: seasonId,
-          name: i.team_name,
-          division: !div || isNaN(div) ? 1 : div,
-          color: 'hsla(0, 0%, 100%, 1)',
-        },
-      ]
-    }),
-  )
+  const teamCSVEntries: Array<[
+    string,
+    {
+      seasonId: string
+      name: string
+      division: number
+      color: string
+    },
+  ]> = []
+
+  for (const object of objects) {
+    const teamName = object.team_name.trim()
+    if (!teamName) continue
+    const div = object.team_division && parseInt(object.team_division)
+    teamCSVEntries.push([
+      teamName,
+      {
+        seasonId: seasonId,
+        name: teamName,
+        division: !div || isNaN(div) ? 1 : div,
+        color: 'hsla(0, 0%, 100%, 1)',
+      },
+    ])
+  }
+
+  const teamCSVMap = new Map(teamCSVEntries)
   const teamCSVList = [...teamCSVMap.values()]
   const teamCSVNameList = [...teamCSVMap.keys()]
+  if (!teamCSVNameList.length) return 0
   const teamDBList = await $Team.getMany({
     seasonId: seasonId,
     name: {$in: teamCSVNameList.map(regex.normalize)},
@@ -413,6 +484,7 @@ const _createTeamsFromObjects = async (
     return !teamDBNameList.includes(i.name.toLowerCase().trim())
   })
   if (teamCSVNewList.length) await $Team.createMany(teamCSVNewList)
+  return teamCSVNewList.length
 }
 
 const _createUsersFromObjects = async (
@@ -452,9 +524,12 @@ const _createUsersFromObjects = async (
 
   const csvEmailList = userCSVList.flatMap((i) => (i.email ? [i.email] : []))
   const userDBList = csvEmailList.length
-    ? await $User.getMany({
-        'emails.value': {$in: csvEmailList},
-      }, {collation: EMAIL_COLLATION})
+    ? await $User.getMany(
+        {
+          'emails.value': {$in: csvEmailList},
+        },
+        {collation: EMAIL_COLLATION},
+      )
     : []
   const userIdByEmail = new Map<string, string>()
   for (const user of userDBList) {
@@ -469,15 +544,21 @@ const _createUsersFromObjects = async (
   if (userCSVNewList.length)
     await $User.createMany(userCSVNewList.map((i) => i.user))
 
-  const importedUserIds = [...new Set(
-    userCSVList.map((i) => {
-      return i.emailKey ? (userIdByEmail.get(i.emailKey) ?? i.userId) : i.userId
-    }),
-  )]
+  const importedUserIds = [
+    ...new Set(
+      userCSVList.map((i) => {
+        return i.emailKey
+          ? (userIdByEmail.get(i.emailKey) ?? i.userId)
+          : i.userId
+      }),
+    ),
+  ]
   const teamDBList = await $Team.getMany({seasonId})
   const memberCSVList = userCSVList
     .map((i) => {
-      const userId = i.emailKey ? (userIdByEmail.get(i.emailKey) ?? i.userId) : i.userId
+      const userId = i.emailKey
+        ? (userIdByEmail.get(i.emailKey) ?? i.userId)
+        : i.userId
       const userCSVTeamName = i.teamName.toLowerCase().trim()
       const teamDBOfUser = teamDBList.find((team) => {
         return team.name.toLowerCase().trim() === userCSVTeamName
@@ -491,61 +572,30 @@ const _createUsersFromObjects = async (
         pending: false,
       }
     })
-    .filter((i): i is {
-      seasonId: string
-      teamId: string
-      userId: string
-      captain: boolean
-      pending: false
-    } => !!i)
+    .filter(
+      (i): i is {
+        seasonId: string
+        teamId: string
+        userId: string
+        captain: boolean
+        pending: false
+      } => !!i,
+    )
 
-  const memberDBList = await $Member.getMany({
-    seasonId,
-    userId: {$in: importedUserIds},
-  })
+  const memberDBList = importedUserIds.length
+    ? await $Member.getMany({
+        seasonId,
+        userId: {$in: importedUserIds},
+      })
+    : []
   const memberDBUserIdList = memberDBList.map((i) => i.userId)
   const memberCSVNewList = memberCSVList.filter((i) => {
     return !memberDBUserIdList.includes(i.userId)
   })
   if (memberCSVNewList.length) await $Member.createMany(memberCSVNewList)
-}
 
-const _parseCSVString = (csv: string) => {
-  const data = []
-  const body = csv.split('\n').filter((i) => i.trim())
-  const head = body.splice(0, 1)[0]
-  const cols = _tokenify(head)
-  for (const row of body) {
-    const tokens = _tokenify(row)
-    const insert = cols.reduce(
-      (all, key, index) => {
-        all[key] = tokens[index]
-        return all
-      },
-      {} as Record<string, string>,
-    )
-    data.push(insert)
+  return {
+    usersCreated: userCSVNewList.length,
+    membersCreated: memberCSVNewList.length,
   }
-  return data
-}
-
-const _tokenify = (text: string) => {
-  let tokens = [] as string[]
-  let token = ''
-  for (let i = 0, quotes = false; i < text.length; i++) {
-    const escaped =
-      i > 0 && text[i - 1] === '\\' && !(i > 1 && text[i - 2] === '\\')
-    if (text[i] === '"' && !escaped) {
-      quotes = !quotes
-      continue
-    }
-    if (text[i] === ',' && !quotes) {
-      tokens.push(token.trim())
-      token = ''
-      continue
-    }
-    token += text[i]
-  }
-  tokens.push(token.trim())
-  return tokens
 }

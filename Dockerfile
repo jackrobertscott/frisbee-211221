@@ -25,7 +25,7 @@ COPY shared ./shared
 
 # Bundle server entry. Externalize package imports; include local shared code.
 RUN cd server && \
-  ./node_modules/.bin/esbuild src/index.ts \
+  ./node_modules/.bin/esbuild src/index.ts src/gameday/exportCli.ts \
     --bundle --platform=node --target=${ESBUILD_TARGET} --format=esm \
     --outdir=dist --tsconfig=tsconfig.json --packages=external --minify
 
@@ -34,7 +34,8 @@ FROM node:${NODE_VERSION}-alpine AS runner
 ENV NODE_ENV=production
 WORKDIR /app/server
 
-# Install only prod dependencies
+# Install only prod dependencies and a system Chromium for GameDay exports
+RUN apk add --no-cache chromium ca-certificates nss freetype harfbuzz ttf-freefont
 COPY server/package*.json ./
 RUN if [ -f package-lock.json ]; then \
     npm ci --omit=dev --no-audit --no-fund; \

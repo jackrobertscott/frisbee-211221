@@ -18,6 +18,24 @@ export const PortExportDef = {
   result: io.any(),
 } satisfies TEndpointDef
 
+export const PortGamedayImportDef = {
+  access: authPoint.portManage,
+  path: '/PortGamedayImport',
+  payload: io.object({
+    seasonId: ioSeason.shape.id,
+    username: io.string().trim(),
+    password: io.string(),
+    association: io.string().trim(),
+    competition: io.string().trim(),
+  }),
+  result: io.object({
+    rowsImported: io.number(),
+    teamsCreated: io.number(),
+    usersCreated: io.number(),
+    membersCreated: io.number(),
+  }),
+} satisfies TEndpointDef
+
 export const PortMockGenerateDef = {
   access: authPoint.portManage,
   path: '/PortMockGenerate',

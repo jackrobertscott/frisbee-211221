@@ -1,0 +1,887 @@
+import crypto from 'node:crypto'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import {
+  chromium,
+  type APIRequestContext,
+  type Browser,
+  type BrowserContext,
+  type LaunchOptions,
+  type Page,
+} from 'playwright-core'
+import {parseCSVRows, replaceCSVHeader} from '../utils/csv'
+import type {
+  TGamedayExportInput,
+  TGamedayExportMember,
+  TGamedayExportOutput,
+} from './types'
+
+type TGamedayMemberHeader =
+  | 'Team Name'
+  | 'First Name'
+  | 'Family Name'
+  | 'Email'
+  | 'Gender'
+
+interface TGamedayFieldDefinition {
+  header: TGamedayMemberHeader
+  preferredIds: string[]
+  matches: (label: string) => boolean
+}
+
+interface TGamedayAvailableField {
+  id: string
+  label: string
+  selected: boolean
+}
+
+interface TGamedayResolvedField {
+  id: string
+  header: string
+  sourceLabel: string
+}
+
+interface TGamedayResolvedOptions {
+  startingUrl: string
+  username: string
+  password: string
+  association: string
+  competition: string
+  headless: boolean
+  browserChannel: string
+  browserExecutablePath?: string
+  reportId: string
+  timeoutMs: number
+  debugDir?: string
+  fields: string[]
+  headers: string[]
+  genderField?: string
+  recordFilter: string
+  normalizeHeaders: boolean
+}
+
+interface TGamedayReportRequest {
+  action: string
+  body: string
+  client: string
+  selectedIds: string[]
+  jobId: string
+}
+
+const DEFAULT_FIELD_DEFS: TGamedayFieldDefinition[] = [
+  {
+    header: 'Team Name',
+    preferredIds: ['strTeamName'],
+    matches: (label) => normalizeLabel(label) === 'team name',
+  },
+  {
+    header: 'First Name',
+    preferredIds: ['strFirstname'],
+    matches: (label) => normalizeLabel(label) === 'first name',
+  },
+  {
+    header: 'Family Name',
+    preferredIds: ['strSurname'],
+    matches: (label) => normalizeLabel(label) === 'family name',
+  },
+  {
+    header: 'Email',
+    preferredIds: ['strEmail'],
+    matches: (label) => normalizeLabel(label) === 'email',
+  },
+  {
+    header: 'Gender',
+    preferredIds: ['intGender', 'intGenderID', 'strGender', 'Gender'],
+    matches: (label) => {
+      const normalized = normalizeLabel(label)
+      return (
+        normalized === 'gender' ||
+        (normalized.includes('gender') &&
+          !normalized.includes('parent') &&
+          !normalized.includes('guardian'))
+      )
+    },
+  },
+]
+
+const COMMON_BROWSER_PATHS = [
+  '/usr/bin/chromium-browser',
+  '/usr/bin/chromium',
+  '/usr/bin/google-chrome',
+  '/usr/bin/google-chrome-stable',
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+]
+
+const log = (message: string) => console.error(message)
+
+export const exportGamedayMembers = async (
+  input: TGamedayExportInput,
+): Promise<TGamedayExportOutput> => {
+  const options = resolveOptions(input)
+  let browser: Browser | undefined
+  let context: BrowserContext | undefined
+
+  try {
+    browser = await launchBrowser({
+      headless: options.headless,
+      browserChannel: options.browserChannel,
+      browserExecutablePath: options.browserExecutablePath,
+    })
+    context = await browser.newContext({acceptDownloads: true})
+    const page = await context.newPage()
+
+    await login(page, options)
+    await selectAssociation(page, options.association, options.debugDir)
+    await selectCompetition(page, options.competition, options.debugDir)
+    await openAdvancedMemberReport(page, options.reportId, options.debugDir)
+
+    const availableFields = await collectAvailableFields(page)
+    const fields = resolveFields(availableFields, options)
+    await configureReport(page, fields, options.recordFilter)
+
+    const jobId = crypto.randomUUID()
+    const request = await buildReportRequest(page, jobId)
+    let csvBuffer = await runReportAndDownload(
+      context.request,
+      request,
+      options.timeoutMs,
+    )
+    if (options.normalizeHeaders) {
+      csvBuffer = replaceCSVHeader(
+        csvBuffer,
+        fields.map((field) => field.header),
+      )
+    }
+
+    const members = parseMemberRows(csvBuffer)
+    log(`Exported ${members.length} GameDay member row(s).`)
+    return {members}
+  } finally {
+    await context?.close().catch(() => undefined)
+    await browser?.close().catch(() => undefined)
+  }
+}
+
+const resolveOptions = (
+  input: TGamedayExportInput,
+): TGamedayResolvedOptions => {
+  const debug = input.debug ?? parseBool(process.env.GAMEDAY_DEBUG, false)
+  const debugDir = debug
+    ? (process.env.GAMEDAY_DEBUG_DIR ?? path.join(process.cwd(), 'gameday-debug'))
+    : undefined
+
+  return {
+    startingUrl: input.startingUrl,
+    username: input.username,
+    password: input.password,
+    association: input.association,
+    competition: input.competition,
+    headless:
+      input.headless ??
+      parseBool(process.env.GAMEDAY_HEADLESS ?? process.env.HEADLESS, true),
+    browserChannel:
+      input.browserChannel ??
+      process.env.GAMEDAY_BROWSER_CHANNEL ??
+      process.env.BROWSER_CHANNEL ??
+      'chrome',
+    browserExecutablePath:
+      input.browserExecutablePath ??
+      process.env.GAMEDAY_BROWSER_EXECUTABLE_PATH ??
+      process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
+      process.env.CHROME_PATH,
+    reportId:
+      input.reportId ??
+      process.env.GAMEDAY_REPORT_ID ??
+      process.env.REPORT_ID ??
+      '3',
+    timeoutMs:
+      input.timeoutMs ??
+      readNumberEnv(
+        process.env.GAMEDAY_TIMEOUT_MS ?? process.env.REPORT_TIMEOUT_MS,
+        300_000,
+      ),
+    debugDir,
+    fields: input.fields?.length
+      ? input.fields
+      : splitCsvLike(process.env.GAMEDAY_FIELDS ?? process.env.FIELD_IDS ?? ''),
+    headers: input.headers?.length
+      ? input.headers
+      : splitCsvLike(
+          process.env.GAMEDAY_HEADERS ?? process.env.OUTPUT_HEADERS ?? '',
+        ),
+    genderField: process.env.GAMEDAY_GENDER_FIELD ?? process.env.GENDER_FIELD_ID,
+    recordFilter:
+      process.env.GAMEDAY_RECORD_FILTER ?? process.env.RECORD_FILTER ?? 'DISTINCT',
+    normalizeHeaders: parseBool(
+      process.env.GAMEDAY_NORMALIZE_HEADERS ?? process.env.NORMALIZE_HEADERS,
+      true,
+    ),
+  }
+}
+
+const splitCsvLike = (value: string) => {
+  return value
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+}
+
+const parseBool = (value: unknown, fallback = false) => {
+  if (value === undefined || value === null || value === '') return fallback
+  const normalized = String(value).trim().toLowerCase()
+  if (['1', 'true', 'yes', 'y', 'on'].includes(normalized)) return true
+  if (['0', 'false', 'no', 'n', 'off'].includes(normalized)) return false
+  return fallback
+}
+
+const readNumberEnv = (value: string | undefined, fallback: number) => {
+  if (!value?.trim()) return fallback
+  const parsed = Number(value)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
+}
+
+const normalizeLabel = (value: string) => {
+  return String(value || '')
+    .replace(/\+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+}
+
+const normalizeHeader = (value: string) => {
+  return value
+    .replace(/^\uFEFF/, '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
+}
+
+const escapeRegex = (value: string) => {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+const resolveUrl = (href: string, baseUrl: string) => {
+  return new URL(href, baseUrl).href
+}
+
+const launchBrowser = async ({
+  headless,
+  browserChannel,
+  browserExecutablePath,
+}: {
+  headless: boolean
+  browserChannel: string
+  browserExecutablePath?: string
+}) => {
+  const executablePath = await resolveBrowserExecutablePath(browserExecutablePath)
+  const launchOptions: LaunchOptions = {
+    headless,
+    args: browserLaunchArgs(),
+  }
+  if (executablePath) {
+    launchOptions.executablePath = executablePath
+  } else if (browserChannel && browserChannel !== 'bundled') {
+    launchOptions.channel = browserChannel
+  }
+
+  try {
+    return await chromium.launch(launchOptions)
+  } catch (error) {
+    if (launchOptions.channel) {
+      log(
+        `Could not launch browser channel "${launchOptions.channel}"; trying bundled Chromium.`,
+      )
+      return await chromium.launch({headless, args: browserLaunchArgs()})
+    }
+    throw error
+  }
+}
+
+const resolveBrowserExecutablePath = async (explicitPath?: string) => {
+  if (explicitPath?.trim()) {
+    const normalizedPath = explicitPath.trim()
+    if (await fileExists(normalizedPath)) return normalizedPath
+    throw new Error(`Configured browser executable was not found: ${normalizedPath}`)
+  }
+
+  for (const candidate of COMMON_BROWSER_PATHS) {
+    if (await fileExists(candidate)) return candidate
+  }
+}
+
+const fileExists = async (filePath: string) => {
+  try {
+    await fs.access(filePath)
+    return true
+  } catch {
+    return false
+  }
+}
+
+const browserLaunchArgs = () => {
+  const args = ['--disable-dev-shm-usage']
+  if (process.getuid?.() === 0) {
+    args.push('--no-sandbox', '--disable-setuid-sandbox')
+  }
+  return args
+}
+
+const maybeDebug = async (
+  page: Page,
+  debugDir: string | undefined,
+  label: string,
+) => {
+  if (!debugDir) return
+  await fs.mkdir(debugDir, {recursive: true})
+  const safeLabel = label.replace(/[^a-z0-9_-]+/gi, '-')
+  await fs.writeFile(
+    path.join(debugDir, `${safeLabel}.html`),
+    await page.content(),
+    'utf8',
+  )
+  await page
+    .screenshot({path: path.join(debugDir, `${safeLabel}.png`), fullPage: true})
+    .catch(() => undefined)
+}
+
+const login = async (page: Page, options: TGamedayResolvedOptions) => {
+  log('Opening GameDay...')
+  await page.goto(options.startingUrl, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60_000,
+  })
+
+  const emailInput = page.locator('input[name="email"]').first()
+  if ((await emailInput.count()) === 0) return
+
+  log('Logging in...')
+  await emailInput.fill(options.username)
+  await page.locator('input[name="password"]').first().fill(options.password)
+
+  await page
+    .waitForFunction(
+      () => {
+        const pageWindow = window as unknown as {
+          grecaptcha?: {execute?: unknown}
+        }
+        return (
+          pageWindow.grecaptcha &&
+          typeof pageWindow.grecaptcha.execute === 'function'
+        )
+      },
+      null,
+      {timeout: 45_000},
+    )
+    .catch((error: Error) => {
+      throw new Error(
+        `Timed out waiting for GameDay reCAPTCHA to initialise. Try headed mode. ${error.message}`,
+      )
+    })
+
+  await Promise.all([
+    page
+      .waitForURL((url) => !url.href.includes('/login/'), {timeout: 90_000})
+      .catch(() => null),
+    page.locator('input[type="submit"][value*="Login"], button[type="submit"]')
+      .first()
+      .click(),
+  ])
+
+  await page.waitForLoadState('domcontentloaded', {timeout: 60_000}).catch(() => null)
+  await page.waitForTimeout(1_500)
+  await maybeDebug(page, options.debugDir, 'after-login')
+
+  if (page.url().includes('/login/')) {
+    const bodyText = await page.locator('body').innerText().catch(() => '')
+    if (/recaptcha|captcha/i.test(bodyText)) {
+      throw new Error(
+        'Login stayed on the login page after a reCAPTCHA error. Re-run in headed mode and avoid using headless mode.',
+      )
+    }
+    throw new Error('Login stayed on the login page. Check the credentials.')
+  }
+}
+
+const selectAssociation = async (
+  page: Page,
+  association: string,
+  debugDir: string | undefined,
+) => {
+  log('Selecting organisation...')
+  await page.goto('https://membership.mygameday.app/authlist.cgi', {
+    waitUntil: 'domcontentloaded',
+    timeout: 60_000,
+  })
+  await maybeDebug(page, debugDir, 'authlist')
+
+  const associationPattern = new RegExp(escapeRegex(association), 'i')
+  const associationLink = page
+    .locator('a.org-list-entry, a.org-link-wrap, a')
+    .filter({hasText: associationPattern})
+    .first()
+  if ((await associationLink.count()) === 0) {
+    throw new Error(
+      `Could not find organisation matching association "${association}" on the GameDay authorisation page.`,
+    )
+  }
+
+  await Promise.all([
+    page
+      .waitForURL(
+        (url) =>
+          url.hostname === 'membership.mygameday.app' &&
+          url.pathname.endsWith('/main.cgi'),
+        {timeout: 90_000},
+      )
+      .catch(() => null),
+    associationLink.click(),
+  ])
+  await page.waitForLoadState('domcontentloaded', {timeout: 60_000}).catch(() => null)
+  await page.waitForTimeout(1_500)
+  await maybeDebug(page, debugDir, 'association-home')
+}
+
+const selectCompetition = async (
+  page: Page,
+  competition: string,
+  debugDir: string | undefined,
+) => {
+  log('Selecting competition...')
+  const competitionListLink = page
+    .locator('a#menu_listcompetitions, a[href*="a=CO_L"]')
+    .first()
+  if ((await competitionListLink.count()) === 0) {
+    throw new Error('Could not find the GameDay List Competitions link.')
+  }
+
+  const href = await competitionListLink.getAttribute('href')
+  if (!href) throw new Error('Could not read the GameDay List Competitions link.')
+  await page.goto(resolveUrl(href, page.url()), {
+    waitUntil: 'domcontentloaded',
+    timeout: 60_000,
+  })
+  await maybeDebug(page, debugDir, 'competition-list')
+
+  const competitionPattern = new RegExp(escapeRegex(competition), 'i')
+  const competitionLink = page.locator('a').filter({hasText: competitionPattern}).first()
+  if ((await competitionLink.count()) === 0) {
+    throw new Error(`Could not find competition matching "${competition}".`)
+  }
+
+  await Promise.all([
+    page.waitForLoadState('domcontentloaded', {timeout: 60_000}).catch(() => null),
+    competitionLink.click(),
+  ])
+  await page.waitForTimeout(1_500)
+  await maybeDebug(page, debugDir, 'competition-home')
+}
+
+const openAdvancedMemberReport = async (
+  page: Page,
+  reportId: string,
+  debugDir: string | undefined,
+) => {
+  log('Opening Advanced Member report configuration...')
+  const client = await currentClient(page)
+  if (!client) {
+    throw new Error('Could not find the GameDay client token after selection.')
+  }
+
+  const url = new URL('https://membership.mygameday.app/main.cgi')
+  url.searchParams.set('client', client)
+  url.searchParams.set('a', 'REP_CONFIG')
+  url.searchParams.set('rID', reportId)
+
+  await page.goto(url.href, {waitUntil: 'domcontentloaded', timeout: 60_000})
+  await page.waitForSelector('#reportform', {timeout: 60_000})
+  await page.waitForFunction(
+    () => document.querySelector('#ROselectedfields-list'),
+    null,
+    {timeout: 60_000},
+  )
+  await maybeDebug(page, debugDir, 'report-config')
+}
+
+const currentClient = async (page: Page) => {
+  const fromUrl = new URL(page.url()).searchParams.get('client')
+  if (fromUrl) return fromUrl
+  return await page.locator('input[name="client"]').first().inputValue().catch(() => '')
+}
+
+const collectAvailableFields = async (page: Page) => {
+  const fields: TGamedayAvailableField[] = await page.evaluate(() => {
+    const clean = (value: string | null) =>
+      String(value || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+    return Array.from(document.querySelectorAll('.RO_fieldblock')).map((block) => {
+      const id = block.id.replace(/^fld_/, '')
+      const labelElement = block.querySelector('.RO_fieldname')
+      const label = clean(labelElement ? labelElement.textContent : id)
+      return {
+        id,
+        label,
+        selected: Boolean(block.closest('#ROselectedfields-list')),
+      }
+    })
+  })
+  return fields
+}
+
+const resolveFields = (
+  availableFields: TGamedayAvailableField[],
+  options: TGamedayResolvedOptions,
+): TGamedayResolvedField[] => {
+  if (options.fields.length > 0) {
+    const missing = options.fields.filter(
+      (fieldId) => !availableFields.some((field) => field.id === fieldId),
+    )
+    if (missing.length > 0) {
+      throw new Error(
+        `Configured GameDay field id(s) were not found: ${missing.join(', ')}`,
+      )
+    }
+    const headers =
+      options.headers.length > 0
+        ? options.headers
+        : options.fields.map(
+            (fieldId) =>
+              availableFields.find((field) => field.id === fieldId)?.label ?? fieldId,
+          )
+    if (headers.length !== options.fields.length) {
+      throw new Error('The configured GameDay header count must match the field count.')
+    }
+    return options.fields.map((id, index) => ({
+      id,
+      header: headers[index],
+      sourceLabel: availableFields.find((field) => field.id === id)?.label ?? id,
+    }))
+  }
+
+  const fieldDefs = DEFAULT_FIELD_DEFS.map((definition): TGamedayFieldDefinition => {
+    if (definition.header !== 'Gender' || !options.genderField) return definition
+    return {
+      ...definition,
+      preferredIds: [options.genderField, ...definition.preferredIds],
+    }
+  })
+
+  const resolved = fieldDefs.map((definition) => {
+    let match = definition.preferredIds
+      .map((id) => availableFields.find((field) => field.id === id))
+      .find((field): field is TGamedayAvailableField => !!field)
+    if (!match) {
+      match = availableFields.find((field) => definition.matches(field.label))
+    }
+    if (!match) {
+      const genderCandidates =
+        definition.header === 'Gender'
+          ? ` Gender candidates: ${
+              availableFields
+                .filter((field) => /gender/i.test(field.label))
+                .map((field) => `${field.id} (${field.label})`)
+                .join(', ') || 'none'
+            }.`
+          : ''
+      throw new Error(
+        `Could not resolve GameDay field for "${definition.header}".${genderCandidates}`,
+      )
+    }
+    return {id: match.id, header: definition.header, sourceLabel: match.label}
+  })
+
+  if (options.headers.length > 0) {
+    if (options.headers.length !== resolved.length) {
+      throw new Error('The configured GameDay header count must match the default field count.')
+    }
+    return resolved.map((field, index) => ({
+      ...field,
+      header: options.headers[index],
+    }))
+  }
+
+  return resolved
+}
+
+const configureReport = async (
+  page: Page,
+  fields: TGamedayResolvedField[],
+  recordFilter: string,
+) => {
+  log(
+    `Selected report fields: ${fields
+      .map((field) => `${field.header} <- ${field.sourceLabel}`)
+      .join(', ')}`,
+  )
+
+  await page.evaluate(
+    ({fieldIds, recordFilterValue}: {fieldIds: string[]; recordFilterValue: string}) => {
+      const selectedList = document.getElementById('ROselectedfields-list')
+      if (!selectedList) throw new Error('Selected fields list was not found.')
+
+      for (const li of Array.from(selectedList.children)) {
+        const block = li.querySelector('.RO_fieldblock')
+        const fieldId = block ? block.id.replace(/^fld_/, '') : ''
+        const removeLink = block
+          ? block.querySelector('.RO_remove a[onclick*="removefield"]')
+          : null
+        const onclick = removeLink ? removeLink.getAttribute('onclick') ?? '' : ''
+        const parentMatch = onclick.match(/removefield\('[^']+'\s*,\s*'([^']+)'\)/)
+        const parentId = parentMatch?.[1]
+        const parent = parentId ? document.getElementById(parentId) : null
+        ;(parent || document.getElementById('hide_search') || selectedList).appendChild(li)
+        const searchItem = fieldId ? document.getElementById(`s_${fieldId}`) : null
+        if (searchItem) {
+          searchItem.style.display = 'none'
+          ;(document.getElementById('search_results') || document.body).appendChild(
+            searchItem,
+          )
+        }
+      }
+
+      for (const fieldId of fieldIds) {
+        const block = document.getElementById(`fld_${fieldId}`)
+        if (!block) throw new Error(`Field block not found: ${fieldId}`)
+        const li = block.closest('li')
+        if (!li) throw new Error(`Field list item not found: ${fieldId}`)
+        selectedList.appendChild(li)
+        const checkbox = document.getElementById(`f_chk_${fieldId}`)
+        if (checkbox instanceof HTMLInputElement) checkbox.checked = true
+        const searchItem = document.getElementById(`s_${fieldId}`)
+        if (searchItem) {
+          searchItem.style.display = 'none'
+          ;(document.getElementById('hide_search') || document.body).appendChild(
+            searchItem,
+          )
+        }
+      }
+
+      const recordFilterInput = document.querySelector(
+        `input[name="RO_RecordFilter"][value="${recordFilterValue}"]`,
+      )
+      if (recordFilterInput instanceof HTMLInputElement) {
+        recordFilterInput.checked = true
+      }
+
+      const downloadOutput = document.querySelector(
+        'input[name="RO_OutputType"][value="download"]',
+      )
+      if (!(downloadOutput instanceof HTMLInputElement)) {
+        throw new Error('Download output option was not found.')
+      }
+      downloadOutput.checked = true
+
+      const outputFormat = document.querySelector('select[name="RO_OutputFormat"]')
+      if (outputFormat instanceof HTMLSelectElement) outputFormat.value = 'csv'
+
+      const selectedFieldList = document.getElementById('ROselectedfieldlist')
+      if (selectedFieldList instanceof HTMLInputElement) {
+        selectedFieldList.value = fieldIds.join(',')
+      }
+    },
+    {fieldIds: fields.map((field) => field.id), recordFilterValue: recordFilter},
+  )
+}
+
+const buildReportRequest = async (
+  page: Page,
+  jobId: string,
+): Promise<TGamedayReportRequest> => {
+  const request = await page.evaluate((innerJobId: string) => {
+    const form = document.getElementById('reportform')
+    if (!(form instanceof HTMLFormElement)) {
+      throw new Error('Report form was not found.')
+    }
+
+    const selectedIds = Array.from(
+      document.querySelectorAll('#ROselectedfields .RO_fieldblock'),
+    ).map((block) => block.id.replace(/^fld_/, ''))
+    const selectedFieldList = document.getElementById('ROselectedfieldlist')
+    if (selectedFieldList instanceof HTMLInputElement) {
+      selectedFieldList.value = selectedIds.join(',')
+    }
+
+    const params = new URLSearchParams()
+    for (const [key, value] of new FormData(form).entries()) {
+      params.append(key, String(value))
+    }
+    params.append('ajax', '1')
+    params.append('jobID', innerJobId)
+
+    return {
+      action: form.action,
+      body: params.toString(),
+      client: params.get('client') || '',
+      selectedIds,
+    }
+  }, jobId)
+
+  return {...request, jobId}
+}
+
+const runReportAndDownload = async (
+  requestContext: APIRequestContext,
+  request: TGamedayReportRequest,
+  timeoutMs: number,
+) => {
+  log('Starting GameDay report job...')
+  const postPromise = requestContext
+    .post(request.action, {
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      data: request.body,
+      timeout: timeoutMs,
+    })
+    .then(() => null)
+    .catch((error: unknown) => ({error: errorMessage(error)}))
+
+  const startedAt = Date.now()
+  let lastStatus = ''
+  await sleep(5_000)
+
+  while (Date.now() - startedAt < timeoutMs) {
+    const statusResponse = await requestContext.get(request.action, {
+      params: {
+        a: 'REP_STATUS',
+        jobID: request.jobId,
+        client: request.client,
+        ajax: '1',
+        format: 'download',
+      },
+      timeout: 30_000,
+    })
+    const statusText = await statusResponse.text()
+    const status = parseReportStatus(statusText, statusResponse.status())
+
+    if (status.status && status.status !== lastStatus) {
+      log(`Report status: ${status.status}`)
+      lastStatus = status.status
+    }
+
+    if (status.status === 'Complete') {
+      const postResult = await Promise.race([
+        postPromise,
+        sleep(1_000).then(() => null),
+      ])
+      if (postResult?.error) {
+        throw new Error(`The GameDay report request failed: ${postResult.error}`)
+      }
+      return await downloadCompletedReport(requestContext, request, timeoutMs)
+    }
+
+    if (status.status === 'Failed') {
+      throw new Error('GameDay reported that the export job failed.')
+    }
+
+    await sleep(1_000)
+  }
+
+  throw new Error(
+    `Timed out waiting for GameDay report after ${Math.round(timeoutMs / 1000)} seconds.`,
+  )
+}
+
+const parseReportStatus = (statusText: string, statusCode: number) => {
+  try {
+    const parsed: unknown = JSON.parse(statusText)
+    if (typeof parsed === 'object' && parsed !== null && 'status' in parsed) {
+      const status = (parsed as {status?: unknown}).status
+      return {status: typeof status === 'string' ? status : undefined}
+    }
+    return {status: undefined}
+  } catch {
+    throw new Error(
+      `GameDay returned a non-JSON report status response (${statusCode}): ${statusText.slice(0, 250)}`,
+    )
+  }
+}
+
+const downloadCompletedReport = async (
+  requestContext: APIRequestContext,
+  request: TGamedayReportRequest,
+  timeoutMs: number,
+) => {
+  log('Downloading completed CSV...')
+  const response = await requestContext.get(request.action, {
+    params: {
+      a: 'REP_STATUS',
+      jobID: request.jobId,
+      client: request.client,
+      ajax: '1',
+      format: 'downloading',
+    },
+    timeout: timeoutMs,
+  })
+
+  if (!response.ok()) {
+    throw new Error(
+      `CSV download failed with HTTP ${response.status()}: ${(await response.text()).slice(0, 250)}`,
+    )
+  }
+
+  const body = await response.body()
+  const contentType = response.headers()['content-type'] || ''
+  const preview = body.subarray(0, 100).toString('utf8')
+  if (/text\/html/i.test(contentType) && /^\s*</.test(preview)) {
+    throw new Error(`CSV download looked like HTML instead of CSV: ${preview.slice(0, 100)}`)
+  }
+
+  return body
+}
+
+const parseMemberRows = (csvBuffer: Buffer): TGamedayExportMember[] => {
+  const rows = parseCSVRows(csvBuffer.toString('utf8')).filter((row) =>
+    row.some((token) => token.trim().length > 0),
+  )
+  const [rawHeaders, ...body] = rows
+  if (!rawHeaders) return []
+
+  const headers = rawHeaders.map(normalizeHeader)
+  const columnIndexes = resolveMemberColumnIndexes(headers)
+
+  return body
+    .map((row) => ({
+      teamName: (row[columnIndexes.team] ?? '').trim(),
+      firstName: (row[columnIndexes.first] ?? '').trim(),
+      lastName: (row[columnIndexes.last] ?? '').trim(),
+      email: (row[columnIndexes.email] ?? '').trim(),
+      gender: (row[columnIndexes.gender] ?? '').trim(),
+    }))
+    .filter((member) => Object.values(member).some((value) => value.length > 0))
+}
+
+const resolveMemberColumnIndexes = (headers: string[]) => {
+  try {
+    return {
+      team: resolveRequiredColumn(headers, ['teamname', 'team']),
+      first: resolveRequiredColumn(headers, ['firstname', 'givenname']),
+      last: resolveRequiredColumn(headers, [
+        'familyname',
+        'lastname',
+        'surname',
+      ]),
+      email: resolveRequiredColumn(headers, ['email', 'emailaddress']),
+      gender: resolveRequiredColumn(headers, ['gender']),
+    }
+  } catch (error) {
+    if (headers.length >= 5) {
+      return {team: 0, first: 1, last: 2, email: 3, gender: 4}
+    }
+    throw error
+  }
+}
+
+const resolveRequiredColumn = (headers: string[], candidates: string[]) => {
+  const index = headers.findIndex((header) => candidates.includes(header))
+  if (index === -1) {
+    throw new Error(
+      `GameDay export was missing a required column (${candidates.join('/')}).`,
+    )
+  }
+  return index
+}
+
+const errorMessage = (error: unknown) => {
+  return error instanceof Error ? error.message : String(error)
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))

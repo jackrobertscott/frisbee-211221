@@ -9,7 +9,11 @@ import {
   useState,
 } from 'react'
 import {TSeason} from '@shared/schemas/ioSeason'
-import {$PortExport, $PortImport} from '../../endpoints/Port'
+import {
+  $PortExport,
+  $PortGamedayImport,
+  $PortImport,
+} from '../../endpoints/Port'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {download} from '../../utils/download'
@@ -19,6 +23,7 @@ import {FormBadge} from '../Form/FormBadge'
 import {FormLabel} from '../Form/FormLabel'
 import {FormRow} from '../Form/FormRow'
 import {InputSelect} from '../Input/InputSelect'
+import {InputString} from '../Input/InputString'
 import {MockDeleteConfirmation} from '../MockDeleteConfirmation'
 import {MockGenerate} from '../MockGenerate'
 import {Modal} from '../Modal'
@@ -33,6 +38,7 @@ export const DashboardPort: FC = () => {
   const toaster = useToaster()
   const [importing, importingSet] = useState(false)
   const [exporting, exportingSet] = useState(false)
+  const [gamedayImporting, gamedayImportingSet] = useState(false)
   const [generating, generatingSet] = useState(false)
   const [deleting, deletingSet] = useState(false)
   const $export = useEndpoint($PortExport)
@@ -44,6 +50,7 @@ export const DashboardPort: FC = () => {
         children: $('div', {
           className: css({
             display: 'flex',
+            flexWrap: 'wrap',
             gap: theme.fib[5],
             [theme.ltMedia(theme.fib[14])]: {
               flexDirection: 'column',
@@ -62,6 +69,13 @@ export const DashboardPort: FC = () => {
               label: 'Import CSV',
               background: theme.bgAdminButton,
               click: () => importingSet(true),
+            }),
+            $(FormBadge, {
+              grow: true,
+              icon: 'cloud-download-alt',
+              label: 'Import GameDay',
+              background: theme.bgAdminButton,
+              click: () => gamedayImportingSet(true),
             }),
             $(FormBadge, {
               grow: true,
@@ -107,6 +121,16 @@ export const DashboardPort: FC = () => {
             done: () => exportingSet(false),
             exportEndpoint: $export,
             toasterNotify: toaster.notify,
+          }),
+      }),
+      $(Fragment, {
+        children:
+          auth.season &&
+          gamedayImporting &&
+          $(_DashboardGamedayImport, {
+            season: auth.season,
+            close: () => gamedayImportingSet(false),
+            done: () => gamedayImportingSet(false),
           }),
       }),
       $(Fragment, {
@@ -205,6 +229,144 @@ export const _DashboardExport: FC<{
                   download.blob(blob as Blob, filename)
                   toasterNotify('Export downloaded.')
                   done()
+                },
+              }),
+            ]),
+          }),
+        ]),
+      }),
+    ]),
+  })
+}
+
+export const _DashboardGamedayImport: FC<{
+  done: () => void
+  close: () => void
+  season: TSeason
+}> = ({done, close, season}) => {
+  const toaster = useToaster()
+  const $gamedayImport = useEndpoint($PortGamedayImport)
+  const form = useForm({
+    username: '',
+    password: '',
+    association: '',
+    competition: '',
+  })
+  const complete = [
+    form.data.username,
+    form.data.password,
+    form.data.association,
+    form.data.competition,
+  ].every((value) => value.trim().length > 0)
+
+  return $(Modal, {
+    width: theme.fib[13],
+    children: addkeys([
+      $(TopBar, {
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: 'Import GameDay',
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
+      }),
+      $(Form, {
+        background: theme.bgMinor,
+        children: addkeys([
+          $(Poster, {
+            title: 'Import GameDay Members',
+            description:
+              'Export members from GameDay and import them directly into the current season.',
+          }),
+          $(FormRow, {
+            bpColumn: theme.fib[12],
+            children: addkeys([
+              $(FormLabel, {
+                width: theme.fib[8],
+                label: 'Username',
+              }),
+              $(InputString, {
+                value: form.data.username,
+                valueSet: form.link('username'),
+                disabled: $gamedayImport.loading,
+              }),
+            ]),
+          }),
+          $(FormRow, {
+            bpColumn: theme.fib[12],
+            children: addkeys([
+              $(FormLabel, {
+                width: theme.fib[8],
+                label: 'Password',
+              }),
+              $(InputString, {
+                type: 'password',
+                value: form.data.password,
+                valueSet: form.link('password'),
+                disabled: $gamedayImport.loading,
+              }),
+            ]),
+          }),
+          $(FormRow, {
+            bpColumn: theme.fib[12],
+            children: addkeys([
+              $(FormLabel, {
+                width: theme.fib[8],
+                label: 'Association',
+              }),
+              $(InputString, {
+                value: form.data.association,
+                valueSet: form.link('association'),
+                disabled: $gamedayImport.loading,
+              }),
+            ]),
+          }),
+          $(FormRow, {
+            bpColumn: theme.fib[12],
+            children: addkeys([
+              $(FormLabel, {
+                width: theme.fib[8],
+                label: 'Competition',
+              }),
+              $(InputString, {
+                value: form.data.competition,
+                valueSet: form.link('competition'),
+                disabled: $gamedayImport.loading,
+              }),
+            ]),
+          }),
+          $(FormRow, {
+            children: addkeys([
+              $(FormBadge, {
+                grow: true,
+                label: 'Cancel',
+                click: close,
+                disabled: $gamedayImport.loading,
+              }),
+              $(FormBadge, {
+                grow: true,
+                icon: $gamedayImport.loading ? 'spinner' : undefined,
+                label: $gamedayImport.loading ? 'Running' : 'Confirm',
+                disabled: $gamedayImport.loading || !complete,
+                click: () => {
+                  $gamedayImport
+                    .fetch({
+                      seasonId: season.id,
+                      username: form.data.username,
+                      password: form.data.password,
+                      association: form.data.association,
+                      competition: form.data.competition,
+                    })
+                    .then((summary) => {
+                      toaster.notify(
+                        `GameDay import finished. ${summary.membersCreated} membership(s) added.`,
+                      )
+                      done()
+                    })
                 },
               }),
             ]),
