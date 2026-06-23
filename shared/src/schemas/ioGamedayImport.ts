@@ -49,6 +49,7 @@ export const ioGamedayImportRun = io.object({
   teamsCreated: io.optional(io.number()),
   usersCreated: io.optional(io.number()),
   membersCreated: io.optional(io.number()),
+  note: io.optional(io.string().emptyok()),
   errorMessage: io.optional(io.string().emptyok()),
 })
 

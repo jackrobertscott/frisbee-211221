@@ -57,6 +57,8 @@ export const DashboardPort: FC = () => {
   const [exporting, exportingSet] = useState(false)
   const [gamedayConfigOpen, gamedayConfigOpenSet] = useState(false)
   const [gamedayRunOpen, gamedayRunOpenSet] = useState(false)
+  const [gamedayRunDetails, gamedayRunDetailsSet] =
+    useState<TGamedayImportRun>()
   const [generating, generatingSet] = useState(false)
   const [deleting, deletingSet] = useState(false)
   const [gamedayState, gamedayStateSet] = useState<TGamedayImportState>()
@@ -71,6 +73,7 @@ export const DashboardPort: FC = () => {
 
   useEffect(() => {
     gamedayStateSet(undefined)
+    gamedayRunDetailsSet(undefined)
     if (seasonId) void gamedayReload()
   }, [seasonId])
 
@@ -144,6 +147,7 @@ export const DashboardPort: FC = () => {
           auth.season &&
             $(DashboardGamedayImportRunsSection, {
               runs: gamedayState?.runs,
+              openRun: gamedayRunDetailsSet,
             }),
         ]),
       }),
@@ -194,6 +198,14 @@ export const DashboardPort: FC = () => {
       }),
       $(Fragment, {
         children:
+          gamedayRunDetails &&
+          $(GamedayImportRunDetailsModal, {
+            run: gamedayRunDetails,
+            close: () => gamedayRunDetailsSet(undefined),
+          }),
+      }),
+      $(Fragment, {
+        children:
           auth.season &&
           generating &&
           $(MockGenerate, {
@@ -216,7 +228,8 @@ export const DashboardPort: FC = () => {
 
 const DashboardGamedayImportRunsSection: FC<{
   runs?: TGamedayImportRun[]
-}> = ({runs}) => {
+  openRun: (run: TGamedayImportRun) => void
+}> = ({runs, openRun}) => {
   return $(FormColumn, {
     grow: true,
     children: addkeys([
@@ -224,14 +237,15 @@ const DashboardGamedayImportRunsSection: FC<{
         label: 'GameDay Import History',
         background: theme.bgMinor,
       }),
-      $(GamedayImportRunsTable, {runs}),
+      $(GamedayImportRunsTable, {runs, openRun}),
     ]),
   })
 }
 
 const GamedayImportRunsTable: FC<{
   runs?: TGamedayImportRun[]
-}> = ({runs}) => {
+  openRun: (run: TGamedayImportRun) => void
+}> = ({runs, openRun}) => {
   if (!runs) return $(Spinner)
   return $(Table, {
     grow: true,
@@ -246,6 +260,7 @@ const GamedayImportRunsTable: FC<{
     },
     body: runs.map((run) => ({
       key: run.id,
+      click: () => openRun(run),
       data: {
         started: {value: formatGamedayRunDate(run.startedOn)},
         trigger: {value: formatGamedayRunTrigger(run.trigger)},
@@ -259,8 +274,150 @@ const GamedayImportRunsTable: FC<{
   })
 }
 
+const GamedayImportRunDetailsModal: FC<{
+  run: TGamedayImportRun
+  close: () => void
+}> = ({run, close}) => {
+  const labelWidth = theme.fib[10]
+  return $(Modal, {
+    width: theme.fib[13],
+    children: addkeys([
+      $(TopBar, {
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: 'GameDay Import Run Details',
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
+      }),
+      $(Form, {
+        background: theme.bgMinor,
+        children: addkeys([
+          $(Poster, {
+            icon: run.status === 'failed' ? 'exclamation-triangle' : 'info-circle',
+            title: formatGamedayRunStatus(run.status),
+            description: `${formatGamedayRunTrigger(run.trigger)} import for ${run.association} / ${run.competition}.`,
+          }),
+          $(GamedayImportRunDetailRow, {
+            labelWidth,
+            label: 'Run ID',
+            value: run.id,
+          }),
+          $(GamedayImportRunDetailRow, {
+            labelWidth,
+            label: 'Config ID',
+            value: run.configId,
+          }),
+          $(GamedayImportRunDetailRow, {
+            labelWidth,
+            label: 'Started',
+            value: formatGamedayRunDate(run.startedOn),
+          }),
+          $(GamedayImportRunDetailRow, {
+            labelWidth,
+            label: 'Finished',
+            value: formatGamedayOptionalRunDate(run.finishedOn),
+          }),
+          $(GamedayImportRunDetailRow, {
+            labelWidth,
+            label: 'Trigger',
+            value: formatGamedayRunTrigger(run.trigger),
+          }),
+          $(GamedayImportRunDetailRow, {
+            labelWidth,
+            label: 'Status',
+            value: formatGamedayRunStatus(run.status),
+          }),
+          $(GamedayImportRunDetailRow, {
+            labelWidth,
+            label: 'Association',
+            value: run.association,
+          }),
+          $(GamedayImportRunDetailRow, {
+            labelWidth,
+            label: 'Competition',
+            value: run.competition,
+          }),
+          $(GamedayImportRunDetailRow, {
+            labelWidth,
+            label: 'Rows',
+            value: formatGamedayRunNumber(run.rowsImported),
+          }),
+          $(GamedayImportRunDetailRow, {
+            labelWidth,
+            label: 'Teams Created',
+            value: formatGamedayRunNumber(run.teamsCreated),
+          }),
+          $(GamedayImportRunDetailRow, {
+            labelWidth,
+            label: 'Users Created',
+            value: formatGamedayRunNumber(run.usersCreated),
+          }),
+          $(GamedayImportRunDetailRow, {
+            labelWidth,
+            label: 'Members Created',
+            value: formatGamedayRunNumber(run.membersCreated),
+          }),
+          $(GamedayImportRunDetailRow, {
+            labelWidth,
+            label: 'Note',
+            value: run.note || '—',
+            wrap: true,
+          }),
+          $(GamedayImportRunDetailRow, {
+            labelWidth,
+            label: 'Error',
+            value: run.errorMessage || '—',
+            wrap: true,
+          }),
+          $(FormBadge, {
+            label: 'Close',
+            click: close,
+          }),
+        ]),
+      }),
+    ]),
+  })
+}
+
+const GamedayImportRunDetailRow: FC<{
+  labelWidth: number
+  label: string
+  value: string | number
+  wrap?: boolean
+}> = ({labelWidth, label, value, wrap}) => {
+  return $(FormRow, {
+    bpColumn: theme.fib[12],
+    children: addkeys([
+      $(FormLabel, {
+        width: labelWidth,
+        label,
+      }),
+      $(FormBadge, {
+        grow: true,
+        label: value.toString(),
+        select: 'text',
+        wrap,
+        style: {
+          justifyContent: 'flex-start',
+          textAlign: 'left',
+          whiteSpace: wrap ? 'pre-wrap' : undefined,
+        },
+      }),
+    ]),
+  })
+}
+
 const formatGamedayRunDate = (value: string) => {
   return dayjs(value).format('D MMM YYYY HH:mm')
+}
+
+const formatGamedayOptionalRunDate = (value: string | undefined) => {
+  return value ? formatGamedayRunDate(value) : '—'
 }
 
 const formatGamedayRunTrigger = (value: TGamedayImportRun['trigger']) => {
