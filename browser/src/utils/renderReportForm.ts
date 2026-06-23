@@ -4,7 +4,7 @@ import {
   TReportUpdatePayload,
 } from '@shared/endpoints/ReportDef'
 import {exactShape} from '@shared/utils/endpointDef'
-import {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
+import type {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TReport} from '@shared/schemas/ioReport'
 import {TSeason} from '@shared/schemas/ioSeason'
@@ -81,18 +81,11 @@ const REPORT_FORM_DEFAULTS: ReportFormData = {
 }
 
 const MVP_ROW_BP = theme.fib[12] - theme.fib[7]
-const MVP_LABEL_STYLE: CSSObject = {
-  [theme.gtMedia(MVP_ROW_BP)]: {
-    width: theme.fib[10],
-  },
-}
-const TEAM_SELECT_LABEL_STYLE: CSSObject = {
-  width: theme.fib[9],
-}
-const OFFICIAL_SPIRIT_LABEL_STYLE: CSSObject = {
-  width: theme.fib[11],
-  [theme.ltMedia(theme.fib[12] + theme.fib[9])]: {
-    width: theme.fib[10],
+const SCORE_LABEL_BP = theme.fib[12]
+const SCORE_LABEL_WIDTH = theme.fib[10]
+const SCORE_LABEL_STYLE: CSSObject = {
+  [theme.ltMedia(SCORE_LABEL_BP)]: {
+    width: 'auto',
   },
 }
 
@@ -325,7 +318,6 @@ function renderClearableUserSelectRow(
     children: addkeys([
       $(FormLabel, {
         label,
-        style: MVP_LABEL_STYLE,
       }),
       $(FormRow, {
         grow: true,
@@ -392,7 +384,6 @@ export function renderTeamSelect(
     children: addkeys([
       $(FormLabel, {
         label: 'For',
-        style: TEAM_SELECT_LABEL_STYLE,
       }),
       $(InputSelect, {
         disabled,
@@ -414,7 +405,6 @@ export function renderAgainstTeamSelect(
     children: addkeys([
       $(FormLabel, {
         label: 'Against',
-        style: TEAM_SELECT_LABEL_STYLE,
       }),
       $(InputSelect, {
         disabled,
@@ -471,10 +461,13 @@ export function renderScoreInputs(
   return $(FormColumn, {
     children: addkeys([
       $(FormRow, {
+        bpColumn: SCORE_LABEL_BP,
         children: addkeys([
           $(FormLabel, {
-            width: theme.fib[10],
+            width: SCORE_LABEL_WIDTH,
             label: adminVersion ? 'For Score' : 'Your Score',
+            wrap: true,
+            style: SCORE_LABEL_STYLE,
           }),
           $(InputNumber, {
             value: scoreFor,
@@ -483,10 +476,13 @@ export function renderScoreInputs(
         ]),
       }),
       $(FormRow, {
+        bpColumn: SCORE_LABEL_BP,
         children: addkeys([
           $(FormLabel, {
-            width: theme.fib[10],
+            width: SCORE_LABEL_WIDTH,
             label: adminVersion ? 'Against Score' : 'Opponent Score',
+            wrap: true,
+            style: SCORE_LABEL_STYLE,
           }),
           $(InputNumber, {
             value: scoreAgainst,
@@ -646,7 +642,6 @@ export function renderOfficialSpiritInputs(
           children: addkeys([
             $(FormLabel, {
               label: field.title,
-              style: OFFICIAL_SPIRIT_LABEL_STYLE,
               wrap: true,
             }),
             $(InputSelect, {

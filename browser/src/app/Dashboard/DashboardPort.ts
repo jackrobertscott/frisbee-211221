@@ -278,7 +278,6 @@ const GamedayImportRunDetailsModal: FC<{
   run: TGamedayImportRun
   close: () => void
 }> = ({run, close}) => {
-  const labelWidth = theme.fib[10]
   return $(Modal, {
     width: theme.fib[13],
     children: addkeys([
@@ -303,73 +302,59 @@ const GamedayImportRunDetailsModal: FC<{
             description: `${formatGamedayRunTrigger(run.trigger)} import for ${run.association} / ${run.competition}.`,
           }),
           $(GamedayImportRunDetailRow, {
-            labelWidth,
             label: 'Run ID',
             value: run.id,
           }),
           $(GamedayImportRunDetailRow, {
-            labelWidth,
             label: 'Config ID',
             value: run.configId,
           }),
           $(GamedayImportRunDetailRow, {
-            labelWidth,
             label: 'Started',
             value: formatGamedayRunDate(run.startedOn),
           }),
           $(GamedayImportRunDetailRow, {
-            labelWidth,
             label: 'Finished',
             value: formatGamedayOptionalRunDate(run.finishedOn),
           }),
           $(GamedayImportRunDetailRow, {
-            labelWidth,
             label: 'Trigger',
             value: formatGamedayRunTrigger(run.trigger),
           }),
           $(GamedayImportRunDetailRow, {
-            labelWidth,
             label: 'Status',
             value: formatGamedayRunStatus(run.status),
           }),
           $(GamedayImportRunDetailRow, {
-            labelWidth,
             label: 'Association',
             value: run.association,
           }),
           $(GamedayImportRunDetailRow, {
-            labelWidth,
             label: 'Competition',
             value: run.competition,
           }),
           $(GamedayImportRunDetailRow, {
-            labelWidth,
             label: 'Rows',
             value: formatGamedayRunNumber(run.rowsImported),
           }),
           $(GamedayImportRunDetailRow, {
-            labelWidth,
             label: 'Teams Created',
             value: formatGamedayRunNumber(run.teamsCreated),
           }),
           $(GamedayImportRunDetailRow, {
-            labelWidth,
             label: 'Users Created',
             value: formatGamedayRunNumber(run.usersCreated),
           }),
           $(GamedayImportRunDetailRow, {
-            labelWidth,
             label: 'Members Created',
             value: formatGamedayRunNumber(run.membersCreated),
           }),
           $(GamedayImportRunDetailRow, {
-            labelWidth,
             label: 'Note',
             value: run.note || '—',
             wrap: true,
           }),
           $(GamedayImportRunDetailRow, {
-            labelWidth,
             label: 'Error',
             value: run.errorMessage || '—',
             wrap: true,
@@ -385,16 +370,14 @@ const GamedayImportRunDetailsModal: FC<{
 }
 
 const GamedayImportRunDetailRow: FC<{
-  labelWidth: number
   label: string
   value: string | number
   wrap?: boolean
-}> = ({labelWidth, label, value, wrap}) => {
+}> = ({label, value, wrap}) => {
   return $(FormRow, {
     bpColumn: theme.fib[12],
     children: addkeys([
       $(FormLabel, {
-        width: labelWidth,
         label,
       }),
       $(FormBadge, {
@@ -574,8 +557,6 @@ export const _DashboardGamedayImportConfig: FC<{
   const scheduleRunTime: string = form.data.scheduleStartOn
     ? dayjs(form.data.scheduleStartOn).format('h:mma')
     : '12:00am'
-  const labelWidth = theme.fib[10]
-
   useEffect(() => {
     if (state) form.set(readGamedayImportFormDefaults(config))
   }, [config?.id, config?.updatedOn])
@@ -609,7 +590,6 @@ export const _DashboardGamedayImportConfig: FC<{
                 bpColumn: theme.fib[12],
                 children: addkeys([
                   $(FormLabel, {
-                    width: labelWidth,
                     label: 'Username',
                   }),
                   $(InputString, {
@@ -623,7 +603,6 @@ export const _DashboardGamedayImportConfig: FC<{
                 bpColumn: theme.fib[12],
                 children: addkeys([
                   $(FormLabel, {
-                    width: labelWidth,
                     label: 'Password',
                   }),
                   $(InputString, {
@@ -641,7 +620,6 @@ export const _DashboardGamedayImportConfig: FC<{
                 bpColumn: theme.fib[12],
                 children: addkeys([
                   $(FormLabel, {
-                    width: labelWidth,
                     label: 'Association',
                   }),
                   $(FormColumn, {
@@ -664,7 +642,6 @@ export const _DashboardGamedayImportConfig: FC<{
                 bpColumn: theme.fib[12],
                 children: addkeys([
                   $(FormLabel, {
-                    width: labelWidth,
                     label: 'Competition',
                   }),
                   $(FormColumn, {
@@ -687,7 +664,6 @@ export const _DashboardGamedayImportConfig: FC<{
                 bpColumn: theme.fib[12],
                 children: addkeys([
                   $(FormLabel, {
-                    width: labelWidth,
                     label: 'Daily Schedule',
                   }),
                   $(FormColumn, {
@@ -713,7 +689,6 @@ export const _DashboardGamedayImportConfig: FC<{
                 bpColumn: theme.fib[12],
                 children: addkeys([
                   $(FormLabel, {
-                    width: labelWidth,
                     label: 'Active From',
                   }),
                   $(InputDate, {
@@ -727,7 +702,6 @@ export const _DashboardGamedayImportConfig: FC<{
                 bpColumn: theme.fib[12],
                 children: addkeys([
                   $(FormLabel, {
-                    width: labelWidth,
                     label: 'Active Until',
                   }),
                   $(InputDate, {
@@ -789,8 +763,6 @@ export const _DashboardGamedayImportRunConfirmation: FC<{
   const toaster = useToaster()
   const $gamedayImport = useEndpoint($PortGamedayImport)
   const loading = $gamedayImport.loading
-  const labelWidth = theme.fib[10]
-
   return $(Modal, {
     width: theme.fib[13],
     children: addkeys([
@@ -831,7 +803,6 @@ export const _DashboardGamedayImportRunConfirmation: FC<{
                 bpColumn: theme.fib[12],
                 children: addkeys([
                   $(FormLabel, {
-                    width: labelWidth,
                     label: 'Username',
                   }),
                   $(FormBadge, {
@@ -845,7 +816,6 @@ export const _DashboardGamedayImportRunConfirmation: FC<{
                 bpColumn: theme.fib[12],
                 children: addkeys([
                   $(FormLabel, {
-                    width: labelWidth,
                     label: 'Association',
                   }),
                   $(FormBadge, {
@@ -859,7 +829,6 @@ export const _DashboardGamedayImportRunConfirmation: FC<{
                 bpColumn: theme.fib[12],
                 children: addkeys([
                   $(FormLabel, {
-                    width: labelWidth,
                     label: 'Competition',
                   }),
                   $(FormBadge, {

@@ -1,3 +1,4 @@
+import type {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {createElement as $, FC, useState} from 'react'
 import {$FixtureAdjustMultiple} from '../endpoints/Fixture'
@@ -14,6 +15,13 @@ import {Modal} from './Modal'
 import {useToaster} from './Toaster/useToaster'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
+
+const FIXTURE_ADJUST_LABEL_BP = theme.fib[12]
+const FIXTURE_ADJUST_LABEL_STYLE: CSSObject = {
+  [theme.ltMedia(FIXTURE_ADJUST_LABEL_BP)]: {
+    width: 'auto',
+  },
+}
 
 // Form for adjusting multiple fixtures based on a reference fixture
 export const FixtureAdjustForm: FC<{
@@ -102,10 +110,13 @@ export const FixtureAdjustForm: FC<{
           $(FormColumn, {
             children: addkeys([
               $(FormRow, {
+                bpColumn: FIXTURE_ADJUST_LABEL_BP,
                 children: addkeys([
                   $(FormLabel, {
                     label: 'After and Including',
                     width: labelWidth,
+                    wrap: true,
+                    style: FIXTURE_ADJUST_LABEL_STYLE,
                   }),
                   $(InputSelect, {
                     value: referenceFixtureId,
@@ -117,10 +128,13 @@ export const FixtureAdjustForm: FC<{
                 ]),
               }),
               $(FormRow, {
+                bpColumn: FIXTURE_ADJUST_LABEL_BP,
                 children: addkeys([
                   $(FormLabel, {
                     label: 'Adjustment Amount',
                     width: labelWidth,
+                    wrap: true,
+                    style: FIXTURE_ADJUST_LABEL_STYLE,
                   }),
                   $(InputNumber, {
                     value: amount,
@@ -131,10 +145,13 @@ export const FixtureAdjustForm: FC<{
                 ]),
               }),
               $(FormRow, {
+                bpColumn: FIXTURE_ADJUST_LABEL_BP,
                 children: addkeys([
                   $(FormLabel, {
                     label: 'Unit',
                     width: labelWidth,
+                    wrap: true,
+                    style: FIXTURE_ADJUST_LABEL_STYLE,
                   }),
                   $(InputSelect, {
                     value: unit,
@@ -145,10 +162,13 @@ export const FixtureAdjustForm: FC<{
                 ]),
               }),
               $(FormRow, {
+                bpColumn: FIXTURE_ADJUST_LABEL_BP,
                 children: addkeys([
                   $(FormLabel, {
                     label: 'Direction',
                     width: labelWidth,
+                    wrap: true,
+                    style: FIXTURE_ADJUST_LABEL_STYLE,
                   }),
                   $(InputSelect, {
                     value: direction,

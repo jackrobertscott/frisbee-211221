@@ -4,7 +4,6 @@ import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
 import {theme} from '../../theme'
 import {addkeys} from '../../utils/addkeys'
 import {DATETIME_DAYS, DATETIME_MONTHS, DATETIME_YEARS} from '../../utils/dates'
-import {hsla} from '../../utils/hsla'
 import {Form} from '../Form/Form'
 import {FormColumn} from '../Form/FormColumn'
 import {FormRow} from '../Form/FormRow'
@@ -21,6 +20,7 @@ export const InputDate: FC<{
 }> = ({value, valueSet, placeholder = '...', disabled, minWidth}) => {
   const [open, openSet] = useState(false)
   const dateCurrent = value ? dayjs(value) : undefined
+  const background = disabled ? theme.bgDisabled : theme.bg
   const [dateViewing, dateViewingSet] = useState(() => {
     return dateCurrent?.clone() ?? dayjs()
   })
@@ -47,8 +47,10 @@ export const InputDate: FC<{
         cursor: 'default',
         userSelect: 'none',
         whiteSpace: 'nowrap',
-        background: disabled ? theme.bgDisabled.string() : theme.bg.string(),
-        color: value ? undefined : theme.fontPlaceholder.string(),
+        background: background.string(),
+        color: value
+          ? background.compliment().string()
+          : theme.fontPlaceholder.string(),
         ...theme.cellPadding(),
         border: theme.border(),
       }),
@@ -128,6 +130,19 @@ const _InputDatePicker: FC<{
                   const sameMonth = dateViewing.month() === dayOfWeek.month()
                   const isSelected = dateCurrent.isSame(dayOfWeek, 'date')
                   const isToday = today.isSame(dayOfWeek, 'date')
+                  const cellBackground = isSelected
+                    ? theme.bgHighlight
+                    : isToday
+                      ? theme.bgAdminButton
+                      : sameMonth
+                        ? theme.bg
+                        : theme.bgDisabled
+                  const cellFont =
+                    isSelected || isToday
+                      ? cellBackground.compliment()
+                      : sameMonth
+                        ? theme.font
+                        : theme.fontMinor
                   return $('div', {
                     key: indexDay,
                     children: dayOfWeek.date(),
@@ -142,25 +157,14 @@ const _InputDatePicker: FC<{
                     className: css({
                       flexGrow: 1,
                       flexBasis: 0,
+                      cursor: 'pointer',
                       textAlign: 'center',
                       border: theme.border(),
                       ...theme.cellPadding(),
-                      color: isSelected
-                        ? hsla.string(0, 0, 100)
-                        : sameMonth
-                          ? theme.font.string()
-                          : theme.fontMinor.string(),
-                      background: isSelected
-                        ? hsla.string(210, 100, 50)
-                        : isToday
-                          ? hsla.string(0, 100, 75)
-                          : sameMonth
-                            ? hsla.string(0, 0, 90)
-                            : hsla.string(0, 0, 85),
+                      color: cellFont.string(),
+                      background: cellBackground.string(),
                       '&:hover': !isSelected && {
-                        background: sameMonth
-                          ? hsla.string(0, 0, 80)
-                          : hsla.string(0, 0, 75),
+                        background: cellBackground.hover(),
                       },
                     }),
                   })
