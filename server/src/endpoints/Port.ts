@@ -1,15 +1,20 @@
 import {badRequestError} from '@shared/errors'
+import {TGamedayImportConfig} from '@shared/schemas/ioGamedayImport'
 import {random} from '@server/utils/random'
 import {
   PortDeleteAllMockDataDef,
   PortExportDef,
   PortGamedayImportDef,
+  PortGamedayImportLoadDef,
+  PortGamedayImportSaveDef,
   PortImportDef,
   PortMockGenerateDef,
 } from '@shared/endpoints/PortDef'
-import {normalizeUserGender, TUserGender} from '@shared/schemas/ioUserGender'
+import {TUserGender} from '@shared/schemas/ioUserGender'
 import {TUserEmail} from '@shared/schemas/ioUser'
 import {RequestHandler} from 'micro'
+import {$GamedayImportConfig} from '../tables/$GamedayImportConfig'
+import {$GamedayImportRun} from '../tables/$GamedayImportRun'
 import {$Member} from '../tables/$Member'
 import {$Report} from '../tables/$Report'
 import {$Season} from '../tables/$Season'
@@ -19,14 +24,14 @@ import {blob} from '../utils/blob'
 import {parseCSVString} from '../utils/csv'
 import {createEndpoint} from '../utils/endpoints'
 import mongo from '../utils/mongo'
-import {regex} from '../utils/regex'
-import {runGamedayExportProcess} from '../gameday/runExportProcess'
+import {
+  encryptGamedayPassword,
+  toSafeGamedayImportConfig,
+} from '../gameday/credentials'
+import {runGamedayImportWithHistory} from '../gameday/importMembers'
+import {importMemberObjects} from '../services/importMemberObjects'
 import {createExportArchive} from './portExport'
 import {requireAccess} from './requireAccess'
-import {userEmail} from './userEmail'
-
-const GAMEDAY_STARTING_URL = 'https://membership.mygameday.app/'
-const EMAIL_COLLATION = {locale: 'en', strength: 2 as const}
 
 export default new Map<string, RequestHandler>([
   createEndpoint({
@@ -83,7 +88,7 @@ export default new Map<string, RequestHandler>([
           `Unexpected headings found: ${unexpectedHeadings.join(', ')}`,
         )
       }
-      await _importMemberObjects(objects, season.id)
+      await importMemberObjects(objects, season.id)
     },
   }),
 
@@ -109,29 +114,34 @@ export default new Map<string, RequestHandler>([
   }),
 
   createEndpoint({
+    ...PortGamedayImportLoadDef,
+    handler: (body, access) => async (req) => {
+      await requireAccess(req, access)
+      return await loadGamedayImportState(body.seasonId)
+    },
+  }),
+
+  createEndpoint({
+    ...PortGamedayImportSaveDef,
+    handler: (body, access) => async (req) => {
+      await requireAccess(req, access)
+      await $Season.getOne({id: body.seasonId})
+      const existing = await $GamedayImportConfig.maybeOne({
+        seasonId: body.seasonId,
+      })
+      const saved = existing
+        ? await updateGamedayImportConfig(existing, body)
+        : await createGamedayImportConfig(body)
+      return toSafeGamedayImportConfig(saved)
+    },
+  }),
+
+  createEndpoint({
     ...PortGamedayImportDef,
     handler: (body, access) => async (req) => {
       await requireAccess(req, access)
-      if (!body.seasonId?.trim())
-        throw badRequestError('Season id missing from request.', {
-          errorCode: 'season.id_missing',
-        })
-      const season = await $Season.getOne({id: body.seasonId})
-      const result = await runGamedayExportProcess({
-        startingUrl: GAMEDAY_STARTING_URL,
-        username: body.username,
-        password: body.password,
-        association: body.association,
-        competition: body.competition,
-      })
-      const objects = result.members.map((member) => ({
-        team_name: member.teamName,
-        email_address: member.email,
-        first_name: member.firstName,
-        last_name: member.lastName,
-        gender: member.gender,
-      }))
-      return await _importMemberObjects(objects, season.id)
+      const config = await getGamedayImportConfigForSeason(body.seasonId)
+      return await runGamedayImportWithHistory(config, 'manual')
     },
   }),
 
@@ -254,6 +264,138 @@ export default new Map<string, RequestHandler>([
     },
   }),
 ])
+
+interface TGamedayImportSavePayload {
+  seasonId: string
+  username: string
+  password?: string
+  association: string
+  competition: string
+  scheduleEnabled: boolean
+  scheduleStartOn?: string
+  scheduleEndOn?: string
+}
+
+interface TGamedayImportScheduleFields {
+  scheduleEnabled: boolean
+  scheduleStartOn?: string
+  scheduleEndOn?: string
+}
+
+const GAMEDAY_IMPORT_RUN_HISTORY_LIMIT = 50
+
+const loadGamedayImportState = async (seasonId: string) => {
+  await $Season.getOne({id: seasonId})
+  const [config, runs] = await Promise.all([
+    $GamedayImportConfig.maybeOne({seasonId}),
+    $GamedayImportRun.getMany(
+      {seasonId},
+      {sort: {startedOn: -1}, limit: GAMEDAY_IMPORT_RUN_HISTORY_LIMIT},
+    ),
+  ])
+  return {
+    config: config ? toSafeGamedayImportConfig(config) : undefined,
+    runs,
+  }
+}
+
+const getGamedayImportConfigForSeason = async (seasonId: string) => {
+  await $Season.getOne({id: seasonId})
+  const config = await $GamedayImportConfig.maybeOne({seasonId})
+  if (!config)
+    throw badRequestError('GameDay credentials have not been saved for this season.', {
+      errorCode: 'gameday.credentials_missing',
+      userMessage: 'Save GameDay credentials before running the import.',
+    })
+  return config
+}
+
+const createGamedayImportConfig = async (body: TGamedayImportSavePayload) => {
+  const password = readNewGamedayPassword(body)
+  if (!password)
+    throw badRequestError('GameDay password is required.', {
+      errorCode: 'gameday.password_missing',
+      userMessage: 'Enter the GameDay password before saving credentials.',
+    })
+  const schedule = readGamedayScheduleFields(body)
+  return await $GamedayImportConfig.createOne({
+    seasonId: body.seasonId,
+    username: body.username,
+    passwordEncrypted: encryptGamedayPassword(password),
+    association: body.association,
+    competition: body.competition,
+    ...schedule,
+  })
+}
+
+const updateGamedayImportConfig = async (
+  existing: TGamedayImportConfig,
+  body: TGamedayImportSavePayload,
+) => {
+  const schedule = readGamedayScheduleFields(body)
+  const password = readNewGamedayPassword(body)
+  const scheduleChanged = hasGamedayScheduleChanged(existing, schedule)
+  const update: Partial<TGamedayImportConfig> = {
+    username: body.username,
+    association: body.association,
+    competition: body.competition,
+    updatedOn: new Date().toISOString(),
+    scheduleEnabled: schedule.scheduleEnabled,
+    scheduleStartOn: schedule.scheduleStartOn,
+    scheduleEndOn: schedule.scheduleEndOn,
+    ...(password ? {passwordEncrypted: encryptGamedayPassword(password)} : {}),
+    ...(scheduleChanged ? {lastScheduledRunKey: undefined} : {}),
+  }
+  return await $GamedayImportConfig.updateOne({id: existing.id}, update)
+}
+
+const readNewGamedayPassword = (body: TGamedayImportSavePayload) => {
+  if (!body.password?.trim()) return undefined
+  return body.password
+}
+
+const readGamedayScheduleFields = (
+  body: TGamedayImportSavePayload,
+): TGamedayImportScheduleFields => {
+  if (!body.scheduleEnabled) {
+    return {
+      scheduleEnabled: false,
+      scheduleStartOn: undefined,
+      scheduleEndOn: undefined,
+    }
+  }
+
+  if (!body.scheduleStartOn || !body.scheduleEndOn) {
+    throw badRequestError('GameDay schedule date range is required.', {
+      errorCode: 'gameday.schedule_dates_missing',
+      userMessage: 'Choose schedule start and end dates before enabling the schedule.',
+    })
+  }
+
+  if (Date.parse(body.scheduleStartOn) > Date.parse(body.scheduleEndOn)) {
+    throw badRequestError('GameDay schedule start date must be before the end date.', {
+      errorCode: 'gameday.schedule_date_range_invalid',
+      userMessage: 'Choose a GameDay schedule start date before the end date.',
+    })
+  }
+
+  return {
+    scheduleEnabled: true,
+    scheduleStartOn: body.scheduleStartOn,
+    scheduleEndOn: body.scheduleEndOn,
+  }
+}
+
+const hasGamedayScheduleChanged = (
+  existing: TGamedayImportConfig,
+  next: TGamedayImportScheduleFields,
+) => {
+  return (
+    existing.scheduleEnabled !== next.scheduleEnabled ||
+    existing.scheduleStartOn !== next.scheduleStartOn ||
+    existing.scheduleEndOn !== next.scheduleEndOn
+  )
+}
 
 const MOCK_TEAM_DISTRICTS = [
   'North Coast',
@@ -410,192 +552,4 @@ const _randLastName = () => _pick(MOCK_LAST_NAMES)
 
 const _randEmail = (firstName: string, lastName: string) => {
   return `${_slugify(firstName)}.${_slugify(lastName)}.${random.randomString(6).toLowerCase()}@example.com`
-}
-
-interface TPortMemberImportSummary {
-  rowsImported: number
-  teamsCreated: number
-  usersCreated: number
-  membersCreated: number
-}
-
-const _importMemberObjects = async (
-  objects: Record<string, string>[],
-  seasonId: string,
-): Promise<TPortMemberImportSummary> => {
-  let teamsCreated = 0
-  let usersCreated = 0
-  let membersCreated = 0
-
-  await mongo.transaction(async () => {
-    teamsCreated = await _createTeamsFromObjects(objects, seasonId)
-    const userSummary = await _createUsersFromObjects(objects, seasonId)
-    usersCreated = userSummary.usersCreated
-    membersCreated = userSummary.membersCreated
-  })
-
-  return {
-    rowsImported: objects.length,
-    teamsCreated,
-    usersCreated,
-    membersCreated,
-  }
-}
-
-const _createTeamsFromObjects = async (
-  objects: Record<string, string>[],
-  seasonId: string,
-) => {
-  const teamCSVEntries: Array<[
-    string,
-    {
-      seasonId: string
-      name: string
-      division: number
-      color: string
-    },
-  ]> = []
-
-  for (const object of objects) {
-    const teamName = object.team_name.trim()
-    if (!teamName) continue
-    const div = object.team_division && parseInt(object.team_division)
-    teamCSVEntries.push([
-      teamName,
-      {
-        seasonId: seasonId,
-        name: teamName,
-        division: !div || isNaN(div) ? 1 : div,
-        color: 'hsla(0, 0%, 100%, 1)',
-      },
-    ])
-  }
-
-  const teamCSVMap = new Map(teamCSVEntries)
-  const teamCSVList = [...teamCSVMap.values()]
-  const teamCSVNameList = [...teamCSVMap.keys()]
-  if (!teamCSVNameList.length) return 0
-  const teamDBList = await $Team.getMany({
-    seasonId: seasonId,
-    name: {$in: teamCSVNameList.map(regex.normalize)},
-  })
-  const teamDBNameList = teamDBList.map((i) => i.name.toLowerCase().trim())
-  const teamCSVNewList = teamCSVList.filter((i) => {
-    return !teamDBNameList.includes(i.name.toLowerCase().trim())
-  })
-  if (teamCSVNewList.length) await $Team.createMany(teamCSVNewList)
-  return teamCSVNewList.length
-}
-
-const _createUsersFromObjects = async (
-  objects: Record<string, string>[],
-  seasonId: string,
-) => {
-  const userCSVList = objects
-    .map((i, index) => {
-      const gender = normalizeUserGender(i.gender)
-      if (!gender)
-        throw badRequestError(
-          `Failed: row ${index + 2} has invalid gender "${i.gender}".`,
-          {errorCode: 'upload.invalid_gender'},
-        )
-      const email = userEmail.sanitizeValue(i.email_address)
-      const userId = random.generateId()
-      return {
-        teamName: i.team_name,
-        captain: i.type === 'team',
-        email,
-        emailKey: email?.toLowerCase(),
-        userId,
-        user: {
-          id: userId,
-          firstName: i.first_name,
-          lastName: i.last_name,
-          gender,
-          termsAccepted: false,
-          emails: email ? [userEmail.create(email, true)] : [],
-        },
-      }
-    })
-    .filter((row, index, all) => {
-      if (!row.emailKey) return true
-      return all.findIndex((i) => i.emailKey === row.emailKey) === index
-    })
-
-  const csvEmailList = userCSVList.flatMap((i) => (i.email ? [i.email] : []))
-  const userDBList = csvEmailList.length
-    ? await $User.getMany(
-        {
-          'emails.value': {$in: csvEmailList},
-        },
-        {collation: EMAIL_COLLATION},
-      )
-    : []
-  const userIdByEmail = new Map<string, string>()
-  for (const user of userDBList) {
-    for (const email of user.emails) {
-      userIdByEmail.set(email.value.toLowerCase().trim(), user.id)
-    }
-  }
-
-  const userCSVNewList = userCSVList.filter((i) => {
-    return !i.emailKey || !userIdByEmail.has(i.emailKey)
-  })
-  if (userCSVNewList.length)
-    await $User.createMany(userCSVNewList.map((i) => i.user))
-
-  const importedUserIds = [
-    ...new Set(
-      userCSVList.map((i) => {
-        return i.emailKey
-          ? (userIdByEmail.get(i.emailKey) ?? i.userId)
-          : i.userId
-      }),
-    ),
-  ]
-  const teamDBList = await $Team.getMany({seasonId})
-  const memberCSVList = userCSVList
-    .map((i) => {
-      const userId = i.emailKey
-        ? (userIdByEmail.get(i.emailKey) ?? i.userId)
-        : i.userId
-      const userCSVTeamName = i.teamName.toLowerCase().trim()
-      const teamDBOfUser = teamDBList.find((team) => {
-        return team.name.toLowerCase().trim() === userCSVTeamName
-      })
-      if (!teamDBOfUser) return undefined
-      return {
-        seasonId: teamDBOfUser.seasonId,
-        teamId: teamDBOfUser.id,
-        userId,
-        captain: i.captain,
-        pending: false,
-      }
-    })
-    .filter(
-      (i): i is {
-        seasonId: string
-        teamId: string
-        userId: string
-        captain: boolean
-        pending: false
-      } => !!i,
-    )
-
-  const memberDBList = importedUserIds.length
-    ? await $Member.getMany({
-        seasonId,
-        userId: {$in: importedUserIds},
-      })
-    : []
-  const memberDBUserIdList = memberDBList.map((i) => i.userId)
-  const memberCSVNewList = memberCSVList.filter((i) => {
-    return !memberDBUserIdList.includes(i.userId)
-  })
-  if (memberCSVNewList.length) await $Member.createMany(memberCSVNewList)
-
-  return {
-    usersCreated: userCSVNewList.length,
-    membersCreated: memberCSVNewList.length,
-  }
 }

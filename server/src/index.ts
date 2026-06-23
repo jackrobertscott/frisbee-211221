@@ -8,6 +8,7 @@ import {
 } from './clusterAutoscaler'
 import config from './config'
 import endpoints from './endpoints'
+import {startGamedayImportScheduler} from './gameday/scheduler'
 import capture from './utils/capture'
 import cors from './utils/cors'
 import intrusion from './utils/intrusion'
@@ -24,6 +25,10 @@ async function bootstrap() {
     await runStartupTasks()
   }
 
+  if (shouldRunGamedayImportScheduler()) {
+    startGamedayImportScheduler()
+  }
+
   if (shouldStartPrimaryCluster()) {
     startPrimaryCluster()
     return
@@ -33,6 +38,10 @@ async function bootstrap() {
 }
 
 function shouldRunStartupTasks() {
+  return !config.IS_PRODUCTION || cluster.isPrimary
+}
+
+function shouldRunGamedayImportScheduler() {
   return !config.IS_PRODUCTION || cluster.isPrimary
 }
 

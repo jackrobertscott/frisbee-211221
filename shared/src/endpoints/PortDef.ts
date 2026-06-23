@@ -1,4 +1,8 @@
 import {authPoint} from '@shared/auth/authAccess'
+import {
+  ioGamedayImportConfigSafe,
+  ioGamedayImportRun,
+} from '@shared/schemas/ioGamedayImport'
 import {ioSeason} from '@shared/schemas/ioSeason'
 import {TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
@@ -18,22 +22,48 @@ export const PortExportDef = {
   result: io.any(),
 } satisfies TEndpointDef
 
+export const ioPortMemberImportSummary = io.object({
+  rowsImported: io.number(),
+  teamsCreated: io.number(),
+  usersCreated: io.number(),
+  membersCreated: io.number(),
+})
+
+export const PortGamedayImportLoadDef = {
+  access: authPoint.portManage,
+  path: '/PortGamedayImportLoad',
+  payload: io.object({
+    seasonId: ioSeason.shape.id,
+  }),
+  result: io.object({
+    config: io.optional(ioGamedayImportConfigSafe),
+    runs: io.array(ioGamedayImportRun),
+  }),
+} satisfies TEndpointDef
+
+export const PortGamedayImportSaveDef = {
+  access: authPoint.portManage,
+  path: '/PortGamedayImportSave',
+  payload: io.object({
+    seasonId: ioSeason.shape.id,
+    username: io.string().trim(),
+    password: io.optional(io.string().emptyok()),
+    association: io.string().trim(),
+    competition: io.string().trim(),
+    scheduleEnabled: io.boolean(),
+    scheduleStartOn: io.optional(io.date()),
+    scheduleEndOn: io.optional(io.date()),
+  }),
+  result: ioGamedayImportConfigSafe,
+} satisfies TEndpointDef
+
 export const PortGamedayImportDef = {
   access: authPoint.portManage,
   path: '/PortGamedayImport',
   payload: io.object({
     seasonId: ioSeason.shape.id,
-    username: io.string().trim(),
-    password: io.string(),
-    association: io.string().trim(),
-    competition: io.string().trim(),
   }),
-  result: io.object({
-    rowsImported: io.number(),
-    teamsCreated: io.number(),
-    usersCreated: io.number(),
-    membersCreated: io.number(),
-  }),
+  result: ioPortMemberImportSummary,
 } satisfies TEndpointDef
 
 export const PortMockGenerateDef = {

@@ -1,6 +1,8 @@
 import {$AuthAttemptLimit} from '../tables/$AuthAttemptLimit'
 import {$Comment} from '../tables/$Comment'
 import {$Fixture} from '../tables/$Fixture'
+import {$GamedayImportConfig} from '../tables/$GamedayImportConfig'
+import {$GamedayImportRun} from '../tables/$GamedayImportRun'
 import {$Member} from '../tables/$Member'
 import {$Post} from '../tables/$Post'
 import {$Report} from '../tables/$Report'
@@ -20,6 +22,8 @@ const tables: TIndexedTable[] = [
   $AuthAttemptLimit,
   $Comment,
   $Fixture,
+  $GamedayImportConfig,
+  $GamedayImportRun,
   $Member,
   $Post,
   $Report,
