@@ -1,5 +1,5 @@
 import {css} from '@emotion/css'
-import {createElement as $, FC, ReactNode, useState} from 'react'
+import {Children, createElement as $, FC, ReactNode, useState} from 'react'
 import {theme} from '../theme'
 import {hsla} from '../utils/hsla'
 import {fadein} from '../utils/keyframes'
@@ -26,6 +26,9 @@ export const Modal: FC<{
     if (!stack.top(stackId)) return
     if (event.target === event.currentTarget) close?.()
   }
+  const modalChildren = Children.toArray(children)
+  const topBar = modalChildren[0]
+  const body = modalChildren.slice(1)
   return $(Portal, {
     children: $(StackProvider, {
       id: stackId,
@@ -48,7 +51,31 @@ export const Modal: FC<{
           click: handleClose,
           padding: media.width < theme.fib[13] ? 0 : theme.fib[6],
           children: $('div', {
-            children,
+            children: [
+              topBar,
+              body.length > 0 &&
+                $('div', {
+                  key: 'body',
+                  children: body,
+                  className: css({
+                    width: '100%',
+                    minHeight: 0,
+                    flex: '1 1 auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflowY: 'auto',
+                    overscrollBehavior: 'contain',
+                    '& > *': {
+                      flexShrink: 0,
+                    },
+                    [theme.ltMedia(theme.fib[13])]: {
+                      '& > *:last-child': {
+                        paddingBottom: MODAL_MOBILE_CONTENT_BOTTOM_PADDING,
+                      },
+                    },
+                  }),
+                }),
+            ],
             className: css({
               width,
               height,
@@ -56,19 +83,11 @@ export const Modal: FC<{
               maxWidth: '100%',
               display: 'flex',
               flexDirection: 'column',
-              overflowY: 'auto',
-              '& > *': {
-                flexShrink: 0,
-              },
+              overflow: 'hidden',
               boxShadow: `0 0 10px ${hsla.string(0, 0, 0, 0.1)}`,
               background: theme.bg.string(),
               color: theme.bg.compliment().string(),
               border: theme.border(),
-              [theme.ltMedia(theme.fib[13])]: {
-                '& > *:last-child': {
-                  paddingBottom: MODAL_MOBILE_CONTENT_BOTTOM_PADDING,
-                },
-              },
             }),
           }),
         }),
