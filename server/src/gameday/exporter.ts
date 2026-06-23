@@ -68,6 +68,17 @@ interface TGamedayReportRequest {
   jobId: string
 }
 
+interface TGamedayCompetitionListItem {
+  title: string
+  selectLink: string
+  seasonName: string
+  fixtureType: string
+  teams: string
+  abbreviation: string
+  status: string
+  id: string
+}
+
 const DEFAULT_FIELD_DEFS: TGamedayFieldDefinition[] = [
   {
     header: 'Team Name',
@@ -128,6 +139,7 @@ export const exportGamedayMembers = async (
       browserExecutablePath: options.browserExecutablePath,
     })
     context = await browser.newContext({acceptDownloads: true})
+    await installBrowserEvaluateNameHelper(context)
     const page = await context.newPage()
 
     await login(page, options)
@@ -326,6 +338,12 @@ const browserLaunchArgs = () => {
   return args
 }
 
+const installBrowserEvaluateNameHelper = async (context: BrowserContext) => {
+  // esbuild can wrap serialized Playwright page functions in __name(...).
+  // Make that helper available inside GameDay pages after each navigation.
+  await context.addInitScript('globalThis.__name = (target) => target')
+}
+
 const maybeDebug = async (
   page: Page,
   debugDir: string | undefined,
@@ -462,10 +480,34 @@ const selectCompetition = async (
   })
   await maybeDebug(page, debugDir, 'competition-list')
 
+  const competitionListItems = await readCompetitionListItems(page)
+  const matchingCompetition = findCompetitionListItem(
+    competitionListItems,
+    competition,
+  )
+  if (matchingCompetition) {
+    const season = matchingCompetition.seasonName
+      ? ` (${matchingCompetition.seasonName})`
+      : ''
+    log(`Matched GameDay competition "${matchingCompetition.title}"${season}.`)
+    await page.goto(
+      resolveUrl(decodeHtmlEntities(matchingCompetition.selectLink), page.url()),
+      {waitUntil: 'domcontentloaded', timeout: 60_000},
+    )
+    await page.waitForLoadState('domcontentloaded', {timeout: 60_000}).catch(() => null)
+    await page.waitForTimeout(1_500)
+    await maybeDebug(page, debugDir, 'competition-home')
+    return
+  }
+
   const competitionPattern = new RegExp(escapeRegex(competition), 'i')
   const competitionLink = page.locator('a').filter({hasText: competitionPattern}).first()
   if ((await competitionLink.count()) === 0) {
-    throw new Error(`Could not find competition matching "${competition}".`)
+    throw new Error(
+      `Could not find competition matching "${competition}".${formatCompetitionListForError(
+        competitionListItems,
+      )}`,
+    )
   }
 
   await Promise.all([
@@ -474,6 +516,148 @@ const selectCompetition = async (
   ])
   await page.waitForTimeout(1_500)
   await maybeDebug(page, debugDir, 'competition-home')
+}
+
+const readCompetitionListItems = async (page: Page) => {
+  const pageContent = await page.content()
+  return dedupeCompetitionListItems(readCompetitionGridDataItems(pageContent))
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === 'object' && value !== null
+}
+
+const readCompetitionGridDataItems = (pageContent: string) => {
+  const rawGridData = readJavaScriptArrayAssignment(
+    pageContent,
+    /var\s+griddata\s*=\s*/,
+  )
+  if (!rawGridData) return []
+
+  try {
+    const parsed: unknown = JSON.parse(rawGridData)
+    if (!Array.isArray(parsed)) return []
+    return parsed.flatMap((item): TGamedayCompetitionListItem[] => {
+      if (!isRecord(item)) return []
+      const competitionItem = competitionListItemFromRecord(item)
+      return competitionItem ? [competitionItem] : []
+    })
+  } catch {
+    return []
+  }
+}
+
+const readJavaScriptArrayAssignment = (source: string, assignmentPattern: RegExp) => {
+  const markerMatch = assignmentPattern.exec(source)
+  if (!markerMatch) return ''
+
+  const arrayStart = markerMatch.index + markerMatch[0].length
+  if (source[arrayStart] !== '[') return ''
+
+  let depth = 0
+  let inString = false
+  let escaped = false
+  for (let index = arrayStart; index < source.length; index += 1) {
+    const character = source[index]
+    if (inString) {
+      if (escaped) {
+        escaped = false
+      } else if (character === '\\') {
+        escaped = true
+      } else if (character === '"') {
+        inString = false
+      }
+    } else if (character === '"') {
+      inString = true
+    } else if (character === '[') {
+      depth += 1
+    } else if (character === ']') {
+      depth -= 1
+      if (depth === 0) return source.slice(arrayStart, index + 1)
+    }
+  }
+
+  return ''
+}
+
+const competitionListItemFromRecord = (
+  record: Record<string, unknown>,
+): TGamedayCompetitionListItem | undefined => {
+  const title = readCompetitionRecordString(record, 'strTitle')
+  const selectLink = readCompetitionRecordString(record, 'SelectLink')
+  if (!title || !selectLink) return undefined
+  return {
+    title,
+    selectLink,
+    seasonName: readCompetitionRecordString(record, 'strSeasonName'),
+    fixtureType: readCompetitionRecordString(record, 'intFixtureType'),
+    teams: readCompetitionRecordString(record, 'teams'),
+    abbreviation: readCompetitionRecordString(record, 'strAbbrev'),
+    status: readCompetitionRecordString(record, 'intRecStatus'),
+    id: readCompetitionRecordString(record, 'id'),
+  }
+}
+
+const readCompetitionRecordString = (
+  record: Record<string, unknown>,
+  key: string,
+) => {
+  const value = record[key]
+  if (typeof value === 'string') return decodeHtmlEntities(value).trim()
+  if (typeof value === 'number') return String(value)
+  return ''
+}
+
+const dedupeCompetitionListItems = (items: TGamedayCompetitionListItem[]) => {
+  const dedupedItems: TGamedayCompetitionListItem[] = []
+  const seenKeys = new Set<string>()
+  for (const item of items) {
+    const key = `${item.title}\u0000${item.selectLink}`
+    if (seenKeys.has(key)) continue
+    seenKeys.add(key)
+    dedupedItems.push(item)
+  }
+  return dedupedItems
+}
+
+const findCompetitionListItem = (
+  items: TGamedayCompetitionListItem[],
+  competition: string,
+) => {
+  const competitionLabel = normalizeLabel(competition)
+  const matchesExactly = (item: TGamedayCompetitionListItem) => {
+    return [item.title, item.abbreviation]
+      .filter(Boolean)
+      .some((value) => normalizeLabel(value) === competitionLabel)
+  }
+  const matchesPartially = (item: TGamedayCompetitionListItem) => {
+    return [item.title, item.abbreviation]
+      .filter(Boolean)
+      .some((value) => normalizeLabel(value).includes(competitionLabel))
+  }
+  return items.find(matchesExactly) ?? items.find(matchesPartially)
+}
+
+const formatCompetitionListForError = (items: TGamedayCompetitionListItem[]) => {
+  if (items.length === 0) return ''
+  const preview = items
+    .slice(0, 20)
+    .map((item) => {
+      const season = item.seasonName ? ` (${item.seasonName})` : ''
+      return `${item.title}${season}`
+    })
+    .join('; ')
+  const suffix = items.length > 20 ? `; and ${items.length - 20} more` : ''
+  return ` Available competitions: ${preview}${suffix}.`
+}
+
+const decodeHtmlEntities = (value: string) => {
+  return value
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
 }
 
 const openAdvancedMemberReport = async (

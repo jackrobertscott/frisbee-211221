@@ -258,6 +258,7 @@ export const _DashboardGamedayImport: FC<{
     form.data.association,
     form.data.competition,
   ].every((value) => value.trim().length > 0)
+  const labelWidth = theme.fib[10]
 
   return $(Modal, {
     width: theme.fib[13],
@@ -286,7 +287,7 @@ export const _DashboardGamedayImport: FC<{
             bpColumn: theme.fib[12],
             children: addkeys([
               $(FormLabel, {
-                width: theme.fib[8],
+                width: labelWidth,
                 label: 'Username',
               }),
               $(InputString, {
@@ -300,7 +301,7 @@ export const _DashboardGamedayImport: FC<{
             bpColumn: theme.fib[12],
             children: addkeys([
               $(FormLabel, {
-                width: theme.fib[8],
+                width: labelWidth,
                 label: 'Password',
               }),
               $(InputString, {
@@ -315,7 +316,7 @@ export const _DashboardGamedayImport: FC<{
             bpColumn: theme.fib[12],
             children: addkeys([
               $(FormLabel, {
-                width: theme.fib[8],
+                width: labelWidth,
                 label: 'Association',
               }),
               $(InputString, {
@@ -329,7 +330,7 @@ export const _DashboardGamedayImport: FC<{
             bpColumn: theme.fib[12],
             children: addkeys([
               $(FormLabel, {
-                width: theme.fib[8],
+                width: labelWidth,
                 label: 'Competition',
               }),
               $(InputString, {
