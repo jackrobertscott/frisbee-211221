@@ -110,7 +110,7 @@ const DEFAULT_FIELD_DEFS: TGamedayFieldDefinition[] = [
   },
   {
     header: 'Gender',
-    preferredIds: ['intGender', 'intGenderID', 'strGender', 'Gender'],
+    preferredIds: ['strGender', 'Gender', 'intGender', 'intGenderID'],
     matches: (label) => {
       const normalized = normalizeLabel(label)
       return (

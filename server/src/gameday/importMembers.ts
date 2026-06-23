@@ -1,4 +1,6 @@
 import {TGamedayImportConfig} from '@shared/schemas/ioGamedayImport'
+import {normalizeUserGender} from '@shared/schemas/ioUserGender'
+import type {TUserGender} from '@shared/schemas/ioUserGender'
 import {$GamedayImportRun} from '../tables/$GamedayImportRun'
 import {
   importMemberObjects,
@@ -63,14 +65,36 @@ const runGamedayImport = async (
     association: config.association,
     competition: config.competition,
   })
+  const unrecognisedGenders = new Set<string>()
   const objects = result.members.map((member) => ({
     team_name: member.teamName,
     email_address: member.email,
     first_name: member.firstName,
     last_name: member.lastName,
-    gender: member.gender,
+    gender: normalizeGamedayGender(member.gender, unrecognisedGenders),
   }))
+
+  if (unrecognisedGenders.size > 0) {
+    console.warn(
+      `Unrecognised GameDay gender value(s) imported as "other": ${[
+        ...unrecognisedGenders,
+      ].join(', ')}`,
+    )
+  }
+
   return await importMemberObjects(objects, config.seasonId)
+}
+
+const normalizeGamedayGender = (
+  value: string,
+  unrecognisedValues: Set<string>,
+): TUserGender => {
+  const trimmedValue = value.trim()
+  if (!trimmedValue) return 'other'
+  const normalizedGender = normalizeUserGender(trimmedValue)
+  if (normalizedGender) return normalizedGender
+  unrecognisedValues.add(trimmedValue)
+  return 'other'
 }
 
 const formatErrorMessage = (error: unknown) => {

@@ -412,6 +412,11 @@ export const _DashboardGamedayImportConfig: FC<{
     passwordComplete &&
     scheduleComplete
   const scheduleDisabled = loading || form.data.scheduleEnabled === 'no'
+  const scheduleTimezone: string =
+    Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'local time'
+  const scheduleRunTime: string = form.data.scheduleStartOn
+    ? dayjs(form.data.scheduleStartOn).format('h:mma')
+    : '12:00am'
   const labelWidth = theme.fib[10]
 
   useEffect(() => {
@@ -464,36 +469,14 @@ export const _DashboardGamedayImportConfig: FC<{
                     width: labelWidth,
                     label: 'Password',
                   }),
-                  $(FormColumn, {
-                    grow: true,
-                    children: addkeys([
-                      $(FormBadge, {
-                        grow: true,
-                        icon: config?.hasPassword
-                          ? 'lock'
-                          : 'exclamation-triangle',
-                        label: config?.hasPassword
-                          ? 'Saved securely'
-                          : 'Password required',
-                        background: config?.hasPassword
-                          ? theme.bgHighlight
-                          : theme.bgMinor,
-                      }),
-                      $(InputString, {
-                        type: 'password',
-                        value: form.data.password,
-                        valueSet: form.link('password'),
-                        placeholder: config?.hasPassword
-                          ? 'Optional: replace saved password'
-                          : 'Enter GameDay password',
-                        disabled: loading,
-                      }),
-                      $(FormHelp, {
-                        children: config?.hasPassword
-                          ? 'The saved password is encrypted on the server and is not sent back to the browser. Leave this field blank to keep it unchanged.'
-                          : 'The password will be encrypted before it is saved and will not be returned to the browser.',
-                      }),
-                    ]),
+                  $(InputString, {
+                    type: 'password',
+                    value: form.data.password,
+                    valueSet: form.link('password'),
+                    placeholder: config?.hasPassword
+                      ? 'Leave blank to keep saved password'
+                      : 'Enter GameDay password',
+                    disabled: loading,
                   }),
                 ]),
               }),
@@ -504,10 +487,19 @@ export const _DashboardGamedayImportConfig: FC<{
                     width: labelWidth,
                     label: 'Association',
                   }),
-                  $(InputString, {
-                    value: form.data.association,
-                    valueSet: form.link('association'),
-                    disabled: loading,
+                  $(FormColumn, {
+                    grow: true,
+                    children: addkeys([
+                      $(InputString, {
+                        value: form.data.association,
+                        valueSet: form.link('association'),
+                        disabled: loading,
+                      }),
+                      $(FormHelp, {
+                        children:
+                          'Case-sensitive GameDay association name.',
+                      }),
+                    ]),
                   }),
                 ]),
               }),
@@ -518,10 +510,19 @@ export const _DashboardGamedayImportConfig: FC<{
                     width: labelWidth,
                     label: 'Competition',
                   }),
-                  $(InputString, {
-                    value: form.data.competition,
-                    valueSet: form.link('competition'),
-                    disabled: loading,
+                  $(FormColumn, {
+                    grow: true,
+                    children: addkeys([
+                      $(InputString, {
+                        value: form.data.competition,
+                        valueSet: form.link('competition'),
+                        disabled: loading,
+                      }),
+                      $(FormHelp, {
+                        children:
+                          'Case-sensitive GameDay competition name.',
+                      }),
+                    ]),
                   }),
                 ]),
               }),
@@ -532,14 +533,22 @@ export const _DashboardGamedayImportConfig: FC<{
                     width: labelWidth,
                     label: 'Daily Schedule',
                   }),
-                  $(InputSelect<TGamedayScheduleEnabled>, {
-                    value: form.data.scheduleEnabled,
-                    valueSet: form.link('scheduleEnabled'),
-                    disabled: loading,
-                    options: [
-                      {key: 'no', label: 'Disabled'},
-                      {key: 'yes', label: 'Enabled'},
-                    ],
+                  $(FormColumn, {
+                    grow: true,
+                    children: addkeys([
+                      $(InputSelect<TGamedayScheduleEnabled>, {
+                        value: form.data.scheduleEnabled,
+                        valueSet: form.link('scheduleEnabled'),
+                        disabled: loading,
+                        options: [
+                          {key: 'no', label: 'Disabled'},
+                          {key: 'yes', label: 'Enabled'},
+                        ],
+                      }),
+                      $(FormHelp, {
+                        children: `Runs once daily after ${scheduleRunTime} ${scheduleTimezone}.`,
+                      }),
+                    ]),
                   }),
                 ]),
               }),
