@@ -81,6 +81,7 @@ const REPORT_FORM_DEFAULTS: ReportFormData = {
 }
 
 const MVP_ROW_BP = theme.fib[12] - theme.fib[7]
+const MVP_LABEL_WIDTH = 140
 const SCORE_LABEL_BP = theme.fib[12]
 const SCORE_LABEL_WIDTH = theme.fib[10]
 const SCORE_LABEL_STYLE: CSSObject = {
@@ -88,6 +89,7 @@ const SCORE_LABEL_STYLE: CSSObject = {
     width: 'auto',
   },
 }
+const SPIRIT_LABEL_WIDTH = 220
 
 export const createReportFormData = (
   overrides: Partial<ReportFormData> = {},
@@ -318,6 +320,7 @@ function renderClearableUserSelectRow(
     children: addkeys([
       $(FormLabel, {
         label,
+        width: MVP_LABEL_WIDTH,
       }),
       $(FormRow, {
         grow: true,
@@ -642,6 +645,7 @@ export function renderOfficialSpiritInputs(
           children: addkeys([
             $(FormLabel, {
               label: field.title,
+              width: SPIRIT_LABEL_WIDTH,
               wrap: true,
             }),
             $(InputSelect, {
