@@ -44,13 +44,27 @@ const getHeaderValue = (value?: string | string[]) => {
   return value
 }
 
-const isPrivateIpv4 = (value: string) => {
+const parseIpv4 = (value: string) => {
   const parts = value.split('.').map(Number)
-  if (parts.length !== 4 || parts.some((part) => Number.isNaN(part)))
-    return false
+  if (
+    parts.length !== 4 ||
+    parts.some(
+      (part) => !Number.isInteger(part) || part < 0 || part > 255,
+    )
+  )
+    return null
+  return parts
+}
+
+const isPrivateIpv4 = (value: string) => {
+  const parts = parseIpv4(value)
+  if (!parts) return false
+
   return (
     parts[0] === 10 ||
     parts[0] === 127 ||
+    // Railway forwards public traffic from RFC 6598 shared address space.
+    (parts[0] === 100 && parts[1] >= 64 && parts[1] <= 127) ||
     (parts[0] === 192 && parts[1] === 168) ||
     (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31)
   )
