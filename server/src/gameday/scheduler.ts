@@ -4,6 +4,9 @@ import {random} from '../utils/random'
 import {runGamedayImportWithHistory} from './importMembers'
 
 const CHECK_INTERVAL_MS = 60 * 1000
+// Only run during the scheduler check window after the standard run time.
+// Missed windows are skipped instead of caught up later at arbitrary times.
+const SCHEDULE_DUE_WINDOW_MS = CHECK_INTERVAL_MS
 const SCHEDULE_LOCK_MS = 2 * 60 * 60 * 1000
 const DAY_MS = 24 * 60 * 60 * 1000
 const MAX_RUNS_PER_CHECK = 3
@@ -36,7 +39,7 @@ const checkDueGamedayImports = async () => {
       .slice(0, MAX_RUNS_PER_CHECK)
 
     for (const config of dueConfigs) {
-      await runScheduledGamedayImport(config, now)
+      await runScheduledGamedayImport(config)
     }
   } catch (error) {
     console.error('GameDay import scheduler failed.', error)
@@ -45,18 +48,22 @@ const checkDueGamedayImports = async () => {
   }
 }
 
-const runScheduledGamedayImport = async (
-  config: TGamedayImportConfig,
-  now: Date,
-) => {
+const runScheduledGamedayImport = async (config: TGamedayImportConfig) => {
+  const now = new Date()
+  const scheduleStartOn = config.scheduleStartOn
+  const scheduleEndOn = config.scheduleEndOn
+  const runKey = readDueScheduleRunKey(config, now)
+  if (!runKey || !scheduleStartOn || !scheduleEndOn) return
+
   const lockToken = random.generateId()
-  const runKey = readScheduleRunKey(config, now)
-  if (!runKey) return
   const lockedUntil = new Date(now.getTime() + SCHEDULE_LOCK_MS).toISOString()
   const lockedCount = await $GamedayImportConfig.updateMany(
     {
       id: config.id,
       scheduleEnabled: true,
+      scheduleStartOn,
+      scheduleEndOn,
+      lastScheduledRunKey: {$ne: runKey},
       $or: [
         {scheduleLockedUntil: {$exists: false}},
         {scheduleLockedUntil: {$lte: now.toISOString()}},
@@ -100,13 +107,16 @@ const runScheduledGamedayImport = async (
   }
 }
 
-const isGamedayImportDue = (config: TGamedayImportConfig, now: Date) => {
-  const runKey = readScheduleRunKey(config, now)
+export const isGamedayImportDue = (
+  config: TGamedayImportConfig,
+  now: Date,
+) => {
+  const runKey = readDueScheduleRunKey(config, now)
   if (!runKey) return false
   return config.lastScheduledRunKey !== runKey
 }
 
-const readScheduleRunKey = (
+const readDueScheduleRunKey = (
   config: TGamedayImportConfig,
   now: Date,
 ): string | undefined => {
@@ -119,6 +129,10 @@ const readScheduleRunKey = (
   if (nowMs < startMs || nowMs > endMs) return undefined
 
   const dayIndex = Math.floor((nowMs - startMs) / DAY_MS)
+  const scheduledMs = startMs + dayIndex * DAY_MS
+  const dueUntilMs = scheduledMs + SCHEDULE_DUE_WINDOW_MS
+  if (nowMs < scheduledMs || nowMs >= dueUntilMs) return undefined
+
   return `${config.scheduleStartOn}:${dayIndex}`
 }
 
