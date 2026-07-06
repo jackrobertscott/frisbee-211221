@@ -14,12 +14,9 @@ export const SeasonListDef = {
 export const SeasonCreateDef = {
   access: authPoint.seasonManage,
   path: '/SeasonCreate',
-  payload: ioSeason.pick([
-    'name',
-    'signUpOpen',
-    'useOfficialScoring',
-    'genderDivision',
-  ]),
+  payload: ioSeason
+    .pick(['name', 'useOfficialScoring', 'genderDivision'])
+    .extend({signUpOpen: io.optional(ioSeason.shape.signUpOpen)}),
   result: ioSeason,
 } satisfies TEndpointDef
 

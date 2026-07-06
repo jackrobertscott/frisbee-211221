@@ -15,5 +15,6 @@ export const $Season = db.table({
     id: () => random.generateId(),
     createdOn: () => new Date().toISOString(),
     updatedOn: () => new Date().toISOString(),
+    signUpOpen: () => false,
   },
 })
