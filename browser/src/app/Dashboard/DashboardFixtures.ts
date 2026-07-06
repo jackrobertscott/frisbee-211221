@@ -1,5 +1,6 @@
 import {authPoint} from '@shared/auth/authAccess'
 import {css} from '@emotion/css'
+import type {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TTeam} from '@shared/schemas/ioTeam'
 import dayjs from 'dayjs'
@@ -21,6 +22,15 @@ import {useMedia} from '../Media/useMedia'
 import {Spinner} from '../Spinner'
 import {Table} from '../Table'
 import {useEndpoint} from '../useEndpoint'
+
+const FIXTURE_ACTION_BUTTON_BREAKPOINT = theme.fib[14]
+const FIXTURE_ACTION_BADGE_STYLE: CSSObject = {
+  flexBasis: 0,
+  minWidth: 0,
+  [theme.ltMedia(FIXTURE_ACTION_BUTTON_BREAKPOINT)]: {
+    flexBasis: 'auto',
+  },
+}
 
 export const DashboardFixtures: FC<{
   reportScore: () => void
@@ -65,21 +75,25 @@ export const DashboardFixtures: FC<{
               className: css({
                 display: 'flex',
                 gap: theme.fib[5],
-                [theme.ltMedia(theme.fib[14])]: {
+                [theme.ltMedia(FIXTURE_ACTION_BUTTON_BREAKPOINT)]: {
                   flexDirection: 'column',
                 },
               }),
               children: addkeys([
                 $(FormBadge, {
+                  grow: true,
                   icon: 'wand-sparkles',
                   label: 'Magic Generate',
                   background: theme.bgAdminButton,
+                  style: FIXTURE_ACTION_BADGE_STYLE,
                   click: () => generatingSet(true),
                 }),
                 $(FormBadge, {
+                  grow: true,
                   icon: 'calendar-days',
-                  label: 'Adjust Multiple Fixtures',
+                  label: 'Adjust Fixtures',
                   background: theme.bgAdminButton,
+                  style: FIXTURE_ACTION_BADGE_STYLE,
                   click: () => adjustingSet(true),
                 }),
                 $(FormBadge, {
@@ -87,6 +101,7 @@ export const DashboardFixtures: FC<{
                   icon: 'plus',
                   label: 'Add Fixture',
                   background: theme.bgAdminButton,
+                  style: FIXTURE_ACTION_BADGE_STYLE,
                   click: () => creatingSet(true),
                 }),
               ]),
