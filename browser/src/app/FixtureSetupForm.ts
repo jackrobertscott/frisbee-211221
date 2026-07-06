@@ -80,6 +80,19 @@ const formatFixtureSwapField = (game: TFixtureFormGame) => {
   return game.place?.trim() || 'No field'
 }
 
+const compareFixtureGameSlot = (
+  left: TFixtureFormGame,
+  right: TFixtureFormGame,
+) => {
+  const time = String(left.time ?? '').localeCompare(String(right.time ?? ''))
+  if (time) return time
+  return String(left.place ?? '').localeCompare(String(right.place ?? ''))
+}
+
+const sortFixtureGamesBySlot = (games: TFixtureFormGame[]) => {
+  return [...games].sort(compareFixtureGameSlot)
+}
+
 const FIXTURE_TEXT_WRAP_STYLE: CSSObject = {
   flexShrink: 1,
   minWidth: 0,
@@ -128,16 +141,18 @@ export const FixtureSetupForm: FC<{
       return
     }
 
+    const swappedGames = form.data.games.map((game) => {
+      if (game.id === swapGameId) {
+        return {...game, time: targetGame.time, place: targetGame.place}
+      }
+      if (game.id === targetGameId) {
+        return {...game, time: sourceGame.time, place: sourceGame.place}
+      }
+      return game
+    })
+
     form.patch({
-      games: form.data.games.map((game) => {
-        if (game.id === swapGameId) {
-          return {...game, time: targetGame.time, place: targetGame.place}
-        }
-        if (game.id === targetGameId) {
-          return {...game, time: sourceGame.time, place: sourceGame.place}
-        }
-        return game
-      }),
+      games: sortFixtureGamesBySlot(swappedGames),
     })
     swapGameIdSet(undefined)
     toaster.notify('Game slot changed. Remember to save the fixture.', 6000)
