@@ -1,7 +1,15 @@
 import {css} from '@emotion/css'
+import type {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TTeam} from '@shared/schemas/ioTeam'
-import {createElement as $, FC, Fragment, useEffect, useState} from 'react'
+import {
+  createElement as $,
+  FC,
+  Fragment,
+  type ReactNode,
+  useEffect,
+  useState,
+} from 'react'
 import {$FeatureFixtureSetupLoad} from '../endpoints/Feature'
 import {
   $FixtureCreate,
@@ -24,6 +32,7 @@ import {InputSelect} from './Input/InputSelect'
 import {InputString} from './Input/InputString'
 import {Modal} from './Modal'
 import {Question} from './Question'
+import {Table} from './Table'
 import {TopBar, TopBarBadge} from './TopBar'
 import {useEndpoint} from './useEndpoint'
 import {useForm} from './useForm'
@@ -33,6 +42,56 @@ interface TFixtureForm {
   date?: string
   games: Partial<TFixture['games'][number]>[]
   grading: boolean
+}
+
+type TFixtureFormGame = TFixtureForm['games'][number]
+type TFixtureFormGameWithId = TFixtureFormGame & {id: string}
+
+const FIXTURE_GAME_FIELD_CLASS = css({
+  flexGrow: 1,
+  minWidth: 0,
+  flexShrink: 1,
+  flexBasis: 0,
+  overflow: 'hidden',
+  display: 'flex',
+})
+
+const fixtureGameField = (children: ReactNode) =>
+  $('div', {
+    children,
+    className: FIXTURE_GAME_FIELD_CLASS,
+  })
+
+const formatFixtureSwapTeamName = (teams: TTeam[], teamId?: string) => {
+  if (!teamId) return 'Unassigned'
+  return teams.find((team) => team.id === teamId)?.name ?? '[unknown]'
+}
+
+const formatFixtureSwapMatchup = (game: TFixtureFormGame, teams: TTeam[]) => {
+  return [
+    formatFixtureSwapTeamName(teams, game.team1Id),
+    formatFixtureSwapTeamName(teams, game.team2Id),
+  ].join(' v ')
+}
+
+const formatFixtureSwapSlot = (game: TFixtureFormGame) => {
+  const time = game.time?.trim() || 'No time'
+  const place = game.place?.trim() || 'No field'
+  return `${time} • ${place}`
+}
+
+const FIXTURE_SWAP_ROW_BP = theme.fib[13]
+const FIXTURE_SWAP_LABEL_WIDTH = theme.fib[9]
+const FIXTURE_SWAP_TEXT_STYLE: CSSObject = {
+  flexShrink: 1,
+  minWidth: 0,
+  overflowWrap: 'anywhere',
+  wordBreak: 'break-word',
+}
+const FIXTURE_SWAP_FIXED_LABEL_STYLE: CSSObject = {
+  [theme.ltMedia(FIXTURE_SWAP_ROW_BP)]: {
+    width: 'auto',
+  },
 }
 
 export const FixtureSetupForm: FC<{
@@ -47,6 +106,7 @@ export const FixtureSetupForm: FC<{
   const $fixtureDelete = useEndpoint($FixtureDelete)
   const $setupLoad = useEndpoint($FeatureFixtureSetupLoad)
   const [teams, teamsSet] = useState<TTeam[]>()
+  const [swapGameId, swapGameIdSet] = useState<string>()
   const form = useForm<TFixtureForm>({
     title: '',
     date: undefined,
@@ -61,6 +121,34 @@ export const FixtureSetupForm: FC<{
     })
     return index >= 0
   })
+  const swapGameSlot = (targetGameId: string) => {
+    if (!swapGameId || swapGameId === targetGameId) {
+      swapGameIdSet(undefined)
+      return
+    }
+
+    const sourceGame = form.data.games.find((game) => game.id === swapGameId)
+    const targetGame = form.data.games.find((game) => game.id === targetGameId)
+
+    if (!sourceGame || !targetGame) {
+      swapGameIdSet(undefined)
+      return
+    }
+
+    form.patch({
+      games: form.data.games.map((game) => {
+        if (game.id === swapGameId) {
+          return {...game, time: targetGame.time, place: targetGame.place}
+        }
+        if (game.id === targetGameId) {
+          return {...game, time: sourceGame.time, place: sourceGame.place}
+        }
+        return game
+      }),
+    })
+    swapGameIdSet(undefined)
+  }
+  const swapSourceGame = form.data.games.find((game) => game.id === swapGameId)
   useEffect(() => {
     $setupLoad.fetch({seasonId: auth.season!.id}).then((i) => {
       teamsSet(i.teams)
@@ -132,8 +220,9 @@ export const FixtureSetupForm: FC<{
                             })
                           return $(FormRow, {
                             key: game.id,
-                            children: addkeys(
-                              [
+                            bpColumn: theme.fib[13],
+                            children: addkeys([
+                              fixtureGameField(
                                 $(InputSelect, {
                                   minWidth: theme.fib[9],
                                   value: game.team1Id,
@@ -150,6 +239,8 @@ export const FixtureSetupForm: FC<{
                                         : undefined,
                                   })),
                                 }),
+                              ),
+                              fixtureGameField(
                                 $(InputSelect, {
                                   minWidth: theme.fib[9],
                                   value: game.team2Id,
@@ -166,39 +257,42 @@ export const FixtureSetupForm: FC<{
                                         : undefined,
                                   })),
                                 }),
+                              ),
+                              fixtureGameField(
                                 $(InputString, {
                                   value: game.time,
                                   valueSet: (time) => gamePatch({time}),
                                   placeholder: 'Time',
                                 }),
+                              ),
+                              fixtureGameField(
                                 $(InputString, {
                                   value: game.place,
                                   valueSet: (place) => gamePatch({place}),
                                   placeholder: 'Place',
                                 }),
-                                $(FormBadge, {
-                                  icon: 'times',
-                                  click: () =>
-                                    form.patch({
-                                      games: form.data.games.filter((i) => {
-                                        return i.id !== game.id
-                                      }),
-                                    }),
-                                }),
-                              ].map((child, index, all) => {
-                                if (all.length - 1 === index) return child
-                                return $('div', {
-                                  children: child,
-                                  className: css({
-                                    flexGrow: 1,
-                                    flexShrink: 1,
-                                    flexBasis: 0,
-                                    overflow: 'hidden',
-                                    display: 'flex',
-                                  }),
-                                })
+                              ),
+                              $(FormBadge, {
+                                icon: 'shuffle',
+                                title: 'Swap time and field',
+                                background: theme.bgAdminButton,
+                                noshrink: true,
+                                disabled:
+                                  !game.id || form.data.games.length < 2,
+                                click: () => swapGameIdSet(game.id),
                               }),
-                            ),
+                              $(FormBadge, {
+                                icon: 'times',
+                                title: 'Remove game',
+                                noshrink: true,
+                                click: () =>
+                                  form.patch({
+                                    games: form.data.games.filter((i) => {
+                                      return i.id !== game.id
+                                    }),
+                                  }),
+                              }),
+                            ]),
                           })
                         }),
                       }),
@@ -231,6 +325,8 @@ export const FixtureSetupForm: FC<{
                     background: theme.bgMinor,
                     label:
                       'The results of this fixture will not be included in the ladder.',
+                    wrap: true,
+                    style: FIXTURE_SWAP_TEXT_STYLE,
                   }),
                 ]),
               }),
@@ -266,6 +362,19 @@ export const FixtureSetupForm: FC<{
 
       $(Fragment, {
         children:
+          teams &&
+          swapSourceGame &&
+          $(FixtureSwapForm, {
+            sourceGame: swapSourceGame,
+            games: form.data.games,
+            teams,
+            close: () => swapGameIdSet(undefined),
+            swap: swapGameSlot,
+          }),
+      }),
+
+      $(Fragment, {
+        children:
           deleting &&
           _fixture &&
           $(Question, {
@@ -284,6 +393,133 @@ export const FixtureSetupForm: FC<{
               },
             ],
           }),
+      }),
+    ]),
+  })
+}
+
+const FixtureSwapForm: FC<{
+  sourceGame: TFixtureFormGame
+  games: TFixtureFormGame[]
+  teams: TTeam[]
+  close: () => void
+  swap: (targetGameId: string) => void
+}> = ({sourceGame, games, teams, close, swap}) => {
+  const targetGames: TFixtureFormGameWithId[] = games.filter(
+    (game): game is TFixtureFormGameWithId => {
+      return typeof game.id === 'string' && game.id !== sourceGame.id
+    },
+  )
+
+  return $(Modal, {
+    close,
+    width: theme.fib[13],
+    children: addkeys([
+      $(TopBar, {
+        children: addkeys([
+          $(TopBarBadge, {
+            grow: true,
+            label: 'Swap Game Slot',
+          }),
+          $(TopBarBadge, {
+            icon: 'times',
+            click: close,
+          }),
+        ]),
+      }),
+      $(Form, {
+        background: theme.bgMinor,
+        children: addkeys([
+          $(FormLabel, {
+            background: theme.bgMinor,
+            font: theme.fontMinor,
+            label:
+              'Choose another game to swap time and field with. Teams and scores stay on their original games.',
+            wrap: true,
+            style: FIXTURE_SWAP_TEXT_STYLE,
+          }),
+          $(FormColumn, {
+            children: addkeys([
+              $(FormRow, {
+                bpColumn: FIXTURE_SWAP_ROW_BP,
+                children: addkeys([
+                  $(FormLabel, {
+                    label: 'Selected Game',
+                    width: FIXTURE_SWAP_LABEL_WIDTH,
+                    wrap: true,
+                    style: FIXTURE_SWAP_FIXED_LABEL_STYLE,
+                  }),
+                  $(FormLabel, {
+                    label: formatFixtureSwapMatchup(sourceGame, teams),
+                    background: theme.bg,
+                    grow: true,
+                    wrap: true,
+                    style: FIXTURE_SWAP_TEXT_STYLE,
+                  }),
+                ]),
+              }),
+              $(FormRow, {
+                bpColumn: FIXTURE_SWAP_ROW_BP,
+                children: addkeys([
+                  $(FormLabel, {
+                    label: 'Current Slot',
+                    width: FIXTURE_SWAP_LABEL_WIDTH,
+                    wrap: true,
+                    style: FIXTURE_SWAP_FIXED_LABEL_STYLE,
+                  }),
+                  $(FormLabel, {
+                    label: formatFixtureSwapSlot(sourceGame),
+                    background: theme.bg,
+                    grow: true,
+                    wrap: true,
+                    style: FIXTURE_SWAP_TEXT_STYLE,
+                  }),
+                ]),
+              }),
+            ]),
+          }),
+          $(Table, {
+            head: {
+              game: {label: 'Swap With', grow: 3},
+              slot: {label: 'Slot', grow: 2},
+              action: {label: '', grow: 1},
+            },
+            empty: 'Add another game before swapping.',
+            body: targetGames.map((game) => {
+              return {
+                key: game.id,
+                click: () => swap(game.id),
+                data: {
+                  game: {
+                    children: $(FormLabel, {
+                      label: formatFixtureSwapMatchup(game, teams),
+                      grow: true,
+                      wrap: true,
+                      style: FIXTURE_SWAP_TEXT_STYLE,
+                    }),
+                  },
+                  slot: {
+                    children: $(FormLabel, {
+                      label: formatFixtureSwapSlot(game),
+                      font: theme.fontMinor,
+                      grow: true,
+                      wrap: true,
+                      style: FIXTURE_SWAP_TEXT_STYLE,
+                    }),
+                  },
+                  action: {
+                    children: $(FormLabel, {
+                      icon: 'shuffle',
+                      title: 'Swap with this game',
+                      background: theme.bgAdminButton,
+                      grow: true,
+                    }),
+                  },
+                },
+              }
+            }),
+          }),
+        ]),
       }),
     ]),
   })

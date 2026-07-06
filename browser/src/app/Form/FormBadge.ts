@@ -25,6 +25,7 @@ export interface TFormBadge {
   select?: Property.UserSelect
   style?: CSSObject
   wrap?: boolean
+  title?: string
 }
 
 export const FormBadge: FC<TFormBadge> = ({
@@ -45,12 +46,15 @@ export const FormBadge: FC<TFormBadge> = ({
   select,
   style,
   wrap,
+  title,
 }) => {
   const background = disabled ? theme.bgDisabled : _background || theme.bg
   const fontColor =
-    font ?? (typeof background === 'string' ? undefined : background.compliment())
+    font ??
+    (typeof background === 'string' ? undefined : background.compliment())
   return $('div', {
     onClick: (event: MouseEvent) => !disabled && click?.(event),
+    title,
     className: css(
       {
         width,
