@@ -21,6 +21,7 @@ import {addkeys} from '../utils/addkeys'
 import {random} from '../utils/random'
 import {spreadify} from '../utils/spreadify'
 import {useAuth} from './Auth/useAuth'
+import {useToaster} from './Toaster/useToaster'
 import {Form} from './Form/Form'
 import {FormBadge} from './Form/FormBadge'
 import {FormColumn} from './Form/FormColumn'
@@ -62,44 +63,36 @@ const fixtureGameField = (children: ReactNode) =>
     className: FIXTURE_GAME_FIELD_CLASS,
   })
 
+const getFixtureSwapTeam = (teams: TTeam[], teamId?: string) => {
+  return teams.find((team) => team.id === teamId)
+}
+
 const formatFixtureSwapTeamName = (teams: TTeam[], teamId?: string) => {
   if (!teamId) return 'Unassigned'
-  return teams.find((team) => team.id === teamId)?.name ?? '[unknown]'
+  return getFixtureSwapTeam(teams, teamId)?.name ?? '[unknown]'
 }
 
-const formatFixtureSwapMatchup = (game: TFixtureFormGame, teams: TTeam[]) => {
-  return [
-    formatFixtureSwapTeamName(teams, game.team1Id),
-    formatFixtureSwapTeamName(teams, game.team2Id),
-  ].join(' v ')
+const formatFixtureSwapTime = (game: TFixtureFormGame) => {
+  return game.time?.trim() || 'No time'
 }
 
-const formatFixtureSwapSlot = (game: TFixtureFormGame) => {
-  const time = game.time?.trim() || 'No time'
-  const place = game.place?.trim() || 'No field'
-  return `${time} • ${place}`
+const formatFixtureSwapField = (game: TFixtureFormGame) => {
+  return game.place?.trim() || 'No field'
 }
 
-const FIXTURE_SWAP_ROW_BP = theme.fib[13]
-const FIXTURE_SWAP_LABEL_WIDTH = theme.fib[9]
-const FIXTURE_SWAP_TEXT_STYLE: CSSObject = {
+const FIXTURE_TEXT_WRAP_STYLE: CSSObject = {
   flexShrink: 1,
   minWidth: 0,
   overflowWrap: 'anywhere',
   wordBreak: 'break-word',
 }
-const FIXTURE_SWAP_FIXED_LABEL_STYLE: CSSObject = {
-  [theme.ltMedia(FIXTURE_SWAP_ROW_BP)]: {
-    width: 'auto',
-  },
-}
-
 export const FixtureSetupForm: FC<{
   fixture?: TFixture
   close: () => void
   done: () => void
 }> = ({fixture: _fixture, close, done}) => {
   const auth = useAuth()
+  const toaster = useToaster()
   const [deleting, deletingSet] = useState(false)
   const $fixtureCreate = useEndpoint($FixtureCreate)
   const $fixtureUpdate = useEndpoint($FixtureUpdate)
@@ -147,6 +140,7 @@ export const FixtureSetupForm: FC<{
       }),
     })
     swapGameIdSet(undefined)
+    toaster.notify('Game slot changed. Remember to save the fixture.', 6000)
   }
   const swapSourceGame = form.data.games.find((game) => game.id === swapGameId)
   useEffect(() => {
@@ -326,7 +320,7 @@ export const FixtureSetupForm: FC<{
                     label:
                       'The results of this fixture will not be included in the ladder.',
                     wrap: true,
-                    style: FIXTURE_SWAP_TEXT_STYLE,
+                    style: FIXTURE_TEXT_WRAP_STYLE,
                   }),
                 ]),
               }),
@@ -430,90 +424,34 @@ const FixtureSwapForm: FC<{
       $(Form, {
         background: theme.bgMinor,
         children: addkeys([
-          $(FormLabel, {
-            background: theme.bgMinor,
-            font: theme.fontMinor,
-            label:
-              'Choose another game to swap time and field with. Teams and scores stay on their original games.',
-            wrap: true,
-            style: FIXTURE_SWAP_TEXT_STYLE,
-          }),
-          $(FormColumn, {
-            children: addkeys([
-              $(FormRow, {
-                bpColumn: FIXTURE_SWAP_ROW_BP,
-                children: addkeys([
-                  $(FormLabel, {
-                    label: 'Selected Game',
-                    width: FIXTURE_SWAP_LABEL_WIDTH,
-                    wrap: true,
-                    style: FIXTURE_SWAP_FIXED_LABEL_STYLE,
-                  }),
-                  $(FormLabel, {
-                    label: formatFixtureSwapMatchup(sourceGame, teams),
-                    background: theme.bg,
-                    grow: true,
-                    wrap: true,
-                    style: FIXTURE_SWAP_TEXT_STYLE,
-                  }),
-                ]),
-              }),
-              $(FormRow, {
-                bpColumn: FIXTURE_SWAP_ROW_BP,
-                children: addkeys([
-                  $(FormLabel, {
-                    label: 'Current Slot',
-                    width: FIXTURE_SWAP_LABEL_WIDTH,
-                    wrap: true,
-                    style: FIXTURE_SWAP_FIXED_LABEL_STYLE,
-                  }),
-                  $(FormLabel, {
-                    label: formatFixtureSwapSlot(sourceGame),
-                    background: theme.bg,
-                    grow: true,
-                    wrap: true,
-                    style: FIXTURE_SWAP_TEXT_STYLE,
-                  }),
-                ]),
-              }),
-            ]),
-          }),
           $(Table, {
             head: {
-              game: {label: 'Swap With', grow: 3},
-              slot: {label: 'Slot', grow: 2},
-              action: {label: '', grow: 1},
+              team1: {label: 'Team 1', grow: 2},
+              team2: {label: 'Team 2', grow: 2},
+              time: {label: 'Time', grow: 1},
+              field: {label: 'Field', grow: 1},
             },
             empty: 'Add another game before swapping.',
             body: targetGames.map((game) => {
+              const team1 = getFixtureSwapTeam(teams, game.team1Id)
+              const team2 = getFixtureSwapTeam(teams, game.team2Id)
               return {
                 key: game.id,
                 click: () => swap(game.id),
                 data: {
-                  game: {
-                    children: $(FormLabel, {
-                      label: formatFixtureSwapMatchup(game, teams),
-                      grow: true,
-                      wrap: true,
-                      style: FIXTURE_SWAP_TEXT_STYLE,
-                    }),
+                  team1: {
+                    value: formatFixtureSwapTeamName(teams, game.team1Id),
+                    color: team1?.color,
                   },
-                  slot: {
-                    children: $(FormLabel, {
-                      label: formatFixtureSwapSlot(game),
-                      font: theme.fontMinor,
-                      grow: true,
-                      wrap: true,
-                      style: FIXTURE_SWAP_TEXT_STYLE,
-                    }),
+                  team2: {
+                    value: formatFixtureSwapTeamName(teams, game.team2Id),
+                    color: team2?.color,
                   },
-                  action: {
-                    children: $(FormLabel, {
-                      icon: 'shuffle',
-                      title: 'Swap with this game',
-                      background: theme.bgAdminButton,
-                      grow: true,
-                    }),
+                  time: {
+                    value: formatFixtureSwapTime(game),
+                  },
+                  field: {
+                    value: formatFixtureSwapField(game),
                   },
                 },
               }
