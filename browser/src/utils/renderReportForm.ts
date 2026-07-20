@@ -4,7 +4,6 @@ import {
   TReportUpdatePayload,
 } from '@shared/endpoints/ReportDef'
 import {exactShape} from '@shared/utils/endpointDef'
-import type {CSSObject} from '@emotion/css/dist/declarations/src/create-instance'
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TReport} from '@shared/schemas/ioReport'
 import {TSeason} from '@shared/schemas/ioSeason'
@@ -82,13 +81,7 @@ const REPORT_FORM_DEFAULTS: ReportFormData = {
 
 const MVP_ROW_BP = theme.fib[12] - theme.fib[7]
 const MVP_LABEL_WIDTH = 140
-const SCORE_LABEL_BP = theme.fib[12]
 const SCORE_LABEL_WIDTH = theme.fib[10]
-const SCORE_LABEL_STYLE: CSSObject = {
-  [theme.ltMedia(SCORE_LABEL_BP)]: {
-    width: 'auto',
-  },
-}
 const SPIRIT_LABEL_WIDTH = 220
 
 export const createReportFormData = (
@@ -464,13 +457,10 @@ export function renderScoreInputs(
   return $(FormColumn, {
     children: addkeys([
       $(FormRow, {
-        bpColumn: SCORE_LABEL_BP,
         children: addkeys([
           $(FormLabel, {
             width: SCORE_LABEL_WIDTH,
             label: adminVersion ? 'For Score' : 'Your Score',
-            wrap: true,
-            style: SCORE_LABEL_STYLE,
           }),
           $(InputNumber, {
             value: scoreFor,
@@ -479,13 +469,10 @@ export function renderScoreInputs(
         ]),
       }),
       $(FormRow, {
-        bpColumn: SCORE_LABEL_BP,
         children: addkeys([
           $(FormLabel, {
             width: SCORE_LABEL_WIDTH,
             label: adminVersion ? 'Against Score' : 'Opponent Score',
-            wrap: true,
-            style: SCORE_LABEL_STYLE,
           }),
           $(InputNumber, {
             value: scoreAgainst,
