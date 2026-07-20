@@ -63,6 +63,25 @@ const fixtureGameField = (children: ReactNode) =>
     className: FIXTURE_GAME_FIELD_CLASS,
   })
 
+const FIXTURE_GAMES_SCROLL_CLASS = css({
+  width: '100%',
+  overflowX: 'auto',
+  overscrollBehaviorX: 'contain',
+})
+
+const FIXTURE_GAMES_GRID_CLASS = css({
+  minWidth: theme.fib[13],
+})
+
+const fixtureGamesGrid = (children: ReactNode) =>
+  $('div', {
+    children: $(FormColumn, {
+      children,
+      className: FIXTURE_GAMES_GRID_CLASS,
+    }),
+    className: FIXTURE_GAMES_SCROLL_CLASS,
+  })
+
 const getFixtureSwapTeam = (teams: TTeam[], teamId?: string) => {
   return teams.find((team) => team.id === teamId)
 }
@@ -217,8 +236,8 @@ export const FixtureSetupForm: FC<{
               $(Fragment, {
                 children:
                   !!teams?.length &&
-                  $(FormColumn, {
-                    children: addkeys([
+                  fixtureGamesGrid(
+                    addkeys([
                       $(Fragment, {
                         children: form.data.games.map((game) => {
                           const gamePatch = (data: Partial<typeof game>) =>
@@ -229,7 +248,6 @@ export const FixtureSetupForm: FC<{
                             })
                           return $(FormRow, {
                             key: game.id,
-                            bpColumn: theme.fib[13],
                             children: addkeys([
                               fixtureGameField(
                                 $(InputSelect, {
@@ -316,7 +334,7 @@ export const FixtureSetupForm: FC<{
                           }),
                       }),
                     ]),
-                  }),
+                  ),
               }),
               $(FormColumn, {
                 children: addkeys([
