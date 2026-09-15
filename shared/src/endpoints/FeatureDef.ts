@@ -148,6 +148,7 @@ export const FeatureDashboardMvpLoadDef = {
     seasonId: ioSeason.shape.id,
   }),
   result: io.object({
+    // Votes descending, then division ascending (unassigned last), then player name.
     rows: io.array(ioFeatureMvpRow),
   }),
 } satisfies TEndpointDef

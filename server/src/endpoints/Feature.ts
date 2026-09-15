@@ -292,11 +292,6 @@ export default new Map<string, RequestHandler>([
               ((row.gender === 0 && slots.male) ||
                 (row.gender === 1 && slots.female)),
           )
-          .sort((a, b) => {
-            const diff = b.votes - a.votes
-            if (diff !== 0) return diff
-            return a.userName.localeCompare(b.userName)
-          })
         return {rows: result}
       },
   }),
@@ -698,7 +693,63 @@ function _createMvpAggregatePipeline(
         teamId: 1,
       },
     },
-    {$sort: {votes: -1, userId: 1}},
+    {
+      $lookup: {
+        from: $Team.key(),
+        localField: 'teamId',
+        foreignField: 'id',
+        pipeline: [
+          {$match: {seasonId: season.id}},
+          {$project: {_id: 0, division: 1}},
+        ],
+        as: '_sortTeam',
+      },
+    },
+    {
+      $lookup: {
+        from: $User.key(),
+        localField: 'userId',
+        foreignField: 'id',
+        pipeline: [{$project: {_id: 0, firstName: 1, lastName: 1}}],
+        as: '_sortUser',
+      },
+    },
+    {
+      $addFields: {
+        _sortDivision: {$arrayElemAt: ['$_sortTeam.division', 0]},
+        _sortUserName: {
+          $concat: [
+            {$ifNull: [{$arrayElemAt: ['$_sortUser.firstName', 0]}, '']},
+            ' ',
+            {$ifNull: [{$arrayElemAt: ['$_sortUser.lastName', 0]}, '']},
+          ],
+        },
+      },
+    },
+    {
+      $addFields: {
+        _sortDivisionMissing: {
+          $in: [{$type: '$_sortDivision'}, ['missing', 'null']],
+        },
+      },
+    },
+    {
+      $sort: {
+        votes: -1,
+        _sortDivisionMissing: 1,
+        _sortDivision: 1,
+        _sortUserName: 1,
+      },
+    },
+    {
+      $project: {
+        _sortTeam: 0,
+        _sortUser: 0,
+        _sortDivision: 0,
+        _sortDivisionMissing: 0,
+        _sortUserName: 0,
+      },
+    },
   ]
 }
 
