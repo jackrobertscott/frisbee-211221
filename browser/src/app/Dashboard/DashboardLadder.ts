@@ -97,40 +97,51 @@ export const DashboardLadder: FC = () => {
           $(Fragment, {
             children:
               !!finalResultsAndTeam?.length &&
-              divisions.map((division) => {
-                const resultsOfDiv = finalResultsAndTeam
-                  .filter(([i]) => i.position !== undefined)
-                  .filter(([_, t]) => t?.division === division)
-                  .sort((a, b) => a[0].position! - b[0].position!)
-                if (resultsOfDiv.length === 0) return null
-                return $(FormColumn, {
-                  key: division.toString(),
-                  children: addkeys([
-                    $(FormBadge, {
-                      label: 'Final Results of Div ' + division,
-                      background: theme.bgMinor,
-                    }),
-                    $(Table, {
-                      head: {
-                        position: {label: 'Position', grow: 1},
-                        team: {label: 'Team', grow: 3},
-                      },
-                      body: resultsOfDiv.map(([fr, t]) => {
-                        return {
-                          key: fr.teamId,
-                          data: {
-                            position: {value: fr.position!},
-                            team: {
-                              icon: fr.position === 1 ? 'trophy' : undefined,
-                              value: t?.name ?? 'Unknown',
-                              color: t?.color,
-                            },
-                          },
-                        }
+              $('div', {
+                className: css({
+                  display: 'grid',
+                  gridAutoFlow: 'column',
+                  gridAutoColumns: `minmax(${theme.fib[11]}px, 1fr)`,
+                  alignItems: 'start',
+                  gap: theme.fib[5],
+                  minWidth: 0,
+                  overflowX: 'auto',
+                }),
+                children: divisions.map((division) => {
+                  const resultsOfDiv = finalResultsAndTeam
+                    .filter(([i]) => i.position !== undefined)
+                    .filter(([_, t]) => t?.division === division)
+                    .sort((a, b) => a[0].position! - b[0].position!)
+                  if (resultsOfDiv.length === 0) return null
+                  return $(FormColumn, {
+                    key: division.toString(),
+                    children: addkeys([
+                      $(FormBadge, {
+                        label: 'Final Results of Div ' + division,
+                        background: theme.bgMinor,
                       }),
-                    }),
-                  ]),
-                })
+                      $(Table, {
+                        head: {
+                          position: {label: 'Position', grow: 1},
+                          team: {label: 'Team', grow: 3},
+                        },
+                        body: resultsOfDiv.map(([fr, t]) => {
+                          return {
+                            key: fr.teamId,
+                            data: {
+                              position: {value: fr.position!},
+                              team: {
+                                icon: fr.position === 1 ? 'trophy' : undefined,
+                                value: t?.name ?? 'Unknown',
+                                color: t?.color,
+                              },
+                            },
+                          }
+                        }),
+                      }),
+                    ]),
+                  })
+                }),
               }),
           }),
           $(Fragment, {
