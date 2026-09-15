@@ -169,14 +169,14 @@ export const Dashboard: FC = () => {
                     fallback: '/fixtures',
                     routes: [
                       {
-                        path: '/fixtures',
-                        label: 'Fixtures',
-                        render: () => $(DashboardFixtures, {reportScore}),
-                      },
-                      {
                         path: '/ladder',
                         label: 'Ladder',
                         render: () => $(DashboardLadder),
+                      },
+                      {
+                        path: '/fixtures',
+                        label: 'Fixtures',
+                        render: () => $(DashboardFixtures, {reportScore}),
                       },
                       auth.can(authPoint.reportManage) && {
                         path: '/reports',
