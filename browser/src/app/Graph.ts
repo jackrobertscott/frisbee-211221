@@ -6,6 +6,7 @@ export const Graph: FC<{
   title?: string
   yLabel?: string
   xLabel?: string
+  xStart?: number
   dots?: [number, number][]
   line?: number[]
   bars?: number[]
@@ -14,6 +15,7 @@ export const Graph: FC<{
   title,
   yLabel,
   xLabel,
+  xStart = 0,
   dots,
   line,
   bars,
@@ -68,7 +70,7 @@ export const Graph: FC<{
       const yLength = height - axis
       const yIncrement = yLength / yCount
       const ySmall = yIncrement <= 20
-      const xMaxDots = dots ? Math.max(...dots.map((i) => i[0])) : 0
+      const xMaxDots = dots ? Math.max(...dots.map((i) => i[0] - xStart)) : 0
       const xMaxLine = line ? line.length : 0
       const xMaxBars = bars ? bars.length : 0
       const xCount = Math.max(xMaxDots, xMaxLine, xMaxBars, 5) + 2
@@ -95,7 +97,7 @@ export const Graph: FC<{
         ctx.beginPath()
         ctx.fillStyle = dataColor
         for (let i = 0; i < dots.length; i++) {
-          const x = axis + Math.round((dots[i][0] + 1) * xIncrement)
+          const x = axis + Math.round((dots[i][0] - xStart + 1) * xIncrement)
           const y = height - axis - Math.round(dots[i][1] * yIncrement)
           ctx.moveTo(x, y)
           ctx.arc(x, y, 3, 0, Math.PI * 2)
@@ -169,7 +171,7 @@ export const Graph: FC<{
           const bold = xSmall && i % 2 === 0
           ctx.moveTo(x, y)
           ctx.lineTo(x, bold ? y + 10 : y + 5)
-          if (!xSmall || i % 2 === 0) ctx.fillText(i.toString(), x, y + 20)
+          if (!xSmall || i % 2 === 0) ctx.fillText((i + xStart).toString(), x, y + 20)
         }
         ctx.stroke()
         if (xLabel) {
@@ -189,7 +191,7 @@ export const Graph: FC<{
     const observer = new ResizeObserver(draw)
     observer.observe(bg)
     return () => observer.disconnect()
-  }, [_height, appTheme.current, bars, dots, line, title, xLabel, yLabel])
+  }, [_height, appTheme.current, bars, dots, line, title, xLabel, xStart, yLabel])
   return $('div', {
     ref: bgRef,
     className: css({

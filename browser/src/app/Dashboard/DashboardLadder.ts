@@ -203,6 +203,7 @@ export const DashboardLadder: FC = () => {
                 title: 'All Teams, All Games',
                 yLabel: 'Occurrences',
                 xLabel: 'Points Scored',
+                xStart: 1,
                 bars: (() => {
                   const all = fixtures
                     .map((i) => {
@@ -213,9 +214,9 @@ export const DashboardLadder: FC = () => {
                     .flat()
                     .filter((i): i is number => typeof i === 'number' && i !== 0)
                   const max = Math.max(0, ...all)
-                  const data = new Array<number>(max + 1).fill(0)
+                  const data = new Array<number>(max).fill(0)
                   for (let i = 0; i < data.length; i++)
-                    data[i] = all.filter((x) => x === i).length
+                    data[i] = all.filter((x) => x === i + 1).length
                   return data
                 })(),
               }),
