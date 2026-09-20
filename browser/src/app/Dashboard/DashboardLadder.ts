@@ -211,7 +211,7 @@ export const DashboardLadder: FC = () => {
                         .flat()
                     })
                     .flat()
-                    .filter((i) => typeof i === 'number') as number[]
+                    .filter((i): i is number => typeof i === 'number' && i !== 0)
                   const max = Math.max(0, ...all)
                   const data = new Array<number>(max + 1).fill(0)
                   for (let i = 0; i < data.length; i++)
