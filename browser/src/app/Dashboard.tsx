@@ -32,7 +32,6 @@ import {
   Moon,
   Settings,
   Sun,
-  UserPlus,
   Users,
 } from 'lucide-react'
 import {lazy, type ReactNode, Suspense, useEffect, useState} from 'react'
@@ -332,25 +331,14 @@ function Header() {
             </Menu>
           </>
         ) : (
-          <>
-            <Button
-              size="sm"
-              variant="ghost"
-              leading={<LogIn />}
-              onClick={() => go.to('/auth/welcome')}
-              className="fr-hide-sm"
-            >
-              Log in
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              leading={<UserPlus />}
-              onClick={() => go.to('/auth/welcome')}
-            >
-              Sign up
-            </Button>
-          </>
+          <Button
+            size="sm"
+            variant="secondary"
+            leading={<LogIn />}
+            onClick={() => go.to('/auth/welcome')}
+          >
+            Log in
+          </Button>
         )}
       </div>
     </header>
