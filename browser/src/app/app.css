@@ -101,10 +101,12 @@ body { background: var(--bg-app); }
   height: 48px;
   padding: 0 var(--sp-4);
   text-align: left;
-  border-radius: var(--radius-lg);
 }
-.fr-row__toggle:hover { background: var(--bg-hover); }
-.fr-row__toggle:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--ring); }
+/* Hover/focus paint the whole head so the highlight fills the card edge to edge, action area included. */
+.fr-row__head:has(.fr-row__toggle:hover) { background: var(--bg-hover); }
+.fr-row__toggle:focus-visible { outline: none; }
+.fr-row__head:has(.fr-row__toggle:focus-visible) { box-shadow: inset 0 0 0 2px var(--ring); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+.fr-row:not([data-open]) .fr-row__head:has(.fr-row__toggle:focus-visible) { border-radius: var(--radius-lg); }
 .fr-row__title { display: inline-flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-sm); font-weight: var(--weight-medium); white-space: nowrap; }
 .fr-row__meta { margin-left: auto; font-size: var(--fs-sm); color: var(--text-tertiary); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .fr-row__chevron { width: 16px; height: 16px; color: var(--text-tertiary); transition: transform var(--dur) var(--ease); flex-shrink: 0; }
@@ -249,8 +251,14 @@ body { background: var(--bg-app); }
 }
 
 /* Loading ----------------------------------------------------------------- */
-.fr-loading { min-height: 50vh; display: grid; place-items: center; }
-.fr-app > .fr-loading { min-height: 100vh; }
+.fr-loading { --_min: 50vh; min-height: var(--_min); display: grid; place-items: center; }
+.fr-app > .fr-loading { --_min: 100vh; }
+/* Fast loads skip the spinner entirely: it (and the space it reserves) only appears once loading has taken a moment, so panels go straight from empty to content instead of flashing a tall spinner. */
+.fr-loading--pending { animation: fr-loading-reveal 0s 250ms both; }
+@keyframes fr-loading-reveal {
+  from { min-height: 0; visibility: hidden; }
+  to { min-height: var(--_min); visibility: visible; }
+}
 
 @media print {
   .fr-share__bar { display: none; }

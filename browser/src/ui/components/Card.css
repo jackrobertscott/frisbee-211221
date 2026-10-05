@@ -35,6 +35,11 @@
 .ui-card__desc { font-size: var(--fs-sm); color: var(--text-tertiary); }
 .ui-card__actions { display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; margin: calc(var(--sp-1) * -1) 0; }
 .ui-card__body { padding: var(--sp-4) var(--sp-5); flex: 1; min-width: 0; }
+/* A flush table at the card's edge clips its row backgrounds to the card's rounded corners (inner radius = outer minus the 1px border). */
+.ui-card > .ui-table-wrap:first-child,
+.ui-card > .ui-table-wrap:first-child > .ui-table-scroll { border-top-left-radius: calc(var(--radius-lg) - 1px); border-top-right-radius: calc(var(--radius-lg) - 1px); }
+.ui-card > .ui-table-wrap:last-child,
+.ui-card > .ui-table-wrap:last-child > .ui-table-scroll { border-bottom-left-radius: calc(var(--radius-lg) - 1px); border-bottom-right-radius: calc(var(--radius-lg) - 1px); }
 .ui-card__footer {
   display: flex;
   align-items: center;

@@ -194,7 +194,7 @@ export function Loading({
       </div>
     )
   return (
-    <div className="fr-loading" role="status" aria-label={label}>
+    <div className="fr-loading fr-loading--pending" role="status" aria-label={label}>
       <Spinner />
     </div>
   )
