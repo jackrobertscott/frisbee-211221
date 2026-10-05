@@ -11,6 +11,20 @@ const colorLabel = (color: string) => {
   return index < 0 ? color : `Colour ${index + 1}`
 }
 
+const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+
+/** Client-side checks shown inline once the user tries to save. */
+export const teamFormErrors = (value: TTeamFormValue, contact = true) => {
+  const errors: {name?: string; email?: string} = {}
+  if (!value.name.trim()) errors.name = 'Give the team a name.'
+  if (contact && value.email.trim() && !isEmail(value.email.trim()))
+    errors.email = 'Enter a valid email address.'
+  return errors
+}
+
+export const hasTeamFormErrors = (value: TTeamFormValue, contact = true) =>
+  Object.keys(teamFormErrors(value, contact)).length > 0
+
 export interface TTeamFormValue {
   name: string
   phone: string
@@ -26,17 +40,21 @@ export function TeamFormFields({
   contact = true,
   division,
   autoFocus,
+  showErrors,
 }: {
   value: TTeamFormValue
   onChange: (value: TTeamFormValue) => void
   contact?: boolean
   division?: boolean
   autoFocus?: boolean
+  /** Show validation messages (set after the first save attempt). */
+  showErrors?: boolean
 }) {
   const set = (patch: Partial<TTeamFormValue>) => onChange({...value, ...patch})
+  const errors = showErrors ? teamFormErrors(value, contact) : {}
   return (
     <Stack gap={4}>
-      <Field label="Team name">
+      <Field label="Team name" error={errors.name}>
         <Input
           value={value.name}
           onChange={(e) => set({name: e.target.value})}
@@ -53,7 +71,7 @@ export function TeamFormFields({
               placeholder="04xx xxx xxx"
             />
           </Field>
-          <Field label="Public email" optional>
+          <Field label="Public email" optional error={errors.email}>
             <Input
               leading={<Mail />}
               type="email"

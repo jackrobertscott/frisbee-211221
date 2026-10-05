@@ -23,7 +23,12 @@ import {
   $TeamUpdate,
 } from '../../endpoints/Team'
 import {fmtDateTime, TeamName} from '../shared'
-import {TeamFormFields, teamFormFrom, type TTeamFormValue} from './TeamForm'
+import {
+  hasTeamFormErrors,
+  TeamFormFields,
+  teamFormFrom,
+  type TTeamFormValue,
+} from './TeamForm'
 import {TeamMembers} from './TeamMembers'
 
 const sameForm = (a: TTeamFormValue, b: TTeamFormValue) =>
@@ -86,9 +91,13 @@ export function TeamAdminDialog({
   useEffect(() => tabSet('details'), [teamId])
   useEffect(() => formSet(teamFormFrom(team)), [team])
   const isDifferent = !!team && !sameForm(form, teamFormFrom(team))
+  const [checked, checkedSet] = useState(false)
+  useEffect(() => checkedSet(false), [teamId])
   const save = (e?: FormEvent) => {
     e?.preventDefault()
     if (!team || !isDifferent) return
+    checkedSet(true)
+    if (hasTeamFormErrors(form)) return
     $teamUpdate
       .fetch({
         teamId: team.id,
@@ -148,7 +157,12 @@ export function TeamAdminDialog({
             <TabPanel value="details">
               <form onSubmit={save} noValidate>
                 <Stack gap={5}>
-                  <TeamFormFields value={form} onChange={formSet} division />
+                  <TeamFormFields
+                    value={form}
+                    onChange={formSet}
+                    division
+                    showErrors={checked}
+                  />
                   <DescriptionList
                     items={[
                       {term: 'Created', detail: fmtDateTime(team.createdOn)},
@@ -201,13 +215,18 @@ export function TeamCreateDialog({
   const auth = useAuth()
   const $teamCreate = useEndpoint($TeamCreate)
   const [form, formSet] = useState(() => teamFormFrom())
+  const [checked, checkedSet] = useState(false)
   useEffect(() => {
-    if (open) formSet(teamFormFrom())
+    if (!open) return
+    formSet(teamFormFrom())
+    checkedSet(false)
   }, [open])
   const submit = (e?: FormEvent) => {
     e?.preventDefault()
     const seasonId = auth.season?.id
     if (!seasonId || $teamCreate.loading) return
+    checkedSet(true)
+    if (hasTeamFormErrors(form)) return
     $teamCreate
       .fetch({
         seasonId,
@@ -243,7 +262,12 @@ export function TeamCreateDialog({
       }
     >
       <form onSubmit={submit} noValidate>
-        <TeamFormFields value={form} onChange={formSet} autoFocus />
+        <TeamFormFields
+          value={form}
+          onChange={formSet}
+          autoFocus
+          showErrors={checked}
+        />
         <button type="submit" hidden />
       </form>
     </Dialog>
@@ -263,13 +287,18 @@ export function TeamCurrentCreateDialog({
   const auth = useAuth()
   const $create = useEndpoint($TeamCurrentCreate)
   const [form, formSet] = useState(() => teamFormFrom())
+  const [checked, checkedSet] = useState(false)
   useEffect(() => {
-    if (open) formSet(teamFormFrom())
+    if (!open) return
+    formSet(teamFormFrom())
+    checkedSet(false)
   }, [open])
   const submit = (e?: FormEvent) => {
     e?.preventDefault()
     const seasonId = auth.season?.id
     if (!seasonId || $create.loading) return
+    checkedSet(true)
+    if (hasTeamFormErrors(form, false)) return
     $create
       .fetch({seasonId, name: form.name, color: form.color})
       .then(({team}) => onCreated(team))
@@ -298,7 +327,13 @@ export function TeamCurrentCreateDialog({
               Team sign-ups for {auth.season.name} are currently closed.
             </Alert>
           )}
-          <TeamFormFields value={form} onChange={formSet} contact={false} autoFocus />
+          <TeamFormFields
+            value={form}
+            onChange={formSet}
+            contact={false}
+            autoFocus
+            showErrors={checked}
+          />
         </Stack>
         <button type="submit" hidden />
       </form>

@@ -14,7 +14,7 @@ export function App() {
   return (
     <>
       <AppRoutes />
-      <Toaster />
+      <Toaster position="top-center" />
     </>
   )
 }

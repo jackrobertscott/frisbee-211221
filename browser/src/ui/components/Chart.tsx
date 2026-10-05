@@ -26,6 +26,8 @@ export interface BarChartProps {
   /** Hide the legend (shown automatically for 2+ series). */
   hideLegend?: boolean;
   formatValue?: (v: number) => string;
+  /** Values are whole numbers (counts): keep y-axis ticks on integers. */
+  integer?: boolean;
   /** Accessible summary of what the chart shows. */
   'aria-label': string;
   className?: string;
@@ -43,11 +45,12 @@ function niceStep(max: number, target = 5) {
 const paletteColor = (i: number) => `var(--chart-${(i % 5) + 1})`;
 
 /** Grouped vertical bar chart with gridlines, tooltips, legend and a screen-reader data table. */
-export function BarChart({ data, series, height = 240, xLabel, yLabel, hideLegend, formatValue = (v) => String(v), className, ...aria }: BarChartProps) {
+export function BarChart({ data, series, height = 240, xLabel, yLabel, hideLegend, formatValue = (v) => String(v), integer, className, ...aria }: BarChartProps) {
   const max = Math.max(0, ...data.flatMap((d) => series.map((s) => d.values[s.key] ?? 0)));
-  const step = niceStep(max);
+  const step = integer ? Math.max(1, niceStep(max)) : niceStep(max);
   const top = Math.max(step, Math.ceil(max / step) * step);
-  const ticks = Array.from({ length: Math.round(top / step) + 1 }, (_, i) => i * step);
+  // toPrecision trims float noise (0.1 * 6 = 0.6000000000000001).
+  const ticks = Array.from({ length: Math.round(top / step) + 1 }, (_, i) => Number((i * step).toPrecision(12)));
   const colors = series.map((s, i) => s.color ?? paletteColor(i));
 
   return (

@@ -89,7 +89,7 @@ export function Dialog({
             {children && <div className="ui-dialog__body">{children}</div>}
             {footer && <footer className="ui-dialog__footer">{footer}</footer>}
             {!hideClose && (
-              <button type="button" className="ui-dialog__close ui-control__btn" aria-label="Close" onClick={() => onOpenChange(false)}>
+              <button type="button" className="ui-dialog__close ui-control__btn" aria-label="Close" data-skip-initial-focus onClick={() => onOpenChange(false)}>
                 <X />
               </button>
             )}

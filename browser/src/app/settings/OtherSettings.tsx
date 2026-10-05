@@ -27,7 +27,7 @@ import {
 import {$TeamCurrentUpdate} from '../../endpoints/Team'
 import {$UserCurrentChangePassword} from '../../endpoints/User'
 import {local} from '../../utils/local'
-import {TeamFormFields, teamFormFrom} from '../team/TeamForm'
+import {hasTeamFormErrors, TeamFormFields, teamFormFrom} from '../team/TeamForm'
 import './settings.css'
 
 const emptyPasswords = {oldPassword: '', newPassword: '', confirm: ''}
@@ -100,10 +100,17 @@ export function TeamSettings() {
   const $teamUpdate = useEndpoint($TeamCurrentUpdate)
   const [form, formSet] = useState(() => teamFormFrom(team))
   const teamId = team?.id
-  useEffect(() => formSet(teamFormFrom(team)), [teamId])
+  const [checked, checkedSet] = useState(false)
+  useEffect(() => {
+    formSet(teamFormFrom(team))
+    checkedSet(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamId])
   const submit = (e?: FormEvent) => {
     e?.preventDefault()
     if (!team || $teamUpdate.loading) return
+    checkedSet(true)
+    if (hasTeamFormErrors(form)) return
     $teamUpdate
       .fetch({
         teamId: team.id,
@@ -122,7 +129,7 @@ export function TeamSettings() {
   return (
     <form onSubmit={submit} noValidate>
       <Stack gap={4}>
-        <TeamFormFields value={form} onChange={formSet} />
+        <TeamFormFields value={form} onChange={formSet} showErrors={checked} />
         <Button
           type="submit"
           variant="primary"

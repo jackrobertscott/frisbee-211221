@@ -254,6 +254,7 @@ export function LadderPage() {
             {distribution.length ? (
               <BarChart
                 aria-label="Occurrences of each points total scored"
+                integer
                 data={distribution}
                 series={[{key: 'games', label: 'Occurrences'}]}
                 xLabel="Points scored"

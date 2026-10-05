@@ -34,10 +34,12 @@ import {go} from '../../utils/go'
 import {Logo} from '../Logo'
 
 const SAVED_EMAIL_KEY = 'frisbee.savedEmail'
+const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
 const CODE_LENGTH = 8
 
-const verifyUrl = (email: string, status: string) =>
-  `/auth/verify?email=${encodeURIComponent(email)}&status=${encodeURIComponent(status)}`
+const verifyUrl = (email: string, status: string, reason?: 'reset') =>
+  `/auth/verify?email=${encodeURIComponent(email)}&status=${encodeURIComponent(status)}` +
+  (reason ? `&reason=${reason}` : '')
 
 /** Welcome → Login / Sign up → Verify email, plus Forgot password. Routed under /auth. */
 export function AuthScreen() {
@@ -109,6 +111,7 @@ export function AuthScreen() {
                   <VerifyStep
                     email={queryEmail ?? savedEmail ?? ''}
                     status={router.query.status}
+                    reset={router.query.reason === 'reset'}
                     savedEmailSet={savedEmailSet}
                   />
                 ),
@@ -171,8 +174,10 @@ function WelcomeStep({
 }) {
   const $status = useEndpoint($SecurityStatus)
   const [email, emailSet] = useState(initialEmail)
+  const [error, errorSet] = useState<string>()
   const submit = (e: FormEvent) => {
     e.preventDefault()
+    if (!isEmail(email)) return errorSet('Enter a valid email address.')
     $status
       .fetch({email: email.trim()})
       .then(onStatus)
@@ -185,12 +190,15 @@ function WelcomeStep({
           title="Welcome"
           description="Enter your email to log in or create an account."
         />
-        <Field label="Email">
+        <Field label="Email" error={error}>
           <Input
             type="email"
             leading={<Mail />}
             value={email}
-            onChange={(e) => emailSet(e.target.value)}
+            onChange={(e) => {
+              emailSet(e.target.value)
+              errorSet(undefined)
+            }}
             placeholder="you@example.com"
             autoComplete="email"
             autoFocus
@@ -313,7 +321,12 @@ function SignUpStep({
   const [error, errorSet] = useState<string>()
   const submit = (e: FormEvent) => {
     e.preventDefault()
+    if (!form.firstName.trim() || !form.lastName.trim())
+      return errorSet('Enter your first and last name.')
     if (!form.gender) return errorSet('Please select your gender.')
+    if (!isEmail(form.email)) return errorSet('Enter a valid email address.')
+    if (!form.termsAccepted)
+      return errorSet('Please accept the terms and conditions to continue.')
     errorSet(undefined)
     const email = form.email.trim()
     $signUp
@@ -421,13 +434,15 @@ function SignUpStep({
 function ForgotStep({email: initialEmail}: {email: string}) {
   const $send = useEndpoint($SecurityForgot)
   const [email, emailSet] = useState(initialEmail)
+  const [error, errorSet] = useState<string>()
   const submit = (e: FormEvent) => {
     e.preventDefault()
     const value = email.trim()
+    if (!isEmail(value)) return errorSet('Enter a valid email address.')
     $send
       .fetch(value)
       .then(() => {
-        go.to(verifyUrl(value, 'password'))
+        go.to(verifyUrl(value, 'password', 'reset'))
         toast(
           'If an account exists for this email, check your inbox for the code.',
         )
@@ -442,12 +457,15 @@ function ForgotStep({email: initialEmail}: {email: string}) {
           title="Forgot password"
           description="A password recovery code will be sent to your email."
         />
-        <Field label="Email">
+        <Field label="Email" error={error}>
           <Input
             type="email"
             leading={<Mail />}
             value={email}
-            onChange={(e) => emailSet(e.target.value)}
+            onChange={(e) => {
+              emailSet(e.target.value)
+              errorSet(undefined)
+            }}
             autoComplete="email"
             autoFocus
           />
@@ -471,10 +489,12 @@ function ForgotStep({email: initialEmail}: {email: string}) {
 function VerifyStep({
   email,
   status,
+  reset,
   savedEmailSet,
 }: {
   email: string
   status?: string
+  reset?: boolean
   savedEmailSet: (email: string) => void
 }) {
   const auth = useAuth()
@@ -498,7 +518,7 @@ function VerifyStep({
       .then((data) => {
         savedEmailSet(email)
         auth.login(data)
-        toast.success('Email verified')
+        toast.success(reset ? 'Password updated' : 'Email verified')
         go.to('/')
       })
       .catch(() => undefined)
@@ -513,11 +533,13 @@ function VerifyStep({
     >
       <Stack gap={5}>
         <StepHeader
-          icon={<MailCheck />}
-          title="Verify your email"
+          icon={reset ? <KeyRound /> : <MailCheck />}
+          title={reset ? 'Reset your password' : 'Verify your email'}
           description={
             <>
-              Check your inbox for the code we sent to <b>{email}</b>.
+              Check your inbox for the code we sent to{' '}
+              {/* Non-breaking hyphens stop "qa-" / "player" splits; long addresses still wrap. */}
+              <b className="fr-email">{email.replace(/-/g, '\u2011')}</b>.
             </>
           }
         />
@@ -532,8 +554,12 @@ function VerifyStep({
         </Field>
         {needsPassword && (
           <Field
-            label="Password"
-            description="Add a password to your account (at least 5 characters)."
+            label={reset ? 'New password' : 'Password'}
+            description={
+              reset
+                ? 'Choose a new password (at least 5 characters).'
+                : 'Add a password to your account (at least 5 characters).'
+            }
           >
             <Input
               type="password"

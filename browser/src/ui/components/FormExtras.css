@@ -30,9 +30,12 @@
 .ui-taginput__input { min-width: 80px; height: 24px; padding: 0 var(--sp-1); }
 
 /* PinInput ------------------------------------------------------------------ */
-.ui-pin { display: flex; align-items: center; gap: var(--sp-2); }
+.ui-pin { display: flex; align-items: center; gap: var(--sp-2); max-width: 100%; min-width: 0; }
 .ui-pin__box {
+  /* Boxes shrink to fit narrow containers (e.g. 8-character codes on a phone). */
+  flex: 0 1 44px;
   width: 44px;
+  min-width: 0;
   height: 52px;
   padding: 0;
   text-align: center;

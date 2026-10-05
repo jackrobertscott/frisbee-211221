@@ -3,6 +3,7 @@ import {TReport} from '@shared/schemas/ioReport'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {officialSpiritCommentRequired} from '@shared/utils/reportValidation'
 import {
+  Alert,
   Button,
   Dialog,
   Divider,
@@ -17,7 +18,6 @@ import {
   Text,
   Textarea,
   Tooltip,
-  toast,
 } from '@ui'
 import {Info, Megaphone, Trash2} from 'lucide-react'
 import {type ReactNode, useEffect, useMemo, useRef, useState} from 'react'
@@ -105,7 +105,12 @@ export function ReportFormDialog({
   const [form, formSet] = useState<ReportFormData>(() =>
     createReportFormDataFromReport(initialData ?? {teamId: preferredTeamId}),
   )
-  const patch = (p: Partial<ReportFormData>) => formSet((f) => ({...f, ...p}))
+  const [error, errorSet] = useState<string>()
+  const errorRef = useRef<HTMLDivElement>(null)
+  const patch = (p: Partial<ReportFormData>) => {
+    errorSet(undefined)
+    formSet((f) => ({...f, ...p}))
+  }
   const formRef = useRef(form)
   formRef.current = form
 
@@ -211,9 +216,12 @@ export function ReportFormDialog({
   )
 
   const submit = () => {
-    const error = validateReportForm(form, official, season)
-    if (error) {
-      toast.error(error)
+    const invalid = validateReportForm(form, official, season)
+    errorSet(invalid ?? undefined)
+    if (invalid) {
+      requestAnimationFrame(() =>
+        errorRef.current?.scrollIntoView({block: 'nearest', behavior: 'smooth'}),
+      )
       return
     }
     onSubmit(form)
@@ -258,6 +266,13 @@ export function ReportFormDialog({
     const ready = !!againstOptions && (isDashboard || !!selectedTeam)
     body = (
       <Stack gap={5}>
+        {error && (
+          <div ref={errorRef}>
+            <Alert tone="danger" role="alert">
+              {error}
+            </Alert>
+          </div>
+        )}
         {submitter && (
           <Field label="Submitted by">
             <div className="fr-readonly">

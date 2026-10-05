@@ -77,7 +77,10 @@ export function TeamMembers({team, onLeft}: {team: TTeam; onLeft?: () => void}) 
       <div className="fr-team-members__head">
         <Text size="sm" tone="secondary">
           {state
-            ? `${state.members.filter((m) => !m.pending).length} players`
+            ? (() => {
+                const count = state.members.filter((m) => !m.pending).length
+                return `${count} ${count === 1 ? 'player' : 'players'}`
+              })()
             : 'Loading players'}
         </Text>
         <Button

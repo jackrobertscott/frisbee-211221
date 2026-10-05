@@ -40,7 +40,7 @@ const profileOf = (user?: TUserSafe) => ({
 })
 
 /** Profile (name, gender, avatar) and email addresses of the signed-in user. */
-export function AccountSettings() {
+export function AccountSettings({role}: {role: string}) {
   const auth = useAuth()
   const user = auth.current?.user
   const $userUpdate = useEndpoint($UserCurrentUpdate)
@@ -87,7 +87,7 @@ export function AccountSettings() {
             <div>
               <Text weight="medium">{fullName(user)}</Text>
               <Text size="xs" tone="tertiary">
-                {user.admin ? 'Administrator' : 'Player'}
+                {role}
               </Text>
             </div>
           </div>

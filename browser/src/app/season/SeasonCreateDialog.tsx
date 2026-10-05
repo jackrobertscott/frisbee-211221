@@ -42,11 +42,15 @@ export function SeasonCreateDialog({
   const auth = useAuth()
   const $create = useEndpoint($SeasonCreate)
   const [form, formSet] = useState(initialForm)
+  const [nameError, nameErrorSet] = useState<string>()
   useEffect(() => {
-    if (open) formSet(initialForm())
+    if (!open) return
+    formSet(initialForm())
+    nameErrorSet(undefined)
   }, [open])
   const submit = (e?: FormEvent) => {
     e?.preventDefault()
+    if (!form.name.trim()) return nameErrorSet('Give the season a name.')
     $create
       .fetch({
         name: form.name.trim(),
@@ -83,10 +87,13 @@ export function SeasonCreateDialog({
     >
       <form onSubmit={submit} noValidate>
         <Stack gap={4}>
-          <Field label="Name">
+          <Field label="Name" error={nameError}>
             <Input
               value={form.name}
-              onChange={(e) => formSet({...form, name: e.target.value})}
+              onChange={(e) => {
+                formSet({...form, name: e.target.value})
+                nameErrorSet(undefined)
+              }}
               placeholder="e.g. Summer 2022"
               autoFocus
             />

@@ -36,11 +36,13 @@ export function SettingsDialog({
   const isAdmin = auth.isAdmin()
   const [tab, tabSet] = useState('account')
   const [isCaptain, isCaptainSet] = useState<boolean>()
+  const [captainOfTeam, captainOfTeamSet] = useState(false)
   useEffect(() => {
     if (open) tabSet(initialTab ?? 'account')
   }, [open, initialTab])
   useEffect(() => {
     if (!open) return
+    captainOfTeamSet(false)
     if (!team) {
       isCaptainSet(false)
       return
@@ -48,7 +50,10 @@ export function SettingsDialog({
     isCaptainSet(undefined)
     $memberList
       .fetch(team.id)
-      .then((data) => isCaptainSet(!!data.current?.captain || isAdmin))
+      .then((data) => {
+        captainOfTeamSet(!!data.current?.captain)
+        isCaptainSet(!!data.current?.captain || isAdmin)
+      })
       .catch(() => isCaptainSet(isAdmin))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, team?.id, isAdmin])
@@ -58,7 +63,13 @@ export function SettingsDialog({
       id: 'account',
       label: 'Account',
       icon: <UserRound />,
-      render: () => <AccountSettings />,
+      render: () => (
+        <AccountSettings
+          role={
+            isAdmin ? 'Administrator' : captainOfTeam ? 'Team captain' : 'Player'
+          }
+        />
+      ),
     },
     {
       id: 'password',

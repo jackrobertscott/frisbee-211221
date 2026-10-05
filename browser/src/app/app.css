@@ -62,6 +62,7 @@ body { background: var(--bg-app); }
 .fr-eyebrow { text-transform: uppercase; letter-spacing: 0.06em; }
 .fr-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .fr-nowrap { white-space: nowrap; }
+.fr-email { overflow-wrap: anywhere; }
 .fr-pad { padding: var(--sp-4); }
 .fr-grow { flex: 1; min-width: 240px; }
 .fr-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
@@ -201,7 +202,7 @@ body { background: var(--bg-app); }
 .fr-tool__text { display: flex; flex-direction: column; gap: 2px; }
 
 /* Auth / setup ------------------------------------------------------------ */
-.fr-auth { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: var(--sp-8) var(--sp-4); background: var(--bg-app); }
+.fr-auth { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: var(--sp-8) var(--sp-4); background: var(--bg-app); }
 .fr-auth__inner { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: var(--sp-6); }
 .fr-auth__card { box-shadow: var(--shadow-md); }
 .fr-auth__back { align-self: center; }
@@ -236,7 +237,7 @@ body { background: var(--bg-app); }
   .fr-games__row > :nth-child(4) { grid-column: 1; grid-row: 2; }
   .fr-games__row > :nth-child(5) { grid-column: 2 / 5; grid-row: 2; }
   .fr-settings .fr-settings__tabs { flex-direction: column; }
-  .fr-settings .fr-settings__tabs > .ui-tablist { width: 100%; position: static; }
+  .fr-settings .fr-settings__tabs > .ui-tablist { width: 100%; position: relative; }
   .fr-share__sheet { padding: var(--sp-4); }
 }
 @media (max-width: 460px) {

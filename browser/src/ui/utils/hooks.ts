@@ -129,7 +129,9 @@ export function useFocusTrap(ref: React.RefObject<HTMLElement | null>, active: b
         ),
       ).filter((n) => n.offsetParent !== null || n === document.activeElement);
     const raf = requestAnimationFrame(() => {
-      const target = initialFocus?.current ?? focusables()[0] ?? el;
+      // Prefer content over footer actions (e.g. a dialog whose body is still loading shouldn't
+      // start on Cancel); fall back to the container itself so focus is still trapped.
+      const target = initialFocus?.current ?? focusables().find((n) => !n.closest('footer, [data-skip-initial-focus]')) ?? el;
       if (!el.contains(document.activeElement)) target.focus({ preventScroll: true });
     });
     const onKey = (e: KeyboardEvent) => {

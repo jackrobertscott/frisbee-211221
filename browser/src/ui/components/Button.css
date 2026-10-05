@@ -5,7 +5,7 @@
   --_bg: transparent;
   --_fg: var(--text);
   --_bd: transparent;
-  --_sh: none;
+  --_sh: 0 0 #0000; /* a real (invisible) shadow so it can be combined with the focus ring */
   position: relative;
   display: inline-flex;
   align-items: center;

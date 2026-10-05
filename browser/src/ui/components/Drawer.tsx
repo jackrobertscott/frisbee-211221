@@ -51,7 +51,7 @@ export function Drawer({ open, onOpenChange, title, description, children, foote
                 </h2>
                 {description && <p className="ui-drawer__desc">{description}</p>}
               </div>
-              <button type="button" className="ui-control__btn ui-drawer__close" aria-label="Close" onClick={() => onOpenChange(false)}>
+              <button type="button" className="ui-control__btn ui-drawer__close" aria-label="Close" data-skip-initial-focus onClick={() => onOpenChange(false)}>
                 <X />
               </button>
             </header>

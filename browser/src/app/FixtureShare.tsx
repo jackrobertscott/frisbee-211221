@@ -1,8 +1,7 @@
 import {TFixture} from '@shared/schemas/ioFixture'
-import {Button, DataTable, Heading, Stack, Text, toast} from '@ui'
-import {ArrowLeft, Link2, Printer} from 'lucide-react'
+import {Button, DataTable, EmptyState, Heading, Stack, Text, toast} from '@ui'
+import {ArrowLeft, CalendarX, Link2, Printer} from 'lucide-react'
 import {config} from '../config'
-import {useEndpoint} from '../core/useEndpoint'
 import {useLoad} from '../core/useLoad'
 import {$FeatureFixtureViewLoad} from '../endpoints/Feature'
 import {go} from '../utils/go'
@@ -13,8 +12,9 @@ type TGame = TFixture['games'][number]
 
 /** Focused, frame-less fixture view for sharing or display at the fields (`/?fixtureId=…`). */
 export function FixtureShare({fixtureId}: {fixtureId: string}) {
-  const $load = useEndpoint($FeatureFixtureViewLoad)
-  const view = useLoad(() => $load.fetch({fixtureId}), [fixtureId])
+  // Public view: call the endpoint directly so an unknown id shows a message here instead of
+  // useEndpoint's "missing record" handling (which resets stored state and leaves the page).
+  const view = useLoad(() => $FeatureFixtureViewLoad.fetch({fixtureId}), [fixtureId])
   const fixture = view.data?.fixture
   const teams = view.data?.teams ?? []
   const teamById = (id: string) => teams.find((t) => t.id === id)
@@ -58,7 +58,14 @@ export function FixtureShare({fixtureId}: {fixtureId: string}) {
           <Loading />
         ) : (
           <div className="fr-share__sheet">
-            <Text tone="tertiary">This fixture could not be loaded.</Text>
+            <EmptyState
+              icon={<CalendarX />}
+              title="Fixture not found"
+              description="This link may be out of date, or the fixture was removed."
+              actions={
+                <Button onClick={() => go.to('/fixtures')}>See all fixtures</Button>
+              }
+            />
           </div>
         )
       ) : (

@@ -74,7 +74,7 @@ export function Popover({
               {description && <div className="ui-popover__desc">{description}</div>}
             </div>
             {showClose && (
-              <button type="button" className="ui-control__btn" aria-label="Close" onClick={close}>
+              <button type="button" className="ui-control__btn" aria-label="Close" data-skip-initial-focus onClick={close}>
                 <X />
               </button>
             )}
