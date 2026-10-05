@@ -15,10 +15,12 @@ import {
 } from '@ui'
 import {CircleCheck, TriangleAlert} from 'lucide-react'
 import {useEffect, useState} from 'react'
-import {useEndpoint} from '../../core/useEndpoint'
-import {$FeatureFixtureTallyLoad} from '../../endpoints/Feature'
-import {$FixtureUpdate} from '../../endpoints/Fixture'
-import {Loading, TeamName, fmtDate} from '../shared'
+import {useEndpoint} from '../../core/endpoints/useEndpoint'
+import {$FeatureFixtureTallyLoad} from '../../core/endpoints/Feature'
+import {$FixtureUpdate} from '../../core/endpoints/Fixture'
+import {Loading} from '../common/Loading'
+import {TeamName} from '../common/TeamName'
+import {fmtDate} from '../common/format'
 import './ladder.css'
 
 type TGame = TFixture['games'][number]

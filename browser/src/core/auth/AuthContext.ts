@@ -4,7 +4,6 @@ import {TSession} from '@shared/schemas/ioSession'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUserSafe} from '@shared/schemas/ioUser'
 import {createContext} from 'react'
-import {contextNoop} from '../../utils/context'
 
 export interface TAuth {
   token: string
@@ -34,6 +33,10 @@ export interface TAuthContext {
   isAdmin: () => boolean
   can: (point: TAuthPoint) => boolean
 }
+
+/** Default context methods warn when used outside <AuthProvider>. */
+const contextNoop = (key: string) => (): any =>
+  console.warn(`Context function "${key}()" is not correctly setup.`)
 
 export const AuthContext = createContext<TAuthContext>({
   loaded: false,

@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import babel from '@rolldown/plugin-babel'
 import react, {reactCompilerPreset} from '@vitejs/plugin-react'
 import {resolve} from 'path'
@@ -12,6 +13,10 @@ export default defineConfig({
   ],
   server: {
     port: 3000,
+  },
+  test: {
+    include: ['src/**/*.test.ts'],
+    environment: 'node',
   },
   build: {
     rolldownOptions: {

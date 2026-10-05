@@ -15,14 +15,14 @@ import {
 } from '@ui'
 import {Plus, WandSparkles, X} from 'lucide-react'
 import {useEffect, useState} from 'react'
-import {useEndpoint} from '../../core/useEndpoint'
-import {$FixtureGenerate} from '../../endpoints/Fixture'
-import {random} from '../../utils/random'
+import {useEndpoint} from '../../core/endpoints/useEndpoint'
+import {$FixtureGenerate} from '../../core/endpoints/Fixture'
+import {randomString} from '../../utils/random'
 
 type TSlot = {id: string; time: string; place: string}
 
 const blankSlot = (): TSlot => ({
-  id: random.randomString(),
+  id: randomString(),
   time: '',
   place: '',
 })

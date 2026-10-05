@@ -17,14 +17,14 @@ import {
 } from '@ui'
 import {Database, Download, FileUp, Pencil, Trash2} from 'lucide-react'
 import {useEffect, useState} from 'react'
-import {useEndpoint} from '../../core/useEndpoint'
+import {useEndpoint} from '../../core/endpoints/useEndpoint'
 import {
   $PortDeleteAllMockData,
   $PortExport,
   $PortImport,
   $PortMockGenerate,
-} from '../../endpoints/Port'
-import {download} from '../../utils/download'
+} from '../../core/endpoints/Port'
+import {downloadBlob} from '../../core/download'
 import {fileStamp} from './format'
 
 interface TDialogProps {
@@ -157,7 +157,7 @@ export function ExportDialog({open, onOpenChange}: TDialogProps) {
       .fetch({fileType})
       .then((blob: unknown) => {
         if (!(blob instanceof Blob)) throw new Error('Export did not return a file.')
-        download.blob(blob, `frisbee-export-${fileType}-${fileStamp()}.zip`)
+        downloadBlob(blob, `frisbee-export-${fileType}-${fileStamp()}.zip`)
         toast.success('Export downloaded.')
         onOpenChange(false)
       })

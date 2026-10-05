@@ -33,7 +33,7 @@ import {
 } from 'lucide-react'
 import {type FormEvent, useEffect, useRef, useState} from 'react'
 import {useAuth} from '../../core/auth/useAuth'
-import {useEndpoint} from '../../core/useEndpoint'
+import {useEndpoint} from '../../core/endpoints/useEndpoint'
 import {
   $UserChangePassword,
   $UserEmailAdd,
@@ -42,10 +42,11 @@ import {
   $UserEmailVerifiedSet,
   $UserToggleAdmin,
   $UserUpdate,
-} from '../../endpoints/User'
-import {userEmails} from '../../utils/userEmails'
-import {fmtDateTime, fullName} from '../shared'
-import {ActionConfirm, genderOptions, isUserGender} from './common'
+} from '../../core/endpoints/User'
+import {primaryEmail} from '../common/users'
+import {fmtDateTime, fullName} from '../common/format'
+import {ActionConfirm} from '../common/ActionConfirm'
+import {genderOptions, isUserGender} from '../common/users'
 import {UserMembershipsTab} from './UserMembershipsTab'
 import {UserMergeDialog} from './UserMergeDialog'
 import './users.css'
@@ -129,7 +130,7 @@ export function UserDialog({
             )}
           </span>
         }
-        description={userEmails.primary(user) ?? 'No email'}
+        description={primaryEmail(user) ?? 'No email'}
         footer={
           <>
             <Button

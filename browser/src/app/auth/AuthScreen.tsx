@@ -20,18 +20,18 @@ import {config} from '../../config'
 import {useAuth} from '../../core/auth/useAuth'
 import {Router} from '../../core/router/Router'
 import {useRouter} from '../../core/router/useRouter'
-import {useEndpoint} from '../../core/useEndpoint'
-import {useLocalState} from '../../core/useLocalState'
+import {useEndpoint} from '../../core/endpoints/useEndpoint'
+import {useLocalState} from '../../core/hooks/useLocalState'
 import {
   $SecurityForgot,
   $SecurityLogin,
   $SecuritySignUp,
   $SecurityStatus,
   $SecurityVerify,
-} from '../../endpoints/Security'
-import {GENDER_OPTIONS} from '../../utils/constants'
-import {go} from '../../utils/go'
-import {Logo} from '../Logo'
+} from '../../core/endpoints/Security'
+import {genderOptions, isUserGender} from '../common/users'
+import {navigate} from '../../core/router/navigate'
+import {Logo} from '../shell/Logo'
 
 const SAVED_EMAIL_KEY = 'frisbee.savedEmail'
 const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
@@ -54,7 +54,7 @@ export function AuthScreen() {
           href="/"
           onClick={(e) => {
             e.preventDefault()
-            go.to('/')
+            navigate('/')
           }}
         >
           <Stack align="center" gap={3}>
@@ -74,9 +74,9 @@ export function AuthScreen() {
                     email={savedEmail ?? ''}
                     onStatus={(data) => {
                       savedEmailSet(data.email)
-                      if (data.status === 'good') go.to('/auth/login')
-                      else if (data.status === 'unknown') go.to('/auth/sign-up')
-                      else go.to(verifyUrl(data.email, data.status))
+                      if (data.status === 'good') navigate('/auth/login')
+                      else if (data.status === 'unknown') navigate('/auth/sign-up')
+                      else navigate(verifyUrl(data.email, data.status))
                     }}
                   />
                 ),
@@ -123,7 +123,7 @@ export function AuthScreen() {
           variant="ghost"
           size="sm"
           leading={<ArrowLeft />}
-          onClick={() => go.to('/')}
+          onClick={() => navigate('/')}
           className="fr-auth__back"
         >
           Back to home
@@ -161,7 +161,7 @@ const linkTo = (href: string) => ({
   href,
   onClick: (e: React.MouseEvent) => {
     e.preventDefault()
-    go.to(href)
+    navigate(href)
   },
 })
 
@@ -241,7 +241,7 @@ function LoginStep({
         savedEmailSet(email.trim())
         auth.login(data)
         toast.success(`Welcome back, ${data.user.firstName}`)
-        go.to('/')
+        navigate('/')
       })
       .catch(() => undefined)
   }
@@ -340,7 +340,7 @@ function SignUpStep({
       .then(() => {
         savedEmailSet(email)
         toast({title: 'Please check your email inbox.', duration: 8000})
-        go.to(verifyUrl(email, 'password'))
+        navigate(verifyUrl(email, 'password'))
       })
       .catch(() => undefined)
   }
@@ -374,9 +374,9 @@ function SignUpStep({
             placeholder="Select…"
             value={form.gender ?? null}
             onValueChange={(v) =>
-              formSet({...form, gender: (v as TUserGender) ?? undefined})
+              formSet({...form, gender: isUserGender(v) ? v : undefined})
             }
-            options={GENDER_OPTIONS.map((o) => ({value: o.key, label: o.label}))}
+            options={genderOptions}
           />
         </Field>
         <Field label="Email">
@@ -442,7 +442,7 @@ function ForgotStep({email: initialEmail}: {email: string}) {
     $send
       .fetch(value)
       .then(() => {
-        go.to(verifyUrl(value, 'password', 'reset'))
+        navigate(verifyUrl(value, 'password', 'reset'))
         toast(
           'If an account exists for this email, check your inbox for the code.',
         )
@@ -504,7 +504,7 @@ function VerifyStep({
   const [newPassword, newPasswordSet] = useState('')
   const needsPassword = status === 'password'
   useEffect(() => {
-    if (!email) go.to('/auth')
+    if (!email) navigate('/auth')
   }, [email])
   const submit = () => {
     $verify
@@ -519,7 +519,7 @@ function VerifyStep({
         savedEmailSet(email)
         auth.login(data)
         toast.success(reset ? 'Password updated' : 'Email verified')
-        go.to('/')
+        navigate('/')
       })
       .catch(() => undefined)
   }

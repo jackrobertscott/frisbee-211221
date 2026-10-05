@@ -16,15 +16,17 @@ import {
 } from '@ui'
 import {ArrowUp, GitMerge, SearchX, X} from 'lucide-react'
 import {type ReactNode, useEffect, useState} from 'react'
-import {useEndpoint} from '../../core/useEndpoint'
-import {useLoad} from '../../core/useLoad'
-import {$UserList, $UserMerge} from '../../endpoints/User'
-import {userEmails} from '../../utils/userEmails'
-import {fmtShort, fullName, Loading, useDebounced} from '../shared'
-import {ActionConfirm} from './common'
+import {useEndpoint} from '../../core/endpoints/useEndpoint'
+import {useLoad} from '../../core/hooks/useLoad'
+import {$UserList, $UserMerge} from '../../core/endpoints/User'
+import {primaryEmail} from '../common/users'
+import {fmtShort, fullName} from '../common/format'
+import {Loading} from '../common/Loading'
+import {useDebounced} from '../common/useDebounced'
+import {ActionConfirm} from '../common/ActionConfirm'
 import './users.css'
 
-const emailLabel = (user: TUserSafe) => userEmails.primary(user) ?? '[no email]'
+const emailLabel = (user: TUserSafe) => primaryEmail(user) ?? '[no email]'
 
 /** Merge a duplicate account (user 2) into `user` (user 1). */
 export function UserMergeDialog({

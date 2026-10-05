@@ -1,7 +1,7 @@
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {DataTable, Text, type Column} from '@ui'
-import {TeamName} from '../shared'
+import {TeamName} from '../common/TeamName'
 
 export type TFixtureGame = TFixture['games'][number]
 

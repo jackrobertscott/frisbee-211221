@@ -2,7 +2,8 @@ import {internalError} from '@shared/errors'
 import {useContext} from 'react'
 import queryString from 'query-string'
 import {RouterContext, TRouteQuery} from './RouterContext'
-import {history} from '../../utils/history'
+import {history} from './history'
+import {navigate} from './navigate'
 
 export const useRouter = () => {
   const context = useContext(RouterContext)
@@ -14,10 +15,7 @@ export const useRouter = () => {
   return {
     ...context,
     query,
-    go(path: string) {
-      history.push(path)
-      window.scrollTo(0, 0)
-    },
+    go: navigate,
     replace(path: string) {
       history.replace(path)
       window.scrollTo(0, 0)

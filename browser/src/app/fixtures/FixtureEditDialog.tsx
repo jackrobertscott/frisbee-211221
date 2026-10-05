@@ -20,20 +20,20 @@ import {
 import {ArrowLeftRight, Check, Plus, Shuffle, Trash2, X} from 'lucide-react'
 import {useEffect, useState} from 'react'
 import {useAuth} from '../../core/auth/useAuth'
-import {useEndpoint} from '../../core/useEndpoint'
+import {useEndpoint} from '../../core/endpoints/useEndpoint'
 import {
   $FixtureCreate,
   $FixtureDelete,
   $FixtureUpdate,
-} from '../../endpoints/Fixture'
-import {random} from '../../utils/random'
-import {TeamName, teamOptions} from '../shared'
+} from '../../core/endpoints/Fixture'
+import {randomString} from '../../utils/random'
+import {TeamName, teamOptions} from '../common/TeamName'
 import {compareGameSlot, type TFixtureGame} from './FixtureGames'
 
 type TFormGame = TFixtureGame
 
 const blankGame = (): TFormGame => ({
-  id: random.randomString(),
+  id: randomString(),
   team1Id: '',
   team2Id: '',
   time: '',

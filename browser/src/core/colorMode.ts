@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react'
-import {local} from '../utils/local'
+import {storage} from './storage'
 
 export type TColorMode = 'light' | 'dark'
 
@@ -11,7 +11,7 @@ const read = (): TColorMode =>
 
 export const applyStoredColorMode = () => {
   document.documentElement.dataset.theme =
-    local.get<TColorMode>(COLOR_MODE_STORAGE_KEY) ?? 'light'
+    storage.get<TColorMode>(COLOR_MODE_STORAGE_KEY) ?? 'light'
 }
 
 /** Reads and toggles the document colour mode, persisting the choice. */
@@ -28,7 +28,7 @@ export const useColorMode = () => {
   const toggle = () => {
     const next = mode === 'dark' ? 'light' : 'dark'
     document.documentElement.dataset.theme = next
-    local.set(COLOR_MODE_STORAGE_KEY, next)
+    storage.set(COLOR_MODE_STORAGE_KEY, next)
   }
   return [mode, toggle] as const
 }

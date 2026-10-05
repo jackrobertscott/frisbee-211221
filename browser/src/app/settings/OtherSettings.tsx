@@ -18,16 +18,16 @@ import {KeyRound, Trash2, TriangleAlert} from 'lucide-react'
 import {type FormEvent, useEffect, useState} from 'react'
 import {SEASON_STORAGE_KEY} from '../../core/auth/authStorage'
 import {useAuth} from '../../core/auth/useAuth'
-import {useEndpoint} from '../../core/useEndpoint'
+import {useEndpoint} from '../../core/endpoints/useEndpoint'
 import {
   $SeasonDelete,
   $SeasonDeleteStatus,
   $SeasonUpdate,
-} from '../../endpoints/Season'
-import {$TeamCurrentUpdate} from '../../endpoints/Team'
-import {$UserCurrentChangePassword} from '../../endpoints/User'
-import {local} from '../../utils/local'
-import {hasTeamFormErrors, TeamFormFields, teamFormFrom} from '../team/TeamForm'
+} from '../../core/endpoints/Season'
+import {$TeamCurrentUpdate} from '../../core/endpoints/Team'
+import {$UserCurrentChangePassword} from '../../core/endpoints/User'
+import {storage} from '../../core/storage'
+import {hasTeamFormErrors, TeamFormFields, teamFormFrom} from '../teams/TeamForm'
 import './settings.css'
 
 const emptyPasswords = {oldPassword: '', newPassword: '', confirm: ''}
@@ -302,7 +302,7 @@ function SeasonDeleteDialog({
       .fetch({seasonId, password})
       .then(() => {
         toast.success('Season deleted.')
-        local.remove(SEASON_STORAGE_KEY)
+        storage.remove(SEASON_STORAGE_KEY)
         window.location.href = '/'
       })
       .catch(() => undefined)

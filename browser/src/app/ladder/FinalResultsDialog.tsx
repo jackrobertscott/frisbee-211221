@@ -3,9 +3,9 @@ import {TTeam} from '@shared/schemas/ioTeam'
 import {Button, Dialog, NumberInput, Stack, Text, toast} from '@ui'
 import {Trophy} from 'lucide-react'
 import {useEffect, useState} from 'react'
-import {useEndpoint} from '../../core/useEndpoint'
-import {$SeasonUpdate} from '../../endpoints/Season'
-import {TeamName} from '../shared'
+import {useEndpoint} from '../../core/endpoints/useEndpoint'
+import {$SeasonUpdate} from '../../core/endpoints/Season'
+import {TeamName} from '../common/TeamName'
 import './ladder.css'
 
 type TFinalResults = NonNullable<TSeason['finalResults']>

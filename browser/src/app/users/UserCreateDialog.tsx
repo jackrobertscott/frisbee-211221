@@ -3,10 +3,10 @@ import {TUserGender} from '@shared/schemas/ioUserGender'
 import {Button, Dialog, Field, Input, Select, Stack, Switch, toast} from '@ui'
 import {Mail} from 'lucide-react'
 import {type FormEvent, useEffect, useState} from 'react'
-import {useEndpoint} from '../../core/useEndpoint'
-import {$UserCreate} from '../../endpoints/User'
-import {fullName} from '../shared'
-import {genderOptions, isUserGender} from './common'
+import {useEndpoint} from '../../core/endpoints/useEndpoint'
+import {$UserCreate} from '../../core/endpoints/User'
+import {fullName} from '../common/format'
+import {genderOptions, isUserGender} from '../common/users'
 
 const initialForm = () => ({
   firstName: '',

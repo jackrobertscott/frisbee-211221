@@ -18,7 +18,7 @@ import {
 import {ArrowUpCircle, Mail, MailCheck, MailPlus, Star, Trash2} from 'lucide-react'
 import {type FormEvent, useEffect, useState} from 'react'
 import {useAuth} from '../../core/auth/useAuth'
-import {useEndpoint} from '../../core/useEndpoint'
+import {useEndpoint} from '../../core/endpoints/useEndpoint'
 import {
   $UserCurrentEmailAdd,
   $UserCurrentEmailCodeResend,
@@ -26,9 +26,9 @@ import {
   $UserCurrentEmailRemove,
   $UserCurrentEmailVerify,
   $UserCurrentUpdate,
-} from '../../endpoints/User'
-import {GENDER_OPTIONS} from '../../utils/constants'
-import {fullName} from '../shared'
+} from '../../core/endpoints/User'
+import {genderOptions, isUserGender} from '../common/users'
+import {fullName} from '../common/format'
 import './settings.css'
 
 const CODE_LENGTH = 8
@@ -111,11 +111,11 @@ export function AccountSettings({role}: {role: string}) {
               onValueChange={(v) =>
                 formSet({
                   ...form,
-                  gender: GENDER_OPTIONS.find((o) => o.key === v)?.key ?? form.gender,
+                  gender: isUserGender(v) ? v : form.gender,
                 })
               }
               placeholder="Select gender"
-              options={GENDER_OPTIONS.map((o) => ({value: o.key, label: o.label}))}
+              options={genderOptions}
             />
           </Field>
           <Button

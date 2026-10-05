@@ -2,10 +2,11 @@ import {TMember} from '@shared/schemas/ioMember'
 import {compareSeasonNames} from '@shared/utils/seasonName'
 import {Badge, DataTable, EmptyState, Text} from '@ui'
 import {Users} from 'lucide-react'
-import {useEndpoint} from '../../core/useEndpoint'
-import {useLoad} from '../../core/useLoad'
-import {$FeatureDashboardUserMembershipsLoad} from '../../endpoints/Feature'
-import {Loading, TeamName} from '../shared'
+import {useEndpoint} from '../../core/endpoints/useEndpoint'
+import {useLoad} from '../../core/hooks/useLoad'
+import {$FeatureDashboardUserMembershipsLoad} from '../../core/endpoints/Feature'
+import {Loading} from '../common/Loading'
+import {TeamName} from '../common/TeamName'
 
 /** A user's team memberships across every season (one user's list, not paged). */
 export function UserMembershipsTab({userId}: {userId: string}) {

@@ -1,14 +1,10 @@
-export const random = {
-  alphanumerics:
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.split(''),
+const ALPHANUMERICS =
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
-  randomString(length: number = 10) {
-    let value = ''
-    const max = this.alphanumerics.length
-    for (let i = 0; i < length; i++) {
-      let q = Math.floor(Math.random() * max)
-      value += this.alphanumerics[q]
-    }
-    return value
-  },
+/** Random alphanumeric string (local keys for unsaved rows). */
+export const randomString = (length = 10) => {
+  let value = ''
+  for (let i = 0; i < length; i++)
+    value += ALPHANUMERICS[Math.floor(Math.random() * ALPHANUMERICS.length)]
+  return value
 }
