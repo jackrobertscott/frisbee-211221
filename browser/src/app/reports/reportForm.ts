@@ -163,14 +163,15 @@ export function createReportUpdatePayload(
   const {scoreFor, scoreAgainst} = formData
   if (scoreFor === undefined || scoreAgainst === undefined) return undefined
   const mvps = sanitizeSeasonMvpFields(season, formData)
+  // empty slots are sent as null so the server clears them
   return exactShape<TReportUpdatePayload>()({
     reportId,
     scoreFor,
     scoreAgainst,
-    mvpMale: mvps.mvpMale,
-    mvpFemale: mvps.mvpFemale,
-    mvpMale2: mvps.mvpMale2,
-    mvpFemale2: mvps.mvpFemale2,
+    mvpMale: mvps.mvpMale ?? null,
+    mvpFemale: mvps.mvpFemale ?? null,
+    mvpMale2: mvps.mvpMale2 ?? null,
+    mvpFemale2: mvps.mvpFemale2 ?? null,
     spirit: formData.spirit,
     spiritComment: formData.spiritComment,
     spiritP1: formData.spiritP1,

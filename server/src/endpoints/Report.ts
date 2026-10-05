@@ -93,16 +93,22 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...ReportUpdateDef,
     handler:
-      ({reportId, ...body}, access) =>
+      ({reportId, mvpMale, mvpFemale, mvpMale2, mvpFemale2, ...body}, access) =>
       async (req) => {
         await requireAccess(req, access)
         const report = await $Report.getOne({id: reportId})
         const fixture = await $Fixture.getOne({id: report.fixtureId})
         const season = await $Season.getOne({id: fixture.seasonId})
-        const reportBody = {
-          ...body,
-          ...(await sanitizeReportMvps(season, body)),
-        }
+        // omitted MVP picks keep their stored value, null clears them
+        const pick = (value: string | null | undefined, stored?: string) =>
+          value === undefined ? stored : (value ?? undefined)
+        const mvps = await sanitizeReportMvps(season, {
+          mvpMale: pick(mvpMale, report.mvpMale),
+          mvpFemale: pick(mvpFemale, report.mvpFemale),
+          mvpMale2: pick(mvpMale2, report.mvpMale2),
+          mvpFemale2: pick(mvpFemale2, report.mvpFemale2),
+        })
+        const reportBody = {...body, ...mvps}
         // spirit parts left out of the update keep their stored values
         assertOfficialSpiritComment(season.useOfficialScoring, {
           ...report,

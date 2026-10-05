@@ -43,16 +43,15 @@ export const ReportCreateDef = {
 
 export type TReportCreatePayload = TypeIoValue<typeof ReportCreateDef.payload>
 
+/** An MVP pick in an update: omitted keeps the stored pick, null clears it. */
+const ioReportMvpUpdate = io.optional(io.null(io.id()))
+
 export const ReportUpdateDef = {
   access: authPoint.reportManage,
   path: '/ReportUpdate',
   payload: ioReport.pick([
     'scoreFor',
     'scoreAgainst',
-    'mvpMale',
-    'mvpFemale',
-    'mvpMale2',
-    'mvpFemale2',
     'spirit',
     'spiritComment',
     'spiritP1',
@@ -60,7 +59,13 @@ export const ReportUpdateDef = {
     'spiritP3',
     'spiritP4',
     'spiritP5',
-  ]).extend({reportId: ioReport.shape.id}),
+  ]).extend({
+    reportId: ioReport.shape.id,
+    mvpMale: ioReportMvpUpdate,
+    mvpFemale: ioReportMvpUpdate,
+    mvpMale2: ioReportMvpUpdate,
+    mvpFemale2: ioReportMvpUpdate,
+  }),
   result: ioReport,
 } satisfies TEndpointDef
 

@@ -291,6 +291,7 @@ describe('TeamCreate, TeamUpdate and TeamDelete', () => {
         color: COLOR,
         phone: '123',
         email: 'made@example.com',
+        division: 2,
       },
       {token: admin.token},
     )
@@ -301,6 +302,7 @@ describe('TeamCreate, TeamUpdate and TeamDelete', () => {
       color: COLOR,
       phone: '123',
       email: 'made@example.com',
+      division: 2,
     })
     // no captain/member is created for admin-created teams
     expect(await $Member.count({teamId: response.body.id})).toBe(0)

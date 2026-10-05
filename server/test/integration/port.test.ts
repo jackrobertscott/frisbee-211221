@@ -97,9 +97,7 @@ describe('PortExport', () => {
   beforeAll(async () => {
     const season = await createSeason(server, admin, {name: `Export ${t}`})
     teamName = `=HYPERLINK("x") ${t}`
-    const team = await createTeam(server, admin, season.id, teamName)
-    // TeamCreate does not accept a division
-    await $Team.updateOne({id: team.id}, {division: 2})
+    const team = await createTeam(server, admin, season.id, teamName, {division: 2})
     await addMember(server, admin, team.id, {
       firstName: `+Plus${t}`,
       lastName: 'Person',

@@ -25,12 +25,14 @@ export const encryptGamedayPassword = (password: string) => {
 }
 
 export const decryptGamedayPassword = (encryptedPassword: string) => {
-  const [version, ivText, tagText, encryptedText] = encryptedPassword.split(':')
+  const parts = encryptedPassword.split(':')
+  const [version, ivText, tagText, encryptedText] = parts
+  // the ciphertext segment is empty for an empty password
   if (
+    parts.length !== 4 ||
     version !== CREDENTIAL_VERSION ||
     !ivText ||
-    !tagText ||
-    !encryptedText
+    !tagText
   ) {
     throw new Error('Stored GameDay password is not in a supported format.')
   }

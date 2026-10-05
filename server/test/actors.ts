@@ -70,9 +70,7 @@ export async function createTeam(
   )
   if (response.status !== 200)
     throw new Error(`Team create failed: ${JSON.stringify(response.body)}`)
-  const team = response.body as {id: string; name: string}
-  if (extra.division !== undefined) return team
-  return team
+  return response.body as {id: string; name: string}
 }
 
 /** Adds a confirmed member to a team (creating the user when the email is new). */

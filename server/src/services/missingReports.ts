@@ -17,10 +17,9 @@ const reportKey = (fixtureId: string, teamId: string, teamAgainstId?: string) =>
   [fixtureId, teamId, teamAgainstId ?? ''].join('\u0000')
 
 /**
- * Lists, per round, the teams that have not reported on a game they played.
- * Fixtures sharing a title are merged into one round (the first fixture's id
- * and date win), each team appears at most once per round, rounds with
- * nothing missing are dropped, and rounds are ordered by date.
+ * Lists, per fixture, the teams that have not reported on a game they played.
+ * Each team appears at most once per fixture, fixtures with nothing missing
+ * are dropped, and fixtures are ordered by date.
  */
 export function listMissingReports(
   fixtures: Pick<TFixture, 'id' | 'title' | 'date' | 'games'>[],
@@ -32,15 +31,16 @@ export function listMissingReports(
     reports.map((r) => reportKey(r.fixtureId, r.teamId, r.teamAgainstId)),
   )
 
-  // A plain object (not a Map) keeps the historical round ordering for ties.
-  const rounds: Record<string, TMissingReportRound> = {}
+  // fixtures are grouped by id: titles can repeat (e.g. a rescheduled round)
+  const rounds = new Map<string, TMissingReportRound>()
   fixtures.forEach((fixture) => {
-    const round = (rounds[fixture.title] ??= {
+    const round = rounds.get(fixture.id) ?? {
       title: fixture.title,
       fixtureId: fixture.id,
       date: fixture.date,
       missingTeams: [],
-    })
+    }
+    rounds.set(fixture.id, round)
 
     fixture.games.forEach((game) => {
       const team1 = teamsById.get(game.team1Id)
@@ -65,7 +65,7 @@ export function listMissingReports(
     })
   })
 
-  return Object.values(rounds)
+  return [...rounds.values()]
     .filter((round) => round.missingTeams.length > 0)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 }

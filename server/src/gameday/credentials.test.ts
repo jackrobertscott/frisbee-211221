@@ -62,15 +62,15 @@ describe('GameDay password encryption', () => {
     expect(() => decryptGamedayPassword(['v1', iv, tag].join(':'))).toThrow(
       message,
     )
+    expect(() =>
+      decryptGamedayPassword(['v1', iv, tag, data, data].join(':')),
+    ).toThrow(message)
   })
 
-  it('cannot decrypt an encrypted empty password', () => {
-    // the empty ciphertext segment fails the format check
+  it('round-trips an empty password', () => {
     const encrypted = encryptGamedayPassword('')
     expect(encrypted.endsWith(':')).toBe(true)
-    expect(() => decryptGamedayPassword(encrypted)).toThrow(
-      'Stored GameDay password is not in a supported format.',
-    )
+    expect(decryptGamedayPassword(encrypted)).toBe('')
   })
 })
 

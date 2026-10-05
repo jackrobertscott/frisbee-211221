@@ -36,7 +36,7 @@ export const TeamCurrentUpdateDef = {
 export const TeamCreateDef = {
   access: authPoint.teamDirectoryManage,
   path: '/TeamCreate',
-  payload: ioTeam.pick(['seasonId', 'name', 'color', 'phone', 'email']),
+  payload: ioTeam.pick(['seasonId', 'name', 'color', 'phone', 'email', 'division']),
   result: ioTeam,
 } satisfies TEndpointDef
 

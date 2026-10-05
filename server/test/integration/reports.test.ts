@@ -433,13 +433,23 @@ describe('ReportUpdate and ReportDelete', () => {
     expect(stored.scoreFor).toBe(15)
     expect(stored.updatedOn >= stored.createdOn).toBe(true)
 
-    // MVP picks are replaced as a set: the edit form clears a pick by leaving it out
-    const cleared = await server.call(
+    // MVP picks left out of an update are kept
+    const kept = await server.call(
       '/ReportUpdate',
       {reportId, scoreFor: 15, scoreAgainst: 7, spiritComment: 'Edited'},
       {token: admin.token},
     )
+    expect(kept.status).toBe(200)
+    expect((await $Report.getOne({id: reportId})).mvpFemale).toBe(woman.userId)
+
+    // null clears a pick
+    const cleared = await server.call(
+      '/ReportUpdate',
+      {reportId, scoreFor: 15, scoreAgainst: 7, spiritComment: 'Edited', mvpFemale: null},
+      {token: admin.token},
+    )
     expect(cleared.status).toBe(200)
+    expect(cleared.body.mvpFemale).toBeUndefined()
     expect((await $Report.getOne({id: reportId})).mvpFemale).toBeUndefined()
 
     const missing = await server.call(
@@ -508,7 +518,7 @@ describe('ReportUpdate and ReportDelete', () => {
 })
 
 describe('ReportMissingList', () => {
-  it('groups missing reports by round title in date order', async () => {
+  it('groups missing reports by fixture in date order', async () => {
     const {admin, season, a, b, c, d, fixture} = await setup()
     const round2 = await createFixture(
       season.id,
@@ -520,7 +530,7 @@ describe('ReportMissingList', () => {
         [b.id, d.id],
       ],
     )
-    // a second fixture sharing the "Round 2" title merges into the same group
+    // a second fixture sharing the "Round 2" title is listed separately
     const round2b = await createFixture(
       season.id,
       admin.userId,
@@ -595,9 +605,16 @@ describe('ReportMissingList', () => {
           {id: d.id, name: 'Delta', color, againstId: b.id, againstName: 'Bravo'},
         ],
       },
+      {
+        title: 'Round 2',
+        fixtureId: round2b.id,
+        date: round2b.date,
+        missingTeams: [
+          {id: d.id, name: 'Delta', color, againstId: a.id, againstName: 'Alpha'},
+          {id: a.id, name: 'Alpha', color, againstId: d.id, againstName: 'Delta'},
+        ],
+      },
     ])
-    // the second "Round 2" fixture's missing teams were already listed (deduped by team)
-    expect(round2b.title).toBe('Round 2')
   })
 
   it('returns an empty list for a season with nothing missing', async () => {

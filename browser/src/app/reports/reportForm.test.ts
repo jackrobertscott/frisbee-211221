@@ -188,8 +188,11 @@ describe('createReportUpdatePayload', () => {
       reportId: 'r1',
       scoreFor: 11,
       scoreAgainst: 7,
-      mvpMale: undefined,
+      // slots the season drops or the form left empty are cleared with null
+      mvpMale: null,
+      mvpMale2: null,
       mvpFemale: 'f1',
+      mvpFemale2: null,
     })
     expect(payload).not.toHaveProperty('teamId')
   })

@@ -98,7 +98,7 @@ describe('listMissingReports', () => {
     expect(listMissingReports(fixtures, teams, [report('F1', 'A')])).toEqual([])
   })
 
-  it('merges fixtures with the same title into the first one', () => {
+  it('lists fixtures that share a title separately', () => {
     const fixtures = [
       fixture('F1', 'Round 1', '2026-01-01', [['A', 'B']]),
       fixture('F2', 'Round 1', '2026-01-08', [
@@ -111,13 +111,14 @@ describe('listMissingReports', () => {
         title: 'Round 1',
         fixtureId: 'F1',
         date: '2026-01-01',
-        // A appears once even though it is missing two reports
-        missingTeams: [
-          missing('A', 'B'),
-          missing('B', 'A'),
-          missing('C', 'A'),
-          missing('D', 'C'),
-        ],
+        missingTeams: [missing('A', 'B'), missing('B', 'A')],
+      },
+      {
+        title: 'Round 1',
+        fixtureId: 'F2',
+        date: '2026-01-08',
+        // C appears once in a fixture even though it is missing two reports
+        missingTeams: [missing('A', 'C'), missing('C', 'A'), missing('D', 'C')],
       },
     ])
   })

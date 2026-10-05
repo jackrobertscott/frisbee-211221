@@ -235,6 +235,7 @@ export function TeamCreateDialog({
         color: form.color,
         phone: form.phone,
         email: form.email,
+        division: form.division,
       })
       .then((team) => {
         toast.success(`${team.name} created.`)
@@ -266,6 +267,7 @@ export function TeamCreateDialog({
         <TeamFormFields
           value={form}
           onChange={formSet}
+          division
           autoFocus
           showErrors={checked}
         />
