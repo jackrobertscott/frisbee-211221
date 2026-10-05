@@ -1,4 +1,4 @@
-import {badRequestError} from '@shared/errors'
+import {badRequestError, conflictError} from '@shared/errors'
 import {TGamedayImportConfig} from '@shared/schemas/ioGamedayImport'
 import {random} from '@server/utils/random'
 import {
@@ -141,7 +141,7 @@ export default new Map<string, RequestHandler>([
     handler: (body, access) => async (req) => {
       await requireAccess(req, access)
       const config = await getGamedayImportConfigForSeason(body.seasonId)
-      return await runGamedayImportWithHistory(config, 'manual')
+      return await runLockedManualGamedayImport(config)
     },
   }),
 
@@ -283,6 +283,47 @@ interface TGamedayImportScheduleFields {
 }
 
 const GAMEDAY_IMPORT_RUN_HISTORY_LIMIT = 50
+const GAMEDAY_MANUAL_IMPORT_LOCK_MS = 30 * 60 * 1000
+
+// share the scheduler's lock so only one import per season runs at a time
+const runLockedManualGamedayImport = async (config: TGamedayImportConfig) => {
+  const now = new Date()
+  const lockToken = random.generateId()
+  const locked = await $GamedayImportConfig.updateAtomic(
+    {
+      id: config.id,
+      $or: [
+        {scheduleLockedUntil: {$exists: false}},
+        {scheduleLockedUntil: {$lte: now.toISOString()}},
+      ],
+    },
+    {
+      $set: {
+        scheduleLockedUntil: new Date(
+          now.getTime() + GAMEDAY_MANUAL_IMPORT_LOCK_MS,
+        ).toISOString(),
+        scheduleLockToken: lockToken,
+      },
+    },
+  )
+  if (!locked)
+    throw conflictError('A GameDay import is already running for this season.', {
+      errorCode: 'gameday.import_running',
+      userMessage: 'A GameDay import is already running. Try again when it finishes.',
+    })
+  try {
+    return await runGamedayImportWithHistory(locked, 'manual')
+  } finally {
+    await $GamedayImportConfig
+      .updateMany(
+        {id: config.id, scheduleLockToken: lockToken},
+        {scheduleLockedUntil: undefined, scheduleLockToken: undefined},
+      )
+      .catch((error: unknown) => {
+        console.error('Failed to release GameDay import lock.', error)
+      })
+  }
+}
 
 const loadGamedayImportState = async (seasonId: string) => {
   await $Season.getOne({id: seasonId})

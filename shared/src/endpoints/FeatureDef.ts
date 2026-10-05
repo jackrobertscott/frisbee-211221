@@ -10,7 +10,7 @@ import {
   TEAM_LIST_SORT_DIRECTIONS,
   TEAM_LIST_SORT_KEYS,
 } from '@shared/endpoints/TeamDef'
-import {TEndpointDef} from '@shared/utils/endpointDef'
+import {ioListLimit, ioListSkip, TEndpointDef} from '@shared/utils/endpointDef'
 import {io, TypeIoValue} from '@shared/torva'
 
 export const FEATURE_SPIRIT_SORT_KEYS = [
@@ -87,8 +87,8 @@ export const FeatureDashboardTeamsLoadDef = {
     search: io.optional(io.string().emptyok()),
     sortBy: io.optional(io.enum([...TEAM_LIST_SORT_KEYS])),
     sortDirection: io.optional(io.enum([...TEAM_LIST_SORT_DIRECTIONS])),
-    limit: io.optional(io.number()),
-    skip: io.optional(io.number()),
+    limit: ioListLimit(),
+    skip: ioListSkip(),
   }),
   result: io.object({
     count: io.number(),
@@ -102,8 +102,8 @@ export const FeatureDashboardReportsLoadDef = {
   payload: io.object({
     seasonId: ioSeason.shape.id,
     search: io.optional(io.string().emptyok()),
-    limit: io.optional(io.number()),
-    skip: io.optional(io.number()),
+    limit: ioListLimit(),
+    skip: ioListSkip(),
   }),
   result: io.object({
     count: io.number(),

@@ -106,17 +106,15 @@ export default new Map<string, RequestHandler>([
       ({seasonId, email, password, userAgent}) =>
       async (req) => {
         const ip = intrusion.getClientIp(req)
-        await authAttemptLimit.assertAllowed('login', email, ip)
+        await authAttemptLimit.consume('login', email, ip)
         const user = await userEmail.maybeUser(email)
         if (!user?.password?.trim().length) {
           await hash.compareDummy(password)
-          await authAttemptLimit.registerFailure('login', email, ip)
           throw unauthorizedError(INVALID_LOGIN_MESSAGE, {
             errorCode: 'auth.invalid_login',
           })
         }
         if (!(await hash.compare(password, user.password))) {
-          await authAttemptLimit.registerFailure('login', email, ip)
           throw unauthorizedError(INVALID_LOGIN_MESSAGE, {
             errorCode: 'auth.invalid_login',
           })
@@ -177,16 +175,14 @@ export default new Map<string, RequestHandler>([
       ({seasonId, email, code, newPassword, userAgent}) =>
       async (req) => {
         const ip = intrusion.getClientIp(req)
-        await authAttemptLimit.assertAllowed('verify', email, ip)
+        await authAttemptLimit.consume('verify', email, ip)
         let user = await userEmail.maybeUser(email)
         if (!user) {
-          await authAttemptLimit.registerFailure('verify', email, ip)
           throw badRequestError(`Code is incorrect.`, {
             errorCode: 'user.code_invalid',
           })
         }
         if (!userEmail.isCodeEqual(user, email, code)) {
-          await authAttemptLimit.registerFailure('verify', email, ip)
           throw badRequestError(`Code is incorrect.`, {
             errorCode: 'user.code_invalid',
           })

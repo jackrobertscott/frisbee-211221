@@ -499,7 +499,9 @@ const _orderedHeadings = (
 
 const _csvValue = (value: unknown) => {
   if (value === undefined || value === null) return ''
-  if (typeof value === 'string') return value
+  // stop spreadsheet apps from running user-entered text as a formula
+  if (typeof value === 'string')
+    return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value
   if (typeof value === 'number' || typeof value === 'boolean')
     return String(value)
   return JSON.stringify(value) ?? ''

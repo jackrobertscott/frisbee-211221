@@ -12,6 +12,8 @@ import {Filter} from 'mongodb'
 import {RequestHandler} from 'micro'
 import {$Comment} from '../tables/$Comment'
 import {$Fixture} from '../tables/$Fixture'
+import {$GamedayImportConfig} from '../tables/$GamedayImportConfig'
+import {$GamedayImportRun} from '../tables/$GamedayImportRun'
 import {$Member} from '../tables/$Member'
 import {$Post} from '../tables/$Post'
 import {$Report} from '../tables/$Report'
@@ -98,6 +100,8 @@ export default new Map<string, RequestHandler>([
           await $Member.deleteMany({seasonId})
           await $Fixture.deleteMany({seasonId})
           await $Team.deleteMany({seasonId})
+          await $GamedayImportRun.deleteMany({seasonId})
+          await $GamedayImportConfig.deleteMany({seasonId})
           await $User.updateMany(
             {lastSeasonId: seasonId},
             {
@@ -112,9 +116,10 @@ export default new Map<string, RequestHandler>([
 ])
 
 async function _countSeasonReports(seasonId: string): Promise<number> {
+  const idsOnly = [{$match: {seasonId}}, {$project: {_id: 0, id: 1}}]
   const [fixtures, teams] = await Promise.all([
-    $Fixture.getMany({seasonId}),
-    $Team.getMany({seasonId}),
+    $Fixture.aggregate<{id: string}>(idsOnly),
+    $Team.aggregate<{id: string}>(idsOnly),
   ])
   const fixtureIds = fixtures.map((fixture) => fixture.id)
   const teamIds = teams.map((team) => team.id)

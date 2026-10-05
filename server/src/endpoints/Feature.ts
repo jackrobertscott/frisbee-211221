@@ -768,22 +768,24 @@ function _createReportSearchPipeline({
 }) {
   const trimmedSearch = search?.trim()
   const slots = getSeasonMvpSlots(season)
-  const pipeline: Document[] = [
-    {$match: {fixtureId: {$in: fixtureIds}}},
+  // join only the fields the rows need, never whole user or team documents
+  const lookups: Document[] = [
     {
       $lookup: {
-        from: 'fixture',
+        from: $Fixture.key(),
         localField: 'fixtureId',
         foreignField: 'id',
+        pipeline: [{$project: {_id: 0, title: 1}}],
         as: 'fixture',
       },
     },
     {$unwind: '$fixture'},
     {
       $lookup: {
-        from: 'team',
+        from: $Team.key(),
         localField: 'teamId',
         foreignField: 'id',
+        pipeline: [{$project: {_id: 0, name: 1, color: 1}}],
         as: 'team',
       },
     },
@@ -795,9 +797,10 @@ function _createReportSearchPipeline({
     },
     {
       $lookup: {
-        from: 'team',
+        from: $Team.key(),
         localField: 'teamAgainstId',
         foreignField: 'id',
+        pipeline: [{$project: {_id: 0, name: 1, color: 1}}],
         as: 'againstTeam',
       },
     },
@@ -809,9 +812,10 @@ function _createReportSearchPipeline({
     },
     {
       $lookup: {
-        from: 'user',
+        from: $User.key(),
         localField: 'userId',
         foreignField: 'id',
+        pipeline: [{$project: {_id: 0, firstName: 1, lastName: 1}}],
         as: 'submitter',
       },
     },
@@ -837,10 +841,13 @@ function _createReportSearchPipeline({
       },
     },
   ]
+  const pipeline: Document[] = [{$match: {fixtureId: {$in: fixtureIds}}}]
 
+  // searching filters on joined fields, so join first; otherwise paginate
+  // first and join only the rows on the requested page
   if (trimmedSearch) {
     const searchRegex = regex.escape(trimmedSearch)
-    pipeline.push({
+    pipeline.push(...lookups, {
       $match: {
         $or: [
           {'fixture.title': {$regex: searchRegex, $options: 'i'}},
@@ -861,6 +868,7 @@ function _createReportSearchPipeline({
         {$sort: {createdOn: -1}},
         ...(skip ? [{$skip: skip}] : []),
         ...(limit !== undefined ? [{$limit: limit}] : []),
+        ...(trimmedSearch ? [] : lookups),
         {
           $project: {
             _id: 0,

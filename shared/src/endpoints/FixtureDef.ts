@@ -40,9 +40,9 @@ export const FixtureAdjustMultipleDef = {
   payload: io.object({
     seasonId: ioFixture.shape.seasonId,
     referenceFixtureId: ioFixture.shape.id,
-    amount: io.number(),
-    unit: io.string(),
-    direction: io.string(),
+    amount: io.number().integer().min(0).max(1000),
+    unit: io.enum(['day', 'week', 'month']),
+    direction: io.enum(['forward', 'backward']),
   }),
   result: io.object({
     count: io.number(),
@@ -55,7 +55,7 @@ export const FixtureGenerateDef = {
   payload: io.object({
     seasonId: ioFixture.shape.seasonId,
     startingDate: ioFixture.shape.date,
-    roundCount: io.number(),
+    roundCount: io.number().integer().min(1).max(100),
     slots: io.array(
       io.object({
         id: ioFixtureGame.shape.id,

@@ -83,13 +83,11 @@ export default new Map<string, RequestHandler>([
       async (req) => {
         const [user] = await requireAccess(req, access)
         const ip = intrusion.getClientIp(req)
-        await authAttemptLimit.assertAllowed('verify', email, ip)
-        if (!userEmail.isCodeEqual(user, email, code)) {
-          await authAttemptLimit.registerFailure('verify', email, ip)
+        await authAttemptLimit.consume('verify', email, ip)
+        if (!userEmail.isCodeEqual(user, email, code))
           throw badRequestError(`Code is incorrect.`, {
             errorCode: 'user.code_invalid',
           })
-        }
         if (userEmail.isCodeExpired(user, email)) {
           await authAttemptLimit.consume('delivery', email, ip)
           await userEmail.codeSendSave(user, email, 'Verify Email')

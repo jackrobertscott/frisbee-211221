@@ -72,7 +72,7 @@ export const db = {
           query as Filter<Document>,
           {...(queryOptions as FindOptions), ...mongo.options()},
         )
-        return result ? this._clean(result as any) : undefined
+        return result ? this._clean(result as unknown as WithId<V>) : undefined
       },
 
       async getOne(query: Filter<V>): Promise<V> {
@@ -99,7 +99,7 @@ export const db = {
         if (queryOptions?.skip) chain = chain.skip(queryOptions.skip)
         if (queryOptions?.limit) chain = chain.limit(queryOptions.limit)
         const result = await chain.toArray()
-        return result.map((i) => this._clean(i as any))
+        return result.map((i) => this._clean(i as unknown as WithId<V>))
       },
 
       async scanStored(
@@ -110,7 +110,7 @@ export const db = {
         const cursor = collection.find(query as Filter<Document>, mongo.options())
         let count = 0
         for await (const result of cursor) {
-          await callback(this._clean(result as any) as unknown)
+          await callback(this._clean(result as unknown as WithId<V>) as unknown)
           count += 1
         }
         return count
@@ -124,7 +124,7 @@ export const db = {
         if (!i.ok) throw i.error
         const collection = await mongo.collection(options.key)
         const result = await collection.insertOne(i.value, mongo.options())
-        return this.getOne({_id: result.insertedId} as any)
+        return this.getOne({_id: result.insertedId} as unknown as Filter<V>)
       },
 
       async createMany(
@@ -246,7 +246,7 @@ export const db = {
         const result = await collection
           .aggregate(pipeline, mongo.options())
           .toArray()
-        return result.map((i) => this._clean(i as any)) as T[]
+        return result.map((i) => this._clean(i as unknown as WithId<V>)) as T[]
       },
 
       async deleteOne(query: Filter<V>): Promise<number> {
@@ -269,7 +269,7 @@ export const db = {
 
       _clean(value: WithId<V>): V {
         const {_id, ...result} = value
-        return result as any
+        return result as unknown as V
       },
 
       _compileDefaults() {

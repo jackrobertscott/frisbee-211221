@@ -6,12 +6,12 @@ import {
   PostListDef,
   PostUpdateDef,
 } from '@shared/endpoints/PostDef'
-import DOMPurify from 'dompurify'
 import {RequestHandler} from 'micro'
 import {$Member} from '../tables/$Member'
 import {$Post} from '../tables/$Post'
 import {$User} from '../tables/$User'
 import {createEndpoint} from '../utils/endpoints'
+import {html} from '../utils/html'
 import {mail} from '../utils/mail'
 import {regex} from '../utils/regex'
 import {requireAccess} from './requireAccess'
@@ -45,7 +45,6 @@ export default new Map<string, RequestHandler>([
       if (body.sendEmail) {
         await requireAccess(req, authPoint.postNotifyCaptains)
       }
-      body.content = DOMPurify.sanitize(body.content)
       const post = await $Post.createOne({
         ...body,
         userId: user.id,
@@ -65,7 +64,8 @@ export default new Map<string, RequestHandler>([
           await mail.send({
             to: toEmails,
             subject: post.title,
-            html: post.content,
+            // post content is plain text, so escape it for the email body
+            html: html.fromText(post.content),
           })
       }
       return post
@@ -84,7 +84,6 @@ export default new Map<string, RequestHandler>([
           throw forbiddenError('Failed: you can only update your own posts.', {
             errorCode: 'post.update_forbidden',
           })
-        body.content = DOMPurify.sanitize(body.content)
         return $Post.updateOne(
           {id: postId},
           {...body, updatedOn: new Date().toISOString()},
@@ -108,3 +107,4 @@ export default new Map<string, RequestHandler>([
       },
   }),
 ])
+

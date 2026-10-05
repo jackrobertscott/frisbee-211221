@@ -72,8 +72,8 @@ export const PortMockGenerateDef = {
   path: '/PortMockGenerate',
   payload: io.object({
     seasonId: ioSeason.shape.id,
-    teams: io.number(),
-    usersPerTeam: io.number(),
+    teams: io.number().integer().min(1).max(500),
+    usersPerTeam: io.number().integer().min(1).max(100),
   }),
 } satisfies TEndpointDef
 

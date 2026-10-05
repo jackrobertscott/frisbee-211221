@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv'
 import path from 'path'
-import {io} from '@shared/torva'
+import {io, TypeIoValue} from '@shared/torva'
 import {fileURLToPath} from 'url'
 
 const envFile =
@@ -41,7 +41,8 @@ const envResult = envSchema.validate({
   IS_PRODUCTION: process.env.NODE_ENV === 'production',
   PORT: process.env.PORT,
   SESSION_TTL_DAYS: process.env.SESSION_TTL_DAYS ?? 90,
-} as any)
+  // raw env strings are coerced and checked by the schema
+} as unknown as TypeIoValue<typeof envSchema>)
 
 if (!envResult.ok) {
   throw new Error(`Invalid server environment: ${envResult.error}`)

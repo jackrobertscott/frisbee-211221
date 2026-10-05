@@ -1,6 +1,6 @@
 import {authPoint} from '@shared/auth/authAccess'
 import {ioUser, ioUserEmail, ioUserSafe} from '@shared/schemas/ioUser'
-import {TEndpointDef} from '@shared/utils/endpointDef'
+import {ioListLimit, ioListSkip, TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
 export const USER_LIST_SORT_KEYS = [
@@ -133,8 +133,8 @@ export const UserListDef = {
     search: io.optional(io.string().emptyok()),
     sortBy: io.optional(io.enum([...USER_LIST_SORT_KEYS])),
     sortDirection: io.optional(io.enum([...USER_LIST_SORT_DIRECTIONS])),
-    limit: io.optional(io.number()),
-    skip: io.optional(io.number()),
+    limit: ioListLimit(),
+    skip: ioListSkip(),
   }),
   result: io.object({
     count: io.number(),

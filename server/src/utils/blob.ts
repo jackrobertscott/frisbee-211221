@@ -31,7 +31,7 @@ export const blob = {
       ]
     >((resolve, reject) => {
       const busboy = createBusboy({
-        headers: req.headers as any,
+        headers: req.headers,
         limits: {
           fileSize: MAX_UPLOAD_BYTES,
           files: MAX_UPLOAD_FILES,

@@ -26,7 +26,7 @@ export const runGamedayExportProcess = async (
   return await new Promise<TGamedayExportOutput>((resolve, reject) => {
     const child = spawn(cli.command, cli.args, {
       cwd: cli.cwd,
-      env: process.env,
+      env: readChildEnv(),
       stdio: ['pipe', 'pipe', 'pipe'],
     })
 
@@ -123,6 +123,22 @@ export const runGamedayExportProcess = async (
 
     child.stdin.end(JSON.stringify(input))
   })
+}
+
+// the scraper only needs runtime and GameDay settings, never server secrets
+const CHILD_ENV_EXCLUDED_KEYS = new Set([
+  'JWT_SECRET',
+  'MONGODB_URI',
+  'SES_ACCESS_KEY_ID',
+  'SES_SECRET_ACCESS_KEY',
+])
+
+const readChildEnv = (): NodeJS.ProcessEnv => {
+  return Object.fromEntries(
+    Object.entries(process.env).filter(
+      ([key]) => !CHILD_ENV_EXCLUDED_KEYS.has(key),
+    ),
+  )
 }
 
 const resolveCliCommand = (): TCliCommand => {

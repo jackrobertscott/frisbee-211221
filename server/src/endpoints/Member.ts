@@ -88,10 +88,11 @@ export default new Map<string, RequestHandler>([
               'First name, last name, and gender are required for a new user.',
               {errorCode: 'member.user_details_required'},
             )
-          let raw: any = body
           const emails = [userEmail.create(email, true)]
           user = await $User.createOne({
-            ...raw,
+            firstName: body.firstName,
+            lastName: body.lastName,
+            gender: body.gender,
             termsAccepted: false,
             emails,
           })
@@ -125,18 +126,6 @@ export default new Map<string, RequestHandler>([
       const [user] = await requireAccess(req, access)
       const memberDelete = await $Member.maybeOne({id: memberId})
       if (!memberDelete) return
-      if (memberDelete.captain) {
-        try {
-          await $Member.updateOne(
-            {
-              pending: false,
-              teamId: memberDelete.teamId,
-              id: {$not: {$eq: memberDelete.id}},
-            },
-            {captain: true},
-          )
-        } catch {} // ignore
-      }
       if (!user.admin) {
         const [, member] = await requireTeam(user, memberDelete.teamId)
         if (!member.captain && member.id !== memberDelete.id)
@@ -146,6 +135,18 @@ export default new Map<string, RequestHandler>([
               errorCode: 'member.captain_required',
             },
           )
+      }
+      if (memberDelete.captain) {
+        const successor = await $Member.maybeOne(
+          {
+            pending: false,
+            teamId: memberDelete.teamId,
+            id: {$ne: memberDelete.id},
+          },
+          {sort: {createdOn: 1}},
+        )
+        if (successor)
+          await $Member.updateOne({id: successor.id}, {captain: true})
       }
       await $Member.deleteOne({id: memberId})
     },

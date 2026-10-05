@@ -180,31 +180,12 @@ const throwLimited = (kind: TAttemptKind): never => {
 }
 
 export default {
-  async assertAllowed(kind: TAttemptKind, email: string, ip: string) {
-    const now = Date.now()
-    await pruneMaybe(now)
-    const states = getStates(kind, email, ip)
-    const blocked = await $AuthAttemptLimit.count({
-      id: {$in: states.map((i) => i.id)},
-      blockedUntil: {$gt: now},
-    })
-    if (blocked) throwLimited(kind)
-  },
-
-  async registerFailure(
-    kind: Extract<TAttemptKind, 'login' | 'verify'>,
-    email: string,
-    ip: string,
-  ) {
-    await recordAttempt(kind, email, ip)
-  },
-
-  /** Counts a delivery and throws when the sender is already rate limited. */
-  async consume(
-    kind: Extract<TAttemptKind, 'delivery'>,
-    email: string,
-    ip: string,
-  ) {
+  /**
+   * Counts an attempt before the work it guards and throws when the sender is
+   * already rate limited. Counting first means a parallel burst cannot slip
+   * extra guesses past the limit; call reset() after a successful attempt.
+   */
+  async consume(kind: TAttemptKind, email: string, ip: string) {
     await pruneMaybe(Date.now())
     if (await recordAttempt(kind, email, ip)) throwLimited(kind)
   },

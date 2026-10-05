@@ -1,14 +1,14 @@
 import {authPoint} from '@shared/auth/authAccess'
 import {ioComment} from '@shared/schemas/ioComment'
 import {ioUserPublic} from '@shared/schemas/ioUser'
-import {TEndpointDef} from '@shared/utils/endpointDef'
+import {ioListLimit, TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
 export const CommentListOfPostDef = {
   path: '/CommentListOfPost',
   payload: io.object({
     postId: ioComment.shape.postId,
-    limit: io.optional(io.number()),
+    limit: ioListLimit(),
   }),
   result: io.object({
     comments: io.array(ioComment),

@@ -1,14 +1,14 @@
 import {authPoint} from '@shared/auth/authAccess'
 import {ioPost} from '@shared/schemas/ioPost'
 import {ioUserPublic} from '@shared/schemas/ioUser'
-import {TEndpointDef} from '@shared/utils/endpointDef'
+import {ioListLimit, TEndpointDef} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
 export const PostListDef = {
   path: '/PostList',
   payload: io.object({
     search: io.optional(io.string().emptyok()),
-    limit: io.optional(io.number()),
+    limit: ioListLimit(),
   }),
   result: io.object({
     posts: io.array(ioPost),

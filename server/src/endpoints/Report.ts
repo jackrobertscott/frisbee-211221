@@ -170,11 +170,27 @@ export default new Map<string, RequestHandler>([
       ({seasonId}, access) =>
       async (req) => {
         await requireAccess(req, access)
-        const fixtures = await $Fixture.getMany({seasonId}, {sort: {date: 1}})
-        const teams = await $Team.getMany({seasonId})
-        const reports = await $Report.getMany({
-          fixtureId: {$in: fixtures.map((i) => i.id)},
-        })
+        const [fixtures, teams] = await Promise.all([
+          $Fixture.getMany({seasonId}, {sort: {date: 1}}),
+          $Team.getMany({seasonId}),
+        ])
+        const reports = await $Report.aggregate<{
+          fixtureId: string
+          teamId: string
+          teamAgainstId: string
+        }>([
+          {$match: {fixtureId: {$in: fixtures.map((i) => i.id)}}},
+          {$project: {_id: 0, fixtureId: 1, teamId: 1, teamAgainstId: 1}},
+        ])
+        const teamsById = new Map(teams.map((team) => [team.id, team]))
+        const reportKey = (
+          fixtureId: string,
+          teamId: string,
+          teamAgainstId?: string,
+        ) => [fixtureId, teamId, teamAgainstId ?? ''].join('\u0000')
+        const reportKeys = new Set(
+          reports.map((r) => reportKey(r.fixtureId, r.teamId, r.teamAgainstId)),
+        )
 
         // Group fixtures by round (using title as identifier)
         const missingReportsByRound = fixtures.reduce(
@@ -191,15 +207,12 @@ export default new Map<string, RequestHandler>([
 
             // For each game in the fixture, check if both teams have submitted reports
             fixture.games.forEach((game) => {
-              const team1 = teams.find((t) => t.id === game.team1Id)
-              const team2 = teams.find((t) => t.id === game.team2Id)
+              const team1 = teamsById.get(game.team1Id)
+              const team2 = teamsById.get(game.team2Id)
 
               if (team1) {
-                const hasReport = reports.some(
-                  (r) =>
-                    r.fixtureId === fixture.id &&
-                    r.teamId === team1.id &&
-                    r.teamAgainstId === team2?.id,
+                const hasReport = reportKeys.has(
+                  reportKey(fixture.id, team1.id, team2?.id),
                 )
                 if (
                   !hasReport &&
@@ -216,11 +229,8 @@ export default new Map<string, RequestHandler>([
               }
 
               if (team2) {
-                const hasReport = reports.some(
-                  (r) =>
-                    r.fixtureId === fixture.id &&
-                    r.teamId === team2.id &&
-                    r.teamAgainstId === team1?.id,
+                const hasReport = reportKeys.has(
+                  reportKey(fixture.id, team2.id, team1?.id),
                 )
                 if (
                   !hasReport &&

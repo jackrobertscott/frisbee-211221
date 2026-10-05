@@ -4,6 +4,7 @@ import dayjs from 'dayjs'
 import config from '../config'
 import {$User} from '../tables/$User'
 import hash from '../utils/hash'
+import {html} from '../utils/html'
 import {mail} from '../utils/mail'
 import {random} from '../utils/random'
 import {regex} from '../utils/regex'
@@ -173,7 +174,7 @@ export const userEmail = {
       to: [email],
       subject: subject,
       html: `
-        Hey ${firstName},<br/><br/>
+        Hey ${html.escape(firstName)},<br/><br/>
         Your code is:<br/><br/>
         <strong>${codeSliced}</strong><br/><br/>
         The code will expire in 10 minutes.<br/><br/>
