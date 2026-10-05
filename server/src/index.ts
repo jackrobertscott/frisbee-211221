@@ -1,18 +1,13 @@
-import {internalError, notFoundError} from '@shared/errors'
 import cluster from 'cluster'
 import http from 'http'
-import {RequestHandler, serve as microServe} from 'micro'
+import {serve as microServe} from 'micro'
 import {
   attachWorkerClusterLifecycle,
   startPrimaryCluster,
 } from './clusterAutoscaler'
 import config from './config'
-import endpoints from './endpoints'
 import {startGamedayImportScheduler} from './gameday/scheduler'
-import capture from './utils/capture'
-import cors from './utils/cors'
-import intrusion from './utils/intrusion'
-import prerequest from './utils/prerequest'
+import {createRequestHandler} from './http/requestHandler'
 import {runStartupTasks} from './utils/startupTasks'
 
 void bootstrap().catch((error) => {
@@ -50,22 +45,7 @@ function shouldStartPrimaryCluster() {
 }
 
 function startServer() {
-  const handler: RequestHandler = async (req, res) => {
-    if (!req.url)
-      throw internalError('Request url required.', {
-        errorCode: 'request.url_missing',
-      })
-    const pathname = intrusion.getPathname(req.url)
-    if (endpoints.has(pathname))
-      // return "null" instead of "undefined" to end request
-      return (await endpoints.get(pathname)!(req, res)) ?? null
-    throw notFoundError(`Url ${req.url} is not supported.`, {
-      errorCode: 'request.route_not_found',
-    })
-  }
-  const server = new http.Server(
-    microServe(cors()(capture.handle(prerequest(handler)))),
-  )
+  const server = new http.Server(microServe(createRequestHandler()))
   attachWorkerClusterLifecycle(server)
   server.listen(config.PORT, () => {
     const cid = cluster.worker ? `WORKER ${cluster.worker.id}` : 'MASTER'
