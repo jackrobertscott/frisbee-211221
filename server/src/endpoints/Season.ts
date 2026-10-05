@@ -11,7 +11,7 @@ import {RequestHandler} from 'micro'
 import {$Season} from '../tables/$Season'
 import {createEndpoint} from '../http/createEndpoint'
 import hash from '../auth/hash'
-import {regex} from '../utils/regex'
+import {regex} from '@shared/utils/regex'
 import {requireAccess} from '../auth/requireAccess'
 import {
   countSeasonReports,

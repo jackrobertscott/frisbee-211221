@@ -14,10 +14,6 @@ export const TEAM_LIST_SORT_KEYS = [
 
 export type TTeamListSortKey = (typeof TEAM_LIST_SORT_KEYS)[number]
 
-export const TEAM_LIST_SORT_DIRECTIONS = ['asc', 'desc'] as const
-
-export type TTeamListSortDirection = (typeof TEAM_LIST_SORT_DIRECTIONS)[number]
-
 export const TeamCurrentCreateDef = {
   access: authPoint.teamJoin,
   path: '/TeamCurrentCreate',

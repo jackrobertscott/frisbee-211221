@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest'
-import {regex} from '../utils/regex'
+import {regex} from '@shared/utils/regex'
 import {generateMockSeasonData, generateMockTeamNames} from './mockData'
 
 describe('generateMockTeamNames', () => {

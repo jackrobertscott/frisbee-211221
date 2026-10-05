@@ -1,11 +1,9 @@
-import {
-  TTeamListSortDirection,
-  TTeamListSortKey,
-} from '@shared/endpoints/TeamDef'
+import {TSortDirection} from '@shared/utils/endpointDef'
+import {TTeamListSortKey} from '@shared/endpoints/TeamDef'
 import {Document} from 'mongodb'
 
 export const TEAM_LIST_DEFAULT_SORT_BY: TTeamListSortKey = 'division'
-export const TEAM_LIST_DEFAULT_SORT_DIRECTION: TTeamListSortDirection = 'asc'
+export const TEAM_LIST_DEFAULT_SORT_DIRECTION: TSortDirection = 'asc'
 
 /**
  * Teams matching `query`, sorted in the database before any paging. Division
@@ -14,7 +12,7 @@ export const TEAM_LIST_DEFAULT_SORT_DIRECTION: TTeamListSortDirection = 'asc'
 export function getTeamListPipeline(
   query: Document,
   sortBy: TTeamListSortKey,
-  sortDirection: TTeamListSortDirection,
+  sortDirection: TSortDirection,
   skip?: number,
   limit?: number,
 ): Document[] {
@@ -43,7 +41,7 @@ export function getSeasonTeamsPipeline(seasonId: string): Document[] {
 
 function getTeamListSort(
   sortBy: TTeamListSortKey,
-  sortDirection: TTeamListSortDirection,
+  sortDirection: TSortDirection,
 ): Record<string, 1 | -1> {
   const direction: 1 | -1 = sortDirection === 'asc' ? 1 : -1
   switch (sortBy) {

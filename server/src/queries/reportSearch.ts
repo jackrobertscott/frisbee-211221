@@ -5,7 +5,7 @@ import {Document} from 'mongodb'
 import {$Fixture} from '../tables/$Fixture'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
-import {regex} from '../utils/regex'
+import {regex} from '@shared/utils/regex'
 
 export type TReportSearchResult = {
   count: number

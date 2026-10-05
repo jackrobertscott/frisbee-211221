@@ -1,6 +1,6 @@
+import {TSortDirection} from '@shared/utils/endpointDef'
 import {authPoint} from '@shared/auth/authAccess'
 import {
-  TFeatureSortDirection,
   TFeatureSpiritRow,
   TFeatureSpiritSortKey,
 } from '@shared/endpoints/FeatureDef'
@@ -34,12 +34,15 @@ const SORT_KEYS: readonly TFeatureSpiritSortKey[] = [
 const isSortKey = (key: string): key is TFeatureSpiritSortKey =>
   SORT_KEYS.some((k) => k === key)
 
-const defaultDirection = (key: TFeatureSpiritSortKey): TFeatureSortDirection =>
+const defaultDirection = (key: TFeatureSpiritSortKey): TSortDirection =>
   key === 'team' || key === 'division' ? 'asc' : 'desc'
 
-const averageFormatter = new Intl.NumberFormat(undefined, {maximumFractionDigits: 2})
+const averageFormatter = new Intl.NumberFormat(undefined, {
+  maximumFractionDigits: 2,
+})
 const displayValue = (value: number) => (Math.abs(value) < 0.005 ? 0 : value)
-const formatAverage = (value: number) => averageFormatter.format(displayValue(value))
+const formatAverage = (value: number) =>
+  averageFormatter.format(displayValue(value))
 
 /** Highlights differences of more than a point either way. */
 function Diff({value}: {value: number}) {
@@ -61,8 +64,10 @@ export function SpiritPage() {
   const allowed = auth.can(authPoint.reportManage)
   const official = season?.useOfficialScoring === true
   const $load = useEndpoint($FeatureDashboardSpiritLoad)
-  const [sortBy, sortBySet] = useState<TFeatureSpiritSortKey>('adjustedReceivedAverage')
-  const [sortDirection, sortDirectionSet] = useState<TFeatureSortDirection>('desc')
+  const [sortBy, sortBySet] = useState<TFeatureSpiritSortKey>(
+    'adjustedReceivedAverage',
+  )
+  const [sortDirection, sortDirectionSet] = useState<TSortDirection>('desc')
 
   useEffect(() => {
     if (!allowed) navigate('/')
@@ -123,7 +128,12 @@ export function SpiritPage() {
             </Text>
           }
           columns={[
-            {key: 'team', header: 'Team', sortable: true, render: (r) => <TeamName team={r.team} wrap="narrow" />},
+            {
+              key: 'team',
+              header: 'Team',
+              sortable: true,
+              render: (r) => <TeamName team={r.team} wrap="narrow" />,
+            },
             {
               key: 'division',
               header: 'Div',
@@ -131,14 +141,30 @@ export function SpiritPage() {
               hideBelow: 'sm',
               render: (r) => r.team.division ?? '—',
             },
-            {key: 'receivedSpirit', header: 'Pts got', align: 'right', sortable: true, hideBelow: 'lg'},
-            {key: 'receivedReports', header: 'Rpts got', align: 'right', sortable: true, hideBelow: 'lg'},
+            {
+              key: 'receivedSpirit',
+              header: 'Pts got',
+              align: 'right',
+              sortable: true,
+              hideBelow: 'lg',
+            },
+            {
+              key: 'receivedReports',
+              header: 'Rpts got',
+              align: 'right',
+              sortable: true,
+              hideBelow: 'lg',
+            },
             {
               key: 'receivedAverage',
               header: 'Avg got',
               align: 'right',
               sortable: true,
-              render: (r) => <span className="fr-num">{formatAverage(r.receivedAverage)}</span>,
+              render: (r) => (
+                <span className="fr-num">
+                  {formatAverage(r.receivedAverage)}
+                </span>
+              ),
             },
             {
               key: 'adjustedReceivedAverage',
@@ -146,18 +172,36 @@ export function SpiritPage() {
               align: 'right',
               sortable: true,
               render: (r) => (
-                <b className="fr-num">{formatAverage(r.adjustedReceivedAverage)}</b>
+                <b className="fr-num">
+                  {formatAverage(r.adjustedReceivedAverage)}
+                </b>
               ),
             },
-            {key: 'allocatedSpirit', header: 'Pts sent', align: 'right', sortable: true, hideBelow: 'lg'},
-            {key: 'allocatedReports', header: 'Rpts sent', align: 'right', sortable: true, hideBelow: 'lg'},
+            {
+              key: 'allocatedSpirit',
+              header: 'Pts sent',
+              align: 'right',
+              sortable: true,
+              hideBelow: 'lg',
+            },
+            {
+              key: 'allocatedReports',
+              header: 'Rpts sent',
+              align: 'right',
+              sortable: true,
+              hideBelow: 'lg',
+            },
             {
               key: 'allocatedAverage',
               header: 'Avg sent',
               align: 'right',
               sortable: true,
               hideBelow: 'md',
-              render: (r) => <span className="fr-num">{formatAverage(r.allocatedAverage)}</span>,
+              render: (r) => (
+                <span className="fr-num">
+                  {formatAverage(r.allocatedAverage)}
+                </span>
+              ),
             },
             {
               key: 'adjustedAllocatedAverage',
@@ -166,7 +210,9 @@ export function SpiritPage() {
               sortable: true,
               hideBelow: 'md',
               render: (r) => (
-                <span className="fr-num">{formatAverage(r.adjustedAllocatedAverage)}</span>
+                <span className="fr-num">
+                  {formatAverage(r.adjustedAllocatedAverage)}
+                </span>
               ),
             },
             {
@@ -188,9 +234,10 @@ export function SpiritPage() {
         />
         <div className="fr-card-foot">
           <Text size="xs" tone="tertiary">
-            <b>Adjusted got</b> is the average spirit score received after correcting for
-            how generous or harsh the reporting teams usually score. <b>Diff</b> is
-            highlighted when it’s more than a point either way.
+            <b>Adjusted got</b> is the average spirit score received after
+            correcting for how generous or harsh the reporting teams usually
+            score. <b>Diff</b> is highlighted when it’s more than a point either
+            way.
           </Text>
         </div>
       </Card>

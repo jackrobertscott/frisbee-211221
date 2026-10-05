@@ -1,3 +1,5 @@
+import {regex} from '@shared/utils/regex'
+
 export type TypeIoValidateReturn<T> =
   | {
       ok: true
@@ -143,30 +145,6 @@ export const ensure = {
   object: (data: any): data is object =>
     Boolean(typeof data === 'object' && !Array.isArray(data) && data !== null),
   array: (data: any): data is any[] => Array.isArray(data),
-}
-
-export const regex = {
-  escape(value = '') {
-    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  },
-  from(value = '') {
-    return new RegExp(regex.escape(value), 'i')
-  },
-  normalize(value = '') {
-    return new RegExp(`^${regex.escape(value.trim())}$`, 'i')
-  },
-  startsWith(value = '') {
-    return new RegExp(`^${regex.escape(value.trim())}`, 'i')
-  },
-  endsWith(value = '') {
-    return new RegExp(`${regex.escape(value.trim())}$`, 'i')
-  },
-  email() {
-    return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-  },
-  hsla() {
-    return /^hsla\(\s*(-?\d+(?:\.\d+)?)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*,\s*(\d*(?:\.\d+)?)\s*\)$/
-  },
 }
 
 const getValueType = (value: unknown) => {
@@ -407,7 +385,9 @@ export function ioObject<
       const omitted = new Set<keyof F>(keys)
       return ioObject(
         Object.fromEntries(
-          Object.entries(fields).filter(([key]) => !omitted.has(key as keyof F)),
+          Object.entries(fields).filter(
+            ([key]) => !omitted.has(key as keyof F),
+          ),
         ) as Omit<F, K>,
       )
     },

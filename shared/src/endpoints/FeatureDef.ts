@@ -6,11 +6,13 @@ import {ioSeason} from '@shared/schemas/ioSeason'
 import {ioTeam} from '@shared/schemas/ioTeam'
 import {ioUserPublic} from '@shared/schemas/ioUser'
 import {ioReportSearchRow} from '@shared/endpoints/ReportDef'
+import {TEAM_LIST_SORT_KEYS} from '@shared/endpoints/TeamDef'
 import {
-  TEAM_LIST_SORT_DIRECTIONS,
-  TEAM_LIST_SORT_KEYS,
-} from '@shared/endpoints/TeamDef'
-import {ioListLimit, ioListSkip, TEndpointDef} from '@shared/utils/endpointDef'
+  ioListLimit,
+  ioListSkip,
+  ioSortDirection,
+  TEndpointDef,
+} from '@shared/utils/endpointDef'
 import {io, TypeIoValue} from '@shared/torva'
 
 export const FEATURE_SPIRIT_SORT_KEYS = [
@@ -29,10 +31,6 @@ export const FEATURE_SPIRIT_SORT_KEYS = [
 ] as const
 
 export type TFeatureSpiritSortKey = (typeof FEATURE_SPIRIT_SORT_KEYS)[number]
-
-export const FEATURE_SORT_DIRECTIONS = ['asc', 'desc'] as const
-
-export type TFeatureSortDirection = (typeof FEATURE_SORT_DIRECTIONS)[number]
 
 export const ioFeatureAgainstOption = io.object({
   team: ioTeam,
@@ -86,7 +84,7 @@ export const FeatureDashboardTeamsLoadDef = {
     seasonId: ioSeason.shape.id,
     search: io.optional(io.string().emptyok()),
     sortBy: io.optional(io.enum([...TEAM_LIST_SORT_KEYS])),
-    sortDirection: io.optional(io.enum([...TEAM_LIST_SORT_DIRECTIONS])),
+    sortDirection: ioSortDirection(),
     limit: ioListLimit(),
     skip: ioListSkip(),
   }),
@@ -134,7 +132,7 @@ export const FeatureDashboardSpiritLoadDef = {
   payload: io.object({
     seasonId: ioSeason.shape.id,
     sortBy: io.optional(io.enum([...FEATURE_SPIRIT_SORT_KEYS])),
-    sortDirection: io.optional(io.enum([...FEATURE_SORT_DIRECTIONS])),
+    sortDirection: ioSortDirection(),
   }),
   result: io.object({
     rows: io.array(ioFeatureSpiritRow),

@@ -9,6 +9,12 @@ export const ioListLimit = () =>
 
 export const ioListSkip = () => io.optional(io.number().integer().min(0))
 
+export const SORT_DIRECTIONS = ['asc', 'desc'] as const
+
+export type TSortDirection = (typeof SORT_DIRECTIONS)[number]
+
+export const ioSortDirection = () => io.optional(io.enum([...SORT_DIRECTIONS]))
+
 export type ExactShape<Expected, Actual extends Expected> = Actual &
   Record<Exclude<keyof Actual, keyof Expected>, never>
 

@@ -1,5 +1,5 @@
+import {TSortDirection} from '@shared/utils/endpointDef'
 import {
-  TFeatureSortDirection,
   TFeatureSpiritRow,
   TFeatureSpiritSortKey,
 } from '@shared/endpoints/FeatureDef'
@@ -110,7 +110,7 @@ export function buildSpiritRows(
 export function sortSpiritRows(
   rows: TFeatureSpiritRow[],
   sortBy: TFeatureSpiritSortKey,
-  sortDirection: TFeatureSortDirection,
+  sortDirection: TSortDirection,
 ): TFeatureSpiritRow[] {
   const direction = sortDirection === 'asc' ? 1 : -1
   return [...rows].sort((a, b) => {

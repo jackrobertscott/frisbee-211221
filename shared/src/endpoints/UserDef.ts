@@ -1,6 +1,11 @@
 import {authPoint} from '@shared/auth/authAccess'
 import {ioUser, ioUserEmail, ioUserSafe} from '@shared/schemas/ioUser'
-import {ioListLimit, ioListSkip, TEndpointDef} from '@shared/utils/endpointDef'
+import {
+  ioListLimit,
+  ioListSkip,
+  ioSortDirection,
+  TEndpointDef,
+} from '@shared/utils/endpointDef'
 import {io} from '@shared/torva'
 
 export const USER_LIST_SORT_KEYS = [
@@ -12,10 +17,6 @@ export const USER_LIST_SORT_KEYS = [
 ] as const
 
 export type TUserListSortKey = (typeof USER_LIST_SORT_KEYS)[number]
-
-export const USER_LIST_SORT_DIRECTIONS = ['asc', 'desc'] as const
-
-export type TUserListSortDirection = (typeof USER_LIST_SORT_DIRECTIONS)[number]
 
 export const UserCurrentUpdateDef = {
   access: authPoint.userSelf,
@@ -132,7 +133,7 @@ export const UserListDef = {
   payload: io.object({
     search: io.optional(io.string().emptyok()),
     sortBy: io.optional(io.enum([...USER_LIST_SORT_KEYS])),
-    sortDirection: io.optional(io.enum([...USER_LIST_SORT_DIRECTIONS])),
+    sortDirection: ioSortDirection(),
     limit: ioListLimit(),
     skip: ioListSkip(),
   }),

@@ -1,12 +1,10 @@
-import {
-  TUserListSortDirection,
-  TUserListSortKey,
-} from '@shared/endpoints/UserDef'
+import {TSortDirection} from '@shared/utils/endpointDef'
+import {TUserListSortKey} from '@shared/endpoints/UserDef'
 import {Document} from 'mongodb'
-import {regex} from '../utils/regex'
+import {regex} from '@shared/utils/regex'
 
 export const USER_LIST_DEFAULT_SORT_BY: TUserListSortKey = 'createdOn'
-export const USER_LIST_DEFAULT_SORT_DIRECTION: TUserListSortDirection = 'desc'
+export const USER_LIST_DEFAULT_SORT_DIRECTION: TSortDirection = 'desc'
 
 /** Users whose first name, last name or any email contains `search`. */
 export function getUserListQuery(search: string = ''): Document {
@@ -28,7 +26,7 @@ export function getUserListQuery(search: string = ''): Document {
 export function getUserListPipeline(
   query: Document,
   sortBy: TUserListSortKey,
-  sortDirection: TUserListSortDirection,
+  sortDirection: TSortDirection,
   skip?: number,
   limit?: number,
 ): Document[] {
@@ -83,7 +81,7 @@ const SORT_PRIMARY_EMAIL: Document = {
 
 function getUserListSort(
   sortBy: TUserListSortKey,
-  sortDirection: TUserListSortDirection,
+  sortDirection: TSortDirection,
 ): Record<string, 1 | -1> {
   const direction: 1 | -1 = sortDirection === 'asc' ? 1 : -1
   switch (sortBy) {

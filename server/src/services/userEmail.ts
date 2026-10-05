@@ -8,7 +8,7 @@ import hash from '../auth/hash'
 import {html} from '../utils/html'
 import {mail} from '../utils/mail'
 import {random} from '../utils/random'
-import {regex} from '../utils/regex'
+import {regex} from '@shared/utils/regex'
 
 const EMAIL_COLLATION = {locale: 'en', strength: 2 as const}
 
@@ -21,7 +21,9 @@ const CODE_EXPIRED_MESSAGE = `Your code has expired. A new code has been sent to
 
 /** The index of `email` on `user`, or a not found error when it is missing. */
 const requireEmailIndex = (user: TUser, email: string) => {
-  const index = user.emails.findIndex((i) => regex.normalize(email).test(i.value))
+  const index = user.emails.findIndex((i) =>
+    regex.normalize(email).test(i.value),
+  )
   if (index === -1)
     throw notFoundError('Email does not exist on user.', {
       errorCode: 'user.email_not_found',

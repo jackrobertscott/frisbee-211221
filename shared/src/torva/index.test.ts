@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest'
-import {ensure, io, regex, TypeIoValidateReturn} from './index'
+import {regex} from '../utils/regex'
+import {ensure, io, TypeIoValidateReturn} from './index'
 
 const ok = <T>(value: T): TypeIoValidateReturn<T> => ({ok: true, value})
 const fail = (error: string) => ({ok: false, error})
