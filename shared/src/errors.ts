@@ -164,7 +164,6 @@ const USER_MESSAGE_BY_ERROR_CODE: Record<string, string> = {
   'client.server_url_missing':
     'The app is not set up correctly. Please contact support.',
 
-
   'db.record_not_found':
     'We could not find the item you were trying to open.',
 
@@ -182,8 +181,6 @@ const USER_MESSAGE_BY_ERROR_CODE: Record<string, string> = {
   'intrusion.origin_forbidden': 'This action is not available from here.',
   'intrusion.suspicious_request': 'This page is not available.',
 
-  'portal.element_missing': INTERNAL_USER_MESSAGE,
-
   'member.already_captain': 'This member is already the captain.',
   'member.already_on_other_team':
     'This person is already on another team for this season.',
@@ -192,7 +189,6 @@ const USER_MESSAGE_BY_ERROR_CODE: Record<string, string> = {
     'A membership request has already been sent for this season.',
   'member.user_details_required':
     'Please enter the first name, last name, and gender for the new member.',
-
 
   'report.already_submitted':
     'A score report has already been submitted for this game.',
@@ -226,9 +222,6 @@ const USER_MESSAGE_BY_ERROR_CODE: Record<string, string> = {
   'team.pending_member_forbidden':
     'Your team membership needs to be accepted before you can do that.',
   'team.signup_closed': 'Team signup is closed for this season.',
-
-  'theme.padify_pixels_invalid': INTERNAL_USER_MESSAGE,
-  'throttle.dribble_max_invalid': INTERNAL_USER_MESSAGE,
 
   'upload.aborted': 'The upload was cancelled before it finished.',
   'upload.fields_limit': 'Too much information was included in the upload.',

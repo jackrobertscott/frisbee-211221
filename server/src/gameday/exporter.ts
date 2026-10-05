@@ -10,6 +10,7 @@ import {
   type Page,
 } from 'playwright-core'
 import {parseCSVRows, replaceCSVHeader} from '../utils/csv'
+import {isRecord} from '../utils/isRecord'
 import type {
   TGamedayExportInput,
   TGamedayExportMember,
@@ -782,10 +783,6 @@ const waitForCompetitionListRefresh = async (page: Page) => {
 const readCompetitionListItems = async (page: Page) => {
   const pageContent = await page.content()
   return dedupeCompetitionListItems(readCompetitionGridDataItems(pageContent))
-}
-
-const isRecord = (value: unknown): value is Record<string, unknown> => {
-  return typeof value === 'object' && value !== null
 }
 
 const readCompetitionGridDataItems = (pageContent: string) => {

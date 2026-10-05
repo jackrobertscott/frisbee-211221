@@ -43,10 +43,9 @@ import {
   $UserToggleAdmin,
   $UserUpdate,
 } from '../../core/endpoints/User'
-import {primaryEmail} from '../common/users'
+import {genderOptions, isUserGender, primaryEmail} from '../common/users'
 import {fmtDateTime, fullName} from '../common/format'
 import {ActionConfirm} from '../common/ActionConfirm'
-import {genderOptions, isUserGender} from '../common/users'
 import {UserMembershipsTab} from './UserMembershipsTab'
 import {UserMergeDialog} from './UserMergeDialog'
 import './users.css'

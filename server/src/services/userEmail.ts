@@ -2,15 +2,13 @@ import {badRequestError, conflictError, notFoundError} from '@shared/errors'
 import {TUser} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
 import config from '../config'
-import {$User} from '../tables/$User'
+import {$User, EMAIL_COLLATION} from '../tables/$User'
 import authAttemptLimit from '../auth/attemptLimit'
 import hash from '../auth/hash'
 import {html} from '../utils/html'
 import {mail} from '../utils/mail'
 import {random} from '../utils/random'
 import {regex} from '@shared/utils/regex'
-
-const EMAIL_COLLATION = {locale: 'en', strength: 2 as const}
 
 const normalizeCode = (value: string) =>
   value.split('-').join('').split(' ').join('').trim().toUpperCase()

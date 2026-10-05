@@ -1,6 +1,7 @@
 import {authPoint} from '@shared/auth/authAccess'
-import {TTeamListSortKey} from '@shared/endpoints/TeamDef'
+import {TEAM_LIST_SORT_KEYS, TTeamListSortKey} from '@shared/endpoints/TeamDef'
 import {TTeam} from '@shared/schemas/ioTeam'
+import {TSortDirection} from '@shared/utils/endpointDef'
 import {Button, DataTable, EmptyState, Text, type SortState} from '@ui'
 import {Plus, Users} from 'lucide-react'
 import {useState} from 'react'
@@ -20,7 +21,7 @@ import {
 } from './TeamDialogs'
 
 const isSortKey = (key: string): key is TTeamListSortKey =>
-  ['name', 'division', 'phone', 'email', 'createdOn'].includes(key)
+  TEAM_LIST_SORT_KEYS.some((k) => k === key)
 
 export function TeamsPage() {
   const auth = useAuth()
@@ -28,7 +29,7 @@ export function TeamsPage() {
   const canManage = auth.can(authPoint.teamDirectoryManage)
   const $teamList = useEndpoint($FeatureDashboardTeamsLoad)
   const paging = useServerPaging()
-  const [sort, sortSet] = useState<{key: TTeamListSortKey; direction: 'asc' | 'desc'}>(
+  const [sort, sortSet] = useState<{key: TTeamListSortKey; direction: TSortDirection}>(
     {key: 'division', direction: 'asc'},
   )
   const [creating, creatingSet] = useState(false)

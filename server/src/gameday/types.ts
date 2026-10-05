@@ -1,3 +1,5 @@
+import {isRecord} from '../utils/isRecord'
+
 export interface TGamedayExportInput {
   startingUrl: string
   username: string
@@ -24,10 +26,6 @@ export interface TGamedayExportMember {
 
 export interface TGamedayExportOutput {
   members: TGamedayExportMember[]
-}
-
-const isRecord = (value: unknown): value is Record<string, unknown> => {
-  return typeof value === 'object' && value !== null
 }
 
 const readRequiredString = (

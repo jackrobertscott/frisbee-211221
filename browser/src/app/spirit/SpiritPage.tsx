@@ -1,6 +1,7 @@
 import {TSortDirection} from '@shared/utils/endpointDef'
 import {authPoint} from '@shared/auth/authAccess'
 import {
+  FEATURE_SPIRIT_SORT_KEYS,
   TFeatureSpiritRow,
   TFeatureSpiritSortKey,
 } from '@shared/endpoints/FeatureDef'
@@ -16,23 +17,8 @@ import {Loading} from '../common/Loading'
 import {TeamName} from '../common/TeamName'
 import {useShell} from '../shell/ShellProvider'
 
-const SORT_KEYS: readonly TFeatureSpiritSortKey[] = [
-  'team',
-  'division',
-  'receivedSpirit',
-  'receivedReports',
-  'receivedAverage',
-  'adjustedReceivedAverage',
-  'allocatedSpirit',
-  'allocatedReports',
-  'allocatedAverage',
-  'adjustedAllocatedAverage',
-  'averageDifference',
-  'adjustedDifference',
-]
-
 const isSortKey = (key: string): key is TFeatureSpiritSortKey =>
-  SORT_KEYS.some((k) => k === key)
+  FEATURE_SPIRIT_SORT_KEYS.some((k) => k === key)
 
 const defaultDirection = (key: TFeatureSpiritSortKey): TSortDirection =>
   key === 'team' || key === 'division' ? 'asc' : 'desc'

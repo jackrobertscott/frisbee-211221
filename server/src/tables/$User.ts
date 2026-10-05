@@ -2,7 +2,7 @@ import {ioUser} from '@shared/schemas/ioUser'
 import {db} from '../db/table'
 import {random} from '../utils/random'
 
-const EMAIL_COLLATION = {locale: 'en', strength: 2 as const}
+export const EMAIL_COLLATION = {locale: 'en', strength: 2 as const}
 
 export const $User = db.table({
   key: 'user',

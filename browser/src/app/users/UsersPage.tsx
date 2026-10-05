@@ -4,6 +4,7 @@ import {
   USER_LIST_SORT_KEYS,
 } from '@shared/endpoints/UserDef'
 import {TUserSafe} from '@shared/schemas/ioUser'
+import {TSortDirection} from '@shared/utils/endpointDef'
 import {
   Avatar,
   Badge,
@@ -20,19 +21,18 @@ import {useEndpoint} from '../../core/endpoints/useEndpoint'
 import {useLoad} from '../../core/hooks/useLoad'
 import {$UserList} from '../../core/endpoints/User'
 import {navigate} from '../../core/router/navigate'
-import {primaryEmail} from '../common/users'
+import {genderLabel, primaryEmail} from '../common/users'
 import {fmtShort, fullName} from '../common/format'
 import {Toolbar} from '../common/Toolbar'
 import {useServerPaging} from '../common/useServerPaging'
 import {useShell} from '../shell/ShellProvider'
-import {genderLabel} from '../common/users'
 import {UserCreateDialog} from './UserCreateDialog'
 import {UserDialog} from './UserDialog'
 import './users.css'
 
 interface TSort {
   key: TUserListSortKey
-  direction: 'asc' | 'desc'
+  direction: TSortDirection
 }
 
 const isSortKey = (key: string): key is TUserListSortKey =>

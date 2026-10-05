@@ -6,12 +6,10 @@ import {normalizeUserGender} from '@shared/schemas/ioUserGender'
 import type {TUserGender} from '@shared/schemas/ioUserGender'
 import {$Member} from '../tables/$Member'
 import {$Team} from '../tables/$Team'
-import {$User} from '../tables/$User'
+import {$User, EMAIL_COLLATION} from '../tables/$User'
 import mongo from '../db/mongo'
 import {random} from '../utils/random'
 import {userEmail} from './userEmail'
-
-const EMAIL_COLLATION = {locale: 'en', strength: 2 as const}
 
 export interface TMemberImportSummary {
   rowsImported: number

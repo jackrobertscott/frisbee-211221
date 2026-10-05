@@ -7,10 +7,8 @@ import {
 } from '@shared/errors'
 import {json, RequestHandler} from 'micro'
 import {TypeIoAll, TypeIoValue} from '@shared/torva'
+import {isRecord} from '../utils/isRecord'
 import {origin} from './origin'
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null
 
 export const createEndpoint = <
   P extends TypeIoAll,
