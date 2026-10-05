@@ -115,7 +115,19 @@ export const userEmail = {
   },
 
   async verify(user: TUser, email: string) {
-    return userEmail.verifiedSet(user, email, true)
+    const emails = [...user.emails]
+    const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
+    if (index === -1)
+      throw notFoundError('Email does not exist on user.', {
+        errorCode: 'user.email_not_found',
+      })
+    // replace the used code so it cannot be replayed within its expiry window
+    emails.splice(index, 1, {
+      ...emails[index],
+      verified: true,
+      code: hash.digest(random.randomString(32)),
+    })
+    return $User.updateOne({id: user.id}, {emails})
   },
 
   async verifiedSet(user: TUser, email: string, verified: boolean) {

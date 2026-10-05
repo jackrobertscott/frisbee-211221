@@ -47,6 +47,18 @@ export default {
     })
   },
 
+  /** End every active session of a user, optionally keeping one. */
+  async endUserSessions(userId: string, exceptSessionId?: string) {
+    await $Session.updateMany(
+      {
+        userId,
+        ended: {$ne: true},
+        ...(exceptSessionId ? {id: {$ne: exceptSessionId}} : {}),
+      },
+      {ended: true, endedOn: new Date().toISOString()},
+    )
+  },
+
   tokenFromRequest(req: IncomingMessage) {
     return normalizeToken(req.headers.authorization)
   },

@@ -85,7 +85,6 @@ export default new Map<string, RequestHandler>([
           data = {status: 'unknown', email}
         } else if (!user.password) {
           const ip = intrusion.getClientIp(req)
-          await authAttemptLimit.assertAllowed('delivery', email, ip)
           await authAttemptLimit.consume('delivery', email, ip)
           data = {status: 'password', email, firstName: user.firstName}
           await userEmail.codeSendSave(user, email, 'Verify Email')
@@ -110,6 +109,7 @@ export default new Map<string, RequestHandler>([
         await authAttemptLimit.assertAllowed('login', email, ip)
         const user = await userEmail.maybeUser(email)
         if (!user?.password?.trim().length) {
+          await hash.compareDummy(password)
           await authAttemptLimit.registerFailure('login', email, ip)
           throw unauthorizedError(INVALID_LOGIN_MESSAGE, {
             errorCode: 'auth.invalid_login',
@@ -131,7 +131,7 @@ export default new Map<string, RequestHandler>([
     ...SecuritySignUpDef,
     handler:
       ({seasonId, userAgent, email, firstName, termsAccepted, ...body}) =>
-      async () => {
+      async (req) => {
         if (!termsAccepted)
           throw badRequestError(
             'Please accept our terms to create an account.',
@@ -143,6 +143,11 @@ export default new Map<string, RequestHandler>([
           throw conflictError(`User already exists with email "${email}".`, {
             errorCode: 'user.email_exists',
           })
+        await authAttemptLimit.consume(
+          'delivery',
+          email,
+          intrusion.getClientIp(req),
+        )
         const code = await userEmail.codeSend(email, firstName, 'Verify Email')
         const emails = [userEmail.create(email, true, code)]
         const user = await $User.createOne({
@@ -160,7 +165,6 @@ export default new Map<string, RequestHandler>([
     ...SecurityForgotDef,
     handler: (email) => async (req) => {
       const ip = intrusion.getClientIp(req)
-      await authAttemptLimit.assertAllowed('delivery', email, ip)
       await authAttemptLimit.consume('delivery', email, ip)
       const user = await userEmail.maybeUser(email)
       if (user) await userEmail.codeSendSave(user, email, 'Restore Account')
@@ -188,7 +192,6 @@ export default new Map<string, RequestHandler>([
           })
         }
         if (userEmail.isCodeExpired(user, email)) {
-          await authAttemptLimit.assertAllowed('delivery', email, ip)
           await authAttemptLimit.consume('delivery', email, ip)
           const subject = user.password ? 'Restore Account' : 'Verify Email'
           await userEmail.codeSendSave(user, email, subject)
@@ -197,19 +200,16 @@ export default new Map<string, RequestHandler>([
             errorCode: 'user.code_expired',
           })
         }
-        if (newPassword.trim().length || !user.password) {
-          if (newPassword.length < 5)
-            throw badRequestError(
-              'Password must be at least 5 characters long.',
-              {
-                errorCode: 'user.password_too_short',
-              },
-            )
+        const passwordChanged = Boolean(newPassword.trim().length || !user.password)
+        if (passwordChanged) {
+          hash.assertNewPasswordValid(newPassword)
           const password = await hash.encrypt(newPassword)
           user = await $User.updateOne({id: user.id}, {password})
         }
         user = await userEmail.verify(user, email)
         await authAttemptLimit.reset('verify', email, ip)
+        // a reset proves control of the email, so sign out everywhere else
+        if (passwordChanged) await gatekeeper.endUserSessions(user.id)
         const session = await gatekeeper.createUserSession(user, userAgent)
         return _addTeamOfSeason(user, session, seasonId)
       },

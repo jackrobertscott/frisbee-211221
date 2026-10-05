@@ -31,8 +31,11 @@ import {$Post} from '../tables/$Post'
 import {$Report} from '../tables/$Report'
 import {$Session} from '../tables/$Session'
 import {$User} from '../tables/$User'
+import authAttemptLimit from '../utils/authAttemptLimit'
 import {createEndpoint} from '../utils/endpoints'
+import gatekeeper from '../utils/gatekeeper'
 import hash from '../utils/hash'
+import intrusion from '../utils/intrusion'
 import mongo from '../utils/mongo'
 import {regex} from '../utils/regex'
 import {requireAccess} from './requireAccess'
@@ -64,6 +67,11 @@ export default new Map<string, RequestHandler>([
       ({email}, access) =>
       async (req) => {
         const [user] = await requireAccess(req, access)
+        await authAttemptLimit.consume(
+          'delivery',
+          email,
+          intrusion.getClientIp(req),
+        )
         return selectSafeUserFields(await userEmail.add(user, email))
       },
   }),
@@ -74,18 +82,25 @@ export default new Map<string, RequestHandler>([
       ({email, code}, access) =>
       async (req) => {
         const [user] = await requireAccess(req, access)
-        if (!userEmail.isCodeEqual(user, email, code))
+        const ip = intrusion.getClientIp(req)
+        await authAttemptLimit.assertAllowed('verify', email, ip)
+        if (!userEmail.isCodeEqual(user, email, code)) {
+          await authAttemptLimit.registerFailure('verify', email, ip)
           throw badRequestError(`Code is incorrect.`, {
             errorCode: 'user.code_invalid',
           })
+        }
         if (userEmail.isCodeExpired(user, email)) {
+          await authAttemptLimit.consume('delivery', email, ip)
           await userEmail.codeSendSave(user, email, 'Verify Email')
           const message = `Your code has expired. A new code has been sent to your email.`
           throw badRequestError(message, {
             errorCode: 'user.code_expired',
           })
         }
-        return selectSafeUserFields(await userEmail.verify(user, email))
+        const next = await userEmail.verify(user, email)
+        await authAttemptLimit.reset('verify', email, ip)
+        return selectSafeUserFields(next)
       },
   }),
 
@@ -95,6 +110,11 @@ export default new Map<string, RequestHandler>([
       ({email}, access) =>
       async (req) => {
         const [user] = await requireAccess(req, access)
+        await authAttemptLimit.consume(
+          'delivery',
+          email,
+          intrusion.getClientIp(req),
+        )
         return selectSafeUserFields(
           await userEmail.codeSendSave(user, email, 'Verify Email'),
         )
@@ -170,7 +190,7 @@ export default new Map<string, RequestHandler>([
   createEndpoint({
     ...UserCurrentChangePasswordDef,
     handler: (body, access) => async (req) => {
-      let [user] = await requireAccess(req, access)
+      let [user, session] = await requireAccess(req, access)
       if (!user.password)
         throw badRequestError('User does not have a password.', {
           errorCode: 'user.password_missing',
@@ -179,10 +199,12 @@ export default new Map<string, RequestHandler>([
         throw badRequestError('Old password is incorrect.', {
           errorCode: 'user.old_password_invalid',
         })
+      hash.assertNewPasswordValid(body.newPassword)
       user = await $User.updateOne(
         {id: user.id},
         {password: await hash.encrypt(body.newPassword)},
       )
+      await gatekeeper.endUserSessions(user.id, session.id)
       return selectSafeUserFields(user)
     },
   }),
@@ -352,11 +374,13 @@ export default new Map<string, RequestHandler>([
     ...UserChangePasswordDef,
     handler: (body, access) => async (req) => {
       await requireAccess(req, access)
+      hash.assertNewPasswordValid(body.newPassword)
       const user = await $User.getOne({id: body.userId})
       const next = await $User.updateOne(
         {id: user.id},
         {password: await hash.encrypt(body.newPassword)},
       )
+      await gatekeeper.endUserSessions(user.id)
       return selectSafeUserFields(next)
     },
   }),

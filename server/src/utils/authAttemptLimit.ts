@@ -1,5 +1,5 @@
 import {tooManyRequestsError} from '@shared/errors'
-import {TAuthAttemptLimit} from '@shared/schemas/ioAuthAttemptLimit'
+import {Document} from 'mongodb'
 import {$AuthAttemptLimit} from '../tables/$AuthAttemptLimit'
 
 const WINDOW_MS = 15 * 60 * 1000
@@ -8,7 +8,6 @@ const STATE_RETENTION_MS = WINDOW_MS + BLOCK_MS
 
 type TAttemptKind = 'login' | 'verify' | 'delivery'
 type TAttemptScope = 'account' | 'client'
-type TAttemptState = Omit<TAuthAttemptLimit, 'createdOn' | 'updatedOn'>
 
 const LIMITS: Record<
   TAttemptKind,
@@ -67,52 +66,94 @@ const getStates = (kind: TAttemptKind, email: string, ip: string) => {
   ]
 }
 
-const createInitialState = (
+/**
+ * Count one attempt in a single atomic write so concurrent requests cannot
+ * lose increments: reset an expired window, add the attempt unless already
+ * blocked, then start a block once the scope's limit is reached.
+ */
+const createAttemptPipeline = (
   state: ReturnType<typeof getStates>[number],
+  maxAttempts: number,
   now: number,
-): TAttemptState => {
-  return {
-    id: state.id,
-    kind: state.kind,
-    scope: state.scope,
-    email: state.email,
-    ...(state.ip ? {ip: state.ip} : {}),
-    attempts: 0,
-    windowStartedAt: now,
-    blockedUntil: 0,
-    lastSeenAt: now,
-  }
+): Document[] => {
+  const nowIso = new Date(now).toISOString()
+  return [
+    {
+      $set: {
+        id: state.id,
+        kind: state.kind,
+        scope: state.scope,
+        email: state.email,
+        ...(state.ip ? {ip: state.ip} : {}),
+        createdOn: {$ifNull: ['$createdOn', nowIso]},
+        updatedOn: nowIso,
+        lastSeenAt: now,
+        attempts: {$ifNull: ['$attempts', 0]},
+        blockedUntil: {$ifNull: ['$blockedUntil', 0]},
+        windowStartedAt: {$ifNull: ['$windowStartedAt', now]},
+      },
+    },
+    {
+      $set: {
+        windowExpired: {
+          $and: [
+            {$lte: ['$blockedUntil', now]},
+            {$gte: [{$subtract: [now, '$windowStartedAt']}, WINDOW_MS]},
+          ],
+        },
+      },
+    },
+    {
+      $set: {
+        attempts: {$cond: ['$windowExpired', 0, '$attempts']},
+        windowStartedAt: {$cond: ['$windowExpired', now, '$windowStartedAt']},
+      },
+    },
+    {
+      $set: {
+        attempts: {
+          $cond: [
+            {$gt: ['$blockedUntil', now]},
+            '$attempts',
+            {$add: ['$attempts', 1]},
+          ],
+        },
+      },
+    },
+    {
+      $set: {
+        attempts: {$cond: [{$gte: ['$attempts', maxAttempts]}, 0, '$attempts']},
+        blockedUntil: {
+          $cond: [
+            {$gte: ['$attempts', maxAttempts]},
+            now + BLOCK_MS,
+            '$blockedUntil',
+          ],
+        },
+      },
+    },
+    {$unset: 'windowExpired'},
+  ]
 }
 
-const getCurrentState = (
-  current: TAuthAttemptLimit | undefined,
-  stateDef: ReturnType<typeof getStates>[number],
-  now: number,
-): TAttemptState => {
-  const state = current ?? createInitialState(stateDef, now)
-  if (state.blockedUntil <= now && now - state.windowStartedAt >= WINDOW_MS) {
-    return {
-      ...state,
-      attempts: 0,
-      windowStartedAt: now,
-      lastSeenAt: now,
-    }
-  }
-  return {
-    ...state,
-    lastSeenAt: now,
-  }
-}
-
-const saveState = async (
-  current: TAuthAttemptLimit | undefined,
-  state: TAttemptState,
+/** Records an attempt and reports whether any scope was already blocked. */
+const recordAttempt = async (
+  kind: TAttemptKind,
+  email: string,
+  ip: string,
 ) => {
-  if (current) {
-    await $AuthAttemptLimit.updateOne({id: state.id}, state)
-    return
+  const now = Date.now()
+  const config = LIMITS[kind]
+  let blocked = false
+  for (const state of getStates(kind, email, ip)) {
+    const before = await $AuthAttemptLimit.updateAtomic(
+      {id: state.id},
+      createAttemptPipeline(state, config.maxAttemptsByScope[state.scope], now),
+      {upsert: true, returnDocument: 'before'},
+    )
+    if (before && before.blockedUntil > now) blocked = true
   }
-  await $AuthAttemptLimit.createOne(state)
+  return blocked
 }
 
 const prune = async (now: number) => {
@@ -131,24 +172,23 @@ const pruneMaybe = async (now: number) => {
   await prune(now)
 }
 
+const throwLimited = (kind: TAttemptKind): never => {
+  const config = LIMITS[kind]
+  throw tooManyRequestsError(config.message, {
+    errorCode: config.errorCode,
+  })
+}
+
 export default {
   async assertAllowed(kind: TAttemptKind, email: string, ip: string) {
     const now = Date.now()
     await pruneMaybe(now)
-    const config = LIMITS[kind]
     const states = getStates(kind, email, ip)
-    const current = await $AuthAttemptLimit.getMany({
+    const blocked = await $AuthAttemptLimit.count({
       id: {$in: states.map((i) => i.id)},
+      blockedUntil: {$gt: now},
     })
-
-    for (const {id} of states) {
-      const state = current.find((i) => i.id === id)
-      if (state && state.blockedUntil > now) {
-        throw tooManyRequestsError(config.message, {
-          errorCode: config.errorCode,
-        })
-      }
-    }
+    if (blocked) throwLimited(kind)
   },
 
   async registerFailure(
@@ -156,45 +196,17 @@ export default {
     email: string,
     ip: string,
   ) {
-    const now = Date.now()
-    const config = LIMITS[kind]
-
-    for (const stateDef of getStates(kind, email, ip)) {
-      const current = await $AuthAttemptLimit.maybeOne({id: stateDef.id})
-      const state = getCurrentState(current, stateDef, now)
-      if (state.blockedUntil > now) continue
-
-      state.attempts += 1
-      if (state.attempts >= config.maxAttemptsByScope[stateDef.scope]) {
-        state.attempts = 0
-        state.blockedUntil = now + BLOCK_MS
-      }
-
-      await saveState(current, state)
-    }
+    await recordAttempt(kind, email, ip)
   },
 
+  /** Counts a delivery and throws when the sender is already rate limited. */
   async consume(
     kind: Extract<TAttemptKind, 'delivery'>,
     email: string,
     ip: string,
   ) {
-    const now = Date.now()
-    const config = LIMITS[kind]
-
-    for (const stateDef of getStates(kind, email, ip)) {
-      const current = await $AuthAttemptLimit.maybeOne({id: stateDef.id})
-      const state = getCurrentState(current, stateDef, now)
-      if (state.blockedUntil > now) continue
-
-      state.attempts += 1
-      if (state.attempts >= config.maxAttemptsByScope[stateDef.scope]) {
-        state.attempts = 0
-        state.blockedUntil = now + BLOCK_MS
-      }
-
-      await saveState(current, state)
-    }
+    await pruneMaybe(Date.now())
+    if (await recordAttempt(kind, email, ip)) throwLimited(kind)
   },
 
   async reset(

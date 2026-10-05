@@ -220,13 +220,13 @@ export const db = {
 
       /**
        * Atomic single-document update (operators or an aggregation pipeline)
-       * that returns the document after the write. It skips schema validation,
+       * that returns the document after (or before) the write. It skips schema validation,
        * so callers must write every field the schema requires.
        */
       async updateAtomic(
         query: Filter<V>,
         update: Document | Document[],
-        updateOptions?: {upsert?: boolean},
+        updateOptions?: {upsert?: boolean; returnDocument?: 'before' | 'after'},
       ): Promise<V | undefined> {
         const collection = await mongo.collection(options.key)
         const result = await collection.findOneAndUpdate(
@@ -235,7 +235,7 @@ export const db = {
           {
             ...mongo.options(),
             upsert: updateOptions?.upsert ?? false,
-            returnDocument: 'after',
+            returnDocument: updateOptions?.returnDocument ?? 'after',
           },
         )
         return result ? this._clean(result as unknown as WithId<V>) : undefined
