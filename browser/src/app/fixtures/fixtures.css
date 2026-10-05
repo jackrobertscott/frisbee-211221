@@ -1,0 +1,50 @@
+/* Fixtures page + admin dialogs. */
+.fr-fx-title { display: inline-flex; align-items: center; gap: var(--sp-2); min-width: 0; }
+.fr-fx-title__text { overflow: hidden; text-overflow: ellipsis; }
+
+.fr-fx-games { display: flex; flex-direction: column; gap: var(--sp-2); }
+.fr-fx-games__head,
+.fr-fx-games__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) 28px minmax(0, 1.4fr) minmax(0, 0.8fr) minmax(0, 0.8fr) 64px;
+  gap: var(--sp-2);
+  align-items: center;
+}
+.fr-fx-games__head span { font-size: var(--fs-xs); color: var(--text-tertiary); }
+.fr-fx-games__actions { display: flex; gap: 4px; justify-content: flex-end; }
+
+.fr-fx-slot { display: grid; grid-template-columns: 1fr 1fr 28px; gap: var(--sp-2); align-items: center; }
+
+.fr-fx-swap { display: flex; flex-direction: column; gap: var(--sp-2); }
+.fr-fx-swap__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: var(--sp-3);
+  align-items: center;
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.fr-fx-swap__teams { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fr-fx-swap__slot { font-size: var(--fs-sm); color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+
+.fr-fx-list .fr-row__title { min-width: 0; overflow: hidden; }
+
+@media (max-width: 720px) {
+  .fr-fx-games__head { display: none; }
+  .fr-fx-games__row {
+    grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr) 28px;
+    padding-bottom: var(--sp-3);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .fr-fx-games__row > :nth-child(4) { grid-column: 1; grid-row: 2; }
+  .fr-fx-games__row > :nth-child(5) { grid-column: 2 / 4; grid-row: 2; }
+  .fr-fx-games__row > :nth-child(6) { grid-column: 4; grid-row: 1 / 3; flex-direction: column; align-items: center; }
+  .fr-fx-swap__row { grid-template-columns: minmax(0, 1fr) auto; }
+  .fr-fx-swap__slot { grid-column: 1; }
+  .fr-fx-swap__row > button { grid-column: 2; grid-row: 1 / 3; }
+}
+@media (max-width: 460px) {
+  .fr-fx-edit-label { display: none; }
+  .fr-fx-title .ui-badge[data-next] { display: none; }
+}
