@@ -10,6 +10,8 @@
 - Do use typed table helpers for all database access outside the DB/table definition layer.
 - Do commit all current changes to `stage`, merge them into `master`, push both `stage` and `master` to `origin`, then check out `stage` when asked to publish changes.
 - Do use short lowercase word groups for commit messages.
+- Do build browser UI only from the `@ui` component library (`browser/src/ui`) and `lucide-react` icons.
+- Do put browser screens in `browser/src/app` and non-visual browser plumbing (auth, router, endpoint hooks) in `browser/src/core`.
 
 ## Don't
 
@@ -18,6 +20,8 @@
 - Don't fetch a page unsorted and reorder it in application code.
 - Don't use `id` as a sort field or sort tie-breaker.
 - Don't sort returned database data in memory when the database can express the required ordering.
+- Don't use native UI controls (select, checkbox, date input, etc.) in the browser; use the `@ui` equivalents.
+- Don't edit `browser/src/ui` for app-specific needs; it is a vendored copy of the `uilib-261005` library, so change the library and re-copy it.
 - Don't call `mongo.collection('...')` or access collections by raw string names outside the DB/table definition layer.
 
 ## Facts
@@ -25,3 +29,5 @@
 - Typed table helper examples include `$Report.getMany(...)` and `$Report.aggregate(...)`.
 - The publishing branches are `stage` and `master`.
 - The remote is `origin`.
+- The browser `@ui` library is vendored from the `uilib-261005` repository (`src/lib`).
+- Team colours must be `hsla(...)` strings from `browser/src/utils/colors.ts`; the server rejects other formats.
