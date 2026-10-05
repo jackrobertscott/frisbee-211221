@@ -24,10 +24,8 @@ import {TReport} from '@shared/schemas/ioReport'
 import {TUser} from '@shared/schemas/ioUser'
 import {Document} from 'mongodb'
 import {RequestHandler} from 'micro'
-import {$Comment} from '../tables/$Comment'
 import {$Fixture} from '../tables/$Fixture'
 import {$Member} from '../tables/$Member'
-import {$Post} from '../tables/$Post'
 import {$Report} from '../tables/$Report'
 import {$Session} from '../tables/$Session'
 import {$User} from '../tables/$User'
@@ -315,17 +313,10 @@ export default new Map<string, RequestHandler>([
                 {userId: user1.id, updatedOn},
               )
           }
-          await Promise.all([
-            $Comment.updateMany(
-              {userId: user2.id},
-              {userId: user1.id, updatedOn},
-            ),
-            $Fixture.updateMany(
-              {userId: user2.id},
-              {userId: user1.id, updatedOn},
-            ),
-            $Post.updateMany({userId: user2.id}, {userId: user1.id, updatedOn}),
-          ])
+          await $Fixture.updateMany(
+            {userId: user2.id},
+            {userId: user1.id, updatedOn},
+          )
           // reports
           const u2rs = await $Report.getMany({
             $or: [

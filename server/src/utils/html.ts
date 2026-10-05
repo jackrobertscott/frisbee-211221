@@ -7,9 +7,4 @@ export const html = {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;')
   },
-
-  /** Escape plain text and keep its line breaks. */
-  fromText(value: string) {
-    return html.escape(value).replace(/\r?\n/g, '<br/>')
-  },
 }

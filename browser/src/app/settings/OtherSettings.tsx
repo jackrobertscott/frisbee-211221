@@ -334,7 +334,7 @@ function SeasonDeleteDialog({
         <Stack gap={4}>
           <Alert tone="danger">
             This will permanently delete the season and its fixtures, teams,
-            members, posts, and comments.
+            and members.
           </Alert>
           <Field label="Password" description="Enter your password to confirm.">
             <Input

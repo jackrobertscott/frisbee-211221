@@ -1,9 +1,7 @@
 import {TypeIoAll} from '@shared/torva'
 import {$AuthAttemptLimit} from '../tables/$AuthAttemptLimit'
-import {$Comment} from '../tables/$Comment'
 import {$Fixture} from '../tables/$Fixture'
 import {$Member} from '../tables/$Member'
-import {$Post} from '../tables/$Post'
 import {$Report} from '../tables/$Report'
 import {$Season} from '../tables/$Season'
 import {$Session} from '../tables/$Session'
@@ -18,10 +16,8 @@ type TSchemaAuditTable = {
 
 const tables: TSchemaAuditTable[] = [
   $AuthAttemptLimit,
-  $Comment,
   $Fixture,
   $Member,
-  $Post,
   $Report,
   $Season,
   $Session,

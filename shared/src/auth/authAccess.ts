@@ -10,13 +10,6 @@ export const authPoint = {
   reportManage: 'report.manage',
   fixtureManage: 'fixture.manage',
   seasonManage: 'season.manage',
-  postWrite: 'post.write',
-  postManage: 'post.manage',
-  postModerate: 'post.moderate',
-  postNotifyCaptains: 'post.notify_captains',
-  commentWrite: 'comment.write',
-  commentManage: 'comment.manage',
-  commentModerate: 'comment.moderate',
   portManage: 'port.manage',
 } as const
 
@@ -48,13 +41,6 @@ export const authRuleByPoint: Record<TAuthPoint, TAuthRule> = {
   [authPoint.reportManage]: {admin: true},
   [authPoint.fixtureManage]: {admin: true},
   [authPoint.seasonManage]: {admin: true},
-  [authPoint.postWrite]: {signedIn: true},
-  [authPoint.postManage]: {signedIn: true},
-  [authPoint.postModerate]: {admin: true},
-  [authPoint.postNotifyCaptains]: {admin: true},
-  [authPoint.commentWrite]: {signedIn: true},
-  [authPoint.commentManage]: {signedIn: true},
-  [authPoint.commentModerate]: {admin: true},
   [authPoint.portManage]: {admin: true},
 }
 

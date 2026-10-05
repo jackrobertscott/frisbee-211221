@@ -1,8 +1,6 @@
 import {RequestHandler} from 'micro'
-import Comment from './Comment'
 import Feature from './Feature'
 import Member from './Member'
-import Post from './Post'
 import Report from './Report'
 import Fixture from './Fixture'
 import Season from './Season'
@@ -12,12 +10,10 @@ import User from './User'
 import Port from './Port'
 
 export default new Map<string, RequestHandler>([
-  ...Comment.entries(),
   ...Feature.entries(),
   ...Fixture.entries(),
   ...Member.entries(),
   ...Port.entries(),
-  ...Post.entries(),
   ...Report.entries(),
   ...Season.entries(),
   ...Security.entries(),

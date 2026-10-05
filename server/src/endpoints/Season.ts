@@ -10,12 +10,10 @@ import {TReport} from '@shared/schemas/ioReport'
 import {seasonNameCollation} from '@shared/utils/seasonName'
 import {Filter} from 'mongodb'
 import {RequestHandler} from 'micro'
-import {$Comment} from '../tables/$Comment'
 import {$Fixture} from '../tables/$Fixture'
 import {$GamedayImportConfig} from '../tables/$GamedayImportConfig'
 import {$GamedayImportRun} from '../tables/$GamedayImportRun'
 import {$Member} from '../tables/$Member'
-import {$Post} from '../tables/$Post'
 import {$Report} from '../tables/$Report'
 import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
@@ -93,10 +91,6 @@ export default new Map<string, RequestHandler>([
               errorCode: 'season.delete_has_reports',
             })
           }
-          const posts = await $Post.getMany({seasonId})
-          const postIds = posts.map((post) => post.id)
-          if (postIds.length) await $Comment.deleteMany({postId: {$in: postIds}})
-          await $Post.deleteMany({seasonId})
           await $Member.deleteMany({seasonId})
           await $Fixture.deleteMany({seasonId})
           await $Team.deleteMany({seasonId})

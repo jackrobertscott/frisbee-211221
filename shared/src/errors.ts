@@ -164,8 +164,6 @@ const USER_MESSAGE_BY_ERROR_CODE: Record<string, string> = {
   'client.server_url_missing':
     'The app is not set up correctly. Please contact support.',
 
-  'comment.delete_forbidden': 'You can only delete comments you wrote.',
-  'comment.update_forbidden': 'You can only change comments you wrote.',
 
   'db.record_not_found':
     'We could not find the item you were trying to open.',
@@ -197,8 +195,6 @@ const USER_MESSAGE_BY_ERROR_CODE: Record<string, string> = {
   'member.user_details_required':
     'Please enter the first name, last name, and gender for the new member.',
 
-  'post.delete_forbidden': 'You can only delete posts you wrote.',
-  'post.update_forbidden': 'You can only change posts you wrote.',
 
   'report.already_submitted':
     'A score report has already been submitted for this game.',
@@ -277,7 +273,6 @@ const VALIDATION_FIELD_LABELS: Record<string, string> = {
   memberId: 'member',
   newPassword: 'new password',
   password: 'password',
-  postId: 'post',
   referenceFixtureId: 'reference fixture',
   reportId: 'report',
   roundCount: 'number of rounds',
