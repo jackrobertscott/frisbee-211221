@@ -13,7 +13,7 @@ let title: string
 
 switch (leagueKey) {
   case 'marlow':
-    title = 'Marlow Street'
+    title = 'Marlow Street Ultimate'
     break
   case 'pul':
     title = 'Perth Ultimate League'

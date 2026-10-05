@@ -217,6 +217,9 @@ function Header() {
       <a
         className="fr-brand"
         href="/"
+        tabIndex={-1}
+        draggable={false}
+        onMouseDown={(e) => e.preventDefault()}
         onClick={(e) => {
           e.preventDefault()
           go.to('/')
