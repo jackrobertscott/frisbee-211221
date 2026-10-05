@@ -67,8 +67,9 @@ export function NumberInput({
     if (!Number.isNaN(n)) setNum(round(clamp(n)));
   };
   const bump = (dir: 1 | -1, mult = 1) => {
+    // From empty, increasing always starts at 1 (clamped into range) rather than stepping past the minimum.
     const base = num ?? (min > -Infinity ? min : 0);
-    setNum(round(clamp(base + dir * step * mult)));
+    setNum(round(clamp(num == null && dir === 1 ? 1 : base + dir * step * mult)));
     setDraft(null);
   };
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
