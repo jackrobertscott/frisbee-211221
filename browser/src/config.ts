@@ -1,4 +1,4 @@
-const env = (import.meta as any).env
+const env = import.meta.env
 
 export interface TGlobalConfig {
   urlServer: string
