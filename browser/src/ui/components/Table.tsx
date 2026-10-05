@@ -17,6 +17,8 @@ export interface Column<T> {
   width?: number | string;
   /** Hide below this viewport width (responsive). */
   hideBelow?: 'sm' | 'md' | 'lg';
+  /** Keep the cell on one line (short values such as dates, codes or labels like "Division 1"). */
+  nowrap?: boolean;
 }
 
 export interface SortState {
@@ -210,7 +212,7 @@ export function DataTable<T>({
                       </td>
                     )}
                     {columns.map((c) => (
-                      <td key={c.key} style={{ textAlign: c.align }} data-hide={c.hideBelow}>
+                      <td key={c.key} style={{ textAlign: c.align }} data-hide={c.hideBelow} data-nowrap={c.nowrap || undefined}>
                         {c.render ? c.render(row, i) : String(get(row, c.key) ?? '')}
                       </td>
                     ))}

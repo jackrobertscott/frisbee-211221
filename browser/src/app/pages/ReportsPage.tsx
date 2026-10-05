@@ -159,6 +159,8 @@ export function ReportsPage() {
             key: 'comment',
             header: 'Comment',
             hideBelow: 'lg',
+            // Free text: takes whatever width is left and truncates (full text is in the report).
+            width: '100%',
             render: (r) =>
               r.report.spiritComment.trim() ? (
                 <Text as="span" size="sm" tone="secondary" truncate className="fr-comment">

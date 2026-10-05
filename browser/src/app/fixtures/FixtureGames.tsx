@@ -67,8 +67,8 @@ export function FixtureGames({
       header: 'Team 2',
       render: (g) => <TeamName team={teamById(g.team2Id)} muted={muted(g)} />,
     },
-    {key: 'time', header: 'Time', width: 100},
-    {key: 'place', header: 'Place', width: 110},
+    {key: 'time', header: 'Time', width: 100, nowrap: true},
+    {key: 'place', header: 'Place', width: 110, nowrap: true},
   ]
   return (
     <DataTable<TFixtureGame>

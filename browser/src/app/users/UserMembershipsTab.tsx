@@ -62,6 +62,7 @@ export function UserMembershipsTab({userId}: {userId: string}) {
         {
           key: 'season',
           header: 'Season',
+          nowrap: true,
           render: (m) => seasonName(m) || '[unknown]',
         },
         {

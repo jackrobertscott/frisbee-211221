@@ -122,7 +122,7 @@ export function SpiritPage() {
             </Text>
           }
           columns={[
-            {key: 'team', header: 'Team', sortable: true, render: (r) => <TeamName team={r.team} />},
+            {key: 'team', header: 'Team', sortable: true, render: (r) => <TeamName team={r.team} wrap="narrow" />},
             {
               key: 'division',
               header: 'Div',

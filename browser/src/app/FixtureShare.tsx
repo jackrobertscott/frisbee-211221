@@ -88,8 +88,8 @@ export function FixtureShare({fixtureId}: {fixtureId: string}) {
             rowKey={(g) => g.id}
             rows={games}
             columns={[
-              {key: 'time', header: 'Time', width: 90},
-              {key: 'place', header: 'Place', width: 90},
+              {key: 'time', header: 'Time', width: 90, nowrap: true},
+              {key: 'place', header: 'Place', width: 90, nowrap: true},
               {
                 key: 'team1',
                 header: 'Team 1',

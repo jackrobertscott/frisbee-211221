@@ -63,11 +63,14 @@ export function TeamName({
   size = 'sm',
   short,
   muted,
+  wrap,
 }: {
   team?: TTeamLike
   size?: 'sm' | 'md'
   short?: boolean
   muted?: boolean
+  /** Let a long name wrap instead of widening its column; `'narrow'` wraps only on phones. */
+  wrap?: boolean | 'narrow'
 }) {
   if (!team)
     return (
@@ -77,7 +80,14 @@ export function TeamName({
     )
   const label = short ? initials(team.name) : team.name
   return (
-    <span className={cx('fr-team', muted && 'fr-team--muted')} data-size={size}>
+    <span
+      className={cx(
+        'fr-team',
+        muted && 'fr-team--muted',
+        wrap && (wrap === true ? 'fr-team--wrap' : `fr-team--wrap-${wrap}`),
+      )}
+      data-size={size}
+    >
       {team.color && (
         <Swatch color={team.color} size={size === 'md' ? 'md' : 'sm'} />
       )}

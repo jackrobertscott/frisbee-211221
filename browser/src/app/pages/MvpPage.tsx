@@ -80,6 +80,7 @@ function MvpCard({title, rows}: {title: string; rows: TFeatureMvpRow[]}) {
           {
             key: 'userName',
             header: 'Player',
+            nowrap: true,
             render: (r) => (
               <Text as="span" size="sm" weight="medium">
                 {r.userName}
@@ -96,7 +97,7 @@ function MvpCard({title, rows}: {title: string; rows: TFeatureMvpRow[]}) {
           {
             key: 'teamName',
             header: 'Team',
-            render: (r) => <span className="fr-nowrap">{r.teamName ?? '—'}</span>,
+            render: (r) => r.teamName ?? '—',
           },
           {
             key: 'votes',

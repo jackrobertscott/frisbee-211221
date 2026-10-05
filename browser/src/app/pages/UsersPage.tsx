@@ -136,6 +136,7 @@ export function UsersPage() {
             key: 'firstName',
             header: 'First name',
             sortable: true,
+            nowrap: true,
             render: (u) => (
               <span className="fr-users-name">
                 <Avatar size="sm" name={fullName(u)} src={u.avatarUrl} />
@@ -154,7 +155,7 @@ export function UsersPage() {
               </span>
             ),
           },
-          {key: 'lastName', header: 'Last name', sortable: true},
+          {key: 'lastName', header: 'Last name', sortable: true, nowrap: true},
           {
             key: 'email',
             header: 'Email',
@@ -166,6 +167,7 @@ export function UsersPage() {
             key: 'gender',
             header: 'Gender',
             sortable: true,
+            nowrap: true,
             hideBelow: 'md',
             render: (u) => genderLabel(u.gender),
           },

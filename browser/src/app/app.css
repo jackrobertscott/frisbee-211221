@@ -82,6 +82,8 @@ body { background: var(--bg-app); }
 .fr-team[data-size='md'] { font-size: var(--fs-md); font-weight: var(--weight-medium); gap: var(--sp-2-5); }
 .fr-team__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fr-team--muted { color: var(--text-tertiary); }
+.fr-team--wrap .fr-team__name { white-space: normal; overflow: visible; }
+@media (max-width: 640px) { .fr-team--wrap-narrow .fr-team__name { white-space: normal; overflow: visible; } }
 .fr-mine .fr-team { font-weight: var(--weight-semibold); }
 
 /* Score ------------------------------------------------------------------- */
@@ -162,7 +164,7 @@ body { background: var(--bg-app); }
 .fr-mvp-check { display: inline-flex; color: var(--text-tertiary); border-radius: var(--radius-xs); }
 .fr-mvp-check[data-done] { color: var(--success-text); }
 .fr-mvp-check svg { width: 16px; height: 16px; }
-.fr-comment { display: block; max-width: 220px; }
+.fr-comment { display: block; width: 0; min-width: 100%; }
 
 /* Members ----------------------------------------------------------------- */
 .fr-add-member { display: flex; gap: var(--sp-2); }

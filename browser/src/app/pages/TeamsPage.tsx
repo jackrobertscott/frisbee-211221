@@ -124,6 +124,7 @@ export function TeamsPage() {
             key: 'division',
             header: 'Division',
             sortable: true,
+            nowrap: true,
             render: (t) =>
               t.division !== undefined ? (
                 `Division ${t.division}`
