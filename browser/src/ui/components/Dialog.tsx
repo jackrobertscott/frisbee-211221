@@ -105,7 +105,10 @@ export interface ConfirmDialogProps extends Omit<DialogProps, 'footer' | 'childr
   confirmLabel?: string;
   cancelLabel?: string;
   confirmVariant?: ButtonVariant;
-  /** May return a promise; the confirm button shows a spinner until it settles. */
+  /**
+   * May return a promise; the confirm button shows a spinner until it settles.
+   * The dialog closes when it resolves and stays open if it rejects (report the error yourself).
+   */
   onConfirm: () => void | Promise<void>;
 }
 
@@ -125,6 +128,8 @@ export function ConfirmDialog({
     try {
       await onConfirm();
       onOpenChange(false);
+    } catch {
+      // Keep the dialog open so the user can retry or cancel.
     } finally {
       setBusy(false);
     }

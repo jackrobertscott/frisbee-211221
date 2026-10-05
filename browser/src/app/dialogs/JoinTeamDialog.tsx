@@ -143,7 +143,6 @@ export function JoinTeamDialog({
               querySet('')
               list.reload()
             })
-            .catch(() => undefined)
         }}
       />
       <TeamCurrentCreateDialog

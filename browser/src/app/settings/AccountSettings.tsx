@@ -235,7 +235,6 @@ export function AccountSettings() {
               userSet(next)
               toast.success('Email removed from account.')
             })
-            .catch(() => undefined)
         }}
       />
       <ConfirmDialog
@@ -253,7 +252,6 @@ export function AccountSettings() {
               userSet(next)
               toast.success('Email set as primary.')
             })
-            .catch(() => undefined)
         }}
       />
     </Stack>

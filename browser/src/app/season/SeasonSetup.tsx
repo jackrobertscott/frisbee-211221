@@ -56,6 +56,7 @@ export function SeasonSetup() {
         )}
       </div>
       <SeasonCreateDialog
+        switchTo
         open={shell.overlay?.kind === 'seasonCreate'}
         onOpenChange={(open) => !open && shell.close()}
       />

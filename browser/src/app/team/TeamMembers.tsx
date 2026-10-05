@@ -224,7 +224,6 @@ export function TeamMembers({team, onLeft}: {team: TTeam; onLeft?: () => void}) 
                 onLeft?.()
               } else list.reload()
             })
-            .catch(() => undefined)
         }}
       />
       <ConfirmDialog
@@ -241,7 +240,6 @@ export function TeamMembers({team, onLeft}: {team: TTeam; onLeft?: () => void}) 
               list.reload()
               toast.success('Captain of team changed.')
             })
-            .catch(() => undefined)
         }}
       />
       <AddMemberDialog

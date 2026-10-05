@@ -46,7 +46,7 @@ export function ReportsPage() {
     if (!allowed) go.to('/')
   }, [allowed])
 
-  const {data, loading} = useLoad(
+  const {data, loading, failed, reload} = useLoad(
     () =>
       allowed && season
         ? $load.fetch({
@@ -64,7 +64,8 @@ export function ReportsPage() {
     : undefined
 
   if (!season) return null
-  if (!data) return <Loading label="Loading reports" />
+  if (!data)
+    return <Loading label="Loading reports" failed={failed} onRetry={reload} />
 
   return (
     <div className="fr-page">
@@ -253,7 +254,6 @@ export function ReportsPage() {
               currentIdSet(undefined)
               shell.invalidate()
             })
-            .catch(() => undefined)
         }}
       />
     </div>

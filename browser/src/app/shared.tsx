@@ -2,7 +2,9 @@
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUserPublic, TUserSafe} from '@shared/schemas/ioUser'
 import {
+  Button,
   cx,
+  EmptyState,
   Pagination,
   SearchInput,
   Spinner,
@@ -10,7 +12,7 @@ import {
   Text,
   type Option,
 } from '@ui'
-import {ChevronDown} from 'lucide-react'
+import {ChevronDown, CloudOff, RotateCw} from 'lucide-react'
 import {type ReactNode, useEffect, useRef, useState} from 'react'
 import {userEmails} from '../utils/userEmails'
 
@@ -164,8 +166,33 @@ export function Toolbar({
   )
 }
 
-/** Centered spinner for page and panel loading states. */
-export function Loading({label = 'Loading'}: {label?: string}) {
+/** Centered spinner for page and panel loading states; shows a retry state once loading failed. */
+export function Loading({
+  label = 'Loading',
+  failed,
+  onRetry,
+}: {
+  label?: string
+  failed?: boolean
+  onRetry?: () => void
+}) {
+  if (failed)
+    return (
+      <div className="fr-loading">
+        <EmptyState
+          icon={<CloudOff />}
+          title="Couldn’t load this"
+          description="Check your connection and try again."
+          actions={
+            onRetry && (
+              <Button leading={<RotateCw />} onClick={onRetry}>
+                Try again
+              </Button>
+            )
+          }
+        />
+      </div>
+    )
   return (
     <div className="fr-loading" role="status" aria-label={label}>
       <Spinner />

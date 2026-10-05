@@ -182,7 +182,6 @@ export function TeamAdminDialog({
               toast(`${team.name} deleted.`)
               onDeleted()
             })
-            .catch(() => undefined)
         }}
       />
     </>

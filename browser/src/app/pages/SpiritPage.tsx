@@ -67,7 +67,7 @@ export function SpiritPage() {
     if (!allowed) go.to('/')
   }, [allowed])
 
-  const {data, loading} = useLoad(
+  const {data, loading, failed, reload} = useLoad(
     () =>
       allowed && season
         ? $load.fetch({seasonId: season.id, sortBy, sortDirection})
@@ -88,7 +88,10 @@ export function SpiritPage() {
   }
 
   if (!season) return null
-  if (!data) return <Loading label="Loading spirit scores" />
+  if (!data)
+    return (
+      <Loading label="Loading spirit scores" failed={failed} onRetry={reload} />
+    )
 
   return (
     <div className="fr-page">

@@ -306,7 +306,6 @@ export function MockDeleteDialog({
             toast.success('All mock data has been deleted successfully')
             onDone()
           })
-          .catch(() => undefined)
       }
     />
   )

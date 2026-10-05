@@ -27,15 +27,17 @@ const initialForm = () => ({
   genderDivision: 'mixed' as TSeasonGenderDivision,
 })
 
-/** Creates a season and switches to it. */
+/** Creates a season; `switchTo` makes it the current season (used when no season exists yet). */
 export function SeasonCreateDialog({
   open,
   onOpenChange,
   onCreated,
+  switchTo,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   onCreated?: (season: TSeason) => void
+  switchTo?: boolean
 }) {
   const auth = useAuth()
   const $create = useEndpoint($SeasonCreate)
@@ -56,7 +58,7 @@ export function SeasonCreateDialog({
         toast.success(`${season.name} created`)
         onCreated?.(season)
         onOpenChange(false)
-        auth.seasonSet(season)
+        if (switchTo) auth.seasonSet(season)
       })
       .catch(() => undefined)
   }

@@ -75,12 +75,12 @@ export function FixturesPage() {
 
   return (
     <div className="fr-page">
-
       {isAdmin && (
         <div className="fr-actions">
           <Button
             leading={<WandSparkles />}
             onClick={() => generatingSet(true)}
+            disabled={!competition.data}
           >
             Magic generate
           </Button>
@@ -91,14 +91,22 @@ export function FixturesPage() {
           >
             Adjust fixtures
           </Button>
-          <Button leading={<Plus />} onClick={() => editingSet('new')}>
+          <Button
+            leading={<Plus />}
+            onClick={() => editingSet('new')}
+            disabled={!competition.data}
+          >
             Add fixture
           </Button>
         </div>
       )}
 
       {!competition.data ? (
-        <Loading label="Loading fixtures" />
+        <Loading
+          label="Loading fixtures"
+          failed={competition.failed}
+          onRetry={competition.reload}
+        />
       ) : fixtures.length === 0 ? (
         <EmptyState
           bordered

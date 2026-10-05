@@ -1,6 +1,5 @@
 import {TUserGender, USER_GENDERS} from '@shared/schemas/ioUserGender'
 import {ConfirmDialog, type ButtonVariant, type ConfirmDialogProps} from '@ui'
-import {useRef} from 'react'
 import {GENDER_OPTIONS} from '../../utils/constants'
 
 export const genderOptions = GENDER_OPTIONS.map((g) => ({
@@ -27,25 +26,12 @@ export function ActionConfirm({
   action: () => Promise<unknown>
   confirmVariant?: ButtonVariant
 }) {
-  const failed = useRef(false)
   return (
     <ConfirmDialog
       {...rest}
       confirmVariant={confirmVariant}
-      onOpenChange={(open) => {
-        if (!open && failed.current) {
-          failed.current = false
-          return
-        }
-        onOpenChange(open)
-      }}
-      onConfirm={() =>
-        action()
-          .then(() => undefined)
-          .catch(() => {
-            failed.current = true
-          })
-      }
+      onOpenChange={onOpenChange}
+      onConfirm={() => action().then(() => undefined)}
     />
   )
 }

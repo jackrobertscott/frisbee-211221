@@ -258,13 +258,20 @@ export function PinInput({ length = 6, value, defaultValue = '', onValueChange, 
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const pattern = type === 'numeric' ? /^\d$/ : /^[a-z0-9]$/i;
   const chars = Array.from({ length }, (_, i) => v[i] ?? '');
+  /** Latest value, readable before re-render (focus moves happen synchronously after edits). */
+  const latest = useRef(v);
+  latest.current = v;
 
+  /** The value is kept contiguous: typing past the end appends, clearing a box removes that character. */
   const setAt = (i: number, ch: string) => {
-    const arr = [...chars];
-    arr[i] = ch;
+    const arr = latest.current.slice(0, length).split('');
+    if (ch) arr[Math.min(i, arr.length)] = ch;
+    else arr.splice(i, 1);
     const next = arr.join('').slice(0, length);
+    latest.current = next;
     setV(next);
-    if (next.length === length && !arr.includes('')) onComplete?.(next);
+    if (ch && next.length === length) onComplete?.(next);
+    return next.length;
   };
   const focus = (i: number) => refs.current[Math.max(0, Math.min(length - 1, i))]?.focus();
 
@@ -281,18 +288,24 @@ export function PinInput({ length = 6, value, defaultValue = '', onValueChange, 
             inputMode={type === 'numeric' ? 'numeric' : 'text'}
             autoComplete={i === 0 ? 'one-time-code' : 'off'}
             type={mask ? 'password' : 'text'}
-            maxLength={1}
+            maxLength={2}
             value={c}
             disabled={disabled}
             aria-label={`Character ${i + 1} of ${length}`}
             data-invalid={invalid || undefined}
             data-filled={c ? true : undefined}
-            onFocus={(e) => e.target.select()}
+            onFocus={(e) => {
+              // Empty boxes beyond the end aren't addressable; send focus to the next free box.
+              if (i > latest.current.length) focus(latest.current.length);
+              else e.target.select();
+            }}
+            onClick={(e) => e.currentTarget.select()}
             onChange={(e) => {
-              const ch = e.target.value.slice(-1);
+              // The box may briefly hold the old and new character; keep the new one.
+              const ch = e.target.value.replace(c, '').slice(-1) || e.target.value.slice(-1);
               if (!ch || !pattern.test(ch)) return;
-              setAt(i, type === 'alphanumeric' ? ch.toUpperCase() : ch);
-              focus(i + 1);
+              const filled = setAt(i, type === 'alphanumeric' ? ch.toUpperCase() : ch);
+              focus(Math.min(i + 1, filled));
             }}
             onKeyDown={(e) => {
               if (e.key === 'Backspace') {
@@ -307,14 +320,16 @@ export function PinInput({ length = 6, value, defaultValue = '', onValueChange, 
             }}
             onPaste={(e) => {
               e.preventDefault();
-              const text = e.clipboardData.getData('text').split('').filter((ch) => pattern.test(ch)).join('').slice(0, length - i);
+              const start = Math.min(i, latest.current.length);
+              const text = e.clipboardData.getData('text').split('').filter((ch) => pattern.test(ch)).join('').slice(0, length - start);
               if (!text) return;
-              const arr = [...chars];
-              text.split('').forEach((ch, k) => (arr[i + k] = type === 'alphanumeric' ? ch.toUpperCase() : ch));
-              const next = arr.join('');
+              const arr = latest.current.slice(0, length).split('');
+              text.split('').forEach((ch, k) => (arr[start + k] = type === 'alphanumeric' ? ch.toUpperCase() : ch));
+              const next = arr.join('').slice(0, length);
+              latest.current = next;
               setV(next);
-              focus(i + text.length);
-              if (next.length === length && !arr.includes('')) onComplete?.(next);
+              focus(Math.min(start + text.length, length - 1));
+              if (next.length === length) onComplete?.(next);
             }}
           />
         </span>

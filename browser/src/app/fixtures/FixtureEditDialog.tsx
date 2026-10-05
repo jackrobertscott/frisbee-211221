@@ -40,6 +40,15 @@ const blankGame = (): TFormGame => ({
   place: '',
 })
 
+/** Applies a picked day while keeping the previous time of day (new dates start at midnight). */
+const keepTimeOfDay = (picked: Date | null, previous: Date | null) => {
+  if (!picked) return null
+  const next = previous ? new Date(previous) : new Date(picked)
+  if (!previous) next.setHours(0, 0, 0, 0)
+  next.setFullYear(picked.getFullYear(), picked.getMonth(), picked.getDate())
+  return next
+}
+
 /** Create (fixture = 'new') or edit a fixture: title, date, games, grading flag; delete. */
 export function FixtureEditDialog({
   fixture,
@@ -163,7 +172,6 @@ export function FixtureEditDialog({
         toast(`${fixture.title} deleted`)
         onDone()
       })
-      .catch(() => undefined)
   }
 
   const swapSource = games.find((g) => g.id === swapId)
@@ -206,7 +214,10 @@ export function FixtureEditDialog({
               />
             </Field>
             <Field label="Date">
-              <DatePicker value={date} onValueChange={dateSet} />
+              <DatePicker
+                value={date}
+                onValueChange={(picked) => dateSet(keepTimeOfDay(picked, date))}
+              />
             </Field>
           </div>
 

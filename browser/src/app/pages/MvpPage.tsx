@@ -25,7 +25,7 @@ export function MvpPage() {
     if (!allowed) go.to('/')
   }, [allowed])
 
-  const {data} = useLoad(
+  const {data, failed, reload} = useLoad(
     () =>
       allowed && season
         ? $load.fetch({seasonId: season.id})
@@ -34,7 +34,8 @@ export function MvpPage() {
   )
 
   if (!season) return null
-  if (!data) return <Loading label="Loading MVP points" />
+  if (!data)
+    return <Loading label="Loading MVP points" failed={failed} onRetry={reload} />
 
   return (
     <div className="fr-page">
