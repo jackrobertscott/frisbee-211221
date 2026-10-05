@@ -1,0 +1,30 @@
+/* Admin users page + user dialogs. */
+.fr-users-name { display: inline-flex; align-items: center; gap: var(--sp-2-5, var(--sp-2)); min-width: 0; }
+.fr-users-name__btn { font: inherit; font-weight: var(--weight-medium); color: inherit; background: none; border: 0; padding: 0; cursor: pointer; border-radius: var(--radius-sm); text-align: left; }
+.fr-users-name__btn:hover { text-decoration: underline; text-underline-offset: 3px; }
+.fr-users-name__btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--ring); }
+.fr-users-email-cell { display: inline-flex; align-items: center; gap: var(--sp-2); min-width: 0; max-width: 100%; }
+
+.fr-users-title { display: inline-flex; align-items: center; gap: var(--sp-2-5, var(--sp-2)); flex-wrap: wrap; }
+.fr-users-panel { padding-top: var(--sp-4); outline: none; }
+
+.fr-users-section { display: flex; flex-direction: column; gap: var(--sp-3); }
+.fr-users-section__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-height: var(--h-sm, 32px); }
+
+.fr-users-emails { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
+.fr-users-email { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-3); }
+.fr-users-email + .fr-users-email { border-top: 1px solid var(--border-subtle); }
+.fr-users-email__value { flex: 1 1 200px; min-width: 0; }
+.fr-users-email__actions { display: inline-flex; align-items: center; gap: var(--sp-1-5, var(--sp-1)); flex-shrink: 0; margin-left: auto; }
+.fr-users-verify:not([data-verified]) { color: var(--text-tertiary); }
+
+.fr-users-access { border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
+.fr-users-access__row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); padding: var(--sp-3); }
+.fr-users-access__row + .fr-users-access__row { border-top: 1px solid var(--border-subtle); }
+.fr-users-access__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 200px; }
+
+.fr-users-merge__card { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); min-height: 56px; }
+.fr-users-merge__who { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.fr-users-merge__arrow { display: flex; justify-content: center; color: var(--text-tertiary); }
+.fr-users-merge__arrow svg { width: 18px; height: 18px; }
+.fr-users-merge__list { max-height: 360px; overflow-y: auto; }
