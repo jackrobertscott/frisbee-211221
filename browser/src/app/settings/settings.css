@@ -1,0 +1,5 @@
+.fr-settings-save { align-self: flex-end; }
+.fr-settings-profile { display: flex; align-items: center; gap: var(--sp-3); }
+.fr-settings-section { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; }
+.fr-settings-email__icon { width: 16px; height: 16px; color: var(--text-tertiary); flex-shrink: 0; }
+.fr-settings-email__value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
