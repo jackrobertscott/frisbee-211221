@@ -1,0 +1,2 @@
+/* Delete sits on the left visually but after the primary actions in tab order. */
+.fr-report-delete { order: -1; margin-right: auto; }
