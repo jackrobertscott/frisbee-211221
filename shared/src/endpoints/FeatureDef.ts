@@ -153,17 +153,6 @@ export const FeatureDashboardMvpLoadDef = {
   }),
 } satisfies TEndpointDef
 
-export const FeatureFixtureSetupLoadDef = {
-  access: authPoint.fixtureManage,
-  path: '/FeatureFixtureSetupLoad',
-  payload: io.object({
-    seasonId: ioSeason.shape.id,
-  }),
-  result: io.object({
-    teams: io.array(ioTeam),
-  }),
-} satisfies TEndpointDef
-
 export const FeatureFixtureTallyLoadDef = {
   access: authPoint.fixtureManage,
   path: '/FeatureFixtureTallyLoad',

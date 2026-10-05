@@ -5,7 +5,6 @@ import {
   FeatureDashboardSpiritLoadDef,
   FeatureDashboardTeamsLoadDef,
   FeatureDashboardUserMembershipsLoadDef,
-  FeatureFixtureSetupLoadDef,
   FeatureFixtureTallyLoadDef,
   FeatureFixtureViewLoadDef,
   FeatureReportEditorLoadDef,
@@ -33,10 +32,6 @@ export const $FeatureDashboardSpiritLoad = createEndpoint(
 
 export const $FeatureDashboardMvpLoad = createEndpoint(
   FeatureDashboardMvpLoadDef,
-)
-
-export const $FeatureFixtureSetupLoad = createEndpoint(
-  FeatureFixtureSetupLoadDef,
 )
 
 export const $FeatureFixtureTallyLoad = createEndpoint(

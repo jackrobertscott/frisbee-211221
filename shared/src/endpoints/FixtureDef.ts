@@ -27,13 +27,6 @@ export const FixtureDeleteDef = {
   }),
 } satisfies TEndpointDef
 
-export const FixtureSnapshotDef = {
-  path: '/FixtureSnapshot',
-  payload: io.object({
-    fixtureId: ioFixture.shape.id,
-  }),
-} satisfies TEndpointDef
-
 export const FixtureAdjustMultipleDef = {
   access: authPoint.fixtureManage,
   path: '/FixtureAdjustMultiple',

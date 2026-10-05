@@ -27,8 +27,6 @@ export type TAuthState = {
   admin: boolean
 }
 
-export type TAuthDeny = 'sign_in' | 'team' | 'admin'
-
 export const authRuleByPoint: Record<TAuthPoint, TAuthRule> = {
   [authPoint.userSelf]: {signedIn: true},
   [authPoint.userManage]: {admin: true},

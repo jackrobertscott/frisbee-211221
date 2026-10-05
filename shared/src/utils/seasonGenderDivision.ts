@@ -53,16 +53,6 @@ export function getSeasonMvpSlots(season: TSeasonGenderDivisionSource): {
   }
 }
 
-export function getSeasonMvpFields(
-  season: TSeasonGenderDivisionSource,
-): Array<keyof TSeasonMvpFields> {
-  const slots = getSeasonMvpSlots(season)
-  return [
-    ...(slots.male ? (['mvpMale', 'mvpMale2'] as const) : []),
-    ...(slots.female ? (['mvpFemale', 'mvpFemale2'] as const) : []),
-  ]
-}
-
 export function sanitizeSeasonMvpFields(
   season: TSeasonGenderDivisionSource,
   fields: TSeasonMvpFields,

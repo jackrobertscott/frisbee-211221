@@ -8,7 +8,6 @@ import {
   FeatureDashboardSpiritLoadDef,
   FeatureDashboardTeamsLoadDef,
   FeatureDashboardUserMembershipsLoadDef,
-  FeatureFixtureSetupLoadDef,
   FeatureFixtureTallyLoadDef,
   FeatureFixtureViewLoadDef,
   FeatureReportEditorLoadDef,
@@ -293,19 +292,6 @@ export default new Map<string, RequestHandler>([
                 (row.gender === 1 && slots.female)),
           )
         return {rows: result}
-      },
-  }),
-
-  createEndpoint({
-    ...FeatureFixtureSetupLoadDef,
-    handler:
-      ({seasonId}, access) =>
-      async (req) => {
-        await requireAccess(req, access)
-        await $Season.getOne({id: seasonId})
-        return {
-          teams: await _getSeasonTeams(seasonId),
-        }
       },
   }),
 

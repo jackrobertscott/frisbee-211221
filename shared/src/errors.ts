@@ -174,8 +174,6 @@ const USER_MESSAGE_BY_ERROR_CODE: Record<string, string> = {
     'The existing fixtures do not match the expected pattern. Please review the rounds and try again.',
   'fixture.slots_insufficient':
     'There are not enough time slots for the number of teams.',
-  'fixture.snapshot_disabled':
-    'Fixture snapshots are not available right now.',
   'fixture.uneven_division':
     'Each division needs an even number of teams before fixtures can be created.',
 
@@ -231,7 +229,6 @@ const USER_MESSAGE_BY_ERROR_CODE: Record<string, string> = {
 
   'theme.padify_pixels_invalid': INTERNAL_USER_MESSAGE,
   'throttle.dribble_max_invalid': INTERNAL_USER_MESSAGE,
-  unreachable: INTERNAL_USER_MESSAGE,
 
   'upload.aborted': 'The upload was cancelled before it finished.',
   'upload.fields_limit': 'Too much information was included in the upload.',
@@ -500,12 +497,6 @@ export const serviceUnavailableError = createStatusFactory(
   'service_unavailable',
 )
 
-export const unreachableError = (
-  message: string = 'Unreachable code path.',
-): never => {
-  throw internalError(message, {errorCode: 'unreachable'})
-}
-
 export const isAppError = (error: unknown): error is AppError => {
   return error instanceof AppError
 }
@@ -634,15 +625,8 @@ export const deserializeError = (
   error: unknown,
   fallback: Omit<AppErrorOptions, 'message'> & {message?: string} = {},
 ) => {
-  return isSerializedAppError(error)
-    ? toAppError(error, fallback)
-    : toAppError(error, fallback)
+  return toAppError(error, fallback)
 }
-
-export const getErrorMessage = (
-  error: unknown,
-  fallback: string = 'An error occurred.',
-) => toAppError(error, {message: fallback}).message || fallback
 
 export const getUserErrorMessage = (
   error: unknown,
@@ -655,13 +639,6 @@ export const getErrorStatusCode = (
   error: unknown,
   fallback: number = HTTP_STATUS.INTERNAL_SERVER_ERROR,
 ) => toAppError(error, {statusCode: fallback}).statusCode
-
-export const hasErrorCode = (error: unknown, expected: string | string[]) => {
-  const actual = toAppError(error).errorCode
-  return Array.isArray(expected)
-    ? expected.includes(actual)
-    : actual === expected
-}
 
 export const hasStatusCode = (error: unknown, expected: number | number[]) => {
   const actual = toAppError(error).statusCode

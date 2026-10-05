@@ -1,6 +1,5 @@
 /* Small compositions shared across the league app (built only from ui library components). */
 import {TTeam} from '@shared/schemas/ioTeam'
-import {TUserPublic, TUserSafe} from '@shared/schemas/ioUser'
 import {
   Button,
   cx,
@@ -14,7 +13,6 @@ import {
 } from '@ui'
 import {ChevronDown, CloudOff, RotateCw} from 'lucide-react'
 import {type ReactNode, useEffect, useRef, useState} from 'react'
-import {userEmails} from '../utils/userEmails'
 
 type TDateInput = string | number | Date
 
@@ -104,13 +102,6 @@ export const teamOptions = (teams: TTeam[]): Option[] =>
     label: t.name,
     icon: <Swatch color={t.color} />,
     meta: typeof t.division === 'number' ? `Div ${t.division}` : undefined,
-  }))
-
-export const userOptions = (users: Array<TUserPublic | TUserSafe>): Option[] =>
-  users.map((u) => ({
-    value: u.id,
-    label: fullName(u),
-    description: 'emails' in u ? userEmails.primary(u) : undefined,
   }))
 
 /** A card-like disclosure row: title on the left, meta + chevron on the right, optional action button. */
