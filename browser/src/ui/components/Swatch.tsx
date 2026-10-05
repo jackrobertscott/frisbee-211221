@@ -4,12 +4,31 @@ import { cx, useControllable } from '../utils';
 import { useFieldControl } from './Field';
 import './Swatch.css';
 
-/** Perceived lightness of a hex colour (0–1), used to pick a legible check colour. */
-export function colorLuminance(hex: string) {
-  const m = hex.replace('#', '').match(/^([0-9a-f]{3}|[0-9a-f]{6})$/i);
-  if (!m) return 0.5;
-  const h = m[1].length === 3 ? m[1].replace(/./g, (c) => c + c) : m[1];
-  const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+/** Parses hex, rgb(a) or hsl(a) colour strings into 0–1 RGB channels (null if unrecognised). */
+function parseRgb(color: string): [number, number, number] | null {
+  const c = color.trim();
+  const hex = c.replace('#', '').match(/^([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (hex) {
+    const h = hex[1].length === 3 ? hex[1].replace(/./g, (x) => x + x) : hex[1];
+    return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255) as [number, number, number];
+  }
+  const fn = c.match(/^(rgba?|hsla?)\(([^)]+)\)$/i);
+  if (!fn) return null;
+  const parts = fn[2].split(/[\s,/]+/).filter(Boolean).map((p) => parseFloat(p));
+  if (parts.length < 3 || parts.slice(0, 3).some(Number.isNaN)) return null;
+  if (fn[1].toLowerCase().startsWith('rgb')) return [parts[0] / 255, parts[1] / 255, parts[2] / 255];
+  const [h, s, l] = [((parts[0] % 360) + 360) % 360, parts[1] / 100, parts[2] / 100];
+  const k = (n: number) => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  return [f(0), f(8), f(4)];
+}
+
+/** Perceived lightness (0–1) of a hex, rgb(a) or hsl(a) colour, used to pick a legible check colour. */
+export function colorLuminance(color: string) {
+  const rgb = parseRgb(color);
+  if (!rgb) return 0.5;
+  const [r, g, b] = rgb;
   return 0.299 * r + 0.587 * g + 0.114 * b;
 }
 
@@ -26,7 +45,7 @@ export function Swatch({ color, size = 'sm', shape = 'square', className, style,
 }
 
 export interface SwatchPickerProps {
-  /** Hex colours to choose from. */
+  /** Colours to choose from (hex, rgb or hsl). */
   colors: string[];
   value?: string | null;
   defaultValue?: string | null;

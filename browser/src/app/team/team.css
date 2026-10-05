@@ -1,7 +1,3 @@
-/* Team colours are hsla strings, so the library can't infer a legible check colour. */
-.fr-team-colors .ui-swatch-picker__item { color: oklch(0.2 0 0); }
-.fr-team-colors .ui-swatch-picker__item svg { filter: drop-shadow(0 0 1.5px white); }
-
 .fr-team-members__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; }
 .fr-team-members__actions { display: flex; gap: var(--sp-1); margin-left: auto; }
 .fr-team-members .fr-members li { flex-wrap: wrap; }
