@@ -81,7 +81,8 @@ export function LadderPage() {
     () =>
       teams
         .reduce<number[]>((all, t) => {
-          if (t.division && !all.includes(t.division)) all.push(t.division)
+          if (typeof t.division === 'number' && !all.includes(t.division))
+            all.push(t.division)
           return all
         }, [])
         .sort((a, b) => a - b),

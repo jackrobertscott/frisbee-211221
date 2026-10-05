@@ -93,7 +93,7 @@ export const teamOptions = (teams: TTeam[]): Option[] =>
     value: t.id,
     label: t.name,
     icon: <Swatch color={t.color} />,
-    meta: t.division ? `Div ${t.division}` : undefined,
+    meta: typeof t.division === 'number' ? `Div ${t.division}` : undefined,
   }))
 
 export const userOptions = (users: Array<TUserPublic | TUserSafe>): Option[] =>
