@@ -1,0 +1,46 @@
+.ui-heading { font-weight: var(--weight-semibold); letter-spacing: var(--tracking-tight); line-height: var(--leading-tight); color: var(--text); }
+.ui-heading[data-size='sm'] { font-size: var(--fs-sm); }
+.ui-heading[data-size='md'] { font-size: var(--fs-md); }
+.ui-heading[data-size='lg'] { font-size: var(--fs-lg); }
+.ui-heading[data-size='xl'] { font-size: var(--fs-xl); }
+.ui-heading[data-size='2xl'] { font-size: var(--fs-2xl); letter-spacing: -0.018em; }
+.ui-heading[data-size='3xl'] { font-size: var(--fs-3xl); letter-spacing: -0.022em; }
+
+.ui-text { color: var(--text); }
+.ui-text[data-size='xs'] { font-size: var(--fs-xs); }
+.ui-text[data-size='sm'] { font-size: var(--fs-sm); }
+.ui-text[data-size='md'] { font-size: var(--fs-md); }
+.ui-text[data-size='lg'] { font-size: var(--fs-lg); }
+.ui-text[data-tone='secondary'] { color: var(--text-secondary); }
+.ui-text[data-tone='tertiary'] { color: var(--text-tertiary); }
+.ui-text[data-tone='danger'] { color: var(--danger-text); }
+.ui-text[data-tone='success'] { color: var(--success-text); }
+.ui-text[data-weight='medium'] { font-weight: var(--weight-medium); }
+.ui-text[data-weight='semibold'] { font-weight: var(--weight-semibold); }
+.ui-text--mono { font-family: var(--ui-font-mono); font-size: 0.92em; }
+.ui-text--truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ui-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--accent-text);
+  font-weight: var(--weight-medium);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, currentColor 35%, transparent);
+  text-underline-offset: 3px;
+  border-radius: 2px;
+  transition: text-decoration-color var(--dur-fast);
+}
+.ui-link:hover { text-decoration-color: currentColor; }
+.ui-link--subtle { color: inherit; }
+.ui-link__ext { width: 0.9em; height: 0.9em; }
+
+.ui-code {
+  font-family: var(--ui-font-mono);
+  font-size: 0.86em;
+  padding: 1px 5px;
+  border-radius: var(--radius-xs);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-subtle);
+}

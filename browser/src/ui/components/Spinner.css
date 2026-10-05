@@ -1,0 +1,4 @@
+.ui-spinner {
+  flex-shrink: 0;
+  animation: ui-spin 0.7s linear infinite;
+}

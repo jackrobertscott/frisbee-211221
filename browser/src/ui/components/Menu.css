@@ -1,0 +1,53 @@
+.ui-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: var(--sp-1);
+  max-height: var(--_avail-h, 480px);
+  overflow-y: auto;
+  font-size: var(--fs-sm);
+}
+.ui-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--h-md);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+.ui-menu__item:focus,
+.ui-menu__item[data-open] { background: var(--bg-hover); box-shadow: none; }
+.ui-menu__item[aria-disabled='true'] { color: var(--text-disabled); cursor: not-allowed; }
+.ui-menu__item[aria-disabled='true'] .ui-menu__icon { color: var(--text-disabled); }
+.ui-menu__item[data-danger] { color: var(--danger-text); }
+.ui-menu__item[data-danger] .ui-menu__icon { color: var(--danger); }
+.ui-menu__item[data-danger]:focus { background: var(--danger-subtle); }
+.ui-menu__icon { display: inline-flex; color: var(--text-secondary); flex-shrink: 0; }
+.ui-menu__icon svg { width: 16px; height: 16px; }
+.ui-menu__text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.ui-menu__label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ui-menu__desc { font-size: var(--fs-xs); color: var(--text-tertiary); }
+.ui-menu__shortcut {
+  margin-left: var(--sp-4);
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+  letter-spacing: 0.04em;
+}
+.ui-menu__chev { width: 14px; height: 14px; margin-left: var(--sp-2); color: var(--text-tertiary); }
+.ui-menu__indicator { display: grid; place-items: center; width: 16px; height: 16px; flex-shrink: 0; }
+.ui-menu__indicator svg { width: 14px; height: 14px; }
+.ui-menu__dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.ui-menu__group-label {
+  padding: var(--sp-2) var(--sp-2) var(--sp-1);
+  font-size: var(--fs-2xs);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+}
+.ui-menu__sep { height: 1px; margin: var(--sp-1) calc(var(--sp-1) * -1); background: var(--border-subtle); }
+.ui-menu__header { padding: var(--sp-2); }

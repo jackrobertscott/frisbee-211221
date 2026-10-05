@@ -1,0 +1,16 @@
+.ui-popover {
+  padding: var(--sp-4);
+  min-width: 220px;
+  max-width: min(420px, calc(100vw - 16px));
+  font-size: var(--fs-sm);
+}
+.ui-popover--flush { padding: 0; }
+.ui-popover__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+.ui-popover__title { font-weight: var(--weight-semibold); font-size: var(--fs-sm); }
+.ui-popover__desc { color: var(--text-tertiary); margin-top: var(--sp-0-5); }

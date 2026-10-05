@@ -1,0 +1,40 @@
+.ui-chart { margin: 0; display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; }
+.ui-chart__legend { display: flex; flex-wrap: wrap; gap: var(--sp-4); font-size: var(--fs-xs); color: var(--text-secondary); }
+.ui-chart__legend span { display: inline-flex; align-items: center; gap: 6px; }
+.ui-chart__legend i { width: 8px; height: 8px; border-radius: 2px; }
+
+.ui-chart__body { display: flex; gap: var(--sp-2); min-width: 0; }
+.ui-chart__ylabel {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  align-self: flex-start;
+  font-size: var(--fs-2xs);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+.ui-chart__yaxis { position: relative; width: 24px; flex-shrink: 0; font-size: var(--fs-2xs); color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+.ui-chart__yaxis span { position: absolute; right: 0; transform: translateY(50%); line-height: 1; }
+.ui-chart__main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+
+.ui-chart__plot {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sp-1);
+  border-bottom: 1px solid var(--border-strong);
+}
+.ui-chart__grid { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--border-subtle); pointer-events: none; }
+.ui-chart__col { position: relative; flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 2px; }
+.ui-chart__bar {
+  flex: 1;
+  max-width: 28px;
+  min-height: 0;
+  border-radius: 3px 3px 0 0;
+  transition: height var(--dur-slow) var(--ease), opacity var(--dur-fast);
+}
+.ui-chart__bar[data-empty] { min-height: 0; }
+.ui-chart__bar:hover { opacity: 0.8; }
+
+.ui-chart__xaxis { display: flex; gap: var(--sp-1); font-size: var(--fs-2xs); color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+.ui-chart__xaxis span { flex: 1; min-width: 0; text-align: center; overflow: hidden; text-overflow: clip; white-space: nowrap; }
+.ui-chart__xlabel { text-align: center; font-size: var(--fs-2xs); color: var(--text-tertiary); }

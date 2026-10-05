@@ -1,0 +1,80 @@
+.ui-slider {
+  position: relative;
+  width: 100%;
+  padding: var(--sp-2) 0;
+  touch-action: none;
+  user-select: none;
+}
+.ui-slider--marks { padding-bottom: var(--sp-6); }
+.ui-slider__track {
+  position: relative;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--bg-muted);
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
+  cursor: pointer;
+}
+.ui-slider__range {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: inherit;
+  background: var(--primary);
+}
+.ui-slider__tick {
+  position: absolute;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+.ui-slider__tick[data-in] { background: color-mix(in oklab, var(--primary-fg) 60%, transparent); }
+.ui-slider__thumb {
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 50%;
+  background: oklch(1 0 0);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast);
+}
+.ui-slider__thumb:hover { transform: scale(1.08); }
+.ui-slider__thumb[data-dragging] { cursor: grabbing; transform: scale(1.12); }
+.ui-slider__thumb:focus-visible { box-shadow: var(--shadow-sm), 0 0 0 4px var(--ring); }
+.ui-slider__bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  padding: 2px var(--sp-1-5);
+  border-radius: var(--radius-xs);
+  background: var(--bg-inverse);
+  color: var(--text-inverse);
+  font-size: var(--fs-2xs);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast), transform var(--dur-fast) var(--ease);
+}
+.ui-slider__thumb:hover .ui-slider__bubble,
+.ui-slider__thumb:focus-visible .ui-slider__bubble,
+.ui-slider__thumb[data-dragging] .ui-slider__bubble { opacity: 1; transform: translateX(-50%); }
+.ui-slider__marks { position: relative; margin-top: var(--sp-2-5); height: 14px; }
+.ui-slider__marks span {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+.ui-slider[data-disabled] { opacity: 0.5; }
+.ui-slider[data-disabled] .ui-slider__track,
+.ui-slider[data-disabled] .ui-slider__thumb { cursor: not-allowed; }

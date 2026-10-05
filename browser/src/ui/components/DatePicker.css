@@ -1,0 +1,94 @@
+.ui-cal { display: flex; gap: var(--sp-6); padding: var(--sp-3); }
+.ui-cal__month { display: flex; flex-direction: column; gap: var(--sp-2); width: 252px; }
+.ui-cal__head { display: flex; align-items: center; justify-content: space-between; height: var(--h-sm); }
+.ui-cal__nav { width: 28px; height: 28px; border-radius: var(--radius-md); }
+.ui-cal__nav svg { width: 16px; height: 16px; }
+.ui-cal__title { font-size: var(--fs-sm); font-weight: var(--weight-semibold); }
+.ui-cal__grid { display: flex; flex-direction: column; gap: 2px; }
+.ui-cal__row { display: grid; grid-template-columns: repeat(7, 1fr); }
+.ui-cal__wd {
+  display: grid;
+  place-items: center;
+  height: 28px;
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+  font-weight: var(--weight-medium);
+}
+.ui-cal__cell { position: relative; display: grid; place-items: center; height: 36px; }
+.ui-cal__cell[data-in-range]::before,
+.ui-cal__cell[data-range-start]::before,
+.ui-cal__cell[data-range-end]::before {
+  content: '';
+  position: absolute;
+  inset: 1px 0;
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+}
+.ui-cal__cell[data-in-range] .ui-cal__day { color: var(--text); font-weight: var(--weight-medium); }
+.ui-cal__cell[data-in-range] .ui-cal__day:hover:not(:disabled) { background: color-mix(in oklab, var(--primary) 10%, transparent); }
+/* Round the band where it breaks (week and month edges). */
+.ui-cal__row > .ui-cal__cell[data-in-range]:first-child::before,
+.ui-cal__cell[data-in-range][data-month-first]::before { border-top-left-radius: var(--radius-md); border-bottom-left-radius: var(--radius-md); }
+.ui-cal__row > .ui-cal__cell[data-in-range]:last-child::before,
+.ui-cal__cell[data-in-range][data-month-last]::before { border-top-right-radius: var(--radius-md); border-bottom-right-radius: var(--radius-md); }
+.ui-cal__cell[data-range-start]::before { left: 50%; }
+.ui-cal__cell[data-range-end]::before { right: 50%; }
+.ui-cal__cell[data-range-start][data-range-end]::before { display: none; }
+.ui-cal__day {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  transition: background-color var(--dur-fast), color var(--dur-fast);
+}
+.ui-cal__day:hover:not(:disabled):not([aria-selected]) { background: var(--bg-hover); }
+.ui-cal__day[data-outside] { color: var(--text-disabled); }
+.ui-cal__day[aria-current='date']::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.ui-cal__day[aria-selected] { background: var(--primary); color: var(--primary-fg); font-weight: var(--weight-medium); }
+.ui-cal__day[aria-selected][aria-current='date']::after { background: var(--primary-fg); }
+.ui-cal__day:disabled { color: var(--text-disabled); text-decoration: line-through; cursor: not-allowed; }
+
+.ui-datepicker { overflow: hidden; }
+.ui-datepicker__foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-top: 1px solid var(--border-subtle);
+}
+.ui-datepicker__summary { margin-right: auto; font-size: var(--fs-sm); color: var(--text-secondary); }
+.ui-datepicker__layout { display: flex; }
+.ui-datepicker__presets {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: var(--sp-3) var(--sp-2);
+  border-right: 1px solid var(--border-subtle);
+  min-width: 140px;
+}
+.ui-datepicker__preset {
+  text-align: left;
+  height: var(--h-sm);
+  padding: 0 var(--sp-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+.ui-datepicker__preset:hover { background: var(--bg-hover); color: var(--text); }
+@media (max-width: 640px) {
+  .ui-datepicker__presets { display: none; }
+  .ui-datepicker--range .ui-cal__month + .ui-cal__month { display: none; }
+}

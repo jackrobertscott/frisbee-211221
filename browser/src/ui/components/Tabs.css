@@ -1,0 +1,109 @@
+.ui-tabs { display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
+
+.ui-tablist {
+  --_h: var(--h-md);
+  position: relative;
+  display: flex;
+  align-items: center;
+  isolation: isolate;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.ui-tablist::-webkit-scrollbar { display: none; }
+.ui-tablist[data-size='sm'] { --_h: var(--h-sm); }
+
+.ui-tab {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1-5);
+  height: var(--_h);
+  padding: 0 var(--sp-3);
+  font-size: var(--fs-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  border-radius: var(--radius-sm);
+  transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast);
+}
+.ui-tab:hover:not(:disabled) { color: var(--text); }
+.ui-tab[aria-selected='true'],
+.ui-tab[aria-checked='true'] { color: var(--text); }
+.ui-tab:disabled { opacity: 0.45; cursor: not-allowed; }
+.ui-tab__icon { display: inline-flex; }
+.ui-tab__icon svg { width: 15px; height: 15px; }
+.ui-tab__count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+  font-size: var(--fs-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-tablist__indicator {
+  position: absolute;
+  left: 0;
+  z-index: 0;
+  transition: transform var(--dur) var(--ease), width var(--dur) var(--ease);
+  pointer-events: none;
+}
+
+/* line ---------------------------------------------------------------- */
+.ui-tablist[data-variant='line'] {
+  gap: var(--sp-1);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.ui-tablist[data-variant='line'] .ui-tab { height: calc(var(--_h) + 6px); padding: 0 var(--sp-2); }
+.ui-tablist[data-variant='line'] .ui-tab:hover:not(:disabled) { background: none; }
+.ui-tablist[data-variant='line'] .ui-tablist__indicator { bottom: -1px; height: 2px; background: var(--primary); border-radius: 2px 2px 0 0; }
+
+/* segmented (the reference "View all | Documents | …" control) --------- */
+.ui-tablist[data-variant='segmented'] {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  align-self: flex-start;
+}
+.ui-tablist[data-variant='segmented'] .ui-tab { height: calc(var(--_h) - 6px); padding: 0 var(--sp-2-5); border-radius: calc(var(--radius-md) - 2px); }
+.ui-tablist[data-variant='segmented'] .ui-tablist__indicator {
+  top: 2px;
+  bottom: 2px;
+  background: var(--bg-surface);
+  border-radius: calc(var(--radius-md) - 2px);
+  box-shadow: var(--shadow-sm), 0 0 0 1px var(--border-subtle);
+}
+.ui-segmented--full { display: flex; width: 100%; }
+.ui-segmented--full .ui-tab { flex: 1; }
+
+/* pills --------------------------------------------------------------- */
+.ui-tablist[data-variant='pills'] { gap: var(--sp-1); }
+.ui-tablist[data-variant='pills'] .ui-tab:hover:not(:disabled) { background: var(--bg-hover); }
+.ui-tablist[data-variant='pills'] .ui-tablist__indicator { top: 0; bottom: 0; background: var(--bg-active); border-radius: var(--radius-sm); }
+.ui-tablist[data-variant='pills'] .ui-tab[aria-selected='true']:hover { background: none; }
+
+.ui-tabpanel:focus-visible { border-radius: var(--radius-md); }
+
+/* vertical ------------------------------------------------------------ */
+.ui-tabs[data-orientation='vertical'] { flex-direction: row; align-items: flex-start; gap: var(--sp-6); }
+.ui-tabs[data-orientation='vertical'] > .ui-tabpanel { flex: 1; min-width: 0; }
+.ui-tablist[data-orientation='vertical'] { flex-direction: column; align-items: stretch; flex-shrink: 0; overflow: visible; }
+.ui-tablist[data-orientation='vertical'] .ui-tab { justify-content: flex-start; text-align: left; }
+.ui-tablist[data-orientation='vertical'] .ui-tab__count { margin-left: auto; }
+.ui-tablist[data-orientation='vertical'] .ui-tablist__indicator { top: 0; left: 0; right: 0; width: auto; }
+.ui-tablist[data-orientation='vertical'][data-variant='line'] { gap: 2px; border-bottom: 0; border-left: 1px solid var(--border-subtle); }
+.ui-tablist[data-orientation='vertical'][data-variant='line'] .ui-tab { height: var(--_h); padding: 0 var(--sp-3); }
+.ui-tablist[data-orientation='vertical'][data-variant='line'] .ui-tablist__indicator { left: -1px; right: auto; bottom: auto; width: 2px; border-radius: 0 2px 2px 0; }
+.ui-tablist[data-orientation='vertical'][data-variant='segmented'] { align-self: stretch; }
+.ui-tablist[data-orientation='vertical'][data-variant='segmented'] .ui-tablist__indicator { top: 0; left: 2px; right: 2px; bottom: auto; }
+.ui-tablist[data-orientation='vertical'][data-variant='pills'] .ui-tablist__indicator { bottom: auto; }

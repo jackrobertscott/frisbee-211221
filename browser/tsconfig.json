@@ -28,6 +28,8 @@
     // Paths
     "baseUrl": "..",
     "paths": {
+      "@ui": ["browser/src/ui/index.ts"],
+      "@ui/*": ["browser/src/ui/*"],
       "@browser/*": ["browser/src/*"],
       "@shared/*": ["shared/src/*"]
     }

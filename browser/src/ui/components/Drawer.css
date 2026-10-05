@@ -1,0 +1,59 @@
+@keyframes ui-drawer-right { from { transform: translateX(100%); } }
+@keyframes ui-drawer-left { from { transform: translateX(-100%); } }
+@keyframes ui-drawer-bottom { from { transform: translateY(100%); } }
+
+.ui-drawer {
+  --_w: 420px;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-overlay);
+  box-shadow: var(--shadow-lg);
+  transition: transform 200ms var(--ease);
+}
+.ui-drawer[data-size='sm'] { --_w: 340px; }
+.ui-drawer[data-size='lg'] { --_w: 640px; }
+.ui-drawer[data-side='right'],
+.ui-drawer[data-side='left'] {
+  top: var(--sp-2);
+  bottom: var(--sp-2);
+  width: min(var(--_w), calc(100vw - var(--sp-4)));
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+}
+.ui-drawer[data-side='right'] { right: var(--sp-2); animation: ui-drawer-right var(--dur-slow) var(--ease); }
+.ui-drawer[data-side='left'] { left: var(--sp-2); animation: ui-drawer-left var(--dur-slow) var(--ease); }
+.ui-drawer[data-side='bottom'] {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 85dvh;
+  border-top: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  animation: ui-drawer-bottom var(--dur-slow) var(--ease);
+}
+[data-state='closed'] > .ui-drawer[data-side='right'] { transform: translateX(calc(100% + 16px)); }
+[data-state='closed'] > .ui-drawer[data-side='left'] { transform: translateX(calc(-100% - 16px)); }
+[data-state='closed'] > .ui-drawer[data-side='bottom'] { transform: translateY(100%); }
+.ui-drawer:focus-visible { box-shadow: var(--shadow-lg); }
+
+.ui-drawer__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.ui-drawer__title { font-size: var(--fs-md); font-weight: var(--weight-semibold); }
+.ui-drawer__desc { font-size: var(--fs-sm); color: var(--text-tertiary); margin-top: var(--sp-0-5); }
+.ui-drawer__close { width: 28px; height: 28px; }
+.ui-drawer__close svg { width: 16px; height: 16px; }
+.ui-drawer__body { flex: 1; overflow-y: auto; padding: var(--sp-5); font-size: var(--fs-sm); }
+.ui-drawer__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-5);
+  border-top: 1px solid var(--border-subtle);
+}

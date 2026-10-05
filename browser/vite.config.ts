@@ -22,9 +22,11 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: {
-      '@browser': resolve(__dirname, 'src'),
-      '@shared': resolve(__dirname, '../shared/src'),
-    },
+    alias: [
+      {find: /^@ui$/, replacement: resolve(__dirname, 'src/ui/index.ts')},
+      {find: /^@ui\//, replacement: resolve(__dirname, 'src/ui') + '/'},
+      {find: '@browser', replacement: resolve(__dirname, 'src')},
+      {find: '@shared', replacement: resolve(__dirname, '../shared/src')},
+    ],
   },
 })

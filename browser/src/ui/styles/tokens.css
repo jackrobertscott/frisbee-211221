@@ -1,0 +1,212 @@
+/* ==========================================================================
+   DESIGN TOKENS
+   --------------------------------------------------------------------------
+   The entire theme is composed from the 9 PRIMITIVES below. Every colour,
+   size, radius, shadow and type step used by any component is DERIVED from
+   them. Change a primitive and the whole system follows.
+
+   Light / dark is a *mode*, not a variable: set data-theme="dark" on any
+   element (usually <html>) and the derived lightness ramps flip.
+   ========================================================================== */
+
+:root {
+  /* ---- 1. Colour ------------------------------------------------------- */
+  --ui-neutral-hue: 270;      /* hue that tints every grey (0–360)          */
+  --ui-neutral-chroma: 0.004; /* how tinted the greys are (0 = pure grey)   */
+  --ui-accent-hue: 266;       /* hue of the interactive accent (0–360)      */
+  --ui-accent-chroma: 0.17;   /* accent saturation (0 = monochrome accent)  */
+
+  /* ---- 2. Shape & space ------------------------------------------------ */
+  --ui-radius: 8px;           /* base corner radius; all radii scale off it */
+  --ui-space: 4px;            /* base spacing unit; all spacing & control
+                                 heights are multiples of it               */
+
+  /* ---- 3. Type ---------------------------------------------------------- */
+  --ui-font-size: 14px;       /* body size; the type scale derives from it  */
+  --ui-font-sans: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ui-font-mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+/* ==========================================================================
+   DERIVED TOKENS — do not edit per-theme; edit the primitives instead.
+   Declared on every [data-theme] so a subtree can switch mode in isolation.
+   ========================================================================== */
+
+:root,
+[data-theme] {
+  color-scheme: light;
+
+  /* -- Lightness ramp (light mode). 0 = raised surface, 12 = ink ---------- */
+  --_l0: 1;     --_l1: 0.985; --_l2: 0.972; --_l3: 0.955; --_l4: 0.938;
+  --_l5: 0.918; --_l6: 0.898; --_l7: 0.862; --_l8: 0.79;  --_l9: 0.6;
+  --_l10: 0.54; --_l11: 0.47; --_l12: 0.21;
+  --_accent-l: 0.55;
+  --_status-l: 0.56;
+  --_shadow-a: 1;
+
+  /* -- Neutral scale ------------------------------------------------------ */
+  --gray-0:  oklch(var(--_l0)  var(--ui-neutral-chroma) var(--ui-neutral-hue));
+  --gray-1:  oklch(var(--_l1)  var(--ui-neutral-chroma) var(--ui-neutral-hue));
+  --gray-2:  oklch(var(--_l2)  var(--ui-neutral-chroma) var(--ui-neutral-hue));
+  --gray-3:  oklch(var(--_l3)  var(--ui-neutral-chroma) var(--ui-neutral-hue));
+  --gray-4:  oklch(var(--_l4)  var(--ui-neutral-chroma) var(--ui-neutral-hue));
+  --gray-5:  oklch(var(--_l5)  var(--ui-neutral-chroma) var(--ui-neutral-hue));
+  --gray-6:  oklch(var(--_l6)  var(--ui-neutral-chroma) var(--ui-neutral-hue));
+  --gray-7:  oklch(var(--_l7)  var(--ui-neutral-chroma) var(--ui-neutral-hue));
+  --gray-8:  oklch(var(--_l8)  var(--ui-neutral-chroma) var(--ui-neutral-hue));
+  --gray-9:  oklch(var(--_l9)  calc(var(--ui-neutral-chroma) * 2) var(--ui-neutral-hue));
+  --gray-10: oklch(var(--_l10) calc(var(--ui-neutral-chroma) * 2) var(--ui-neutral-hue));
+  --gray-11: oklch(var(--_l11) calc(var(--ui-neutral-chroma) * 2) var(--ui-neutral-hue));
+  --gray-12: oklch(var(--_l12) calc(var(--ui-neutral-chroma) * 2) var(--ui-neutral-hue));
+
+  /* -- Surfaces ----------------------------------------------------------- */
+  --bg-canvas: var(--gray-2);   /* behind everything (app frame)            */
+  --bg-app: var(--gray-1);      /* sidebars, page wash                      */
+  --bg-surface: var(--gray-0);  /* cards, panels, inputs                    */
+  --bg-overlay: var(--gray-0);  /* menus, popovers, dialogs                 */
+  --bg-subtle: var(--gray-2);   /* table headers, wells                     */
+  --bg-muted: var(--gray-3);    /* chips, tracks, neutral badges            */
+  --bg-hover: color-mix(in oklab, var(--gray-12) 5%, transparent);
+  --bg-active: color-mix(in oklab, var(--gray-12) 8%, transparent);
+  --bg-selected: color-mix(in oklab, var(--gray-12) 6.5%, transparent);
+  --bg-inverse: var(--gray-12);
+  --bg-backdrop: color-mix(in oklab, oklch(0.18 0.01 var(--ui-neutral-hue)) 38%, transparent);
+
+  /* -- Borders ------------------------------------------------------------ */
+  --border-subtle: var(--gray-5);
+  --border: var(--gray-6);
+  --border-strong: var(--gray-8);
+
+  /* -- Text --------------------------------------------------------------- */
+  --text: var(--gray-12);
+  --text-secondary: var(--gray-11);
+  --text-tertiary: var(--gray-9);
+  --text-disabled: var(--gray-8);
+  --text-inverse: var(--gray-0);
+
+  /* -- Primary (ink) — the dominant action colour of this monochrome theme */
+  --primary: var(--gray-12);
+  --primary-hover: color-mix(in oklab, var(--gray-12) 86%, var(--gray-0));
+  --primary-fg: var(--gray-0);
+
+  /* -- Accent ------------------------------------------------------------- */
+  --accent: oklch(var(--_accent-l) var(--ui-accent-chroma) var(--ui-accent-hue));
+  --accent-hover: oklch(calc(var(--_accent-l) - 0.05) var(--ui-accent-chroma) var(--ui-accent-hue));
+  --accent-fg: oklch(0.99 0 0);
+  --accent-subtle: color-mix(in oklab, var(--accent) 10%, var(--bg-surface));
+  --accent-border: color-mix(in oklab, var(--accent) 35%, var(--bg-surface));
+  --accent-text: color-mix(in oklab, var(--accent) 85%, var(--text));
+  --ring: color-mix(in oklab, var(--accent) 45%, transparent);
+
+  /* -- Status (fixed hues, chroma follows nothing so meaning is stable) --- */
+  --danger: oklch(var(--_status-l) 0.19 25);
+  --warning: oklch(calc(var(--_status-l) + 0.16) 0.16 70);
+  --success: oklch(calc(var(--_status-l) + 0.02) 0.14 155);
+  --info: var(--accent);
+  --danger-hover: oklch(calc(var(--_status-l) - 0.05) 0.19 25);
+  --danger-subtle: color-mix(in oklab, var(--danger) 10%, var(--bg-surface));
+  --warning-subtle: color-mix(in oklab, var(--warning) 14%, var(--bg-surface));
+  --success-subtle: color-mix(in oklab, var(--success) 11%, var(--bg-surface));
+  --info-subtle: var(--accent-subtle);
+  --danger-text: color-mix(in oklab, var(--danger) 85%, var(--text));
+  --warning-text: color-mix(in oklab, oklch(0.55 0.13 60) 90%, var(--text));
+  --success-text: color-mix(in oklab, var(--success) 80%, var(--text));
+  --info-text: var(--accent-text);
+  --danger-border: color-mix(in oklab, var(--danger) 30%, var(--bg-surface));
+  --warning-border: color-mix(in oklab, var(--warning) 40%, var(--bg-surface));
+  --success-border: color-mix(in oklab, var(--success) 32%, var(--bg-surface));
+  --info-border: var(--accent-border);
+
+  /* -- Data visualisation: 5 hues rotated from the accent ---------------- */
+  --chart-1: var(--accent);
+  --chart-2: oklch(0.7 0.13 calc(var(--ui-accent-hue) - 60));
+  --chart-3: oklch(0.72 0.12 calc(var(--ui-accent-hue) + 110));
+  --chart-4: oklch(0.75 0.13 calc(var(--ui-accent-hue) + 170));
+  --chart-5: var(--gray-8);
+
+  /* -- Elevation ---------------------------------------------------------- */
+  --_shadow-c: oklch(0.2 0.02 var(--ui-neutral-hue));
+  --shadow-xs: 0 1px 2px color-mix(in oklab, var(--_shadow-c) calc(5% * var(--_shadow-a)), transparent);
+  --shadow-sm: 0 1px 2px color-mix(in oklab, var(--_shadow-c) calc(6% * var(--_shadow-a)), transparent),
+               0 1px 3px color-mix(in oklab, var(--_shadow-c) calc(5% * var(--_shadow-a)), transparent);
+  --shadow-md: 0 2px 4px -1px color-mix(in oklab, var(--_shadow-c) calc(6% * var(--_shadow-a)), transparent),
+               0 6px 16px -4px color-mix(in oklab, var(--_shadow-c) calc(10% * var(--_shadow-a)), transparent);
+  --shadow-lg: 0 4px 8px -2px color-mix(in oklab, var(--_shadow-c) calc(6% * var(--_shadow-a)), transparent),
+               0 16px 40px -8px color-mix(in oklab, var(--_shadow-c) calc(18% * var(--_shadow-a)), transparent);
+  --shadow-inset: inset 0 1px 0 color-mix(in oklab, white 70%, transparent);
+  --focus-ring: 0 0 0 1px var(--accent), 0 0 0 4px var(--ring);
+
+  /* -- Radius ------------------------------------------------------------- */
+  --radius-xs: calc(var(--ui-radius) * 0.375);  /* 3px  checkbox, kbd      */
+  --radius-sm: calc(var(--ui-radius) * 0.625);  /* 5px  small controls     */
+  --radius-md: calc(var(--ui-radius) * 0.875);  /* 7px  buttons, inputs    */
+  --radius-lg: var(--ui-radius);                /* 8px  cards, menus       */
+  --radius-xl: calc(var(--ui-radius) * 1.5);    /* 12px dialogs, panels    */
+  --radius-full: 9999px;
+
+  /* -- Space -------------------------------------------------------------- */
+  --sp-0-5: calc(var(--ui-space) * 0.5);
+  --sp-1: var(--ui-space);
+  --sp-1-5: calc(var(--ui-space) * 1.5);
+  --sp-2: calc(var(--ui-space) * 2);
+  --sp-2-5: calc(var(--ui-space) * 2.5);
+  --sp-3: calc(var(--ui-space) * 3);
+  --sp-4: calc(var(--ui-space) * 4);
+  --sp-5: calc(var(--ui-space) * 5);
+  --sp-6: calc(var(--ui-space) * 6);
+  --sp-8: calc(var(--ui-space) * 8);
+  --sp-10: calc(var(--ui-space) * 10);
+  --sp-12: calc(var(--ui-space) * 12);
+  --sp-16: calc(var(--ui-space) * 16);
+
+  /* -- Control heights ---------------------------------------------------- */
+  --h-xs: calc(var(--ui-space) * 6);   /* 24 */
+  --h-sm: calc(var(--ui-space) * 7);   /* 28 */
+  --h-md: calc(var(--ui-space) * 8);   /* 32 */
+  --h-lg: calc(var(--ui-space) * 10);  /* 40 */
+
+  /* -- Type scale (relative to --ui-font-size) ---------------------------- */
+  --fs-2xs: calc(var(--ui-font-size) * 0.786); /* 11 */
+  --fs-xs: calc(var(--ui-font-size) * 0.857);  /* 12 */
+  --fs-sm: calc(var(--ui-font-size) * 0.929);  /* 13 */
+  --fs-md: var(--ui-font-size);                /* 14 */
+  --fs-lg: calc(var(--ui-font-size) * 1.143);  /* 16 */
+  --fs-xl: calc(var(--ui-font-size) * 1.286);  /* 18 */
+  --fs-2xl: calc(var(--ui-font-size) * 1.571); /* 22 */
+  --fs-3xl: calc(var(--ui-font-size) * 2);     /* 28 */
+  --fs-4xl: calc(var(--ui-font-size) * 2.571); /* 36 */
+  --leading-tight: 1.25;
+  --leading: 1.5;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --tracking-tight: -0.011em;
+
+  /* -- Motion ------------------------------------------------------------- */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --dur-fast: 110ms;
+  --dur: 180ms;
+  --dur-slow: 280ms;
+
+  /* -- Layers ------------------------------------------------------------- */
+  --z-sticky: 10;
+  --z-overlay: 100;
+  --z-popover: 200;
+  --z-toast: 300;
+  --z-tooltip: 400;
+}
+
+/* -- Dark mode: only the derived lightness ramps change --------------------- */
+[data-theme='dark'] {
+  color-scheme: dark;
+  --_l0: 0.215; --_l1: 0.185; --_l2: 0.165; --_l3: 0.25;  --_l4: 0.275;
+  --_l5: 0.29;  --_l6: 0.315; --_l7: 0.365; --_l8: 0.44;  --_l9: 0.6;
+  --_l10: 0.67; --_l11: 0.76; --_l12: 0.96;
+  --_accent-l: 0.66;
+  --_status-l: 0.66;
+  --_shadow-a: 4;
+  --bg-overlay: var(--gray-3);
+  --warning-text: color-mix(in oklab, var(--warning) 85%, var(--text));
+  --shadow-inset: inset 0 1px 0 color-mix(in oklab, white 5%, transparent);
+}

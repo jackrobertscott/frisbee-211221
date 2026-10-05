@@ -1,0 +1,66 @@
+.ui-listbox {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: var(--sp-1);
+  max-height: min(320px, var(--_avail-h, 320px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding: var(--sp-1);
+}
+.ui-listbox__group {
+  padding: var(--sp-2) var(--sp-2) var(--sp-1);
+  font-size: var(--fs-2xs);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+}
+.ui-listbox__group:not(:first-child) {
+  margin-top: var(--sp-1);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--sp-2-5);
+}
+.ui-listbox__option {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--h-md);
+  padding: var(--sp-1-5) var(--sp-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  scroll-margin: var(--sp-1);
+}
+.ui-listbox__option[data-active] { background: var(--bg-hover); }
+.ui-listbox__option[aria-disabled] { color: var(--text-disabled); cursor: not-allowed; }
+.ui-listbox__icon { display: inline-flex; color: var(--text-secondary); flex-shrink: 0; }
+.ui-listbox__icon svg { width: 16px; height: 16px; }
+.ui-listbox__text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.ui-listbox__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-listbox__desc { font-size: var(--fs-xs); color: var(--text-tertiary); }
+.ui-listbox__meta { color: var(--text-tertiary); font-size: var(--fs-xs); flex-shrink: 0; }
+.ui-listbox__tick { width: 15px; height: 15px; flex-shrink: 0; color: var(--text); }
+.ui-listbox__check {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-surface);
+  color: var(--primary-fg);
+}
+.ui-listbox__check svg { width: 10px; height: 10px; opacity: 0; }
+.ui-listbox__check[data-state='checked'] { background: var(--primary); border-color: var(--primary); }
+.ui-listbox__check[data-state='checked'] svg { opacity: 1; }
+.ui-listbox__mark { background: none; color: inherit; font-weight: var(--weight-semibold); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 2px; }
+.ui-listbox__empty {
+  padding: var(--sp-6) var(--sp-3);
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--text-tertiary);
+}

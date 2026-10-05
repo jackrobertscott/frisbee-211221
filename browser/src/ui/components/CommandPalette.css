@@ -1,0 +1,54 @@
+.ui-cmdk-viewport {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 12vh var(--sp-4) var(--sp-4);
+}
+.ui-cmdk {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: ui-dialog-in var(--dur) var(--ease);
+  transition: opacity 120ms var(--ease), transform 120ms var(--ease);
+}
+[data-state='closed'] .ui-cmdk { opacity: 0; transform: scale(0.98); }
+.ui-cmdk__search {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 0 var(--sp-4);
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-tertiary);
+}
+.ui-cmdk__search > svg { width: 18px; height: 18px; flex-shrink: 0; }
+.ui-cmdk__input {
+  flex: 1;
+  height: 52px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: var(--fs-lg);
+  color: var(--text);
+  box-shadow: none !important;
+}
+.ui-cmdk__input::placeholder { color: var(--text-tertiary); }
+.ui-cmdk__list { max-height: min(400px, 55vh); padding: var(--sp-2); }
+.ui-cmdk__list .ui-listbox__option { min-height: 40px; }
+.ui-cmdk__foot {
+  display: flex;
+  gap: var(--sp-4);
+  padding: var(--sp-2) var(--sp-4);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+}
+.ui-cmdk__foot > span { display: inline-flex; align-items: center; gap: 3px; }

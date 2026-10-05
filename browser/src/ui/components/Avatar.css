@@ -1,0 +1,63 @@
+.ui-avatar {
+  --_s: 32px;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: var(--_s);
+  height: var(--_s);
+  border-radius: 50%;
+  background: var(--bg-surface);
+  box-shadow: 0 0 0 1px var(--border) inset;
+  color: var(--text-secondary);
+  font-size: calc(var(--_s) * 0.36);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.01em;
+  user-select: none;
+}
+.ui-avatar[data-shape='square'] { border-radius: var(--radius-md); }
+.ui-avatar[data-size='xs'] { --_s: 20px; }
+.ui-avatar[data-size='sm'] { --_s: 24px; }
+.ui-avatar[data-size='lg'] { --_s: 40px; }
+.ui-avatar[data-size='xl'] { --_s: 56px; }
+.ui-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+.ui-avatar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--gray-12) 8%, transparent) inset;
+  pointer-events: none;
+}
+.ui-avatar__fallback { line-height: 1; }
+.ui-avatar__status {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: calc(var(--_s) * 0.3);
+  height: calc(var(--_s) * 0.3);
+  min-width: 8px;
+  min-height: 8px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-surface);
+  background: var(--gray-8);
+  box-sizing: content-box;
+  margin: -2px;
+}
+.ui-avatar__status[data-status='online'] { background: var(--success); }
+.ui-avatar__status[data-status='away'] { background: var(--warning); }
+.ui-avatar__status[data-status='busy'] { background: var(--danger); }
+
+.ui-avatar-group { display: inline-flex; }
+.ui-avatar-group > .ui-avatar { box-shadow: 0 0 0 2px var(--bg-surface); }
+.ui-avatar-group > .ui-avatar:not(:first-child) { margin-left: calc(var(--_s, 32px) * -0.28); }
+.ui-avatar-group[data-size='xs'] > .ui-avatar:not(:first-child) { margin-left: -5px; }
+.ui-avatar-group[data-size='sm'] > .ui-avatar:not(:first-child) { margin-left: -6px; }
+.ui-avatar-group[data-size='md'] > .ui-avatar:not(:first-child) { margin-left: -8px; }
+.ui-avatar-group[data-size='lg'] > .ui-avatar:not(:first-child) { margin-left: -10px; }
+.ui-avatar--more { background: var(--bg-muted); color: var(--text-secondary); font-size: calc(var(--_s) * 0.32); }

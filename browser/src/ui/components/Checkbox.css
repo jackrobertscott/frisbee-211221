@@ -1,0 +1,58 @@
+/* Checkbox */
+.ui-checkbox {
+  --_s: 16px;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: var(--_s);
+  height: var(--_s);
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-xs);
+  color: var(--primary-fg);
+  transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast);
+}
+.ui-checkbox[data-size='sm'] { --_s: 14px; }
+.ui-checkbox::before {
+  /* enlarge the hit area without affecting layout */
+  content: '';
+  position: absolute;
+  inset: -6px;
+}
+.ui-checkbox svg {
+  width: calc(var(--_s) - 2px);
+  height: calc(var(--_s) - 2px);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur) var(--ease-spring);
+}
+.ui-checkbox:hover:not(:disabled) { border-color: var(--gray-9); }
+.ui-checkbox[data-state='checked'],
+.ui-checkbox[data-state='indeterminate'] {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.ui-checkbox[data-state='checked'] svg,
+.ui-checkbox[data-state='indeterminate'] svg { opacity: 1; transform: none; }
+.ui-checkbox[aria-invalid] { border-color: var(--danger); }
+.ui-checkbox:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Label row shared by checkbox / radio / switch */
+.ui-check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2-5);
+}
+.ui-check-row > .ui-checkbox,
+.ui-check-row > .ui-radio { margin-top: calc((1lh - 16px) / 2); }
+.ui-check-row[data-size='sm'] > .ui-checkbox { margin-top: calc((1lh - 14px) / 2); }
+.ui-check-row__text { display: flex; flex-direction: column; gap: var(--sp-0-5); min-width: 0; font-size: var(--fs-sm); }
+.ui-check-row__label { font-weight: var(--weight-medium); cursor: pointer; user-select: none; }
+.ui-check-row__desc { color: var(--text-tertiary); font-size: var(--fs-sm); }
+.ui-check-row[data-disabled] .ui-check-row__label { cursor: not-allowed; color: var(--text-tertiary); }
+
+.ui-choice-group { display: flex; gap: var(--sp-3); }
+.ui-choice-group--vertical { flex-direction: column; }
+.ui-choice-group--horizontal { flex-wrap: wrap; gap: var(--sp-5); }

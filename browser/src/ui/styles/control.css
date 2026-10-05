@@ -1,0 +1,129 @@
+/* The shared "control box": every text-like control (input, select trigger,
+   textarea, date picker, tag input, number input…) uses this frame so they
+   line up and behave identically. */
+
+.ui-control {
+  --_h: var(--h-md);
+  --_px: var(--sp-2-5);
+  --_fs: var(--fs-sm);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--_h);
+  width: 100%;
+  min-width: 0;
+  padding: 0 var(--_px);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  color: var(--text);
+  font-size: var(--_fs);
+  text-align: left;
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease);
+  cursor: text;
+}
+.ui-control[data-size='sm'] { --_h: var(--h-sm); --_px: var(--sp-2); }
+.ui-control[data-size='lg'] { --_h: var(--h-lg); --_px: var(--sp-3); --_fs: var(--fs-md); }
+
+.ui-control:hover:not([data-disabled]) { border-color: var(--border-strong); }
+.ui-control:focus-within:not([data-disabled]),
+.ui-control[data-focused],
+.ui-control[aria-expanded='true'] {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-xs), 0 0 0 3px var(--ring);
+}
+.ui-control[data-invalid] { border-color: var(--danger); }
+.ui-control[data-invalid]:focus-within,
+.ui-control[data-invalid][aria-expanded='true'] {
+  border-color: var(--danger);
+  box-shadow: var(--shadow-xs), 0 0 0 3px color-mix(in oklab, var(--danger) 25%, transparent);
+}
+.ui-control[data-disabled] {
+  background: var(--bg-subtle);
+  color: var(--text-tertiary);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.ui-control[data-readonly] { background: var(--bg-subtle); }
+
+/* Bare native text field inside a control (fully restyled). */
+.ui-control__input {
+  flex: 1;
+  min-width: 0;
+  height: calc(var(--_h) - 2px);
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: inherit;
+  color: inherit;
+  box-shadow: none !important;
+}
+.ui-control__input::placeholder { color: var(--text-tertiary); opacity: 1; }
+.ui-control__input:disabled { cursor: not-allowed; }
+.ui-control__input::-webkit-search-cancel-button,
+.ui-control__input::-webkit-inner-spin-button,
+.ui-control__input::-webkit-outer-spin-button { -webkit-appearance: none; appearance: none; margin: 0; }
+.ui-control__input[type='number'] { -moz-appearance: textfield; appearance: textfield; }
+
+.ui-control__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+.ui-control__icon svg { width: 16px; height: 16px; }
+
+.ui-control__addon {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  padding: 0 var(--_px);
+  margin: 0 calc(var(--_px) * -1);
+  color: var(--text-tertiary);
+  background: var(--bg-subtle);
+  white-space: nowrap;
+}
+.ui-control__addon:first-child { border-right: 1px solid var(--border); margin-right: 0; border-radius: var(--radius-md) 0 0 var(--radius-md); }
+.ui-control__addon:last-child { border-left: 1px solid var(--border); margin-left: 0; border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+
+.ui-control__placeholder { color: var(--text-tertiary); }
+.ui-control__value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+/* Tiny inline button inside a control (clear, stepper…). */
+.ui-control__btn {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-xs);
+  color: var(--text-tertiary);
+  transition: background-color var(--dur-fast), color var(--dur-fast);
+}
+.ui-control__btn:hover { background: var(--bg-hover); color: var(--text); }
+.ui-control__btn svg { width: 14px; height: 14px; }
+
+.ui-control__chevron {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  transition: transform var(--dur) var(--ease);
+}
+.ui-control[aria-expanded='true'] .ui-control__chevron { transform: rotate(180deg); }
+
+/* Button-based controls (select / date triggers). */
+button.ui-control { cursor: pointer; }
+button.ui-control:disabled { cursor: not-allowed; }

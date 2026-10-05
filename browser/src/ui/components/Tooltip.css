@@ -1,0 +1,24 @@
+.ui-tooltip {
+  z-index: var(--z-tooltip);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  max-width: 260px;
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  background: var(--bg-inverse);
+  color: var(--text-inverse);
+  font-size: var(--fs-xs);
+  font-weight: var(--weight-medium);
+  line-height: 1.4;
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+  animation: ui-pop-in var(--dur-fast) var(--ease);
+}
+.ui-tooltip[data-side='top'] { --_pop-y: 3px; }
+.ui-tooltip[data-side='bottom'] { --_pop-y: -3px; }
+.ui-tooltip__kbd.ui-kbd {
+  background: color-mix(in oklab, var(--text-inverse) 14%, transparent);
+  border-color: color-mix(in oklab, var(--text-inverse) 20%, transparent);
+  color: var(--text-inverse);
+}

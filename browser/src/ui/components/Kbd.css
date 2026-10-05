@@ -1,0 +1,26 @@
+.ui-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--sp-1-5);
+  font-family: var(--ui-font-sans);
+  font-size: var(--fs-xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-xs);
+  line-height: 1;
+  white-space: nowrap;
+}
+.ui-kbd[data-size='sm'] {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--sp-1);
+  font-size: var(--fs-2xs);
+  border-bottom-width: 1px;
+  background: var(--bg-subtle);
+}

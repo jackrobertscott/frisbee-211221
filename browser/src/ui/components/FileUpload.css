@@ -1,0 +1,42 @@
+.ui-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-6) var(--sp-5);
+  text-align: center;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color var(--dur-fast), background-color var(--dur-fast);
+}
+.ui-dropzone:hover { border-color: var(--gray-9); background: var(--bg-app); }
+.ui-dropzone[data-over] { border-color: var(--accent); border-style: solid; background: var(--accent-subtle); }
+.ui-dropzone[aria-disabled] { opacity: 0.55; cursor: not-allowed; }
+.ui-dropzone--compact { flex-direction: row; text-align: left; padding: var(--sp-3) var(--sp-4); }
+.ui-dropzone__text { display: flex; flex-direction: column; gap: var(--sp-1); }
+.ui-dropzone__cta { color: var(--text); font-weight: var(--weight-semibold); }
+.ui-dropzone__hint { font-size: var(--fs-xs); color: var(--text-tertiary); }
+
+.ui-file-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-xs);
+}
+.ui-file-item[data-status='error'] { border-color: var(--danger-border); background: var(--danger-subtle); }
+.ui-file-item__main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.ui-file-item__row { display: flex; align-items: flex-start; gap: var(--sp-2); }
+.ui-file-item__meta { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: var(--fs-sm); }
+.ui-file-item__name { font-weight: var(--weight-medium); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-file-item__size { color: var(--text-tertiary); font-size: var(--fs-xs); }
+.ui-file-item__err { color: var(--danger-text); }
+.ui-file-item__ok { width: 18px; height: 18px; color: var(--success); flex-shrink: 0; }
+.ui-file-item__bad { width: 18px; height: 18px; color: var(--danger); flex-shrink: 0; }
