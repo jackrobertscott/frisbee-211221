@@ -63,14 +63,11 @@ export function TeamName({
   size = 'sm',
   short,
   muted,
-  wrap,
 }: {
   team?: TTeamLike
   size?: 'sm' | 'md'
   short?: boolean
   muted?: boolean
-  /** Let long names wrap instead of truncating (narrow table cells). */
-  wrap?: boolean
 }) {
   if (!team)
     return (
@@ -80,35 +77,12 @@ export function TeamName({
     )
   const label = short ? initials(team.name) : team.name
   return (
-    <span className={cx('fr-team', muted && 'fr-team--muted', wrap && 'fr-team--wrap')} data-size={size}>
+    <span className={cx('fr-team', muted && 'fr-team--muted')} data-size={size}>
       {team.color && (
         <Swatch color={team.color} size={size === 'md' ? 'md' : 'sm'} />
       )}
       <span className="fr-team__name" title={short ? team.name : undefined}>
         {label}
-      </span>
-    </span>
-  )
-}
-
-/**
- * Table cell with a primary line and a quieter second line. `narrowOnly` shows the second line
- * only on phones, where the column holding that value is hidden (`hideBelow: 'sm'`).
- */
-export function CellStack({
-  primary,
-  secondary,
-  narrowOnly,
-}: {
-  primary: ReactNode
-  secondary: ReactNode
-  narrowOnly?: boolean
-}) {
-  return (
-    <span className="fr-cell-stack">
-      <span className="fr-cell-stack__primary">{primary}</span>
-      <span className={cx('fr-cell-stack__secondary', narrowOnly && 'fr-narrow-only')}>
-        {secondary}
       </span>
     </span>
   )

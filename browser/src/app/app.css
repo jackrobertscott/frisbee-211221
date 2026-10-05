@@ -82,9 +82,6 @@ body { background: var(--bg-app); }
 .fr-team[data-size='md'] { font-size: var(--fs-md); font-weight: var(--weight-medium); gap: var(--sp-2-5); }
 .fr-team__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fr-team--muted { color: var(--text-tertiary); }
-.fr-team--wrap { align-items: flex-start; }
-.fr-team--wrap .fr-team__name { white-space: normal; overflow-wrap: anywhere; }
-.fr-team--wrap .ui-swatch { margin-top: 0.3em; }
 .fr-mine .fr-team { font-weight: var(--weight-semibold); }
 
 /* Score ------------------------------------------------------------------- */
@@ -165,7 +162,7 @@ body { background: var(--bg-app); }
 .fr-mvp-check { display: inline-flex; color: var(--text-tertiary); border-radius: var(--radius-xs); }
 .fr-mvp-check[data-done] { color: var(--success-text); }
 .fr-mvp-check svg { width: 16px; height: 16px; }
-.fr-comment { display: block; max-width: 150px; }
+.fr-comment { display: block; max-width: 220px; }
 
 /* Members ----------------------------------------------------------------- */
 .fr-add-member { display: flex; gap: var(--sp-2); }
@@ -285,24 +282,3 @@ body { background: var(--bg-app); }
 @media (max-width: 460px) {
   .fr-header .fr-header__season { max-width: 140px; }
 }
-
-/* Breakpoint utilities: match the ui table's `sm` breakpoint (640px) so cells and columns switch together. */
-.fr-narrow-only { display: none; }
-@media (max-width: 640px) {
-  .fr-wide-only { display: none; }
-  .fr-narrow-only { display: revert; }
-}
-@media print {
-  .fr-wide-only { display: revert; }
-  .fr-narrow-only { display: none; }
-}
-
-/* Stacked table cell ------------------------------------------------------- */
-.fr-cell-stack { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.fr-cell-stack__primary { white-space: nowrap; }
-.fr-cell-stack__secondary { font-size: var(--fs-xs); color: var(--text-tertiary); }
-.fr-cell-stack__secondary.fr-narrow-only { display: none; }
-@media (max-width: 640px) {
-  .fr-cell-stack__secondary.fr-narrow-only { display: flex; flex-direction: column; gap: 2px; }
-}
-

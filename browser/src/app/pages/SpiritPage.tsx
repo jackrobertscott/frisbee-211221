@@ -173,7 +173,6 @@ export function SpiritPage() {
               header: 'Avg diff',
               align: 'right',
               sortable: true,
-              hideBelow: 'sm',
               render: (r) => <Diff value={r.averageDifference} />,
             },
             {

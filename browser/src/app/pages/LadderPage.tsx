@@ -8,7 +8,6 @@ import {
   CardBody,
   CardHeader,
   DataTable,
-  cx,
   EmptyState,
   Stack,
   Text,
@@ -22,13 +21,13 @@ import {$FeatureCompetitionLoad} from '../../endpoints/Feature'
 import {TTallyChart, tallyChart} from '../../utils/tallyChart'
 import {FinalResultsDialog} from '../ladder/FinalResultsDialog'
 import {TallyDialog} from '../ladder/TallyDialog'
-import {FixtureGames} from '../fixtures/FixtureGames'
 import '../ladder/ladder.css'
 import {MissingReportsButton} from '../report/MissingReports'
 import {FixtureRow, Loading, TeamName, fmtDate} from '../shared'
 import {useShell} from '../shell'
 
 type TTally = Record<string, TTallyChart | undefined>
+type TGame = TFixture['games'][number]
 
 const formatRatioPercent = (ratio: number | undefined) => {
   if (ratio === undefined || !Number.isFinite(ratio)) return undefined
@@ -239,7 +238,7 @@ export function LadderPage() {
                 )
               }
             >
-              <FixtureGames fixture={f} teams={teams} />
+              <ResultsTable fixture={f} teamById={teamById} />
             </FixtureRow>
           ))}
         </Stack>
@@ -298,10 +297,6 @@ export function LadderPage() {
   )
 }
 
-/** Fixed stat widths keep every division's ladder columns aligned. */
-const STAT_WIDTH = 64
-const AVG_WIDTH = 84
-
 const Num = ({value}: {value: number | string | undefined}) =>
   value === undefined ? (
     <span className="fr-ladder-dash">–</span>
@@ -339,55 +334,117 @@ function LadderCard({
         rowKey={(t) => t.id}
         rows={rows}
         defaultSort={null}
-        pinFirstColumn
         columns={[
+          {
+            key: 'rank',
+            header: '#',
+            width: 40,
+            render: (_t, i) => (
+              <Text as="span" size="sm" tone="tertiary">
+                {i + 1}
+              </Text>
+            ),
+          },
           {
             key: 'name',
             header: 'Team',
-            render: (t, i) => (
-              <span className={cx('fr-ladder-team', t.id === myTeamId && 'fr-mine')}>
-                <span className="fr-ladder-rank">{i + 1}</span>
+            render: (t) => (
+              <span
+                className={
+                  t.id === myTeamId ? 'fr-mine fr-ladder-team' : 'fr-ladder-team'
+                }
+              >
                 <TeamName team={t} />
               </span>
             ),
           },
+          {key: 'games', header: 'Games', align: 'right', render: n((t) => t.games)},
           {
             key: 'points',
             header: 'Points',
-            shortHeader: 'Pts',
             align: 'right',
-            width: STAT_WIDTH,
             render: (team) => (
               <b className="fr-ladder-pts">
                 <Num value={tally[team.id]?.points} />
               </b>
             ),
           },
-          {key: 'games', header: 'Games', shortHeader: 'P', align: 'right', width: STAT_WIDTH, render: n((t) => t.games)},
-          {key: 'wins', header: 'Wins', shortHeader: 'W', align: 'right', width: STAT_WIDTH, render: n((t) => t.wins)},
-          {key: 'loses', header: 'Losses', shortHeader: 'L', align: 'right', width: STAT_WIDTH, render: n((t) => t.loses)},
-          {key: 'draws', header: 'Draws', shortHeader: 'D', align: 'right', width: STAT_WIDTH, render: n((t) => t.draws)},
+          {key: 'wins', header: 'Wins', align: 'right', render: n((t) => t.wins)},
+          {key: 'loses', header: 'Losses', align: 'right', render: n((t) => t.loses)},
+          {key: 'draws', header: 'Draws', align: 'right', render: n((t) => t.draws)},
           {
             key: 'ratio',
             header: 'Ratio',
             align: 'right',
-            width: STAT_WIDTH,
             render: (team) => (
               <Num value={formatRatioPercent(tally[team.id]?.ratio)} />
             ),
           },
-          {key: 'for', header: 'For', align: 'right', width: STAT_WIDTH, render: n((t) => t.for)},
-          {key: 'against', header: 'Agst', align: 'right', width: STAT_WIDTH, render: n((t) => t.against)},
-          {key: 'aveFor', header: 'Avg for', align: 'right', width: AVG_WIDTH, render: n((t) => t.aveFor)},
+          {key: 'for', header: 'For', align: 'right', render: n((t) => t.for)},
+          {key: 'against', header: 'Agst', align: 'right', render: n((t) => t.against)},
+          {key: 'aveFor', header: 'Avg for', align: 'right', render: n((t) => t.aveFor)},
           {
             key: 'aveAgainst',
             header: 'Avg agst',
             align: 'right',
-            width: AVG_WIDTH,
             render: n((t) => t.aveAgainst),
           },
         ]}
       />
     </Card>
+  )
+}
+
+function ResultsTable({
+  fixture,
+  teamById,
+}: {
+  fixture: TFixture
+  teamById: (id: string) => TTeam | undefined
+}) {
+  if (!fixture.games.length)
+    return (
+      <Text size="sm" tone="tertiary" className="fr-ladder-games-empty">
+        No games in this round.
+      </Text>
+    )
+  const team = (id: string) => {
+    const t = teamById(id)
+    return (
+      <>
+        <span className="fr-ladder-full">
+          <TeamName team={t} />
+        </span>
+        <span className="fr-ladder-short">
+          <TeamName team={t} short />
+        </span>
+      </>
+    )
+  }
+  return (
+    <DataTable<TGame>
+      bordered={false}
+      density="compact"
+      rowKey={(g) => g.id}
+      rows={fixture.games}
+      columns={[
+        {key: 'team1', header: 'Team 1', render: (g) => team(g.team1Id)},
+        {
+          key: 'team1Score',
+          header: 'Score',
+          align: 'right',
+          width: 72,
+          render: (g) => <Num value={g.team1Score} />,
+        },
+        {key: 'team2', header: 'Team 2', render: (g) => team(g.team2Id)},
+        {
+          key: 'team2Score',
+          header: 'Score',
+          align: 'right',
+          width: 72,
+          render: (g) => <Num value={g.team2Score} />,
+        },
+      ]}
+    />
   )
 }

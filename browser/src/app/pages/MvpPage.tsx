@@ -9,7 +9,7 @@ import {useEndpoint} from '../../core/useEndpoint'
 import {useLoad} from '../../core/useLoad'
 import {$FeatureDashboardMvpLoad} from '../../endpoints/Feature'
 import {go} from '../../utils/go'
-import {CellStack, Loading} from '../shared'
+import {Loading} from '../shared'
 import {useShell} from '../shell'
 
 /** Admin MVP tallies, one table per gender slot (server-ordered by points). */
@@ -81,36 +81,27 @@ function MvpCard({title, rows}: {title: string; rows: TFeatureMvpRow[]}) {
             key: 'userName',
             header: 'Player',
             render: (r) => (
-              <CellStack
-                primary={
-                  <Text as="span" size="sm" weight="medium">
-                    {r.userName}
-                  </Text>
-                }
-                secondary={r.teamName ?? '—'}
-                narrowOnly
-              />
+              <Text as="span" size="sm" weight="medium">
+                {r.userName}
+              </Text>
             ),
           },
           {
             key: 'division',
             header: 'Div',
             align: 'right',
-            width: 56,
             hideBelow: 'sm',
             render: (r) => r.division ?? '—',
           },
           {
             key: 'teamName',
             header: 'Team',
-            hideBelow: 'sm',
             render: (r) => <span className="fr-nowrap">{r.teamName ?? '—'}</span>,
           },
           {
             key: 'votes',
             header: 'Points',
             align: 'right',
-            width: 72,
             render: (r) => <b className="fr-num">{r.votes}</b>,
           },
         ]}

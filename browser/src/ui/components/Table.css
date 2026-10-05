@@ -65,20 +65,7 @@
 .ui-table__sort svg { width: 13px; height: 13px; opacity: 0.6; }
 .ui-table__sort[data-active] svg { opacity: 1; }
 
-/* Pinned first column: stays in view while the rest scrolls; the divider appears once content slides under it. */
-.ui-table[data-pin-first] tr > :first-child { position: sticky; left: 0; z-index: 1; }
-:where(.ui-table[data-pin-first]) td:first-child { background: var(--bg-surface); }
-.ui-table[data-pin-first][data-sticky] thead tr > :first-child { z-index: 2; }
-.ui-table[data-pin-first] tr > :first-child { transition: box-shadow var(--dur-fast); }
-.ui-table[data-scrolled-x] tr > :first-child { box-shadow: inset -1px 0 0 var(--border), 6px 0 8px -6px color-mix(in oklab, var(--gray-12) 18%, transparent); }
-
-.ui-table__header-short { display: none; text-decoration: none; }
-
-@media (max-width: 640px) {
-  .ui-table [data-hide='sm'] { display: none; }
-  .ui-table__header-full { display: none; }
-  .ui-table__header-short { display: inline; }
-}
+@media (max-width: 640px) { .ui-table [data-hide='sm'] { display: none; } }
 @media (max-width: 860px) { .ui-table [data-hide='md'] { display: none; } }
 @media (max-width: 1100px) { .ui-table [data-hide='lg'] { display: none; } }
 

@@ -165,8 +165,8 @@ export function TeamAdminDialog({
                   />
                   <DescriptionList
                     items={[
-                      {term: 'Created', detail: <span className="fr-nowrap">{fmtDateTime(team.createdOn)}</span>},
-                      {term: 'Last updated', detail: <span className="fr-nowrap">{fmtDateTime(team.updatedOn)}</span>},
+                      {term: 'Created', detail: fmtDateTime(team.createdOn)},
+                      {term: 'Last updated', detail: fmtDateTime(team.updatedOn)},
                     ]}
                   />
                   <button type="submit" hidden />

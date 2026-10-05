@@ -14,9 +14,6 @@
 - Do record any preference the user states for this codebase as a rule in this file.
 - Do build browser UI only from the `@ui` component library (`browser/src/ui`) and `lucide-react` icons.
 - Do put browser screens in `browser/src/app` and non-visual browser plumbing (auth, router, endpoint hooks) in `browser/src/core`.
-- Do design every screen for phones first (the app is used mostly on mobile) and check it at both phone and desktop widths.
-- Do keep table cells cleanly arranged with appropriate widths; on phones hide secondary columns, stack secondary values, pin the key column, or switch to a list rather than squeezing or clipping cells.
-- Do solve repeated UI needs with reusable components and shared styles (in `@ui` via `uilib-261005` when generic, otherwise in `browser/src/app/shared.tsx` / `app.css`) instead of patching each instance.
 
 ## Don't
 
