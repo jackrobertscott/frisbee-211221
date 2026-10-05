@@ -66,7 +66,7 @@ export function BarChart({ data, series, height = 240, xLabel, yLabel, hideLegen
         </div>
       )}
       <div className="ui-chart__body">
-        {yLabel && <div className="ui-chart__ylabel">{yLabel}</div>}
+        {yLabel && <div className="ui-chart__ylabel" style={{ height }}>{yLabel}</div>}
         <div className="ui-chart__yaxis" style={{ height }} aria-hidden>
           {ticks.map((t) => (
             <span key={t} style={{ bottom: `${(t / top) * 100}%` }}>
@@ -76,7 +76,7 @@ export function BarChart({ data, series, height = 240, xLabel, yLabel, hideLegen
         </div>
         <div className="ui-chart__main">
           <div className="ui-chart__plot" style={{ height }} role="img" aria-label={aria['aria-label']}>
-            {ticks.map((t) => (
+            {ticks.filter((t) => t > 0).map((t) => (
               <span key={t} className="ui-chart__grid" style={{ bottom: `${(t / top) * 100}%` }} aria-hidden />
             ))}
             {data.map((d) => (
