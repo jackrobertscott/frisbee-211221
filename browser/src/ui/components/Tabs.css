@@ -79,7 +79,7 @@
 .ui-tablist[data-variant='segmented'] .ui-tablist__indicator {
   top: 2px;
   bottom: 2px;
-  background: var(--bg-surface);
+  background: var(--bg-raised);
   border-radius: calc(var(--radius-md) - 2px);
   box-shadow: var(--shadow-sm), 0 0 0 1px var(--border-subtle);
 }

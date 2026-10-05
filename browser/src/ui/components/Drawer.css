@@ -7,7 +7,7 @@
   position: fixed;
   display: flex;
   flex-direction: column;
-  background: var(--bg-overlay);
+  background: var(--bg-surface);
   box-shadow: var(--shadow-lg);
   transition: transform 200ms var(--ease);
 }

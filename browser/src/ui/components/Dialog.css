@@ -29,7 +29,7 @@
   width: 100%;
   max-width: var(--_w);
   max-height: calc(100dvh - var(--sp-8));
-  background: var(--bg-overlay);
+  background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);

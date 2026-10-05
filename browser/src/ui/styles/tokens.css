@@ -66,6 +66,7 @@
   --bg-overlay: var(--gray-0);  /* menus, popovers, dialogs                 */
   --bg-subtle: var(--gray-2);   /* table headers, wells                     */
   --bg-muted: var(--gray-3);    /* chips, tracks, neutral badges            */
+  --bg-raised: var(--gray-0);   /* selected segment, thumb on a well        */
   --bg-hover: color-mix(in oklab, var(--gray-12) 5%, transparent);
   --bg-active: color-mix(in oklab, var(--gray-12) 8%, transparent);
   --bg-selected: color-mix(in oklab, var(--gray-12) 6.5%, transparent);
@@ -200,13 +201,16 @@
 /* -- Dark mode: only the derived lightness ramps change --------------------- */
 [data-theme='dark'] {
   color-scheme: dark;
-  --_l0: 0.215; --_l1: 0.185; --_l2: 0.165; --_l3: 0.25;  --_l4: 0.275;
-  --_l5: 0.29;  --_l6: 0.315; --_l7: 0.365; --_l8: 0.44;  --_l9: 0.6;
+  --_l0: 0.215; --_l1: 0.185; --_l2: 0.165; --_l3: 0.265; --_l4: 0.29;
+  --_l5: 0.305; --_l6: 0.34;  --_l7: 0.4;   --_l8: 0.48;  --_l9: 0.6;
   --_l10: 0.67; --_l11: 0.76; --_l12: 0.96;
   --_accent-l: 0.66;
   --_status-l: 0.66;
   --_shadow-a: 4;
   --bg-overlay: var(--gray-3);
+  --bg-subtle: color-mix(in oklab, var(--gray-0), var(--gray-1));
+  --bg-raised: var(--gray-4);
+  --bg-backdrop: color-mix(in oklab, black 55%, transparent);
   --warning-text: color-mix(in oklab, var(--warning) 85%, var(--text));
   --shadow-inset: inset 0 1px 0 color-mix(in oklab, white 5%, transparent);
 }
