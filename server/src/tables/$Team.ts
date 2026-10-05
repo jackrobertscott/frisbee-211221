@@ -1,5 +1,5 @@
 import {ioTeam} from '@shared/schemas/ioTeam'
-import {db} from '../utils/db'
+import {db} from '../db/table'
 import {random} from '../utils/random'
 
 export const $Team = db.table({

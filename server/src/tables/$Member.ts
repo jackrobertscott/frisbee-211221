@@ -1,5 +1,5 @@
 import {ioMember} from '@shared/schemas/ioMember'
-import {db} from '../utils/db'
+import {db} from '../db/table'
 import {random} from '../utils/random'
 
 export const $Member = db.table({

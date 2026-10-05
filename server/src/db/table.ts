@@ -1,8 +1,7 @@
 import {notFoundError} from '@shared/errors'
 import {CollationOptions, Document, Filter, FindOptions, WithId} from 'mongodb'
-import {TypeIoAll, TypeIoValue} from '@shared/torva'
+import {Simplify, TypeIoAll, TypeIoValue} from '@shared/torva'
 import mongo from './mongo'
-import {Simplify} from './types'
 
 export interface TQueryOptions<T> {
   sort?: {[key in keyof T]?: 1 | -1}

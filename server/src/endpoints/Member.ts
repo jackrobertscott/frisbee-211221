@@ -13,11 +13,11 @@ import {RequestHandler} from 'micro'
 import {$Member} from '../tables/$Member'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
-import {createEndpoint} from '../utils/endpoints'
-import {requireAccess} from './requireAccess'
-import {requireTeam} from './requireTeam'
-import {userEmail} from './userEmail'
-import {selectPublicUserFields} from './userPublic'
+import {createEndpoint} from '../http/createEndpoint'
+import {requireAccess} from '../auth/requireAccess'
+import {requireTeam} from '../auth/requireTeam'
+import {userEmail} from '../services/userEmail'
+import {selectPublicUserFields} from '../services/userFields'
 
 export default new Map<string, RequestHandler>([
   createEndpoint({

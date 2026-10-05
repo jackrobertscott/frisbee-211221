@@ -2,7 +2,7 @@ import {unauthorizedError} from '@shared/errors'
 import {IncomingMessage} from 'http'
 import {$Session} from '../tables/$Session'
 import {$User} from '../tables/$User'
-import gatekeeper from '../utils/gatekeeper'
+import gatekeeper from './sessions'
 
 export const requireUser = async (req: IncomingMessage) => {
   const auth = await gatekeeper.digestRequest(req)

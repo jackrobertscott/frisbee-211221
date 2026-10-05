@@ -11,9 +11,9 @@ import {$Member} from '../tables/$Member'
 import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
-import {createEndpoint} from '../utils/endpoints'
-import {requireAccess} from './requireAccess'
-import {requireTeam} from './requireTeam'
+import {createEndpoint} from '../http/createEndpoint'
+import {requireAccess} from '../auth/requireAccess'
+import {requireTeam} from '../auth/requireTeam'
 
 export default new Map<string, RequestHandler>([
   createEndpoint({

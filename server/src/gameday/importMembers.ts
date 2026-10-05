@@ -5,7 +5,7 @@ import {$GamedayImportRun} from '../tables/$GamedayImportRun'
 import {
   importMemberObjects,
   TMemberImportSummary,
-} from '../services/importMemberObjects'
+} from '../services/memberImport'
 import {decryptGamedayPassword} from './credentials'
 import {runGamedayExportProcess} from './runExportProcess'
 import type {TGamedayExportMember} from './types'

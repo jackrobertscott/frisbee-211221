@@ -1,5 +1,5 @@
 import {ioGamedayImportConfig} from '@shared/schemas/ioGamedayImport'
-import {db} from '../utils/db'
+import {db} from '../db/table'
 import {random} from '../utils/random'
 
 export const $GamedayImportConfig = db.table({

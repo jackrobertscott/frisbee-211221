@@ -1,33 +1,13 @@
-import {$AuthAttemptLimit} from '../tables/$AuthAttemptLimit'
-import {$Fixture} from '../tables/$Fixture'
-import {$GamedayImportConfig} from '../tables/$GamedayImportConfig'
-import {$GamedayImportRun} from '../tables/$GamedayImportRun'
-import {$Member} from '../tables/$Member'
-import {$Report} from '../tables/$Report'
-import {$Season} from '../tables/$Season'
-import {$Session} from '../tables/$Session'
-import {$Team} from '../tables/$Team'
-import {$User} from '../tables/$User'
+import {allTables} from '../tables'
 import mongo from './mongo'
-import {TCompiledTableIndex} from './db'
+import {TCompiledTableIndex} from './table'
 
 type TIndexedTable = {
   key(): string
   indexes(): TCompiledTableIndex[]
 }
 
-const tables: TIndexedTable[] = [
-  $AuthAttemptLimit,
-  $Fixture,
-  $GamedayImportConfig,
-  $GamedayImportRun,
-  $Member,
-  $Report,
-  $Season,
-  $Session,
-  $Team,
-  $User,
-]
+const tables: TIndexedTable[] = allTables
 
 export async function runStartupIndexSync() {
   console.log('Syncing Mongo indexes...')

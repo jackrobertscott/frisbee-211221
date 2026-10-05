@@ -18,11 +18,11 @@ import {$Report} from '../tables/$Report'
 import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
-import {createEndpoint} from '../utils/endpoints'
-import hash from '../utils/hash'
-import mongo from '../utils/mongo'
+import {createEndpoint} from '../http/createEndpoint'
+import hash from '../auth/hash'
+import mongo from '../db/mongo'
 import {regex} from '../utils/regex'
-import {requireAccess} from './requireAccess'
+import {requireAccess} from '../auth/requireAccess'
 
 export default new Map<string, RequestHandler>([
   createEndpoint({

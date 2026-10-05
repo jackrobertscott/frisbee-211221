@@ -3,7 +3,7 @@ import http from 'http'
 import {serve as microServe} from 'micro'
 import {afterAll, beforeAll, vi} from 'vitest'
 import {createRequestHandler} from '../src/http/requestHandler'
-import mongo from '../src/utils/mongo'
+import mongo from '../src/db/mongo'
 
 export const CLIENT_ORIGIN = 'http://localhost:3000'
 

@@ -1,5 +1,5 @@
 import {ioFixture} from '@shared/schemas/ioFixture'
-import {db} from '../utils/db'
+import {db} from '../db/table'
 import {random} from '../utils/random'
 
 export const $Fixture = db.table({

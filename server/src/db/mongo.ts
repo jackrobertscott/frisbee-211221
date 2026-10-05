@@ -1,5 +1,5 @@
 import {AsyncLocalStorage} from 'node:async_hooks'
-import {ClientSession, MongoClient, ObjectId} from 'mongodb'
+import {ClientSession, MongoClient} from 'mongodb'
 import config from '../config'
 
 let cachedClient: Promise<MongoClient> | undefined
@@ -58,11 +58,5 @@ export default {
     } finally {
       await session.endSession()
     }
-  },
-
-  ids: {
-    equal(first?: ObjectId, second?: ObjectId) {
-      return Boolean(first && second && first.equals(second))
-    },
   },
 }

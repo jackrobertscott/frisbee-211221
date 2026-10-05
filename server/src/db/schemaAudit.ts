@@ -1,12 +1,5 @@
 import {TypeIoAll} from '@shared/torva'
-import {$AuthAttemptLimit} from '../tables/$AuthAttemptLimit'
-import {$Fixture} from '../tables/$Fixture'
-import {$Member} from '../tables/$Member'
-import {$Report} from '../tables/$Report'
-import {$Season} from '../tables/$Season'
-import {$Session} from '../tables/$Session'
-import {$Team} from '../tables/$Team'
-import {$User} from '../tables/$User'
+import {allTables} from '../tables'
 
 type TSchemaAuditTable = {
   key(): string
@@ -14,16 +7,7 @@ type TSchemaAuditTable = {
   scanStored(callback: (value: unknown) => Promise<void> | void): Promise<number>
 }
 
-const tables: TSchemaAuditTable[] = [
-  $AuthAttemptLimit,
-  $Fixture,
-  $Member,
-  $Report,
-  $Season,
-  $Session,
-  $Team,
-  $User,
-]
+const tables: TSchemaAuditTable[] = allTables
 
 const ROOT_FAILURE = '(root)'
 

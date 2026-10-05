@@ -2,7 +2,7 @@ import {badRequestError} from '@shared/errors'
 import {createHmac, timingSafeEqual} from 'crypto'
 import bcrypt from 'bcryptjs'
 import config from '../config'
-import {random} from './random'
+import {random} from '../utils/random'
 
 export const PASSWORD_MIN_LENGTH = 5
 // bcrypt ignores input past 72 bytes; cap length so huge inputs stay cheap
@@ -50,9 +50,5 @@ export default {
     const left = Buffer.from(this.digest(value), 'utf8')
     const right = Buffer.from(expected, 'utf8')
     return left.length === right.length && timingSafeEqual(left, right)
-  },
-
-  randomString(length?: number) {
-    return random.randomString(length)
   },
 }

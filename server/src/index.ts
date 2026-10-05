@@ -4,11 +4,11 @@ import {serve as microServe} from 'micro'
 import {
   attachWorkerClusterLifecycle,
   startPrimaryCluster,
-} from './clusterAutoscaler'
+} from './cluster'
 import config from './config'
 import {startGamedayImportScheduler} from './gameday/scheduler'
 import {createRequestHandler} from './http/requestHandler'
-import {runStartupTasks} from './utils/startupTasks'
+import {runStartupTasks} from './startup'
 
 void bootstrap().catch((error) => {
   console.error('Failed to start server.', error)

@@ -11,9 +11,9 @@ import {RequestHandler} from 'micro'
 import {$Fixture} from '../tables/$Fixture'
 import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
-import {createEndpoint} from '../utils/endpoints'
+import {createEndpoint} from '../http/createEndpoint'
 import {random} from '../utils/random'
-import {requireAccess} from './requireAccess'
+import {requireAccess} from '../auth/requireAccess'
 
 export default new Map<string, RequestHandler>([
   createEndpoint({

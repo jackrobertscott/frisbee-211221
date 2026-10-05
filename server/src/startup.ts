@@ -1,5 +1,5 @@
-import {runStartupIndexSync} from './startupIndexes'
-import config from '../config'
+import {runStartupIndexSync} from './db/syncIndexes'
+import config from './config'
 
 type TStartupTask = {
   name: string

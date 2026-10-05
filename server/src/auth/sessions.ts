@@ -5,7 +5,7 @@ import {io, TypeIoValue} from '@shared/torva'
 import {$Session} from '../tables/$Session'
 import config from '../config'
 import jwt from './jwt'
-import {random} from './random'
+import {random} from '../utils/random'
 
 const MAX_TOKEN_LENGTH = 4096
 

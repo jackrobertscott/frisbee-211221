@@ -1,10 +1,10 @@
 import {internalError, notFoundError} from '@shared/errors'
 import {RequestHandler} from 'micro'
 import endpoints from '../endpoints'
-import capture from '../utils/capture'
-import cors from '../utils/cors'
-import intrusion from '../utils/intrusion'
-import prerequest from '../utils/prerequest'
+import capture from './capture'
+import cors from './cors'
+import intrusion from './intrusion'
+import prerequest from './prerequest'
 
 /** The full request pipeline: CORS, error capture, request screening, then the endpoint. */
 export const createRequestHandler = (): RequestHandler => {

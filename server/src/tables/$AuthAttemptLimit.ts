@@ -1,5 +1,5 @@
 import {ioAuthAttemptLimit} from '@shared/schemas/ioAuthAttemptLimit'
-import {db} from '../utils/db'
+import {db} from '../db/table'
 
 export const $AuthAttemptLimit = db.table({
   key: 'authAttemptLimit',

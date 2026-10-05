@@ -1,6 +1,6 @@
 import {badRequestError, conflictError} from '@shared/errors'
 import {TGamedayImportConfig} from '@shared/schemas/ioGamedayImport'
-import {random} from '@server/utils/random'
+import {random} from '../utils/random'
 import {
   PortDeleteAllMockDataDef,
   PortExportDef,
@@ -20,18 +20,18 @@ import {$Report} from '../tables/$Report'
 import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
-import {blob} from '../utils/blob'
+import {blob} from '../http/uploads'
 import {parseCSVString} from '../utils/csv'
-import {createEndpoint} from '../utils/endpoints'
-import mongo from '../utils/mongo'
+import {createEndpoint} from '../http/createEndpoint'
+import mongo from '../db/mongo'
 import {
   encryptGamedayPassword,
   toSafeGamedayImportConfig,
 } from '../gameday/credentials'
 import {runGamedayImportWithHistory} from '../gameday/importMembers'
-import {importMemberObjects} from '../services/importMemberObjects'
-import {createExportArchive} from './portExport'
-import {requireAccess} from './requireAccess'
+import {importMemberObjects} from '../services/memberImport'
+import {createExportArchive} from '../services/exportArchive'
+import {requireAccess} from '../auth/requireAccess'
 
 export default new Map<string, RequestHandler>([
   createEndpoint({

@@ -1,5 +1,5 @@
 import {ioUser} from '@shared/schemas/ioUser'
-import {db} from '../utils/db'
+import {db} from '../db/table'
 import {random} from '../utils/random'
 
 const EMAIL_COLLATION = {locale: 'en', strength: 2 as const}

@@ -4,7 +4,7 @@ import path from 'path'
 import createBusboy from 'busboy'
 import fs from 'fs-extra'
 import {IncomingMessage} from 'http'
-import {random} from './random'
+import {random} from '../utils/random'
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 const MAX_UPLOAD_FILES = 1

@@ -1,6 +1,6 @@
 import {ioSeason} from '@shared/schemas/ioSeason'
 import {seasonNameCollation} from '@shared/utils/seasonName'
-import {db} from '../utils/db'
+import {db} from '../db/table'
 import {random} from '../utils/random'
 
 export const $Season = db.table({
