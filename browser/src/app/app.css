@@ -246,6 +246,7 @@ body { background: var(--bg-app); }
 }
 @media (max-width: 460px) {
   .fr-header__team { display: none; }
+  .fr-hide-xs { display: none; }
   .fr-spirit-row { grid-template-columns: 1fr; gap: var(--sp-1); }
   .fr-row__toggle { padding: 0 var(--sp-3); gap: var(--sp-2); }
   .fr-tally__game { grid-template-columns: minmax(0, 1fr) 64px 64px; }
@@ -274,7 +275,7 @@ body { background: var(--bg-app); }
 .fr-brand img { pointer-events: none; -webkit-user-drag: none; }
 .fr-nav__shop { align-self: center; margin-bottom: var(--sp-2); font-size: var(--fs-sm); white-space: nowrap; }
 .fr-nav__report-sm { margin-left: auto; }
-.fr-header .fr-header__season { width: auto; max-width: 220px; min-width: 0; }
+.fr-header .fr-header__season { width: auto; max-width: 220px; min-width: 0; flex-shrink: 1; }
 .fr-header__season-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fr-auth__brand { color: inherit; text-decoration: none; align-self: center; border-radius: var(--radius-md); }
 .fr-auth__brand:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }

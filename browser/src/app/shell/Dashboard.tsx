@@ -257,9 +257,10 @@ function Header() {
               variant="soft"
               size="sm"
               leading={<Users />}
+              aria-label="Join a team"
               onClick={() => shell.open({kind: 'join'})}
             >
-              Join a team
+              Join<span className="fr-hide-xs"> a team</span>
             </Button>
           ))}
 
