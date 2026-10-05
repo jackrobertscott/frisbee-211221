@@ -44,7 +44,27 @@
   .fr-fx-swap__slot { grid-column: 1; }
   .fr-fx-swap__row > button { grid-column: 2; grid-row: 1 / 3; }
 }
+@media (max-width: 560px) {
+  /* Each team gets a full-width line so names are readable; time, place and actions share the last. */
+  .fr-fx-games__row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 64px; }
+  .fr-fx-games__row > :nth-child(1) { grid-column: 1 / 3; grid-row: 1; }
+  .fr-fx-games__row > :nth-child(2) { grid-column: 3; grid-row: 1 / 3; justify-self: center; }
+  .fr-fx-games__row > :nth-child(3) { grid-column: 1 / 3; grid-row: 2; }
+  .fr-fx-games__row > :nth-child(4) { grid-column: 1; grid-row: 3; }
+  .fr-fx-games__row > :nth-child(5) { grid-column: 2; grid-row: 3; }
+  .fr-fx-games__row > :nth-child(6) { grid-column: 3; grid-row: 3; flex-direction: row; justify-content: center; }
+}
 @media (max-width: 460px) {
   .fr-fx-edit-label { display: none; }
   .fr-fx-title .ui-badge[data-next] { display: none; }
 }
+
+/* Stacked matchups (FixtureGames on phones). */
+.fr-matchups { list-style: none; margin: 0; padding: 0; }
+.fr-matchups--bordered { border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.fr-matchup { display: flex; flex-direction: column; gap: var(--sp-1-5); padding: var(--sp-3) var(--sp-4); border-top: 1px solid var(--border-subtle); }
+.fr-matchup:first-child { border-top: 0; }
+.fr-matchup__side { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-width: 0; }
+.fr-matchup__score { min-width: 2ch; text-align: right; font-size: var(--fs-sm); font-weight: var(--weight-regular); color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.fr-matchup__score[data-win] { font-weight: var(--weight-semibold); color: var(--text); }
+.fr-matchup[data-size='md'] .fr-matchup__score { font-size: var(--fs-md); }

@@ -28,3 +28,4 @@
 .fr-users-merge__arrow { display: flex; justify-content: center; color: var(--text-tertiary); }
 .fr-users-merge__arrow svg { width: 18px; height: 18px; }
 .fr-users-merge__list { max-height: 360px; overflow-y: auto; }
+.fr-users-id { overflow-wrap: anywhere; }

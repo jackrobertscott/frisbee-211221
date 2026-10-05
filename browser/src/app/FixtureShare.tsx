@@ -1,14 +1,12 @@
-import {TFixture} from '@shared/schemas/ioFixture'
-import {Button, DataTable, EmptyState, Heading, Stack, Text, toast} from '@ui'
+import {Button, EmptyState, Heading, Stack, Text, toast} from '@ui'
 import {ArrowLeft, CalendarX, Link2, Printer} from 'lucide-react'
 import {config} from '../config'
 import {useLoad} from '../core/useLoad'
 import {$FeatureFixtureViewLoad} from '../endpoints/Feature'
 import {go} from '../utils/go'
+import {FixtureGames} from './fixtures/FixtureGames'
 import {Logo} from './Logo'
-import {Loading, TeamName, fmtDate} from './shared'
-
-type TGame = TFixture['games'][number]
+import {Loading, fmtDate} from './shared'
 
 /** Focused, frame-less fixture view for sharing or display at the fields (`/?fixtureId=…`). */
 export function FixtureShare({fixtureId}: {fixtureId: string}) {
@@ -17,11 +15,6 @@ export function FixtureShare({fixtureId}: {fixtureId: string}) {
   const view = useLoad(() => $FeatureFixtureViewLoad.fetch({fixtureId}), [fixtureId])
   const fixture = view.data?.fixture
   const teams = view.data?.teams ?? []
-  const teamById = (id: string) => teams.find((t) => t.id === id)
-  const games = [...(fixture?.games ?? [])].sort((a, b) => {
-    if (a.time !== b.time) return a.time.localeCompare(b.time)
-    return a.place.localeCompare(b.place)
-  })
   const copyLink = () => {
     navigator.clipboard
       .writeText(window.location.href)
@@ -84,35 +77,7 @@ export function FixtureShare({fixtureId}: {fixtureId: string}) {
               {fmtDate(fixture.date)}
             </Text>
           </Stack>
-          <DataTable<TGame>
-            rowKey={(g) => g.id}
-            rows={games}
-            columns={[
-              {key: 'time', header: 'Time', width: 90},
-              {key: 'place', header: 'Place', width: 90},
-              {
-                key: 'team1',
-                header: 'Team 1',
-                render: (g) => <TeamName team={teamById(g.team1Id)} size="md" />,
-              },
-              {
-                key: 'vs',
-                header: '',
-                width: 40,
-                align: 'center',
-                render: () => (
-                  <Text as="span" size="xs" tone="tertiary">
-                    vs
-                  </Text>
-                ),
-              },
-              {
-                key: 'team2',
-                header: 'Team 2',
-                render: (g) => <TeamName team={teamById(g.team2Id)} size="md" />,
-              },
-            ]}
-          />
+          <FixtureGames fixture={fixture} teams={teams} size="md" bordered />
         </div>
       )}
     </div>

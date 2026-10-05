@@ -204,7 +204,7 @@ export function UserDialog({
                   {
                     term: 'Id',
                     detail: (
-                      <Text as="span" size="sm" mono>
+                      <Text as="span" size="sm" mono className="fr-users-id">
                         {user.id}
                       </Text>
                     ),

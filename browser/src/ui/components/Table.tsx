@@ -8,6 +8,8 @@ import './Table.css';
 export interface Column<T> {
   key: string;
   header: ReactNode;
+  /** Compact header used below the `sm` breakpoint, e.g. an abbreviation ("Pts" for "Points"). */
+  shortHeader?: ReactNode;
   /** Cell renderer; defaults to row[key]. */
   render?: (row: T, index: number) => ReactNode;
   sortable?: boolean;
@@ -43,6 +45,8 @@ export interface DataTableProps<T> {
   empty?: ReactNode;
   density?: 'compact' | 'default' | 'comfortable';
   stickyHeader?: boolean;
+  /** Keep the first column in view while the table scrolls horizontally (e.g. a name column on phones). */
+  pinFirstColumn?: boolean;
   /** Rendered in a floating bar while rows are selected. */
   bulkActions?: (keys: string[], clear: () => void) => ReactNode;
   /** Wrap in a bordered card (default true). */
@@ -73,6 +77,7 @@ export function DataTable<T>({
   empty,
   density = 'default',
   stickyHeader,
+  pinFirstColumn,
   bulkActions,
   bordered = true,
   className,
@@ -81,6 +86,7 @@ export function DataTable<T>({
   const [sel, setSel] = useControllable(selected, defaultSelected, onSelectedChange);
   const [sort, setSort] = useControllable<SortState | null>(sortProp, defaultSort, onSortChange);
   const [lastClicked, setLastClicked] = useState<number | null>(null);
+  const [scrolledX, setScrolledX] = useState(false);
 
   const sorted = useMemo(() => {
     if (!sort || !sortRows) return rows;
@@ -122,8 +128,15 @@ export function DataTable<T>({
 
   return (
     <div className={cx('ui-table-wrap', bordered && 'ui-table-wrap--bordered', className)} data-density={density}>
-      <div className="ui-table-scroll">
-        <table className="ui-table" aria-label={aria['aria-label']} aria-busy={loading || undefined} data-sticky={stickyHeader || undefined}>
+      <div className="ui-table-scroll" onScroll={pinFirstColumn ? (e) => setScrolledX(e.currentTarget.scrollLeft > 0) : undefined}>
+        <table
+          className="ui-table"
+          aria-label={aria['aria-label']}
+          aria-busy={loading || undefined}
+          data-sticky={stickyHeader || undefined}
+          data-pin-first={pinFirstColumn || undefined}
+          data-scrolled-x={(pinFirstColumn && scrolledX) || undefined}
+        >
           <thead>
             <tr>
               {selectable && (
@@ -138,6 +151,17 @@ export function DataTable<T>({
               )}
               {columns.map((c) => {
                 const active = sort?.key === c.key;
+                const label =
+                  c.shortHeader == null ? (
+                    c.header
+                  ) : (
+                    <>
+                      <span className="ui-table__header-full">{c.header}</span>
+                      <abbr className="ui-table__header-short" title={typeof c.header === 'string' ? c.header : undefined}>
+                        {c.shortHeader}
+                      </abbr>
+                    </>
+                  );
                 return (
                   <th
                     key={c.key}
@@ -148,11 +172,11 @@ export function DataTable<T>({
                   >
                     {c.sortable ? (
                       <button type="button" className="ui-table__sort" data-active={active || undefined} onClick={() => cycleSort(c.key)}>
-                        {c.header}
+                        {label}
                         {active ? sort!.direction === 'asc' ? <ArrowUp /> : <ArrowDown /> : <ChevronsUpDown />}
                       </button>
                     ) : (
-                      c.header
+                      label
                     )}
                   </th>
                 );

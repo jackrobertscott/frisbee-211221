@@ -17,7 +17,7 @@ import {
   reportSpiritTotal,
 } from '../report/reportForm'
 import {ReportFormDialog} from '../report/ReportFormDialog'
-import {fmtShort, Loading, TeamName, Toolbar, useServerPaging} from '../shared'
+import {CellStack, fmtShort, Loading, TeamName, Toolbar, useServerPaging} from '../shared'
 import {useShell} from '../shell'
 
 const MVP_STATUS = {
@@ -101,16 +101,29 @@ export function ReportsPage() {
           {
             key: 'fixture',
             header: 'Fixture',
-            render: (r) => <span className="fr-nowrap">{r.fixtureTitle}</span>,
+            render: (r) => (
+              <CellStack
+                primary={r.fixtureTitle}
+                secondary={
+                  <>
+                    <TeamName team={{name: r.teamName, color: r.teamColor}} wrap />
+                    <TeamName team={{name: r.againstName, color: r.againstColor}} wrap />
+                  </>
+                }
+                narrowOnly
+              />
+            ),
           },
           {
             key: 'by',
             header: 'By',
+            hideBelow: 'sm',
             render: (r) => <TeamName team={{name: r.teamName, color: r.teamColor}} />,
           },
           {
             key: 'against',
             header: 'Against',
+            hideBelow: 'sm',
             render: (r) => (
               <TeamName team={{name: r.againstName, color: r.againstColor}} />
             ),
@@ -174,13 +187,12 @@ export function ReportsPage() {
             key: 'submitter',
             header: 'Submitted by',
             hideBelow: 'md',
-            render: (r) => <span className="fr-nowrap">{r.submitterName}</span>,
-          },
-          {
-            key: 'created',
-            header: 'Created',
-            hideBelow: 'md',
-            render: (r) => <span className="fr-num">{fmtShort(r.report.createdOn)}</span>,
+            render: (r) => (
+              <CellStack
+                primary={r.submitterName}
+                secondary={<span className="fr-num">{fmtShort(r.report.createdOn)}</span>}
+              />
+            ),
           },
         ]}
       />

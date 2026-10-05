@@ -193,7 +193,7 @@ export function TallyDialog({
                         variant="inline"
                         size="sm"
                         min={0}
-                        placeholder="Score"
+                        placeholder="–"
                         invalid={mismatch(g, 'team1')}
                         value={g.team1Score ?? null}
                         onValueChange={(v) =>
@@ -205,7 +205,7 @@ export function TallyDialog({
                         variant="inline"
                         size="sm"
                         min={0}
-                        placeholder="Score"
+                        placeholder="–"
                         invalid={mismatch(g, 'team2')}
                         value={g.team2Score ?? null}
                         onValueChange={(v) =>
