@@ -1,4 +1,4 @@
-import {badRequestError, conflictError, forbiddenError} from '@shared/errors'
+import {badRequestError, conflictError} from '@shared/errors'
 import {
   MemberAcceptOrDeclineDef,
   MemberCreateDef,
@@ -17,7 +17,10 @@ import {createEndpoint} from '../http/createEndpoint'
 import {requireAccess} from '../auth/requireAccess'
 import {requireTeam} from '../auth/requireTeam'
 import {userEmail} from '../services/userEmail'
+import {requireCaptainOrAdmin} from '../services/teamCaptaincy'
 import {selectPublicUserFields} from '../services/userFields'
+
+const ADD_MEMBERS_MESSAGE = 'Failed: only the team captain can add members.'
 
 export default new Map<string, RequestHandler>([
   createEndpoint({
@@ -46,16 +49,7 @@ export default new Map<string, RequestHandler>([
       ({teamId, email}, access) =>
       async (req) => {
         const [userCurrent] = await requireAccess(req, access)
-        if (!userCurrent.admin) {
-          const [, memberCurrent] = await requireTeam(userCurrent, teamId)
-          if (!memberCurrent.captain)
-            throw forbiddenError(
-              'Failed: only the team captain can add members.',
-              {
-                errorCode: 'member.captain_required',
-              },
-            )
-        }
+        await requireCaptainOrAdmin(userCurrent, teamId, ADD_MEMBERS_MESSAGE)
         const user = await userEmail.maybeUser(email)
         return {
           exists: !!user,
@@ -70,16 +64,7 @@ export default new Map<string, RequestHandler>([
       ({teamId, email, ...body}, access) =>
       async (req) => {
         const [userCurrent] = await requireAccess(req, access)
-        if (!userCurrent.admin) {
-          const [, memberCurrent] = await requireTeam(userCurrent, teamId)
-          if (!memberCurrent.captain)
-            throw forbiddenError(
-              'Failed: only the team captain can add members.',
-              {
-                errorCode: 'member.captain_required',
-              },
-            )
-        }
+        await requireCaptainOrAdmin(userCurrent, teamId, ADD_MEMBERS_MESSAGE)
         const team = await $Team.getOne({id: teamId})
         let user = await userEmail.maybeUser(email)
         if (!user) {
@@ -126,16 +111,12 @@ export default new Map<string, RequestHandler>([
       const [user] = await requireAccess(req, access)
       const memberDelete = await $Member.maybeOne({id: memberId})
       if (!memberDelete) return
-      if (!user.admin) {
-        const [, member] = await requireTeam(user, memberDelete.teamId)
-        if (!member.captain && member.id !== memberDelete.id)
-          throw forbiddenError(
-            'Failed: only the team captain can delete members.',
-            {
-              errorCode: 'member.captain_required',
-            },
-          )
-      }
+      await requireCaptainOrAdmin(
+        user,
+        memberDelete.teamId,
+        'Failed: only the team captain can delete members.',
+        (member) => member.id === memberDelete.id, // members may leave
+      )
       if (memberDelete.captain) {
         const successor = await $Member.maybeOne(
           {
@@ -184,16 +165,11 @@ export default new Map<string, RequestHandler>([
     handler: (body, access) => async (req) => {
       const [user] = await requireAccess(req, access)
       const memberToAdd = await $Member.getOne({id: body.memberId})
-      if (!user.admin) {
-        const [_, member] = await requireTeam(user, memberToAdd.teamId)
-        if (!member.captain) {
-          const message =
-            'Failed: only the team captain can accept or deny members.'
-          throw forbiddenError(message, {
-            errorCode: 'member.captain_required',
-          })
-        }
-      }
+      await requireCaptainOrAdmin(
+        user,
+        memberToAdd.teamId,
+        'Failed: only the team captain can accept or deny members.',
+      )
       if (body.accept) {
         await $Member.updateOne({id: memberToAdd.id}, {pending: false})
       } else {
@@ -211,16 +187,11 @@ export default new Map<string, RequestHandler>([
         throw conflictError('This member is already the captain of the team.', {
           errorCode: 'member.already_captain',
         })
-      if (!user.admin) {
-        const [_, member] = await requireTeam(user, memberNewCaptain.teamId)
-        if (!member.captain) {
-          const message =
-            'Failed: only the team captain can perform this action.'
-          throw forbiddenError(message, {
-            errorCode: 'member.captain_required',
-          })
-        }
-      }
+      await requireCaptainOrAdmin(
+        user,
+        memberNewCaptain.teamId,
+        'Failed: only the team captain can perform this action.',
+      )
       try {
         await $Member.updateOne(
           {teamId: memberNewCaptain.teamId, captain: true},

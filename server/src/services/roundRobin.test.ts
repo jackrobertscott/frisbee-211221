@@ -1,10 +1,11 @@
 import {TFixture} from '@shared/schemas/ioFixture'
 import {describe, expect, it} from 'vitest'
 import {
+  extractRoundNumber,
   getDivisionRoundGames,
   getRoundRobinPairings,
   reconstructDivisionTeamOrder,
-} from './Fixture'
+} from './roundRobin'
 
 const teamsOf = (count: number) =>
   Array.from({length: count}, (_, index) => `T${index + 1}`)
@@ -41,6 +42,20 @@ const expectFixtureError = (
   expect(error).toMatchObject({statusCode: 400, errorCode})
   if (message) expect(error).toMatchObject({message})
 }
+
+describe('extractRoundNumber', () => {
+  it('reads the number after "Round", case-insensitively', () => {
+    expect(extractRoundNumber('Round 3')).toBe(3)
+    expect(extractRoundNumber('round   12 (rescheduled)')).toBe(12)
+    expect(extractRoundNumber('Semi Final - Round 2')).toBe(2)
+  })
+
+  it('returns null for titles without a round number', () => {
+    expect(extractRoundNumber('Grand Final')).toBeNull()
+    expect(extractRoundNumber('Round')).toBeNull()
+    expect(extractRoundNumber('Round1')).toBeNull()
+  })
+})
 
 describe('getRoundRobinPairings', () => {
   it('pairs a fixed first team against a rotating circle', () => {

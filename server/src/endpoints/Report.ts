@@ -5,23 +5,19 @@ import {
   ReportMissingListDef,
   ReportUpdateDef,
 } from '@shared/endpoints/ReportDef'
-import {TSeason} from '@shared/schemas/ioSeason'
+import {TFixture} from '@shared/schemas/ioFixture'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {validateOfficialSpiritComment} from '@shared/utils/reportValidation'
-import {
-  isUserEligibleForMvpSlot,
-  sanitizeSeasonMvpFields,
-  TSeasonMvpFields,
-} from '@shared/utils/seasonGenderDivision'
 import {RequestHandler} from 'micro'
 import {$Fixture} from '../tables/$Fixture'
 import {$Report} from '../tables/$Report'
 import {$Season} from '../tables/$Season'
 import {$Team} from '../tables/$Team'
-import {$User} from '../tables/$User'
 import {createEndpoint} from '../http/createEndpoint'
 import {requireAccess} from '../auth/requireAccess'
 import {requireTeam} from '../auth/requireTeam'
+import {listMissingReports, TSubmittedReport} from '../services/missingReports'
+import {sanitizeReportMvps} from '../services/reportMvps'
 
 function assertOfficialSpiritComment(
   useOfficialScoring: boolean | undefined,
@@ -39,42 +35,16 @@ function assertOfficialSpiritComment(
   }
 }
 
-async function sanitizeReportMvpFieldsForSeason(
-  season: TSeason,
-  body: TSeasonMvpFields,
-): Promise<TSeasonMvpFields> {
-  const fields = sanitizeSeasonMvpFields(season, body)
-  const userIds = Object.values(fields).filter(
-    (userId): userId is string => typeof userId === 'string' && !!userId,
+function fixtureHasMatchup(
+  fixture: TFixture,
+  teamId: string,
+  teamAgainstId: string,
+): boolean {
+  return fixture.games.some(
+    (game) =>
+      (game.team1Id === teamId && game.team2Id === teamAgainstId) ||
+      (game.team2Id === teamId && game.team1Id === teamAgainstId),
   )
-  if (!userIds.length) {
-    return fields
-  }
-
-  const users = await $User.getMany({id: {$in: userIds}})
-  const usersById = new Map(users.map((user) => [user.id, user]))
-  const getValidUserId = (
-    slot: 'male' | 'female',
-    userId: string | undefined,
-  ) => {
-    if (!userId) {
-      return undefined
-    }
-
-    const user = usersById.get(userId)
-    if (user && !isUserEligibleForMvpSlot(user, slot)) {
-      return undefined
-    }
-
-    return userId
-  }
-
-  return {
-    mvpMale: getValidUserId('male', fields.mvpMale),
-    mvpMale2: getValidUserId('male', fields.mvpMale2),
-    mvpFemale: getValidUserId('female', fields.mvpFemale),
-    mvpFemale2: getValidUserId('female', fields.mvpFemale2),
-  }
 }
 
 export default new Map<string, RequestHandler>([
@@ -90,7 +60,7 @@ export default new Map<string, RequestHandler>([
       const teamAgainst = await $Team.getOne({id: body.teamAgainstId})
       const reportBody = {
         ...body,
-        ...(await sanitizeReportMvpFieldsForSeason(season, body)),
+        ...(await sanitizeReportMvps(season, body)),
       }
       assertOfficialSpiritComment(season.useOfficialScoring, reportBody)
       if (
@@ -105,17 +75,7 @@ export default new Map<string, RequestHandler>([
           errorCode: 'report.already_submitted',
         })
       }
-      let matchupIsValid = false
-      for (const game of fixture.games) {
-        if (
-          (game.team1Id === team.id && game.team2Id === teamAgainst.id) ||
-          (game.team2Id === team.id && game.team1Id === teamAgainst.id)
-        ) {
-          matchupIsValid = true
-          break
-        }
-      }
-      if (!matchupIsValid) {
+      if (!fixtureHasMatchup(fixture, team.id, teamAgainst.id)) {
         const message =
           'Failed to find the opposition team. Your team is may not be playing in this fixture.'
         throw badRequestError(message, {
@@ -141,7 +101,7 @@ export default new Map<string, RequestHandler>([
         const season = await $Season.getOne({id: fixture.seasonId})
         const reportBody = {
           ...body,
-          ...(await sanitizeReportMvpFieldsForSeason(season, body)),
+          ...(await sanitizeReportMvps(season, body)),
         }
         assertOfficialSpiritComment(season.useOfficialScoring, reportBody)
         return $Report.updateOne(
@@ -174,104 +134,11 @@ export default new Map<string, RequestHandler>([
           $Fixture.getMany({seasonId}, {sort: {date: 1}}),
           $Team.getMany({seasonId}),
         ])
-        const reports = await $Report.aggregate<{
-          fixtureId: string
-          teamId: string
-          teamAgainstId: string
-        }>([
+        const reports = await $Report.aggregate<TSubmittedReport>([
           {$match: {fixtureId: {$in: fixtures.map((i) => i.id)}}},
           {$project: {_id: 0, fixtureId: 1, teamId: 1, teamAgainstId: 1}},
         ])
-        const teamsById = new Map(teams.map((team) => [team.id, team]))
-        const reportKey = (
-          fixtureId: string,
-          teamId: string,
-          teamAgainstId?: string,
-        ) => [fixtureId, teamId, teamAgainstId ?? ''].join('\u0000')
-        const reportKeys = new Set(
-          reports.map((r) => reportKey(r.fixtureId, r.teamId, r.teamAgainstId)),
-        )
-
-        // Group fixtures by round (using title as identifier)
-        const missingReportsByRound = fixtures.reduce(
-          (acc, fixture) => {
-            const round = fixture.title
-            if (!acc[round]) {
-              acc[round] = {
-                title: round,
-                fixtureId: fixture.id,
-                date: fixture.date,
-                missingTeams: [],
-              }
-            }
-
-            // For each game in the fixture, check if both teams have submitted reports
-            fixture.games.forEach((game) => {
-              const team1 = teamsById.get(game.team1Id)
-              const team2 = teamsById.get(game.team2Id)
-
-              if (team1) {
-                const hasReport = reportKeys.has(
-                  reportKey(fixture.id, team1.id, team2?.id),
-                )
-                if (
-                  !hasReport &&
-                  !acc[round].missingTeams.some((t) => t.id === team1.id)
-                ) {
-                  acc[round].missingTeams.push({
-                    id: team1.id,
-                    name: team1.name,
-                    color: team1.color,
-                    againstId: team2?.id,
-                    againstName: team2?.name,
-                  })
-                }
-              }
-
-              if (team2) {
-                const hasReport = reportKeys.has(
-                  reportKey(fixture.id, team2.id, team1?.id),
-                )
-                if (
-                  !hasReport &&
-                  !acc[round].missingTeams.some((t) => t.id === team2.id)
-                ) {
-                  acc[round].missingTeams.push({
-                    id: team2.id,
-                    name: team2.name,
-                    color: team2.color,
-                    againstId: team1?.id,
-                    againstName: team1?.name,
-                  })
-                }
-              }
-            })
-
-            return acc
-          },
-          {} as Record<
-            string,
-            {
-              title: string
-              fixtureId: string
-              date: string
-              missingTeams: Array<{
-                id: string
-                name: string
-                color?: string
-                againstId?: string
-                againstName?: string
-              }>
-            }
-          >,
-        )
-
-        // Convert to array and sort by date
-        return Object.values(missingReportsByRound)
-          .filter((round) => round.missingTeams.length > 0)
-          .sort(
-            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-          )
+        return listMissingReports(fixtures, teams, reports)
       },
   }),
 ])
