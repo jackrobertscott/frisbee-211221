@@ -2,6 +2,7 @@
 
 - Do add explicit TypeScript types, typed conversions, or proper narrowing.
 - Do run and pass the `server` and `browser` package type checks before finishing.
+- Do run and pass the `shared`, `server` and `browser` test suites (`npm test`) before finishing.
 - Do implement sorting and filtering for paginated or shared list views in the shared endpoint contract and server handler.
 - Do update endpoint payloads and backend logic before wiring frontend controls for list ordering changes across requests or pages.
 - Do apply sorted paginated list ordering in the database query path before `skip` and `limit`.
@@ -37,4 +38,5 @@
 - The publishing branches are `stage` and `master`.
 - The remote is `origin`.
 - The browser `@ui` library is vendored from the `uilib-261005` repository (`src/lib`).
+- Server integration tests live in `server/test/integration` and drive the real request pipeline against an in-memory MongoDB.
 - Team colours must be `hsla(...)` strings from `browser/src/utils/colors.ts`; the server rejects other formats.
