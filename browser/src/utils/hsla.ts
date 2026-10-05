@@ -1,5 +1,3 @@
-import {theme} from '../theme'
-
 type THSLAChannel = number | string
 
 const withUnit = (value: THSLAChannel, unit: string = '') => {
@@ -68,25 +66,13 @@ const createColor = (
     if (hue >= 60 && hue < 210) definitelyLight = lightness >= 50
     if (hue >= 210 && hue < 300) definitelyLight = lightness >= 70
     if (hue >= 300) definitelyLight = lightness >= 50
-    return definitelyLight ? theme.fontContrastDark : theme.fontContrastLight
+    return definitelyLight ? hsla.create(0, 0, 10, 0.94) : hsla.create(0, 0, 99)
   },
 })
 
 export const hsla = {
   create(h: number = 0, s: number = 0, l: number = 0, a: number = 1) {
     return createColor({h, s, l, a})
-  },
-
-  variable(name: string, compliment?: string): THSLA {
-    return createColor(
-      {
-        h: `var(--theme-${name}-h)`,
-        s: `var(--theme-${name}-s)`,
-        l: `var(--theme-${name}-l)`,
-        a: `var(--theme-${name}-a)`,
-      },
-      compliment ? (): THSLA => hsla.variable(compliment) : undefined,
-    )
   },
 
   string(h: number = 0, s: number = 0, l: number = 0, a: number = 1) {

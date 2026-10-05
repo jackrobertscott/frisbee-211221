@@ -1,5 +1,5 @@
 import {useRef, useEffect} from 'react'
-import {useRouter} from './Router/useRouter'
+import {useRouter} from './router/useRouter'
 
 export const useReload = () => {
   const stale = useRef(0)

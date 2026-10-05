@@ -6,14 +6,14 @@ import {
   toAppError,
   unauthorizedError,
 } from '@shared/errors'
+import {toast} from '@ui'
 import {useMemo, useRef, useState} from 'react'
 import {TypeIoAll} from '@shared/torva'
 import {TEndpoint, TEndpointInput, TEndpointOutput} from '../utils/endpoints'
 import {throttle} from '../utils/throttle'
-import {readAuthState} from './Auth/authAccess'
-import {clearStoredAppState} from './Auth/authStorage'
-import {useAuth} from './Auth/useAuth'
-import {useToaster} from './Toaster/useToaster'
+import {readAuthState} from './auth/authAccess'
+import {clearStoredAppState} from './auth/authStorage'
+import {useAuth} from './auth/useAuth'
 import {useMountedRef} from './useMountedRef'
 
 const isMissingStoredRecord = (error: ReturnType<typeof toAppError>) => {
@@ -27,7 +27,6 @@ export const useEndpoint = <
   timeout?: number,
 ) => {
   const auth = useAuth()
-  const toaster = useToaster()
   const mounted = useMountedRef()
   const [loading, loadingSet] = useState(false)
   type P = TEndpointInput<E['IN'], E['MULTIPART']>
@@ -86,7 +85,7 @@ export const useEndpoint = <
           if (isMissingStoredRecord(appError) && clearStoredAppState()) {
             window.location.replace('/')
           }
-          toaster.error(getUserErrorMessage(appError))
+          toast.error(getUserErrorMessage(appError))
           throw appError
         } finally {
           if (mounted.current) loadingSet(false)
