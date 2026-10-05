@@ -854,12 +854,14 @@ describe('UserMerge', () => {
     expect(report3.mvpMale).toBe(unrelatedId)
     expect(report3.mvpFemale).toBe(user1.userId)
 
-    // user2's sessions are reassigned to user1 ...
+    // user2's sessions are reassigned to user1 and ended
     expect(await $Session.count({userId: user2.userId})).toBe(0)
     const moved = await $Session.getOne({token: user2.token})
     expect(moved.userId).toBe(user1.userId)
-    expect(moved.ended).toBeFalsy()
-    // ... but the token still carries user2's id, so it no longer authenticates
+    expect(moved.ended).toBe(true)
+    expect(moved.endedOn).toBeDefined()
+    // user1's own session is untouched
+    expect((await $Session.getOne({token: user1.token})).ended).toBeFalsy()
     const viaOldToken = await server.call(
       '/UserCurrentUpdate',
       {},

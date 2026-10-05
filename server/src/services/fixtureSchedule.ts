@@ -40,7 +40,10 @@ export const shuffleInPlace: TShuffle = (items) => {
   return items
 }
 
-/** Moves an ISO date by whole days, weeks or calendar months. */
+/**
+ * Moves an ISO date by whole days, weeks or calendar months, keeping the local
+ * time of day. Month moves stay within the target month.
+ */
 export function shiftFixtureDate(
   date: string,
   {amount, unit, direction}: TDateAdjustment,
@@ -49,7 +52,15 @@ export function shiftFixtureDate(
   const currentDate = new Date(date)
   const newDate = new Date(currentDate)
   if (unit === 'month') {
+    // clamp to the last day of a shorter month (31 Jan + 1 month -> 28 Feb)
+    newDate.setDate(1)
     newDate.setMonth(currentDate.getMonth() + signedAmount)
+    const lastDay = new Date(
+      newDate.getFullYear(),
+      newDate.getMonth() + 1,
+      0,
+    ).getDate()
+    newDate.setDate(Math.min(currentDate.getDate(), lastDay))
   } else if (unit === 'week') {
     newDate.setDate(currentDate.getDate() + signedAmount * 7)
   } else {

@@ -232,7 +232,7 @@ describe('TeamCurrentUpdate', () => {
       {token: requester.token},
     )
     expect(response.status).toBe(403)
-    // requireTeam only matches confirmed members, so the pending branch is never reached
+    // a pending request is not membership, so the team access check rejects it
     expect(response.body.errorCode).toBe('team.access_forbidden')
   })
 

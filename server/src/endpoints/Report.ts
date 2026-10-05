@@ -103,7 +103,11 @@ export default new Map<string, RequestHandler>([
           ...body,
           ...(await sanitizeReportMvps(season, body)),
         }
-        assertOfficialSpiritComment(season.useOfficialScoring, reportBody)
+        // spirit parts left out of the update keep their stored values
+        assertOfficialSpiritComment(season.useOfficialScoring, {
+          ...report,
+          ...reportBody,
+        })
         return $Report.updateOne(
           {id: reportId},
           {

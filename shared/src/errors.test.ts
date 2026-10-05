@@ -478,7 +478,7 @@ describe('toAppError', () => {
     expect(error.retryable).toBe(true)
   })
 
-  it('lets fallback options override the Error own properties', () => {
+  it('keeps the Error own properties over fallback options', () => {
     const error = toAppError(
       errorWith('own message', {
         statusCode: 400,
@@ -491,9 +491,9 @@ describe('toAppError', () => {
         userMessage: 'Fallback',
       },
     )
-    expect(error.message).toBe('fallback')
-    expect(error.errorCode).toBe('fallback.code')
-    expect(error.userMessage).toBe('Fallback')
+    expect(error.message).toBe('own message')
+    expect(error.errorCode).toBe('own.code')
+    expect(error.userMessage).toBe('Own')
     expect(error.statusCode).toBe(400)
   })
 
@@ -543,8 +543,7 @@ describe('toAppError', () => {
     expect(restored.meta).toEqual({y: 2})
   })
 
-  it('ignores `code` when restoring a serialized error that lacks statusCode', () => {
-    // isSerializedAppError accepts `code` as the status, but toAppError only reads statusCode
+  it('reads `code` when restoring a serialized error that lacks statusCode', () => {
     const restored = toAppError({
       name: 'AppError',
       message: 'gone',
@@ -553,7 +552,7 @@ describe('toAppError', () => {
       retryable: false,
       code: 404,
     })
-    expect(restored.statusCode).toBe(500)
+    expect(restored.statusCode).toBe(404)
     expect(restored.errorCode).toBe('not_found')
     expect(restored.message).toBe('gone')
   })
@@ -667,9 +666,9 @@ describe('getUserErrorMessage', () => {
     expect(getUserErrorMessage(errorWith('x', {statusCode: 404}))).toBe(
       INTERNAL,
     )
-    // fallback options are applied as overrides, so they beat the Error's own userMessage
+    // an Error's own userMessage still beats the fallback
     expect(getUserErrorMessage(errorWith('x', {userMessage: 'Own'}))).toBe(
-      INTERNAL,
+      'Own',
     )
   })
 })

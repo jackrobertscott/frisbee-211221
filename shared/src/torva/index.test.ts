@@ -285,14 +285,15 @@ describe('io.color', () => {
     )
   })
 
-  it('accepts an empty alpha channel (treated as 0)', () => {
-    // the alpha capture group allows an empty match; Number('') === 0
-    expect(v('hsla(0, 50%, 50%, )')).toEqual(ok('hsla(0, 50%, 50%, )'))
-  })
-
-  it('accepts malformed numeric channels that Number() still parses', () => {
-    // [\d.]+ permits multiple dots; Number('1.2.3') is NaN so range checks pass
-    expect(v('hsla(0, 1.2.3%, 50%, 1)')).toEqual(ok('hsla(0, 1.2.3%, 50%, 1)'))
+  it('rejects empty or malformed numeric channels', () => {
+    for (const value of [
+      'hsla(0, 50%, 50%, )',
+      'hsla(0, 1.2.3%, 50%, 1)',
+      'hsla(0, 50%, .%, 1)',
+      'hsla(1., 50%, 50%, 1)',
+      'hsla(0, -5%, 50%, 1)',
+    ])
+      expect(v(value)).toEqual(fail('Value is not a valid hsla string.'))
   })
 })
 

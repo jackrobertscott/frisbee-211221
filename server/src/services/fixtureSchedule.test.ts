@@ -78,8 +78,8 @@ describe('shiftFixtureDate', () => {
     ).toEqual([2026, 2, 14, 18])
   })
 
-  it('moves by calendar months, overflowing like Date#setMonth', () => {
-    // 31 Jan + 1 month -> "31 Feb" -> 3 Mar
+  it('moves by calendar months, clamping to the end of shorter months', () => {
+    // 31 Jan + 1 month -> 28 Feb, 31 Jan - 2 months -> 30 Nov
     expect(
       local(
         shiftFixtureDate(date, {
@@ -88,7 +88,7 @@ describe('shiftFixtureDate', () => {
           direction: 'forward',
         }),
       ),
-    ).toEqual([2026, 3, 3, 18])
+    ).toEqual([2026, 2, 28, 18])
     expect(
       local(
         shiftFixtureDate(date, {
@@ -97,7 +97,23 @@ describe('shiftFixtureDate', () => {
           direction: 'backward',
         }),
       ),
-    ).toEqual([2025, 12, 1, 18])
+    ).toEqual([2025, 11, 30, 18])
+    const leap = new Date(2028, 0, 31, 18, 30).toISOString()
+    expect(
+      local(
+        shiftFixtureDate(leap, {amount: 1, unit: 'month', direction: 'forward'}),
+      ),
+    ).toEqual([2028, 2, 29, 18])
+    const midMonth = new Date(2026, 2, 15, 18, 30).toISOString()
+    expect(
+      local(
+        shiftFixtureDate(midMonth, {
+          amount: 13,
+          unit: 'month',
+          direction: 'forward',
+        }),
+      ),
+    ).toEqual([2027, 4, 15, 18])
   })
 
   it('leaves the date unchanged for a zero amount', () => {

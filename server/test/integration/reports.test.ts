@@ -433,7 +433,7 @@ describe('ReportUpdate and ReportDelete', () => {
     expect(stored.scoreFor).toBe(15)
     expect(stored.updatedOn >= stored.createdOn).toBe(true)
 
-    // MVP fields omitted from an update are cleared (current behaviour)
+    // MVP picks are replaced as a set: the edit form clears a pick by leaving it out
     const cleared = await server.call(
       '/ReportUpdate',
       {reportId, scoreFor: 15, scoreAgainst: 7, spiritComment: 'Edited'},
@@ -448,6 +448,36 @@ describe('ReportUpdate and ReportDelete', () => {
       {token: admin.token},
     )
     expect(missing.status).toBe(404)
+  })
+
+  it('checks the spirit comment against the stored spirit parts', async () => {
+    const {admin, a, b, fixture} = await setup({useOfficialScoring: true})
+    const created = await server.call(
+      '/ReportCreate',
+      reportPayload(fixture, a.id, b.id, {
+        ...official([0, 0, 0, 0, 0]),
+        spiritComment: 'Rough game',
+      }),
+      {token: admin.token},
+    )
+    expect(created.status).toBe(200)
+    const reportId: string = created.body.id
+
+    const blanked = await server.call(
+      '/ReportUpdate',
+      {reportId, scoreFor: 1, scoreAgainst: 2, spiritComment: ''},
+      {token: admin.token},
+    )
+    expect(blanked.status).toBe(400)
+    expect(blanked.body.errorCode).toBe('report.spirit_comment_required')
+    expect((await $Report.getOne({id: reportId})).spiritComment).toBe('Rough game')
+
+    const rescored = await server.call(
+      '/ReportUpdate',
+      {reportId, scoreFor: 1, scoreAgainst: 2, spiritComment: '', ...official([2, 2, 2, 2, 2])},
+      {token: admin.token},
+    )
+    expect(rescored.status).toBe(200)
   })
 
   it('lets only an admin delete a report', async () => {

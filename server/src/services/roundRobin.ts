@@ -38,6 +38,7 @@ export function getRoundRobinPairings(
   teams: string[],
   round: number,
 ): TPairing[] {
+  if (teams.length < 2) return []
   // Support odd team counts by adding a bye placeholder.
   const workingTeams = teams.length % 2 !== 0 ? [...teams, BYE_ID] : [...teams]
 

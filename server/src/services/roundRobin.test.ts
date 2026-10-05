@@ -151,9 +151,9 @@ describe('getRoundRobinPairings', () => {
     expect(getRoundRobinPairings(['A'], 0)).toEqual([])
   })
 
-  it('returns a pairing of undefined values for no teams', () => {
-    // no guard for empty input: the fixed slot is undefined and paired with itself
-    expect(getRoundRobinPairings([], 0)).toEqual([[undefined, undefined]])
+  it('returns no games for no teams', () => {
+    expect(getRoundRobinPairings([], 0)).toEqual([])
+    expect(getRoundRobinPairings([], 3)).toEqual([])
   })
 })
 

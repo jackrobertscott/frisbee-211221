@@ -34,7 +34,8 @@ export type TMergedUserFields = Pick<
 
 /**
  * Merges `user2` into `user1`: memberships, fixtures, reports and sessions move
- * to `user1`, `user2` is deleted and `user1` keeps the combined profile.
+ * to `user1` (the sessions ended), `user2` is deleted and `user1` keeps the
+ * combined profile.
  */
 export const mergeUsers = async (
   user1Id: string,
@@ -76,7 +77,11 @@ export const mergeUsers = async (
         value: mergeReportUserReferences(report, user1.id, user2.id, updatedOn),
       })),
     )
-    await $Session.updateMany({userId: user2.id}, {userId: user1.id, updatedOn})
+    // user2's tokens name user2, so they can never authenticate as user1
+    await $Session.updateMany(
+      {userId: user2.id},
+      {userId: user1.id, ended: true, endedOn: updatedOn, updatedOn},
+    )
     await $User.deleteOne({id: user2.id})
     user1 = await $User.updateOne(
       {id: user1.id},

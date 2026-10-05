@@ -351,8 +351,8 @@ describe('PortImport', () => {
     expect(result.body?.errorCode).toBe('upload.invalid_gender')
     expect(result.body?.message).toBe('Failed: row 3 has invalid gender "banana".')
     expect(await $User.count({'emails.value': `ok.${t}@example.com`})).toBe(0)
-    // without transaction support (standalone test MongoDB) the teams step is not rolled back
-    expect(await $Team.count({seasonId: season.id})).toBe(1)
+    // rows are validated before any team is created
+    expect(await $Team.count({seasonId: season.id})).toBe(0)
   })
 })
 

@@ -54,14 +54,8 @@ export default new Map<string, RequestHandler>([
       ({teamId, ...body}, access) =>
       async (req) => {
         const [user] = await requireAccess(req, access)
+        // requireTeam only matches confirmed members, so pending requests fail here
         const [team, member] = await requireTeam(user, teamId)
-        if (member.pending)
-          throw forbiddenError(
-            'Pending members cannot update team information.',
-            {
-              errorCode: 'team.pending_member_forbidden',
-            },
-          )
         if (!member.captain)
           throw forbiddenError(
             'Only the team captain can update team information.',

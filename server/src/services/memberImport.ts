@@ -48,9 +48,15 @@ export const importMemberObjects = async (
   let usersCreated = 0
   let membersCreated = 0
 
+  // prepare (and validate) every row before writing anything, so a bad row
+  // never leaves a partial import behind on databases without transactions
+  const rows = dedupePreparedImportRows(
+    objects.map((i, index) => prepareImportRow(i, index)),
+  )
+
   await mongo.transaction(async () => {
     teamsCreated = await createTeamsFromObjects(objects, seasonId)
-    const userSummary = await createUsersFromObjects(objects, seasonId)
+    const userSummary = await createUsersFromRows(rows, seasonId)
     usersCreated = userSummary.usersCreated
     membersCreated = userSummary.membersCreated
   })
@@ -104,13 +110,10 @@ const createTeamsFromObjects = async (
   return teamCSVNewList.length
 }
 
-const createUsersFromObjects = async (
-  objects: Record<string, string>[],
+const createUsersFromRows = async (
+  userCSVList: TPreparedMemberImportRow[],
   seasonId: string,
 ): Promise<{usersCreated: number; membersCreated: number}> => {
-  const userCSVList = dedupePreparedImportRows(
-    objects.map((i, index) => prepareImportRow(i, index)),
-  )
 
   const csvEmailList = userCSVList.flatMap((i) => (i.email ? [i.email] : []))
   const userDBList = csvEmailList.length

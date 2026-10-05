@@ -219,8 +219,6 @@ const USER_MESSAGE_BY_ERROR_CODE: Record<string, string> = {
 
   'team.access_forbidden': 'You do not have access to that team.',
   'team.captain_required': 'Only a team captain can do that.',
-  'team.pending_member_forbidden':
-    'Your team membership needs to be accepted before you can do that.',
   'team.signup_closed': 'Team signup is closed for this season.',
 
   'upload.aborted': 'The upload was cancelled before it finished.',
@@ -518,7 +516,7 @@ export const toAppError = (
     return createError({
       message: error.message,
       userMessage: error.userMessage,
-      statusCode: error.statusCode,
+      statusCode: extractStatusCode(error.statusCode ?? error.code),
       errorCode: error.errorCode,
       expose: error.expose,
       retryable: error.retryable,
@@ -527,12 +525,8 @@ export const toAppError = (
     })
   }
   if (typeof error === 'string') {
-    return createError(
-      {
-        message: error,
-      },
-      fallback,
-    )
+    // the string is the message; fallback options fill in everything else
+    return createError({...fallback, message: error})
   }
   if (error instanceof Error) {
     const appError = error as AppErrorLike
@@ -563,10 +557,8 @@ export const toAppError = (
           : fallback.meta,
         tarpit: appError.tarpit ?? fallback.tarpit,
       },
-      {
-        ...fallback,
-        statusCode,
-      },
+      // the Error's own properties win; fallback options only fill gaps
+      {statusCode},
     )
   }
   return createError(
