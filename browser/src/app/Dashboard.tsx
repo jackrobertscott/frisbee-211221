@@ -35,7 +35,7 @@ import {
   UserPlus,
   Users,
 } from 'lucide-react'
-import {type ReactNode, useEffect, useState} from 'react'
+import {lazy, type ReactNode, Suspense, useEffect, useState} from 'react'
 import {config} from '../config'
 import {useAuth} from '../core/auth/useAuth'
 import {useColorMode} from '../core/colorMode'
@@ -50,15 +50,27 @@ import {SettingsDialog} from './dialogs/SettingsDialog'
 import {Logo} from './Logo'
 import {FixturesPage} from './pages/FixturesPage'
 import {LadderPage} from './pages/LadderPage'
-import {MvpPage} from './pages/MvpPage'
-import {PortPage} from './pages/PortPage'
-import {ReportsPage} from './pages/ReportsPage'
-import {SpiritPage} from './pages/SpiritPage'
 import {TeamsPage} from './pages/TeamsPage'
-import {UsersPage} from './pages/UsersPage'
 import {SeasonCreateDialog} from './season/SeasonCreateDialog'
-import {fullName} from './shared'
+import {fullName, Loading} from './shared'
 import {useShell} from './shell'
+
+/** Admin-only pages load on demand to keep the public bundle small. */
+const ReportsPage = lazy(() =>
+  import('./pages/ReportsPage').then((m) => ({default: m.ReportsPage})),
+)
+const SpiritPage = lazy(() =>
+  import('./pages/SpiritPage').then((m) => ({default: m.SpiritPage})),
+)
+const MvpPage = lazy(() =>
+  import('./pages/MvpPage').then((m) => ({default: m.MvpPage})),
+)
+const UsersPage = lazy(() =>
+  import('./pages/UsersPage').then((m) => ({default: m.UsersPage})),
+)
+const PortPage = lazy(() =>
+  import('./pages/PortPage').then((m) => ({default: m.PortPage})),
+)
 
 const MARLOW_SHOP_URL =
   'https://marlow-street-ultimate.square.site/s/shop?fbclid=IwAR21rulDg_KiLtXACWJmW1bm08W0xoVqRHLie3L12-bg0_0Rtqu8ObB2LDs'
@@ -174,7 +186,7 @@ export function Dashboard() {
               </Button>
             </nav>
             <main className="fr-main" key={context.current.path}>
-              {children}
+              <Suspense fallback={<Loading />}>{children}</Suspense>
             </main>
           </>
         )}
