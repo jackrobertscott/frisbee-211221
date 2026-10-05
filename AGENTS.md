@@ -10,6 +10,8 @@
 - Do use typed table helpers for all database access outside the DB/table definition layer.
 - Do commit all current changes to `stage`, merge them into `master`, push both `stage` and `master` to `origin`, then check out `stage` when asked to publish changes.
 - Do use short lowercase word groups for commit messages.
+- Do commit each milestone's worth of work as it is completed, rather than leaving large amounts of uncommitted changes.
+- Do record any preference the user states for this codebase as a rule in this file.
 - Do build browser UI only from the `@ui` component library (`browser/src/ui`) and `lucide-react` icons.
 - Do put browser screens in `browser/src/app` and non-visual browser plumbing (auth, router, endpoint hooks) in `browser/src/core`.
 
