@@ -3,6 +3,7 @@ import {TUser} from '@shared/schemas/ioUser'
 import dayjs from 'dayjs'
 import config from '../config'
 import {$User} from '../tables/$User'
+import authAttemptLimit from '../auth/attemptLimit'
 import hash from '../auth/hash'
 import {html} from '../utils/html'
 import {mail} from '../utils/mail'
@@ -15,6 +16,18 @@ const normalizeCode = (value: string) =>
   value.split('-').join('').split(' ').join('').trim().toUpperCase()
 
 const isHashedCode = (value: string) => /^[a-f0-9]{64}$/i.test(value)
+
+const CODE_EXPIRED_MESSAGE = `Your code has expired. A new code has been sent to your email.`
+
+/** The index of `email` on `user`, or a not found error when it is missing. */
+const requireEmailIndex = (user: TUser, email: string) => {
+  const index = user.emails.findIndex((i) => regex.normalize(email).test(i.value))
+  if (index === -1)
+    throw notFoundError('Email does not exist on user.', {
+      errorCode: 'user.email_not_found',
+    })
+  return index
+}
 
 export const userEmail = {
   sanitizeValue(email: string) {
@@ -99,11 +112,7 @@ export const userEmail = {
 
   async remove(user: TUser, email: string) {
     const emails = [...user.emails]
-    const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
-    if (index === -1)
-      throw notFoundError('Email does not exist on user.', {
-        errorCode: 'user.email_not_found',
-      })
+    const index = requireEmailIndex(user, email)
     if (emails.length <= 1)
       throw badRequestError('User must retain at least one email.', {
         errorCode: 'user.email_required',
@@ -117,11 +126,7 @@ export const userEmail = {
 
   async verify(user: TUser, email: string) {
     const emails = [...user.emails]
-    const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
-    if (index === -1)
-      throw notFoundError('Email does not exist on user.', {
-        errorCode: 'user.email_not_found',
-      })
+    const index = requireEmailIndex(user, email)
     // replace the used code so it cannot be replayed within its expiry window
     emails.splice(index, 1, {
       ...emails[index],
@@ -133,11 +138,7 @@ export const userEmail = {
 
   async verifiedSet(user: TUser, email: string, verified: boolean) {
     const emails = [...user.emails]
-    const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
-    if (index === -1)
-      throw notFoundError('Email does not exist on user.', {
-        errorCode: 'user.email_not_found',
-      })
+    const index = requireEmailIndex(user, email)
     const data = emails[index]
     emails.splice(index, 1, {...data, verified})
     return $User.updateOne({id: user.id}, {emails})
@@ -145,11 +146,7 @@ export const userEmail = {
 
   async primarySet(user: TUser, email: string) {
     let emails = [...user.emails]
-    const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
-    if (index === -1)
-      throw notFoundError('Email does not exist on user.', {
-        errorCode: 'user.email_not_found',
-      })
+    const index = requireEmailIndex(user, email)
     emails = emails.map((i) => ({...i, primary: false}))
     const data = emails[index]
     emails.splice(index, 1, {...data, primary: true})
@@ -190,11 +187,7 @@ export const userEmail = {
 
   async codeSave(user: TUser, email: string, code: string) {
     const emails = [...user.emails]
-    const index = emails.findIndex((i) => regex.normalize(email).test(i.value))
-    if (index === -1)
-      throw notFoundError('Email does not exist on user.', {
-        errorCode: 'user.email_not_found',
-      })
+    const index = requireEmailIndex(user, email)
     const data = emails[index]
     emails.splice(index, 1, {
       ...data,
@@ -205,11 +198,7 @@ export const userEmail = {
   },
 
   isCodeEqual(user: TUser, email: string, code: string) {
-    const data = userEmail.get(user, email)
-    if (!data)
-      throw notFoundError('Email does not exist on user.', {
-        errorCode: 'user.email_not_found',
-      })
+    const data = user.emails[requireEmailIndex(user, email)]
     const normalizedCode = normalizeCode(code)
     return isHashedCode(data.code)
       ? hash.equals(normalizedCode, data.code)
@@ -217,13 +206,33 @@ export const userEmail = {
   },
 
   isCodeExpired(user: TUser, email: string) {
-    const data = userEmail.get(user, email)
-    if (!data)
-      throw notFoundError('Email does not exist on user.', {
-        errorCode: 'user.email_not_found',
-      })
+    const data = user.emails[requireEmailIndex(user, email)]
     const now = dayjs()
     const expiry = dayjs(data.createdOn).add(10, 'minutes')
     return dayjs(now).isAfter(expiry)
+  },
+
+  /**
+   * Checks a submitted code for `email`. An expired code costs a delivery
+   * attempt and is replaced by a fresh one sent with `expiredSubject`.
+   */
+  async assertCodeValid(
+    user: TUser,
+    email: string,
+    code: string,
+    ip: string,
+    expiredSubject: string,
+  ) {
+    if (!userEmail.isCodeEqual(user, email, code))
+      throw badRequestError(`Code is incorrect.`, {
+        errorCode: 'user.code_invalid',
+      })
+    if (userEmail.isCodeExpired(user, email)) {
+      await authAttemptLimit.consume('delivery', email, ip)
+      await userEmail.codeSendSave(user, email, expiredSubject)
+      throw badRequestError(CODE_EXPIRED_MESSAGE, {
+        errorCode: 'user.code_expired',
+      })
+    }
   },
 }

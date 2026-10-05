@@ -15,23 +15,21 @@ import {
 } from '@shared/endpoints/SecurityDef'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {TSession} from '@shared/schemas/ioSession'
-import {TTeam} from '@shared/schemas/ioTeam'
 import {TUser} from '@shared/schemas/ioUser'
 import {RequestHandler} from 'micro'
-import {$Member} from '../tables/$Member'
 import {$Season} from '../tables/$Season'
 import {$Session} from '../tables/$Session'
-import {$Team} from '../tables/$Team'
 import {$User} from '../tables/$User'
 import {createEndpoint} from '../http/createEndpoint'
 import authAttemptLimit from '../auth/attemptLimit'
 import gatekeeper from '../auth/sessions'
 import hash from '../auth/hash'
 import intrusion from '../http/intrusion'
-import {selectSafeUserFields} from '../services/userFields'
+import {buildAuthPayload} from '../services/authPayload'
 import {userEmail} from '../services/userEmail'
 
 const INVALID_LOGIN_MESSAGE = 'Email or password is incorrect.'
+
 export default new Map<string, RequestHandler>([
   createEndpoint({
     ...SecurityCurrentDef,
@@ -68,7 +66,7 @@ export default new Map<string, RequestHandler>([
           season,
           auth:
             user && session
-              ? await _addTeamOfSeason(user, session, season.id)
+              ? await buildAuthPayload(user, session, season.id)
               : undefined,
         }
       },
@@ -80,23 +78,19 @@ export default new Map<string, RequestHandler>([
       ({email}) =>
       async (req) => {
         const user = await userEmail.maybeUser(email)
-        let data: {status: string; email: string; firstName?: string}
-        if (!user) {
-          data = {status: 'unknown', email}
-        } else if (!user.password) {
+        if (!user) return {status: 'unknown', email}
+        if (!user.password) {
           const ip = intrusion.getClientIp(req)
           await authAttemptLimit.consume('delivery', email, ip)
-          data = {status: 'password', email, firstName: user.firstName}
           await userEmail.codeSendSave(user, email, 'Verify Email')
-        } else {
-          const i = userEmail.get(user, email)
-          data = {
-            status: !i?.verified ? 'unverified' : 'good',
-            firstName: user.firstName,
-            email,
-          }
+          return {status: 'password', email, firstName: user.firstName}
         }
-        return data
+        const verified = userEmail.get(user, email)?.verified
+        return {
+          status: verified ? 'good' : 'unverified',
+          firstName: user.firstName,
+          email,
+        }
       },
   }),
 
@@ -121,7 +115,7 @@ export default new Map<string, RequestHandler>([
         }
         await authAttemptLimit.reset('login', email, ip)
         const session = await gatekeeper.createUserSession(user, userAgent)
-        return _addTeamOfSeason(user, session, seasonId)
+        return buildAuthPayload(user, session, seasonId)
       },
   }),
 
@@ -133,9 +127,7 @@ export default new Map<string, RequestHandler>([
         if (!termsAccepted)
           throw badRequestError(
             'Please accept our terms to create an account.',
-            {
-              errorCode: 'auth.terms_required',
-            },
+            {errorCode: 'auth.terms_required'},
           )
         if (await userEmail.maybeUser(email))
           throw conflictError(`User already exists with email "${email}".`, {
@@ -147,15 +139,14 @@ export default new Map<string, RequestHandler>([
           intrusion.getClientIp(req),
         )
         const code = await userEmail.codeSend(email, firstName, 'Verify Email')
-        const emails = [userEmail.create(email, true, code)]
         const user = await $User.createOne({
           ...body,
           firstName,
           termsAccepted,
-          emails,
+          emails: [userEmail.create(email, true, code)],
         })
         const session = await gatekeeper.createUserSession(user, userAgent)
-        return _addTeamOfSeason(user, session, seasonId)
+        return buildAuthPayload(user, session, seasonId)
       },
   }),
 
@@ -177,26 +168,15 @@ export default new Map<string, RequestHandler>([
         const ip = intrusion.getClientIp(req)
         await authAttemptLimit.consume('verify', email, ip)
         let user = await userEmail.maybeUser(email)
-        if (!user) {
+        if (!user)
           throw badRequestError(`Code is incorrect.`, {
             errorCode: 'user.code_invalid',
           })
-        }
-        if (!userEmail.isCodeEqual(user, email, code)) {
-          throw badRequestError(`Code is incorrect.`, {
-            errorCode: 'user.code_invalid',
-          })
-        }
-        if (userEmail.isCodeExpired(user, email)) {
-          await authAttemptLimit.consume('delivery', email, ip)
-          const subject = user.password ? 'Restore Account' : 'Verify Email'
-          await userEmail.codeSendSave(user, email, subject)
-          const message = `Your code has expired. A new code has been sent to your email.`
-          throw badRequestError(message, {
-            errorCode: 'user.code_expired',
-          })
-        }
-        const passwordChanged = Boolean(newPassword.trim().length || !user.password)
+        const expiredSubject = user.password ? 'Restore Account' : 'Verify Email'
+        await userEmail.assertCodeValid(user, email, code, ip, expiredSubject)
+        const passwordChanged = Boolean(
+          newPassword.trim().length || !user.password,
+        )
         if (passwordChanged) {
           hash.assertNewPasswordValid(newPassword)
           const password = await hash.encrypt(newPassword)
@@ -207,7 +187,7 @@ export default new Map<string, RequestHandler>([
         // a reset proves control of the email, so sign out everywhere else
         if (passwordChanged) await gatekeeper.endUserSessions(user.id)
         const session = await gatekeeper.createUserSession(user, userAgent)
-        return _addTeamOfSeason(user, session, seasonId)
+        return buildAuthPayload(user, session, seasonId)
       },
   }),
 
@@ -225,29 +205,3 @@ export default new Map<string, RequestHandler>([
     },
   }),
 ])
-
-export const _addTeamOfSeason = async (
-  rawUser: TUser,
-  session: TSession,
-  seasonId?: string,
-) => {
-  let user = rawUser
-  let team: TTeam | undefined
-  if (seasonId) {
-    const season = await $Season.getOne({id: seasonId})
-    const member = await $Member.maybeOne({
-      userId: user.id,
-      seasonId: seasonId,
-      pending: false,
-    })
-    team = member ? await $Team.getOne({id: member.teamId}) : undefined
-    if (user.lastSeasonId !== season.id) {
-      user = await $User.updateOne({id: user.id}, {lastSeasonId: season.id})
-    }
-  }
-  return {
-    user: selectSafeUserFields(user),
-    session,
-    team,
-  }
-}
