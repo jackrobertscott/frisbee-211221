@@ -29,6 +29,6 @@
       "@shared/*": ["shared/src/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "vitest.config.ts"],
   "exclude": ["node_modules"]
 }
