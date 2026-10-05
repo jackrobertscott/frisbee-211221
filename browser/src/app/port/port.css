@@ -1,0 +1,7 @@
+.fr-port-headings { margin: var(--sp-2) 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); }
+.fr-port-headings li { display: inline-flex; align-items: center; gap: var(--sp-1); }
+.fr-port-pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.fr-port-dl dd { overflow-wrap: anywhere; min-width: 0; }
+@media (max-width: 560px) {
+  .fr-port-grid { grid-template-columns: minmax(0, 1fr); }
+}
