@@ -427,7 +427,7 @@ async function _getAgainstOptions({
 }) {
   let team: TTeam
   if (user.admin) team = await $Team.getOne({id: teamId, seasonId})
-  else [team] = await requireTeam(user as any, teamId)
+  else [team] = await requireTeam(user, teamId)
   const fixture = await $Fixture.getOne({id: fixtureId})
   if (fixture.seasonId !== seasonId) {
     throw badRequestError('Fixture does not belong to the selected season.', {

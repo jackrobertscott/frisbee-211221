@@ -93,12 +93,11 @@ export const db = {
         let chain = collection.find(query as Filter<Document>, mongo.options())
         if (queryOptions?.collation)
           chain = chain.collation(queryOptions.collation)
-        for (const i of Object.entries(queryOptions?.sort ?? {})) {
-          chain = chain.sort(i[0], i[1])
-        }
-        chain = chain
-          .skip(queryOptions?.skip ?? 0)
-          .limit(queryOptions?.limit ?? Number.MAX_SAFE_INTEGER)
+        // cursor.sort() replaces any previous sort, so pass every key at once
+        if (queryOptions?.sort && Object.keys(queryOptions.sort).length)
+          chain = chain.sort(queryOptions.sort as Record<string, 1 | -1>)
+        if (queryOptions?.skip) chain = chain.skip(queryOptions.skip)
+        if (queryOptions?.limit) chain = chain.limit(queryOptions.limit)
         const result = await chain.toArray()
         return result.map((i) => this._clean(i as any))
       },
@@ -152,21 +151,15 @@ export const db = {
           })
         const i = options.schema.validate({...current, ...value})
         if (!i.ok) throw i.error
-        const collection = await mongo.collection(options.key)
-        const {_id, id, ...$set} = i.value as Record<string, any>
-        const $unset = Object.fromEntries(
-          Object.entries(value as Record<string, unknown>)
-            .filter(([, item]) => item === undefined)
-            .map(([key]) => [key, '']),
-        )
-        await collection.updateOne(
-          query as Filter<Document>,
-          {
-            $set,
-            ...(Object.keys($unset).length ? {$unset} : {}),
-          },
-          mongo.options(),
-        )
+        const update = _changedFieldsUpdate(i.value, value)
+        if (update) {
+          const collection = await mongo.collection(options.key)
+          await collection.updateOne(
+            query as Filter<Document>,
+            update,
+            mongo.options(),
+          )
+        }
         return i.value as V
       },
 
@@ -199,7 +192,7 @@ export const db = {
         const operations = [] as Array<{
           updateOne: {
             filter: Filter<Document>
-            update: {$set: Record<string, any>}
+            update: Document
           }
         }>
         for (const task of tasks) {
@@ -211,25 +204,41 @@ export const db = {
             })
           const validated = options.schema.validate({...current, ...task.value})
           if (!validated.ok) throw validated.error
-          const {_id, id, ...$set} = validated.value as Record<string, any>
-          const $unset = Object.fromEntries(
-            Object.entries(task.value as Record<string, unknown>)
-              .filter(([, item]) => item === undefined)
-              .map(([key]) => [key, '']),
-          )
+          const update = _changedFieldsUpdate(validated.value, task.value)
+          if (!update) continue
           operations.push({
             updateOne: {
               filter: task.query as Filter<Document>,
-              update: {
-                $set,
-                ...(Object.keys($unset).length ? {$unset} : {}),
-              },
+              update,
             },
           })
         }
         const collection = await mongo.collection(options.key)
         if (operations.length)
           await collection.bulkWrite(operations, mongo.options())
+      },
+
+      /**
+       * Atomic single-document update (operators or an aggregation pipeline)
+       * that returns the document after the write. It skips schema validation,
+       * so callers must write every field the schema requires.
+       */
+      async updateAtomic(
+        query: Filter<V>,
+        update: Document | Document[],
+        updateOptions?: {upsert?: boolean},
+      ): Promise<V | undefined> {
+        const collection = await mongo.collection(options.key)
+        const result = await collection.findOneAndUpdate(
+          query as Filter<Document>,
+          update,
+          {
+            ...mongo.options(),
+            upsert: updateOptions?.upsert ?? false,
+            returnDocument: 'after',
+          },
+        )
+        return result ? this._clean(result as unknown as WithId<V>) : undefined
       },
 
       async aggregate<T = V>(pipeline: Document[]): Promise<T[]> {
@@ -276,6 +285,26 @@ export const db = {
       },
     }
   },
+}
+
+/**
+ * Build an update that only touches the fields the caller changed, so
+ * concurrent writes to other fields of the same document are not clobbered.
+ * Values come from the validated document so schema normalisation applies.
+ */
+function _changedFieldsUpdate(validated: unknown, value: unknown) {
+  const next = validated as Record<string, unknown>
+  const $set: Record<string, unknown> = {}
+  const $unset: Record<string, ''> = {}
+  for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+    if (key === '_id' || key === 'id') continue
+    if (item === undefined) $unset[key] = ''
+    else $set[key] = next[key]
+  }
+  const update: Document = {}
+  if (Object.keys($set).length) update.$set = $set
+  if (Object.keys($unset).length) update.$unset = $unset
+  return Object.keys(update).length ? update : undefined
 }
 
 function _compileTableIndex(index: TTableIndex): TCompiledTableIndex {

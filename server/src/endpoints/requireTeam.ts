@@ -3,9 +3,9 @@ import {TUser} from '@shared/schemas/ioUser'
 import {$Member} from '../tables/$Member'
 import {$Team} from '../tables/$Team'
 
-export const requireTeam = async (user: TUser, teamId: string) => {
+export const requireTeam = async (user: Pick<TUser, 'id'>, teamId: string) => {
   const team = await $Team.getOne({id: teamId})
-  const member = await $Member.getOne({
+  const member = await $Member.maybeOne({
     teamId: team.id,
     userId: user.id,
     pending: false,

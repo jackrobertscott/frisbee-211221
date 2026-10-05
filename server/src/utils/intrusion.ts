@@ -7,6 +7,7 @@ const STRIKE_RESET_MS = 30 * 60 * 1000
 const LOG_COOLDOWN_MS = 30 * 1000
 const BLOCK_THRESHOLD = 6
 const PRUNE_INTERVAL = 256
+const MAX_TRACKED_IPS = 10000
 const BLOCK_DURATIONS_MS = [15, 60, 360, 1440].map(
   (minutes) => minutes * 60 * 1000,
 )
@@ -121,22 +122,12 @@ const createTarpitPlan = ({
   }
 }
 
-const getState = (ip: string, now: number) => {
+const getExistingState = (ip: string, now: number) => {
   inspectCount += 1
   if (inspectCount % PRUNE_INTERVAL === 0) pruneState(now)
 
   const existing = stateByIp.get(ip)
-  if (!existing) {
-    const fresh: IIntrusionState = {
-      score: 0,
-      blockedUntil: 0,
-      blockCount: 0,
-      lastSeenAt: now,
-      lastLoggedAt: 0,
-    }
-    stateByIp.set(ip, fresh)
-    return fresh
-  }
+  if (!existing) return undefined
 
   if (
     existing.blockedUntil <= now &&
@@ -147,6 +138,27 @@ const getState = (ip: string, now: number) => {
 
   existing.lastSeenAt = now
   return existing
+}
+
+// only offending IPs are tracked, and the map is bounded so a flood of
+// spoofed or rotating addresses cannot grow memory without limit
+const createState = (ip: string, now: number) => {
+  if (stateByIp.size >= MAX_TRACKED_IPS) {
+    pruneState(now)
+    if (stateByIp.size >= MAX_TRACKED_IPS) {
+      const oldest = stateByIp.keys().next().value
+      if (oldest !== undefined) stateByIp.delete(oldest)
+    }
+  }
+  const fresh: IIntrusionState = {
+    score: 0,
+    blockedUntil: 0,
+    blockCount: 0,
+    lastSeenAt: now,
+    lastLoggedAt: 0,
+  }
+  stateByIp.set(ip, fresh)
+  return fresh
 }
 
 const logEvent = ({
@@ -216,13 +228,19 @@ const addStrike = ({
 export default {
   getClientIp(req: IncomingMessage) {
     const remoteAddress = req.socket.remoteAddress?.trim()
-    const forwarded = getHeaderValue(req.headers['x-forwarded-for'])
-      ?.split(',')[0]
-      ?.trim()
-    const rawIp =
-      forwarded && isTrustedProxy(remoteAddress)
-        ? forwarded
-        : remoteAddress || 'unknown'
+    let rawIp = remoteAddress || 'unknown'
+    if (isTrustedProxy(remoteAddress)) {
+      // proxies append the address they saw, so walk from the right past our
+      // own proxy hops; entries further left are client-supplied and spoofable
+      const hops = (getHeaderValue(req.headers['x-forwarded-for']) ?? '')
+        .split(',')
+        .map((hop) => hop.trim())
+        .filter(Boolean)
+      for (let index = hops.length - 1; index >= 0; index--) {
+        rawIp = hops[index]
+        if (!isTrustedProxy(hops[index])) break
+      }
+    }
     return rawIp.replace(/^::ffff:/, '')
   },
   getPathname(url?: string) {
@@ -236,9 +254,10 @@ export default {
   inspect(req: IncomingMessage, options: IInspectOptions): Error | null {
     const now = Date.now()
     const ip = this.getClientIp(req)
-    const state = getState(ip, now)
+    const existingState = getExistingState(ip, now)
 
-    if (state.blockedUntil > now) {
+    if (existingState && existingState.blockedUntil > now) {
+      const state = existingState
       logEvent({
         ip,
         state,
@@ -256,6 +275,11 @@ export default {
     const suspiciousPath = SUSPICIOUS_PATH_PATTERNS.some((pattern) =>
       pattern.test(options.pathname),
     )
+
+    // clean requests never record a strike, so skip tracking them
+    if (!suspiciousPath && options.originAllowed) return null
+
+    const state = existingState ?? createState(ip, now)
 
     if (suspiciousPath || (!options.knownRoute && !options.originAllowed)) {
       let reason = 'suspicious request'

@@ -1,11 +1,13 @@
 import {TUser} from '@shared/schemas/ioUser'
 import {IncomingMessage} from 'http'
 import {timingSafeEqual} from 'crypto'
-import {io} from '@shared/torva'
+import {io, TypeIoValue} from '@shared/torva'
 import {$Session} from '../tables/$Session'
 import config from '../config'
 import jwt from './jwt'
 import {random} from './random'
+
+const MAX_TOKEN_LENGTH = 4096
 
 const normalizeToken = (value?: string | string[]) => {
   const header = Array.isArray(value) ? value[0] : value
@@ -82,12 +84,21 @@ export default {
     )
   },
 
+  /**
+   * Returns the decoded token claims, or undefined when the request has no
+   * token or the token is malformed, expired, or signed with another key.
+   */
   async digestRequest(req: IncomingMessage) {
     const token = this.tokenFromRequest(req)
-    if (!token) return undefined
-    const data: any = jwt.decode(token)
-    const done = ioJWT.validate(data)
-    if (!done.ok) throw done.error
+    if (!token || token.length > MAX_TOKEN_LENGTH) return undefined
+    let data: unknown
+    try {
+      data = jwt.decode<object>(token)
+    } catch {
+      return undefined
+    }
+    const done = ioJWT.validate(data as TypeIoValue<typeof ioJWT>)
+    if (!done.ok) return undefined
     return {...done.value, token}
   },
 }

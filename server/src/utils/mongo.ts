@@ -2,8 +2,8 @@ import {AsyncLocalStorage} from 'node:async_hooks'
 import {ClientSession, MongoClient, ObjectId} from 'mongodb'
 import config from '../config'
 
-let cachedClient: MongoClient
-let cachedTransactionSupport: boolean | undefined
+let cachedClient: Promise<MongoClient> | undefined
+let cachedTransactionSupport: Promise<boolean> | undefined
 const sessionStore = new AsyncLocalStorage<ClientSession>()
 
 export default {
@@ -16,23 +16,29 @@ export default {
   },
 
   async client() {
-    if (!cachedClient)
-      cachedClient = await MongoClient.connect(config.MONGODB_URI)
+    // cache the promise so concurrent first requests share one connection pool
+    cachedClient ??= MongoClient.connect(config.MONGODB_URI).catch((error) => {
+      cachedClient = undefined
+      throw error
+    })
     return cachedClient
   },
 
   async supportsTransactions() {
-    if (cachedTransactionSupport !== undefined) return cachedTransactionSupport
-    const client = await this.client()
-    if (client.options.loadBalanced) {
-      cachedTransactionSupport = true
-      return cachedTransactionSupport
-    }
-    const hello = await (await this.database('admin')).command({hello: 1})
-    cachedTransactionSupport = Boolean(
-      typeof hello.setName === 'string' || hello.msg === 'isdbgrid',
+    cachedTransactionSupport ??= this._detectTransactionSupport().catch(
+      (error) => {
+        cachedTransactionSupport = undefined
+        throw error
+      },
     )
     return cachedTransactionSupport
+  },
+
+  async _detectTransactionSupport() {
+    const client = await this.client()
+    if (client.options.loadBalanced) return true
+    const hello = await (await this.database('admin')).command({hello: 1})
+    return Boolean(typeof hello.setName === 'string' || hello.msg === 'isdbgrid')
   },
 
   options() {
