@@ -1,0 +1,22 @@
+/* Ladder page (fr-ladder-*) */
+.fr-ladder-short { display: none; }
+@media (max-width: 640px) {
+  .fr-ladder-full { display: none; }
+  .fr-ladder-short { display: inline; }
+}
+
+.fr-ladder-team { min-width: 150px; display: inline-flex; }
+.fr-ladder-pts { font-weight: var(--weight-semibold); }
+.fr-ladder-dash { color: var(--text-tertiary); }
+
+.fr-ladder-games-empty { padding: var(--sp-3) var(--sp-4); }
+
+.fr-ladder-final-pos { display: flex; align-items: center; gap: var(--sp-3); height: 44px; padding: 0 var(--sp-3); border-top: 1px solid var(--border-subtle); background: var(--bg-surface); }
+.fr-ladder-final-pos:first-child { border-top: 0; }
+.fr-ladder-final-pos__input { width: 104px; flex-shrink: 0; }
+.fr-ladder-final-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+
+.fr-ladder-tally-score { display: inline-flex; align-items: center; gap: var(--sp-1-5); }
+.fr-ladder-tally-game[data-mismatch] { background: var(--warning-subtle); }
+.fr-ladder-tally-flag { display: inline-flex; color: var(--warning-text); }
+.fr-ladder-tally-flag svg { width: 14px; height: 14px; }
