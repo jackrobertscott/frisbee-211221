@@ -19,16 +19,16 @@ export function FixtureGames({
   fixture,
   teams,
   myTeamId,
+  showScore,
 }: {
   fixture: TFixture
   teams: TTeam[]
   myTeamId?: string
+  /** Show the score column; pass the same value for every fixture so their columns line up. */
+  showScore: boolean
 }) {
   const teamById = (id: string) => teams.find((t) => t.id === id)
   const games = [...fixture.games].sort(compareGameSlot)
-  const scored = games.some(
-    (g) => typeof g.team1Score === 'number' && typeof g.team2Score === 'number',
-  )
   const muted = (g: TFixtureGame) =>
     !!myTeamId && g.team1Id !== myTeamId && g.team2Id !== myTeamId
   if (!games.length)
@@ -38,12 +38,14 @@ export function FixtureGames({
       </Text>
     )
   const columns: Column<TFixtureGame>[] = [
+    {key: 'time', header: 'Time', width: 84, nowrap: true},
+    {key: 'place', header: 'Place', width: 110, nowrap: true},
     {
       key: 'team1',
       header: 'Team 1',
-      render: (g) => <TeamName team={teamById(g.team1Id)} muted={muted(g)} />,
+      render: (g) => <TeamName team={teamById(g.team1Id)} muted={muted(g)} wrap />,
     },
-    ...(scored
+    ...(showScore
       ? [
           {
             key: 'score',
@@ -65,10 +67,8 @@ export function FixtureGames({
     {
       key: 'team2',
       header: 'Team 2',
-      render: (g) => <TeamName team={teamById(g.team2Id)} muted={muted(g)} />,
+      render: (g) => <TeamName team={teamById(g.team2Id)} muted={muted(g)} wrap />,
     },
-    {key: 'time', header: 'Time', width: 100, nowrap: true},
-    {key: 'place', header: 'Place', width: 110, nowrap: true},
   ]
   return (
     <DataTable<TFixtureGame>
@@ -78,10 +78,14 @@ export function FixtureGames({
       rowKey={(g) => g.id}
       rows={games}
       columns={columns}
+      className="fr-fx-games-table"
       aria-label={`${fixture.title} games`}
     />
   )
 }
+
+export const hasScore = (g: TFixtureGame) =>
+  typeof g.team1Score === 'number' && typeof g.team2Score === 'number'
 
 function Score({a, b}: {a: number; b: number}) {
   return (

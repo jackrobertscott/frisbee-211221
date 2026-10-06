@@ -48,3 +48,6 @@
   .fr-fx-edit-label { display: none; }
   .fr-fx-title .ui-badge[data-next] { display: none; }
 }
+
+/* Fixed layout so every round's games table shares the same column widths. */
+.fr-fx-games-table .ui-table { table-layout: fixed; min-width: 480px; }

@@ -28,7 +28,7 @@ import {$FeatureCompetitionLoad} from '../../core/endpoints/Feature'
 import {navigate} from '../../core/router/navigate'
 import {FixtureAdjustDialog} from './FixtureAdjustDialog'
 import {FixtureEditDialog} from './FixtureEditDialog'
-import {FixtureGames} from './FixtureGames'
+import {FixtureGames, hasScore} from './FixtureGames'
 import {FixtureGenerateDialog} from './FixtureGenerateDialog'
 import './fixtures.css'
 import {FixtureRow} from '../common/FixtureRow'
@@ -62,6 +62,7 @@ export function FixturesPage() {
   const teams = competition.data?.teams ?? []
   const fixtures = competition.data?.fixtures ?? []
   const next = fixtures.find(isUpcoming)
+  const showScore = fixtures.some((f) => f.games.some(hasScore))
   const myTeamId = auth.current?.team?.id
   const toggle = (id: string) =>
     openSet((o) => (o.includes(id) ? o.filter((x) => x !== id) : [...o, id]))
@@ -194,7 +195,12 @@ export function FixturesPage() {
                 </>
               }
             >
-              <FixtureGames fixture={f} teams={teams} myTeamId={myTeamId} />
+              <FixtureGames
+                fixture={f}
+                teams={teams}
+                myTeamId={myTeamId}
+                showScore={showScore}
+              />
             </FixtureRow>
           ))}
         </Stack>
