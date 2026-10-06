@@ -1,14 +1,9 @@
 import {act, renderHook, waitFor} from '@testing-library/react'
-import {ReactNode} from 'react'
 import {afterEach, describe, expect, it, vi} from 'vitest'
-import {history} from '../router/history'
-import {navigate} from '../router/navigate'
-import {RouterProvider} from '../router/RouterProvider'
 import {storage} from '../storage'
 import {useLoad} from './useLoad'
 import {useLocalState} from './useLocalState'
 import {useMountedRef} from './useMountedRef'
-import {useReload} from './useReload'
 
 /** A promise whose settlement the test controls. */
 const deferred = <T,>() => {
@@ -160,59 +155,5 @@ describe('useMountedRef', () => {
     expect(ref.current).toBe(true)
     unmount()
     expect(ref.current).toBe(false)
-  })
-})
-
-describe('useReload', () => {
-  const wrapper = ({children}: {children: ReactNode}) => (
-    <RouterProvider>{children}</RouterProvider>
-  )
-
-  const setup = () => {
-    const reload = vi.fn()
-    vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined)
-    act(() => history.replace('/start'))
-    renderHook(() => useReload(), {wrapper})
-    // Live view of the real location (history reads it) with a fake reload.
-    const real = window.location
-    vi.stubGlobal('location', {
-      get pathname() {
-        return real.pathname
-      },
-      get search() {
-        return real.search
-      },
-      get hash() {
-        return real.hash
-      },
-      get href() {
-        return real.href
-      },
-      reload,
-    })
-    return reload
-  }
-
-  const go = async (path: string) => {
-    act(() => navigate(path))
-    await act(() => vi.advanceTimersByTimeAsync(1))
-  }
-
-  it('reloads the app after many in-app navigations', async () => {
-    vi.useFakeTimers()
-    const reload = setup()
-    for (let i = 1; i < 49; i++) await go(`/page/${i}`)
-    expect(reload).not.toHaveBeenCalled()
-    await go('/page/49')
-    expect(reload).toHaveBeenCalledTimes(1)
-  })
-
-  it('reloads on the next navigation once the app is an hour old', async () => {
-    vi.useFakeTimers()
-    const reload = setup()
-    await act(() => vi.advanceTimersByTimeAsync(1000 * 60 * 60))
-    expect(reload).not.toHaveBeenCalled()
-    await go('/later')
-    expect(reload).toHaveBeenCalledTimes(1)
   })
 })

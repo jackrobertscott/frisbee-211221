@@ -2,9 +2,9 @@ import {isAppError} from '@shared/errors'
 import {act, render, renderHook, screen} from '@testing-library/react'
 import {createMemoryHistory} from 'history'
 import {ReactNode} from 'react'
-import {beforeEach, describe, expect, it, vi} from 'vitest'
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest'
 import {history} from './history'
-import {navigate} from './navigate'
+import {navigate, pageLoad} from './navigate'
 import {Router} from './Router'
 import {TRoute} from './RouterContext'
 import {RouterProvider} from './RouterProvider'
@@ -183,6 +183,59 @@ describe('Router fallback', () => {
       caught = error
     }
     expect(isAppError(caught) && caught.errorCode).toBe('router.routes_missing')
+  })
+})
+
+describe('navigate', () => {
+  const stub = () => {
+    const assign = vi.fn((_path: string) => undefined)
+    // Live view of the real location (history reads it) with a fake assign.
+    const real = window.location
+    vi.stubGlobal('location', {
+      get pathname() {
+        return real.pathname
+      },
+      get search() {
+        return real.search
+      },
+      get hash() {
+        return real.hash
+      },
+      get href() {
+        return real.href
+      },
+      assign,
+    })
+    return assign
+  }
+
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('changes route in app while the page load is fresh', () => {
+    const assign = stub()
+    act(() => history.replace('/start'))
+    for (let i = 1; i < 50; i++) navigate(`/page/${i}`)
+    expect(assign).not.toHaveBeenCalled()
+    expect(history.location.pathname).toBe('/page/49')
+  })
+
+  it('loads the 50th page change as a fresh page', () => {
+    const assign = stub()
+    act(() => history.replace('/start'))
+    for (let i = 1; i <= 50; i++) navigate(`/page/${i}`)
+    expect(assign).toHaveBeenCalledOnce()
+    expect(assign).toHaveBeenCalledWith('/page/50')
+    expect(history.location.pathname).toBe('/page/49')
+  })
+
+  it('loads the next page change fresh once the app is an hour old', () => {
+    const assign = stub()
+    act(() => history.replace('/start'))
+    pageLoad.at = Date.now() - 1000 * 60 * 60
+    navigate('/later')
+    expect(assign).toHaveBeenCalledWith('/later')
+    expect(history.location.pathname).toBe('/start')
+    expect(scrollTo).not.toHaveBeenCalled()
   })
 })
 

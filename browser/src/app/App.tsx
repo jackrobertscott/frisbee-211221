@@ -2,7 +2,6 @@ import {Toaster} from '@ui'
 import {useAuth} from '../core/auth/useAuth'
 import {Router} from '../core/router/Router'
 import {useRouter} from '../core/router/useRouter'
-import {useReload} from '../core/hooks/useReload'
 import {AuthScreen} from './auth/AuthScreen'
 import {Dashboard} from './shell/Dashboard'
 import {FixtureShare} from './fixtures/FixtureShare'
@@ -20,7 +19,6 @@ export function App() {
 }
 
 function AppRoutes() {
-  useReload()
   const router = useRouter()
   if (router.query.fixtureId)
     return <FixtureShare fixtureId={router.query.fixtureId} />
