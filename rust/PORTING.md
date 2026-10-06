@@ -187,7 +187,7 @@ integration tests in `server/test/integration/x.test.ts` become
 | Binary | Purpose | Owner | Status |
 | --- | --- | --- | --- |
 | `src/bin/frisbee-server.rs` | The HTTP server (`server/src/index.ts`) | Foundation | done |
-| `src/bin/migrate-mongo.rs` | One-off import of the Mongo database into SQLite (use `TableTx::insert_raw` so legacy rows load unchanged; `user.gender` goes in the legacy column) | Migration | pending |
+| `src/bin/migrate-mongo.rs` | One-off import of a `mongodump` (directory, `--gzip`, `--archive`) into SQLite; logic in `src/migrate/` (tests there and in `tests/migrate_mongo.rs`, fixture in `tests/fixtures/mongo/`). See README "Migrating from MongoDB" | Migration | done |
 | `src/bin/gameday-export.rs` | `server/src/gameday/exportCli.ts` | Port | pending |
 
 ## Inapplicable or adapted tests

@@ -8,8 +8,9 @@ tests and match them, including over HTTP and in stored data.
 
 ```
 src/
-  bin/frisbee-server.rs   the server binary (bin/migrate-mongo.rs and
-                          bin/gameday-export.rs are reserved for later work)
+  bin/frisbee-server.rs   the server binary (bin/gameday-export.rs is
+                          reserved for later work)
+  bin/migrate-mongo.rs    imports a mongodump into SQLite (logic in migrate/)
   lib.rs
   js/                     JavaScript semantics: trim, Number(), String(n),
                           JSON.stringify numbers, Date.parse/toISOString
@@ -38,6 +39,7 @@ src/
   queries/                queries/*.ts (joins, aggregates, computed sorts)
   gameday/                gameday/*.ts (types so far; scheduler hook)
   migrations/             data backfills run at startup
+  migrate/                the Mongo import: dump reading, BSON conversion
   startup.rs              startup tasks with production retry
   server.rs               bootstrap, serve, graceful drain
   app.rs                  AppState (config, db, mailer, codes, screening)
