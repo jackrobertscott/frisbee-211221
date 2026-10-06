@@ -307,7 +307,7 @@ export function ReportFormDialog({
               emptyText="No fixtures this season"
             />
           </Field>
-          <Field label={isDashboard ? 'For' : 'Reporting for'}>
+          <Field label={isDashboard ? 'For' : 'Your team'}>
             {canChooseTeam ? (
               <Select
                 placeholder="Select a team"
