@@ -49,7 +49,6 @@ mod request_pipeline {
     }
 
     #[tokio::test]
-    #[ignore = "pending Season domain: /SeasonList"]
     async fn rejects_non_post_requests_to_known_routes() {
         let server = TestServer::start().await;
         let response = server
@@ -77,7 +76,6 @@ mod request_pipeline {
     }
 
     #[tokio::test]
-    #[ignore = "pending Season domain: /SeasonList"]
     async fn forbids_known_routes_from_other_origins() {
         let server = TestServer::start().await;
         let response = server
@@ -95,7 +93,6 @@ mod request_pipeline {
     }
 
     #[tokio::test]
-    #[ignore = "pending Security domain: /SecurityStatus"]
     async fn reports_invalid_payloads_as_validation_errors_with_a_friendly_message() {
         let server = TestServer::start().await;
         let response = server
@@ -109,7 +106,6 @@ mod request_pipeline {
     }
 
     #[tokio::test]
-    #[ignore = "pending Security domain: /SecurityStatus"]
     async fn requires_the_payload_wrapper() {
         let server = TestServer::start().await;
         let response = server
@@ -128,7 +124,6 @@ mod request_pipeline {
     }
 
     #[tokio::test]
-    #[ignore = "pending Security domain: /SecurityCurrent"]
     async fn reports_a_missing_season_before_any_season_exists() {
         let server = TestServer::start().await;
         let response = server.post("/SecurityCurrent", json!({})).await;

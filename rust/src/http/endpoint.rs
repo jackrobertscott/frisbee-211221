@@ -42,7 +42,8 @@ pub struct Ctx {
     pub url: String,
     pub headers: HeaderMap,
     pub client: ClientInfo,
-    body: Option<Body>,
+    /// Behind a mutex so `Ctx` is `Sync` and handlers can hold `&ctx` across awaits.
+    body: std::sync::Mutex<Option<Body>>,
 }
 
 impl Ctx {
@@ -62,7 +63,7 @@ impl Ctx {
             url,
             headers,
             client,
-            body,
+            body: std::sync::Mutex::new(body),
         }
     }
 
@@ -86,7 +87,10 @@ impl Ctx {
 
     /// The unread request body (multipart endpoints only).
     pub fn take_body(&mut self) -> Option<Body> {
-        self.body.take()
+        self.body
+            .get_mut()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .take()
     }
 
     /// The endpoint's declared access point (the TS handler's `access`).
@@ -201,7 +205,9 @@ impl Endpoint {
             ));
         }
         let body_value = if self.def.multipart {
-            ctx.body = Some(body);
+            *ctx.body
+                .get_mut()
+                .unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(body);
             Value::Object(Default::default())
         } else {
             read_json(&ctx.headers, body).await?
