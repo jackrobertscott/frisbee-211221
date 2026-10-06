@@ -255,17 +255,17 @@ export function getReportMvpSlots(
   return [
     ...(slots.male
       ? [
-          {field: 'mvpMale', pair: 'mvpMale2', slot: 'male', label: `MVP Male${n}`} as const,
+          {field: 'mvpMale', pair: 'mvpMale2', slot: 'male', label: `Male MVP${n}`} as const,
           ...(useOfficialScoring
-            ? [{field: 'mvpMale2', pair: 'mvpMale', slot: 'male', label: 'MVP Male 2'} as const]
+            ? [{field: 'mvpMale2', pair: 'mvpMale', slot: 'male', label: 'Male MVP 2'} as const]
             : []),
         ]
       : []),
     ...(slots.female
       ? [
-          {field: 'mvpFemale', pair: 'mvpFemale2', slot: 'female', label: `MVP Female${n}`} as const,
+          {field: 'mvpFemale', pair: 'mvpFemale2', slot: 'female', label: `Female MVP${n}`} as const,
           ...(useOfficialScoring
-            ? [{field: 'mvpFemale2', pair: 'mvpFemale', slot: 'female', label: 'MVP Female 2'} as const]
+            ? [{field: 'mvpFemale2', pair: 'mvpFemale', slot: 'female', label: 'Female MVP 2'} as const]
             : []),
         ]
       : []),

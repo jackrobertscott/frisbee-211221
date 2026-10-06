@@ -256,20 +256,20 @@ describe('sameMvps', () => {
 describe('getReportMvpSlots', () => {
   it('shows one slot per gender without official scoring', () => {
     expect(getReportMvpSlots(season('mixed'), false)).toEqual([
-      {field: 'mvpMale', pair: 'mvpMale2', slot: 'male', label: 'MVP Male'},
+      {field: 'mvpMale', pair: 'mvpMale2', slot: 'male', label: 'Male MVP'},
       {
         field: 'mvpFemale',
         pair: 'mvpFemale2',
         slot: 'female',
-        label: 'MVP Female',
+        label: 'Female MVP',
       },
     ])
   })
 
   it('adds 2nd picks with official scoring, limited to the division', () => {
     expect(getReportMvpSlots(season('men'), true).map((s) => s.label)).toEqual([
-      'MVP Male 1',
-      'MVP Male 2',
+      'Male MVP 1',
+      'Male MVP 2',
     ])
     expect(getReportMvpSlots(undefined, true).map((s) => s.field)).toEqual([
       'mvpMale',
