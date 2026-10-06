@@ -116,6 +116,8 @@ mod blob_digest_request {
         assert_eq!(files[0].mimetype, "text/csv");
         assert_eq!(files[0].encoding, "7bit");
         assert!(files[0].filepath.starts_with(uploads.dir.path()));
+        // outside tests uploads go to the OS temp directory (`os.tmpdir()`)
+        assert_eq!(UploadOptions::default().temp_dir, std::env::temp_dir());
         let name = files[0]
             .filepath
             .file_name()

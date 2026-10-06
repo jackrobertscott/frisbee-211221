@@ -279,9 +279,11 @@ mod tests {
             }),
         );
 
-        let lines = db
-            .call_blocking(|c| audit_tables(c, &all_tables()))
-            .unwrap();
+        let capture = log::capture();
+        db.call_blocking(run_startup_schema_audit).unwrap();
+        let logged = capture.matching(log::Level::Log, "SQLite schema audit");
+        assert_eq!(logged[0], "Running SQLite schema audit...");
+        let lines: Vec<String> = logged[1].split('\n').map(str::to_string).collect();
         assert_eq!(lines[0], "SQLite schema audit results:");
 
         let section = |key: &str| -> Vec<String> {

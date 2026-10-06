@@ -263,7 +263,14 @@ mod start_gameday_import_scheduler_tests {
         let scheduler =
             GamedayImportScheduler::new(app.db().clone(), runner, Duration::from_secs(3600));
 
-        // the scheduler stays off while disabled
+        // the scheduler stays off while disabled: `GAMEDAY_IMPORT_SCHEDULER_DISABLED`
+        // is read like the TS `isSchedulerDisabled()` (trimmed, any case)
+        assert!(crate::config::is_truthy_flag(Some(" Yes ")));
+        assert!(!crate::config::is_truthy_flag(Some("")));
+        assert!(!crate::config::is_truthy_flag(None));
+        assert!(app.state.config.gameday_import_scheduler_disabled);
+        start_gameday_import_scheduler(&app.state);
+        assert!(SCHEDULER.get().is_none());
         assert!(!scheduler.start(true));
         tokio::time::sleep(Duration::from_millis(50)).await;
         assert!(calls.lock().unwrap().is_empty());

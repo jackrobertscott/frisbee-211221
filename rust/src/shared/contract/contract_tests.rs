@@ -45,6 +45,97 @@ mod endpoint_definitions {
         }
     }
 
+    /// Every `*Def` export of `shared/src/endpoints/*Def.ts`, in module and
+    /// declaration order, with its access point and whether it declares a
+    /// payload, a result and a multipart body.
+    #[test]
+    fn match_the_ts_definitions_one_to_one() {
+        #[rustfmt::skip]
+        let expected: [(&str, &str, Option<AuthPoint>, bool, bool, bool); 67] = [
+        ("FeatureDef", "/FeatureCompetitionLoad", None, true, true, false),
+        ("FeatureDef", "/FeatureDashboardTeamsLoad", None, true, true, false),
+        ("FeatureDef", "/FeatureDashboardReportsLoad", Some(AuthPoint::ReportManage), true, true, false),
+        ("FeatureDef", "/FeatureReportEditorLoad", Some(AuthPoint::ReportWrite), true, true, false),
+        ("FeatureDef", "/FeatureDashboardSpiritLoad", Some(AuthPoint::ReportManage), true, true, false),
+        ("FeatureDef", "/FeatureDashboardMvpLoad", Some(AuthPoint::ReportManage), true, true, false),
+        ("FeatureDef", "/FeatureFixtureTallyLoad", Some(AuthPoint::FixtureManage), true, true, false),
+        ("FeatureDef", "/FeatureFixtureViewLoad", None, true, true, false),
+        ("FeatureDef", "/FeatureTeamSetupLoad", Some(AuthPoint::TeamJoin), true, true, false),
+        ("FeatureDef", "/FeatureDashboardUserMembershipsLoad", Some(AuthPoint::UserManage), true, true, false),
+        ("FixtureDef", "/FixtureCreate", Some(AuthPoint::FixtureManage), true, true, false),
+        ("FixtureDef", "/FixtureUpdate", Some(AuthPoint::FixtureManage), true, true, false),
+        ("FixtureDef", "/FixtureDelete", Some(AuthPoint::FixtureManage), true, false, false),
+        ("FixtureDef", "/FixtureAdjustMultiple", Some(AuthPoint::FixtureManage), true, true, false),
+        ("FixtureDef", "/FixtureGenerate", Some(AuthPoint::FixtureManage), true, false, false),
+        ("MemberDef", "/MemberListOfTeam", Some(AuthPoint::MemberRead), true, true, false),
+        ("MemberDef", "/MemberCreate", Some(AuthPoint::MemberManage), true, true, false),
+        ("MemberDef", "/MemberLookupByEmail", Some(AuthPoint::MemberManage), true, true, false),
+        ("MemberDef", "/MemberRemove", Some(AuthPoint::MemberManage), true, false, false),
+        ("MemberDef", "/MemberRequestCreate", Some(AuthPoint::TeamJoin), true, true, false),
+        ("MemberDef", "/MemberAcceptOrDecline", Some(AuthPoint::MemberManage), true, false, false),
+        ("MemberDef", "/MemberSetCaptain", Some(AuthPoint::MemberManage), true, true, false),
+        ("PortDef", "/PortImport", Some(AuthPoint::PortManage), false, false, true),
+        ("PortDef", "/PortExport", Some(AuthPoint::PortManage), true, true, false),
+        ("PortDef", "/PortGamedayImportLoad", Some(AuthPoint::PortManage), true, true, false),
+        ("PortDef", "/PortGamedayImportSave", Some(AuthPoint::PortManage), true, true, false),
+        ("PortDef", "/PortGamedayImport", Some(AuthPoint::PortManage), true, true, false),
+        ("PortDef", "/PortMockGenerate", Some(AuthPoint::PortManage), true, false, false),
+        ("PortDef", "/PortDeleteAllMockData", Some(AuthPoint::PortManage), false, false, false),
+        ("ReportDef", "/ReportCreate", Some(AuthPoint::ReportWrite), true, true, false),
+        ("ReportDef", "/ReportUpdate", Some(AuthPoint::ReportManage), true, true, false),
+        ("ReportDef", "/ReportDelete", Some(AuthPoint::ReportManage), true, false, false),
+        ("ReportDef", "/ReportMissingList", Some(AuthPoint::ReportManage), true, true, false),
+        ("SeasonDef", "/SeasonList", None, true, true, false),
+        ("SeasonDef", "/SeasonCreate", Some(AuthPoint::SeasonManage), true, true, false),
+        ("SeasonDef", "/SeasonUpdate", Some(AuthPoint::SeasonManage), true, true, false),
+        ("SeasonDef", "/SeasonDeleteStatus", Some(AuthPoint::SeasonManage), true, true, false),
+        ("SeasonDef", "/SeasonDelete", Some(AuthPoint::SeasonManage), true, false, false),
+        ("SecurityDef", "/SecurityCurrent", None, true, true, false),
+        ("SecurityDef", "/SecurityStatus", None, true, true, false),
+        ("SecurityDef", "/SecurityLogin", None, true, true, false),
+        ("SecurityDef", "/SecuritySignUp", None, true, true, false),
+        ("SecurityDef", "/SecurityForgot", None, true, false, false),
+        ("SecurityDef", "/SecurityVerify", None, true, true, false),
+        ("SecurityDef", "/SecurityLogout", None, false, false, false),
+        ("TeamDef", "/TeamCurrentCreate", Some(AuthPoint::TeamJoin), true, true, false),
+        ("TeamDef", "/TeamCurrentUpdate", Some(AuthPoint::TeamManage), true, true, false),
+        ("TeamDef", "/TeamCreate", Some(AuthPoint::TeamDirectoryManage), true, true, false),
+        ("TeamDef", "/TeamUpdate", Some(AuthPoint::TeamDirectoryManage), true, true, false),
+        ("TeamDef", "/TeamDelete", Some(AuthPoint::TeamDirectoryManage), true, false, false),
+        ("UserDef", "/UserCurrentUpdate", Some(AuthPoint::UserSelf), true, true, false),
+        ("UserDef", "/UserCurrentEmailAdd", Some(AuthPoint::UserSelf), true, true, false),
+        ("UserDef", "/UserCurrentEmailVerify", Some(AuthPoint::UserSelf), true, true, false),
+        ("UserDef", "/UserCurrentEmailCodeResend", Some(AuthPoint::UserSelf), true, true, false),
+        ("UserDef", "/UserCurrentEmailPrimarySet", Some(AuthPoint::UserSelf), true, true, false),
+        ("UserDef", "/UserCurrentEmailRemove", Some(AuthPoint::UserSelf), true, true, false),
+        ("UserDef", "/UserEmailAdd", Some(AuthPoint::UserManage), true, true, false),
+        ("UserDef", "/UserEmailPrimarySet", Some(AuthPoint::UserManage), true, true, false),
+        ("UserDef", "/UserEmailVerifiedSet", Some(AuthPoint::UserManage), true, true, false),
+        ("UserDef", "/UserEmailRemove", Some(AuthPoint::UserManage), true, true, false),
+        ("UserDef", "/UserCurrentChangePassword", Some(AuthPoint::UserSelf), true, true, false),
+        ("UserDef", "/UserList", Some(AuthPoint::UserManage), true, true, false),
+        ("UserDef", "/UserCreate", Some(AuthPoint::UserManage), true, true, false),
+        ("UserDef", "/UserUpdate", Some(AuthPoint::UserManage), true, true, false),
+        ("UserDef", "/UserToggleAdmin", Some(AuthPoint::UserManage), true, true, false),
+        ("UserDef", "/UserMerge", Some(AuthPoint::UserManage), true, true, false),
+        ("UserDef", "/UserChangePassword", Some(AuthPoint::UserManage), true, true, false),
+        ];
+        let actual: Vec<_> = all_defs()
+            .into_iter()
+            .map(|(module, def)| {
+                (
+                    module,
+                    def.path,
+                    def.access,
+                    def.payload.is_some(),
+                    def.result.is_some(),
+                    def.multipart,
+                )
+            })
+            .collect();
+        assert_eq!(actual, expected);
+    }
+
     #[test]
     fn path_matches_its_export_name() {
         for (_, def) in all_defs() {

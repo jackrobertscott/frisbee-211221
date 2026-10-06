@@ -244,6 +244,17 @@ async fn seed() -> Seeded {
     Seeded { app }
 }
 
+/// `new Date(iso).toLocaleDateString('en-AU')`, computed independently of
+/// `human_readable_date`.
+fn en_au_date(iso: &str) -> String {
+    use chrono::{DateTime, Local, Utc};
+    iso.parse::<DateTime<Utc>>()
+        .unwrap()
+        .with_timezone(&Local)
+        .format("%d/%m/%Y")
+        .to_string()
+}
+
 fn pick(row: &Value, keys: &[&str]) -> Vec<Value> {
     keys.iter().map(|key| row[*key].clone()).collect()
 }
@@ -331,7 +342,8 @@ mod create_export_archive_tests {
                 "team2Score": 2,
                 "gameTime": "10:00",
                 "gamePlace": "Field 1",
-                "fixtureDate": human_readable_date(Some("2024-03-02T00:00:00.000Z")),
+                // `toLocaleDateString('en-AU')`: dd/mm/yyyy in the local time zone
+                "fixtureDate": en_au_date("2024-03-02T00:00:00.000Z"),
             }),
         );
     }
@@ -566,6 +578,10 @@ mod create_export_archive_tests {
         assert_eq!(human_readable_date(Some("not a date")), "not a date");
         let date = regex::Regex::new(r"^\d\d/\d\d/\d{4}$").unwrap();
         assert!(date.is_match(&human_readable_date(Some("2024-03-02T12:00:00.000Z"))));
+        assert_eq!(
+            human_readable_date(Some("2024-03-02T12:00:00.000Z")),
+            en_au_date("2024-03-02T12:00:00.000Z")
+        );
     }
 
     #[test]
