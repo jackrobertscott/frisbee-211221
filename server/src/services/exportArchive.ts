@@ -349,7 +349,6 @@ const EXPORT_DATASETS = [
   },
   {
     filename: 'user-emails',
-    sortRecords: true,
     fields: [
       'userName',
       'email',
@@ -359,7 +358,17 @@ const EXPORT_DATASETS = [
       'userPrimaryEmail',
     ],
     build: ({users}) => {
-      return users
+      // order users, keeping each user's emails together with the primary
+      // first; users arrive sorted by createdOn, which the stable sort keeps
+      // as the final tie-breaker
+      return [...users]
+        .sort((a, b) => {
+          const userDiff = _userName(a).localeCompare(_userName(b))
+          if (userDiff) return userDiff
+          return String(_primaryEmail(a) ?? '').localeCompare(
+            String(_primaryEmail(b) ?? ''),
+          )
+        })
         .flatMap((user) =>
           _sortUserEmails(user.emails).map((email) => ({
             userName: _userName(user),
@@ -370,17 +379,6 @@ const EXPORT_DATASETS = [
             createdOn: _humanReadableDate(email.createdOn),
           })),
         )
-        .sort((a, b) => {
-          const userDiff = String(a.userName ?? '').localeCompare(
-            String(b.userName ?? ''),
-          )
-          if (userDiff) return userDiff
-          const emailDiff = String(a.email ?? '').localeCompare(
-            String(b.email ?? ''),
-          )
-          if (emailDiff) return emailDiff
-          return 0
-        })
     },
   },
   {

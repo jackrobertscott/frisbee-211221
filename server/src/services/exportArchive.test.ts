@@ -75,6 +75,7 @@ beforeAll(async () => {
     termsAccepted: true,
     admin: true,
     emails: [
+      userEmail.create('m.mal@example.com', false),
       userEmail.create('b.mal@example.com', false),
       {...userEmail.create('z.mal@example.com', true), verified: true},
     ],
@@ -266,12 +267,13 @@ describe('createExportArchive', () => {
     ])
   })
 
-  it('lists every user email and the primary email per user', async () => {
+  it('lists every user email with the primary email first per user', async () => {
     const {read} = await readJson()
     expect(read('user-emails').map((row) => [row.userName, row.email, row.primary, row.verified, row.userPrimaryEmail])).toEqual([
       ['Fay Female', 'fay@example.com', 'Yes', '', 'fay@example.com'],
-      ['Mal Male', 'b.mal@example.com', '', '', 'z.mal@example.com'],
       ['Mal Male', 'z.mal@example.com', 'Yes', 'Yes', 'z.mal@example.com'],
+      ['Mal Male', 'b.mal@example.com', '', '', 'z.mal@example.com'],
+      ['Mal Male', 'm.mal@example.com', '', '', 'z.mal@example.com'],
     ])
     expect(read('users')).toEqual([
       expect.objectContaining({
