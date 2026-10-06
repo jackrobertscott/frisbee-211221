@@ -509,3 +509,16 @@ pub fn ensure_array(value: Option<&Value>) -> bool {
 #[cfg(test)]
 #[path = "torva_tests.rs"]
 mod tests;
+
+/// Declares a schema constructor that builds its [`Io`] once and hands out
+/// cheap clones: `io_schema! { pub fn io_team() { io::object([...]) } }`.
+#[macro_export]
+macro_rules! io_schema {
+    ($(#[$meta:meta])* $vis:vis fn $name:ident() $body:block) => {
+        $(#[$meta])*
+        $vis fn $name() -> $crate::shared::torva::Io {
+            static CELL: ::std::sync::OnceLock<$crate::shared::torva::Io> = ::std::sync::OnceLock::new();
+            CELL.get_or_init(|| $body).clone()
+        }
+    };
+}
