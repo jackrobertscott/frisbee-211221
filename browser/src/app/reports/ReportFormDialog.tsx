@@ -20,7 +20,7 @@ import {
   Tooltip,
 } from '@ui'
 import {Info, Megaphone, Trash2} from 'lucide-react'
-import {type ReactNode, useEffect, useMemo, useRef, useState} from 'react'
+import {type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react'
 import {useAuth} from '../../core/auth/useAuth'
 import {useEndpoint} from '../../core/endpoints/useEndpoint'
 import {$FeatureReportEditorLoad} from '../../core/endpoints/Feature'
@@ -100,6 +100,7 @@ export function ReportFormDialog({
   const [fixtures, fixturesSet] = useState(initialFixtures)
   const [teams, teamsSet] = useState(initialTeams)
   const [againstOptions, againstOptionsSet] = useState<ReportAgainstOption[]>()
+  const [loadingAgainst, loadingAgainstSet] = useState(false)
   const [form, formSet] = useState<ReportFormData>(() =>
     createReportFormDataFromReport(initialData ?? {teamId: preferredTeamId}),
   )
@@ -112,8 +113,9 @@ export function ReportFormDialog({
   const formRef = useRef(form)
   formRef.current = form
 
-  // Reset whenever the dialog opens or switches to another report.
-  useEffect(() => {
+  // Reset whenever the dialog opens or switches to another report, before
+  // paint so the previous report never flashes up.
+  useLayoutEffect(() => {
     if (!open) return
     againstOptionsSet(undefined)
     formSet(createReportFormDataFromReport(initialData ?? {teamId: preferredTeamId}))
@@ -157,14 +159,17 @@ export function ReportFormDialog({
   useEffect(() => {
     if (!open || !season || !form.fixtureId || !form.teamId) {
       againstOptionsSet(undefined)
+      loadingAgainstSet(false)
       return
     }
     let cancelled = false
-    againstOptionsSet(undefined)
+    // Keep the previous options on screen while refetching so the form doesn't collapse.
+    loadingAgainstSet(true)
     $editorLoad
       .fetch({seasonId: season.id, fixtureId: form.fixtureId, teamId: form.teamId})
       .then((data) => {
         if (cancelled) return
+        loadingAgainstSet(false)
         fixturesSet(data.fixtures)
         teamsSet(data.teams)
         againstOptionsSet(data.againstOptions)
@@ -179,7 +184,11 @@ export function ReportFormDialog({
                 : undefined,
         })
       })
-      .catch(() => undefined)
+      .catch(() => {
+        if (cancelled) return
+        loadingAgainstSet(false)
+        againstOptionsSet((o) => o ?? [])
+      })
     return () => {
       cancelled = true
     }
@@ -234,7 +243,13 @@ export function ReportFormDialog({
   const fixtureLocked = isDashboard && !!initialData?.fixtureId
   const teamLocked = isDashboard && !!initialData?.teamId
   const againstLocked = isDashboard && !!initialData?.teamAgainstId
-  const awaitingAgainst = !!form.fixtureId && !!form.teamId && !againstOptions
+  // Hold one loading state until fixtures, the default fixture and the first
+  // opposition load are all in, so fields don't pop in one after another.
+  const initializing =
+    fixtures === undefined ||
+    teams === undefined ||
+    (!isEditing && !form.fixtureId && !!defaultFixtureId) ||
+    (!!form.fixtureId && !!form.teamId && !againstOptions)
 
   const againstField = (
     <Field
@@ -246,9 +261,9 @@ export function ReportFormDialog({
       }
     >
       <Select
-        placeholder={awaitingAgainst ? 'Loading…' : 'Select opponent'}
+        placeholder={loadingAgainst ? 'Loading…' : 'Select opponent'}
         searchable={againstSelectOptions.length > 8}
-        disabled={againstLocked || !againstOptions}
+        disabled={againstLocked || !againstOptions || loadingAgainst}
         value={form.againstTeamId ?? null}
         onValueChange={(v) => patch({againstTeamId: v ?? undefined})}
         options={againstSelectOptions}
@@ -258,8 +273,8 @@ export function ReportFormDialog({
   )
 
   let body: ReactNode
-  if (fixtures === undefined || teams === undefined) {
-    body = <Loading label="Loading fixtures" />
+  if (initializing) {
+    body = <Loading label="Loading report" />
   } else {
     const ready = !!againstOptions && (isDashboard || !!selectedTeam)
     body = (
@@ -311,9 +326,7 @@ export function ReportFormDialog({
         </div>
         {(isDashboard || ready) && againstField}
         {!ready ? (
-          awaitingAgainst ? (
-            <Loading label="Loading teams and players" />
-          ) : isDashboard ? null : (
+          isDashboard ? null : (
             <EmptyState
               icon={<Megaphone />}
               title="Submit a report"
@@ -367,6 +380,7 @@ export function ReportFormDialog({
           <Button
             variant="primary"
             loading={loading}
+            disabled={initializing || loadingAgainst}
             onClick={submit}
           >
             {isEditing ? 'Save report' : 'Submit report'}

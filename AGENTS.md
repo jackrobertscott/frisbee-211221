@@ -17,6 +17,7 @@
 - Do put browser screens in `browser/src/app` and non-visual browser plumbing (auth, router, endpoint hooks) in `browser/src/core`.
 - Do check screens at phone and desktop widths; the app is used mostly on mobile.
 - Do fix UI issues minimally within the existing components and layouts; keep tables as tables.
+- Do show one loading state until a form or dialog has all its initial data, rather than revealing fields as each request lands.
 - Do decide wrapping per table column: keep short atomic values (dates, times, places, divisions, names, numbers) on one line, and let long free text (team names, comments) wrap or truncate only where that keeps the table fitting.
 
 ## Don't
