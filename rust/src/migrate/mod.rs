@@ -141,6 +141,15 @@ impl Outcome {
                 ));
             }
         }
+        let invalid: usize = self.collections.iter().map(|c| c.invalid).sum();
+        if invalid > 0 {
+            lines.push(format!(
+                "{invalid} documents fail schema validation and were imported as stored. The TS \
+                 server returned such records unvalidated; the Rust server reads records through \
+                 their types, so requests that load them fail (500) until they are fixed. Fix \
+                 them in Mongo and import again (--force), or use --strict to refuse them."
+            ));
+        }
         lines
     }
 }
