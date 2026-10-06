@@ -1341,6 +1341,28 @@ async function pipelineCases(h: Harness) {
   await h.call('season list no seasons', '/SeasonList', {})
   await h.call('logout without token', '/SecurityLogout', undefined)
   await h.call('logout with garbage token', '/SecurityLogout', undefined, {authorization: 'abc.def.ghi'})
+  for (const path of ['/seasonlist', '//SeasonList', '/Season%4Cist', '/SeasonList%20', '/SeasonList#x', '/SeasonList;x', '/./SeasonList', '/a/../SeasonList', '/health/', '/HEALTH'])
+    await h.call(`routing ${path}`, path, {})
+  for (const method of ['HEAD', 'DELETE', 'PATCH'])
+    await h.call(`${method} known route`, '/SeasonList', undefined, {method})
+  await h.call('GET health with foreign origin', '/health', undefined, {method: 'GET', origin: 'https://evil.example', ip: h.nextIp()})
+  await h.call('json with charset', '/SeasonList', {}, {contentType: 'application/json; charset=utf-8'})
+  await h.call('json with latin1 charset', '/SeasonList', {search: 'é'}, {contentType: 'application/json; charset=latin1'})
+  await h.call('json with odd charset', '/SeasonList', {}, {contentType: 'application/json; charset=klingon'})
+  await h.call('malformed content type', '/SeasonList', {}, {contentType: 'nonsense'})
+  await h.call('form content type', '/SeasonList', {}, {contentType: 'application/x-www-form-urlencoded'})
+  await h.call('multipart to json endpoint', '/SeasonList', undefined, {
+    contentType: null,
+    form: () => {
+      const form = new FormData()
+      form.append('payload', '{}')
+      return form
+    },
+  })
+  await h.call('BOM before JSON', '/SeasonList', undefined, {rawBody: '\ufeff{"payload":{}}'})
+  await h.call('trailing garbage after JSON', '/SeasonList', undefined, {rawBody: '{"payload":{}} x'})
+  await h.call('duplicate keys', '/SeasonList', undefined, {rawBody: '{"payload":{"search":"a","search":"b"}}'})
+  await h.call('deeply nested JSON', '/SeasonList', undefined, {rawBody: `{"payload":{"search":"",${'"x":['.repeat(2000)}${']'.repeat(2000)}}}`})
 }
 
 /** Intrusion screening: probes are tarpitted (slow), so run them together. */
