@@ -8,8 +8,9 @@ tests and match them, including over HTTP and in stored data.
 
 ```
 src/
-  bin/frisbee-server.rs   the server binary (bin/migrate-mongo.rs and
-                          bin/gameday-export.rs are reserved for later work)
+  bin/frisbee-server.rs   the server binary (bin/migrate-mongo.rs is reserved
+                          for later work)
+  bin/gameday-export.rs   the GameDay exporter process (see below)
   lib.rs
   js/                     JavaScript semantics: trim, Number(), String(n),
                           JSON.stringify numbers, Date.parse/toISOString
@@ -36,7 +37,8 @@ src/
   endpoints/              one module per domain: pub fn routes() -> Vec<Endpoint>
   services/               services/*.ts (user_email, user_fields so far)
   queries/                queries/*.ts (joins, aggregates, computed sorts)
-  gameday/                gameday/*.ts (types so far; scheduler hook)
+  gameday/                gameday/*.ts: types, exporter (+ browser, the CDP
+                          wrapper), export_cli; scheduler hook
   migrations/             data backfills run at startup
   startup.rs              startup tasks with production retry
   server.rs               bootstrap, serve, graceful drain
@@ -247,6 +249,43 @@ body, headers}` (`None` sends `{}` — the TS `payload: undefined`);
 `assert_match` is `toMatchObject`. Logs are global and tests run in
 parallel: when asserting on log lines with `log::capture()`, filter on
 something unique to the test.
+
+## GameDay exporter (`gameday-export`)
+
+The headless-browser scraper runs as its own process, as in TS
+(`exportCli.ts`, spawned by `runExportProcess.ts`). Build it with
+`cargo build --release --bin gameday-export`; it ends up next to
+`frisbee-server` in `target/release/`.
+
+Protocol (mirrors `exportCli.ts` exactly):
+
+| Channel | Content |
+| --- | --- |
+| stdin | One JSON object, read to EOF: `GamedayExportInput` (`TGamedayExportInput`), validated by `gameday::types::parse_gameday_export_input`. |
+| stdout | Success only: `serde_json` of `GamedayExportOutput`, i.e. `{"members":[{"teamName","firstName","lastName","email","gender"}]}`, compact, no trailing newline. Nothing else is written to stdout. |
+| stderr | Progress lines (`Opening GameDay...`, `Report status: Complete`, ...) and, on failure, a last line `GameDay export failed: <message>` (bad JSON, a validation message such as `username is required.`, or the exporter's error). |
+| exit code | `0` success, `1` any failure; `143`/`130`/`129` after `SIGTERM`/`SIGINT`/`SIGHUP` (the browser is killed and its temporary profile removed first). |
+
+The spawning side (`run_export_process.rs`) should therefore: write
+`serde_json::to_string(&input)` to stdin and close it; on a non-zero exit use
+the stderr tail for `gameday.export_failed`; otherwise parse stdout and check
+it with `gameday::types::is_gameday_export_output`; kill the child with
+`SIGTERM` on timeout. Resolve the binary next to the running executable
+(`std::env::current_exe()?.with_file_name("gameday-export")`) and pass the
+environment minus server secrets, as `runExportProcess.ts` does.
+
+Inside the process: `gameday::exporter` is `exporter.ts` (options, field
+resolution, CSV parsing, the report polling) and drives Chrome through
+`gameday::browser` (`chromiumoxide` over CDP; a Playwright-like `ChromePage`
+with `goto`, `fill`, `click`, `waitForURL`, ...). Chrome is found from
+`browserExecutablePath` / `GAMEDAY_BROWSER_EXECUTABLE_PATH` /
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` / `CHROME_PATH`, then the TS list of
+common install paths (including `/Applications/Google Chrome.app` on macOS),
+then the browser channel's install location, then any Chrome/Chromium on
+`PATH`. The tests fake `BrowserLauncher` (`chromium.launch`) and
+`ReportRequestContext` (`context.request`); `tests/gameday_export_smoke.rs`
+(`#[ignore]`) runs a full export in a real Chrome against intercepted
+fixture pages.
 
 ## JSON parity rules
 

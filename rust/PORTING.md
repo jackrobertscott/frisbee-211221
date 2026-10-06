@@ -45,10 +45,10 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/src/endpoints/User.ts` | src/endpoints/user.rs (stub with empty `routes()`) | User | pending |
 | `server/src/gameday/credentials.test.ts` | src/gameday/credentials.rs (tests) | Port | pending |
 | `server/src/gameday/credentials.ts` | src/gameday/credentials.rs | Port | pending |
-| `server/src/gameday/exportCli.test.ts` | src/gameday/export_cli.rs (tests) | Port | pending |
-| `server/src/gameday/exportCli.ts` | src/bin/gameday-export.rs (+ src/gameday/export_cli.rs) | Port | pending |
-| `server/src/gameday/exporter.test.ts` | src/gameday/exporter.rs (tests) | Port | pending |
-| `server/src/gameday/exporter.ts` | src/gameday/exporter.rs | Port | pending |
+| `server/src/gameday/exportCli.test.ts` | src/gameday/export_cli.rs (tests), tests/gameday_export_cli.rs (process protocol) | Port | done |
+| `server/src/gameday/exportCli.ts` | src/bin/gameday-export.rs (+ src/gameday/export_cli.rs) | Port | done |
+| `server/src/gameday/exporter.test.ts` | src/gameday/exporter_tests.rs (+ ignored real-Chrome smoke test tests/gameday_export_smoke.rs) | Port | done |
+| `server/src/gameday/exporter.ts` | src/gameday/exporter.rs (+ src/gameday/browser.rs, the CDP layer replacing playwright-core) | Port | done |
 | `server/src/gameday/importMembers.test.ts` | src/gameday/import_members.rs (tests) | Port | pending |
 | `server/src/gameday/importMembers.ts` | src/gameday/import_members.rs | Port | pending |
 | `server/src/gameday/runExportProcess.test.ts` | src/gameday/run_export_process.rs (tests) | Port | pending |
@@ -188,7 +188,7 @@ integration tests in `server/test/integration/x.test.ts` become
 | --- | --- | --- | --- |
 | `src/bin/frisbee-server.rs` | The HTTP server (`server/src/index.ts`) | Foundation | done |
 | `src/bin/migrate-mongo.rs` | One-off import of the Mongo database into SQLite (use `TableTx::insert_raw` so legacy rows load unchanged; `user.gender` goes in the legacy column) | Migration | pending |
-| `src/bin/gameday-export.rs` | `server/src/gameday/exportCli.ts` | Port | pending |
+| `src/bin/gameday-export.rs` | `server/src/gameday/exportCli.ts` (protocol in ARCHITECTURE.md) | Port | done |
 
 ## Inapplicable or adapted tests
 
@@ -212,3 +212,18 @@ integration tests in `server/test/integration/x.test.ts` become
   ended": `Tarpit::respond` builds the response, so it cannot run on an
   ended one.
 - `test/globalSetup.ts`: no shared database server is needed.
+- `gameday/exporter.test.ts` › `launchBrowser`: `chromium.launch` and
+  `fs.access` mocks become a fake `BrowserLauncher` and a `file_exists`
+  closure; `process.execPath` is `std::env::current_exe()`.
+- `gameday/exporter.test.ts` › `resolveOptions`: `vi.stubEnv` becomes the
+  `env` lookup passed to `resolve_options_with` (tests cannot safely mutate
+  the process environment in parallel).
+- `gameday/exporter.test.ts` › `runReportAndDownload`: fake timers become
+  tokio's paused clock; the tests share a lock so the `Report status:` log
+  capture only sees its own lines.
+- `gameday/exportCli.test.ts`: the module re-import with a mocked exporter
+  becomes `export_cli::run` with an injected exporter (stdin chunks via an
+  `AsyncRead` chain); the real binary's stdin/stdout/exit code are checked
+  in `tests/gameday_export_cli.rs`. Invalid JSON reports serde_json's
+  message (e.g. `expected ident at line 1 column 2`) rather than V8's
+  `Unexpected token ...`; the test only checks the prefix, as in TS.
