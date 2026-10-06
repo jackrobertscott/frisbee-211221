@@ -128,14 +128,28 @@ describe('useLocalState', () => {
     expect(storage.has('k')).toBe(false)
   })
 
-  it('treats falsy values as cleared in storage', () => {
-    const {result, unmount} = renderHook(() => useLocalState('k', 'x'))
-    act(() => result.current[1](''))
-    expect(storage.has('k')).toBe(false)
-    unmount()
-    // so a remount falls back to the default rather than the empty string
+  it('keeps falsy values in storage', () => {
+    const text = renderHook(() => useLocalState('k', 'x'))
+    act(() => text.result.current[1](''))
+    expect(storage.get('k')).toBe('')
+    text.unmount()
+    // so a remount restores the empty string rather than the default
     const again = renderHook(() => useLocalState('k', 'x'))
-    expect(again.result.current[0]).toBe('x')
+    expect(again.result.current[0]).toBe('')
+
+    const count = renderHook(() => useLocalState('n', 5))
+    act(() => count.result.current[1](0))
+    expect(storage.get('n')).toBe(0)
+    const flag = renderHook(() => useLocalState('b', true))
+    act(() => flag.result.current[1](false))
+    expect(storage.get('b')).toBe(false)
+  })
+
+  it('removes the key when set to null', () => {
+    const {result} = renderHook(() => useLocalState<string | null>('k', 'x'))
+    expect(storage.get('k')).toBe('x')
+    act(() => result.current[1](null))
+    expect(storage.has('k')).toBe(false)
   })
 })
 

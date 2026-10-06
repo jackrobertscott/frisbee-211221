@@ -12,8 +12,8 @@ export const useLocalState = <T>(key: string, data?: T | (() => T)) => {
     return data as T
   })
   useEffect(() => {
-    if (current) storage.set(key, current)
-    else storage.remove(key)
-  }, [current])
+    if (current === undefined || current === null) storage.remove(key)
+    else storage.set(key, current)
+  }, [key, current])
   return [current, currentSet] as const
 }

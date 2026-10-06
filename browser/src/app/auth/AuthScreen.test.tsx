@@ -68,6 +68,14 @@ describe('AuthScreen welcome step', () => {
     renderAuth('/auth/welcome')
     expect(screen.getByLabelText('Email')).toHaveValue('kept@example.com')
   })
+
+  it('keeps an empty remembered email empty', () => {
+    localStorage.setItem(SAVED_EMAIL_KEY, JSON.stringify(''))
+    mockServer()
+    renderAuth('/auth/welcome')
+    expect(screen.getByLabelText('Email')).toHaveValue('')
+    expect(localStorage.getItem(SAVED_EMAIL_KEY)).toBe(JSON.stringify(''))
+  })
 })
 
 describe('AuthScreen login step', () => {
