@@ -142,7 +142,7 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/test/integration/reports.test.ts` | tests/reports.rs | Report | done |
 | `server/test/integration/seasons.test.ts` | tests/seasons.rs | Season | done |
 | `server/test/integration/security.test.ts` | tests/security.rs | Security | done |
-| `server/test/integration/teams.test.ts` | tests/teams.rs | Team | done; 11 `Feature*` cases `#[ignore]`d until Feature lands |
+| `server/test/integration/teams.test.ts` | tests/teams.rs | Team | done |
 | `server/test/integration/users.test.ts` | tests/users.rs | User | done |
 | `server/test/setup.ts` | src/config.rs (`Config::for_tests`) | Foundation | done |
 | `shared/src/auth/authAccess.test.ts` | src/shared/auth_access.rs (tests) | Foundation | done |
@@ -191,6 +191,10 @@ integration tests in `server/test/integration/x.test.ts` become
 | `src/bin/gameday-export.rs` | `server/src/gameday/exportCli.ts` (protocol in ARCHITECTURE.md) | Port | done |
 
 ## Inapplicable or adapted tests
+
+[`TEST_PARITY.md`](TEST_PARITY.md) maps every TS test (with `it.each` rows
+and loop-generated tests) to its Rust test(s) with a status and notes; the
+list below summarises the main adaptations.
 
 - `torva/index.test.ts` › `ensure` › "detects valid dates only": JSON has no
   `Date` values; the Rust test checks `js::date::parse` instead.
