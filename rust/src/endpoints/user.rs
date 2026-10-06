@@ -138,8 +138,15 @@ async fn current_email_verify(payload: EmailCodePayload, ctx: Ctx) -> AppResult<
     let ip = ctx.client_ip();
     let email = payload.email;
     attempt_limit::consume(ctx.db(), AttemptKind::Verify, &email, &ip).await?;
-    user_email::assert_code_valid(&ctx.state, &user, &email, &payload.code, &ip, "Verify Email")
-        .await?;
+    user_email::assert_code_valid(
+        &ctx.state,
+        &user,
+        &email,
+        &payload.code,
+        &ip,
+        "Verify Email",
+    )
+    .await?;
     let next = user_email::verify(&ctx.state, &user, &email).await?;
     attempt_limit::reset(ctx.db(), AttemptKind::Verify, &email, &ip).await?;
     Ok(select_safe_user_fields(&next))
@@ -154,7 +161,8 @@ async fn current_email_code_resend(payload: EmailPayload, ctx: Ctx) -> AppResult
         &ctx.client_ip(),
     )
     .await?;
-    let next = user_email::code_send_save(&ctx.state, &user, &payload.email, "Verify Email").await?;
+    let next =
+        user_email::code_send_save(&ctx.state, &user, &payload.email, "Verify Email").await?;
     Ok(select_safe_user_fields(&next))
 }
 
@@ -172,29 +180,36 @@ async fn current_email_remove(payload: EmailPayload, ctx: Ctx) -> AppResult<User
 
 async fn email_add(payload: UserIdEmailPayload, ctx: Ctx) -> AppResult<UserSafe> {
     ctx.require_access().await?;
-    let user = USER.get_one(ctx.db(), User::ID.eq(&payload.user_id)).await?;
+    let user = USER
+        .get_one(ctx.db(), User::ID.eq(&payload.user_id))
+        .await?;
     let next = user_email::add(&ctx.state, &user, &payload.email).await?;
     Ok(select_safe_user_fields(&next))
 }
 
 async fn email_primary_set(payload: UserIdEmailPayload, ctx: Ctx) -> AppResult<UserSafe> {
     ctx.require_access().await?;
-    let user = USER.get_one(ctx.db(), User::ID.eq(&payload.user_id)).await?;
+    let user = USER
+        .get_one(ctx.db(), User::ID.eq(&payload.user_id))
+        .await?;
     let next = user_email::primary_set(ctx.db(), &user, &payload.email).await?;
     Ok(select_safe_user_fields(&next))
 }
 
 async fn email_verified_set(payload: VerifiedSetPayload, ctx: Ctx) -> AppResult<UserSafe> {
     ctx.require_access().await?;
-    let user = USER.get_one(ctx.db(), User::ID.eq(&payload.user_id)).await?;
-    let next =
-        user_email::verified_set(ctx.db(), &user, &payload.email, payload.verified).await?;
+    let user = USER
+        .get_one(ctx.db(), User::ID.eq(&payload.user_id))
+        .await?;
+    let next = user_email::verified_set(ctx.db(), &user, &payload.email, payload.verified).await?;
     Ok(select_safe_user_fields(&next))
 }
 
 async fn email_remove(payload: UserIdEmailPayload, ctx: Ctx) -> AppResult<UserSafe> {
     ctx.require_access().await?;
-    let user = USER.get_one(ctx.db(), User::ID.eq(&payload.user_id)).await?;
+    let user = USER
+        .get_one(ctx.db(), User::ID.eq(&payload.user_id))
+        .await?;
     let next = user_email::remove(ctx.db(), &user, &payload.email).await?;
     Ok(select_safe_user_fields(&next))
 }
@@ -232,7 +247,9 @@ async fn current_change_password(
 
 /// A validated whole, non-negative number from the payload.
 fn page_number(value: Option<f64>) -> Option<u64> {
-    value.filter(|v| v.is_finite() && *v >= 0.0).map(|v| v as u64)
+    value
+        .filter(|v| v.is_finite() && *v >= 0.0)
+        .map(|v| v as u64)
 }
 
 async fn list(payload: ListPayload, ctx: Ctx) -> AppResult<ListResult> {
@@ -288,14 +305,20 @@ async fn update(body: Value, ctx: Ctx) -> AppResult<UserSafe> {
         .to_string();
     let user = USER.get_one(ctx.db(), User::ID.eq(&user_id)).await?;
     let next = USER
-        .update_one(ctx.db(), User::ID.eq(&user.id), profile_patch(body, "userId"))
+        .update_one(
+            ctx.db(),
+            User::ID.eq(&user.id),
+            profile_patch(body, "userId"),
+        )
         .await?;
     Ok(select_safe_user_fields(&next))
 }
 
 async fn toggle_admin(payload: UserIdPayload, ctx: Ctx) -> AppResult<UserSafe> {
     ctx.require_access().await?;
-    let user = USER.get_one(ctx.db(), User::ID.eq(&payload.user_id)).await?;
+    let user = USER
+        .get_one(ctx.db(), User::ID.eq(&payload.user_id))
+        .await?;
     let next = USER
         .update_one(
             ctx.db(),
@@ -315,7 +338,9 @@ async fn merge(payload: MergePayload, ctx: Ctx) -> AppResult<UserSafe> {
 async fn change_password(payload: ChangePasswordPayload, ctx: Ctx) -> AppResult<UserSafe> {
     ctx.require_access().await?;
     hash::assert_new_password_valid(&payload.new_password)?;
-    let user = USER.get_one(ctx.db(), User::ID.eq(&payload.user_id)).await?;
+    let user = USER
+        .get_one(ctx.db(), User::ID.eq(&payload.user_id))
+        .await?;
     let encrypted = hash::encrypt_async(payload.new_password).await?;
     let next = USER
         .update_one(

@@ -10,9 +10,9 @@
 
 use crate::db::{Filter, TableTx};
 use crate::shared::contract::user::UserListSortKey;
+use crate::shared::errors::AppResult;
 use crate::shared::schemas::{User, UserEmail};
 use crate::shared::utils::endpoint_def::SortDirection;
-use crate::shared::errors::AppResult;
 use crate::tables::user::EMAILS;
 use rusqlite::types::Value as SqlValue;
 
@@ -69,14 +69,8 @@ pub fn user_list_order_sql(
         SortDirection::Desc => col.desc(),
     };
     let keys: Vec<String> = match sort_by {
-        UserListSortKey::FirstName => vec![
-            key(dir(User::FIRST_NAME)),
-            key(User::LAST_NAME.asc()),
-        ],
-        UserListSortKey::LastName => vec![
-            key(dir(User::LAST_NAME)),
-            key(User::FIRST_NAME.asc()),
-        ],
+        UserListSortKey::FirstName => vec![key(dir(User::FIRST_NAME)), key(User::LAST_NAME.asc())],
+        UserListSortKey::LastName => vec![key(dir(User::LAST_NAME)), key(User::FIRST_NAME.asc())],
         UserListSortKey::Email => {
             params.push(SqlValue::Text(MONGO_TRIM_CHARS.to_string()));
             let order = match direction {
@@ -221,8 +215,15 @@ mod tests {
             create(&app, "xA.By", "L", &[("one@x.com", true)]).await;
             create(&app, "aXb", "L", &[("two@x.com", true)]).await;
             create(&app, "F", "L", &[("p@x.com", true), ("a.b@x.com", false)]).await;
-            let (count, names) =
-                run(&app, "a.b", UserListSortKey::CreatedOn, SortDirection::Asc, None, None).await;
+            let (count, names) = run(
+                &app,
+                "a.b",
+                UserListSortKey::CreatedOn,
+                SortDirection::Asc,
+                None,
+                None,
+            )
+            .await;
             assert_eq!(count, 2);
             assert_eq!(names, ["xA.By", "F"]);
         }
@@ -232,8 +233,15 @@ mod tests {
             let app = TestApp::new(vec![]);
             create(&app, "anything", "L", &[]).await;
             create(&app, "else", "L", &[("e@x.com", true)]).await;
-            let (count, _) =
-                run(&app, "", UserListSortKey::CreatedOn, SortDirection::Asc, None, None).await;
+            let (count, _) = run(
+                &app,
+                "",
+                UserListSortKey::CreatedOn,
+                SortDirection::Asc,
+                None,
+                None,
+            )
+            .await;
             assert_eq!(count, 2);
         }
     }
@@ -274,9 +282,8 @@ mod tests {
 
         #[test]
         fn breaks_name_ties_on_the_other_name() {
-            let order = |sort_by, direction| {
-                user_list_order_sql(sort_by, direction, "t", &mut Vec::new())
-            };
+            let order =
+                |sort_by, direction| user_list_order_sql(sort_by, direction, "t", &mut Vec::new());
             assert_eq!(
                 order(UserListSortKey::LastName, SortDirection::Desc),
                 "ORDER BY t.\"last_name\" DESC, t.\"first_name\" ASC"
@@ -297,23 +304,41 @@ mod tests {
                 Some(20),
             );
             assert!(sql.starts_with("WHERE 1 ORDER BY lower(trim(COALESCE("));
-            assert!(sql.ends_with(
-                " ASC, t.\"last_name\" ASC, t.\"first_name\" ASC LIMIT 20"
-            ));
+            assert!(sql.ends_with(" ASC, t.\"last_name\" ASC, t.\"first_name\" ASC LIMIT 20"));
             assert_eq!(params.len(), 1);
 
             // primary email first, else the first email, else '' (sorts first);
             // trimmed and lowercased
             let app = TestApp::new(vec![]);
             create(&app, "C", "L", &[("aaa@x.com", false), ("Zed@x.com", true)]).await;
-            create(&app, "B", "L", &[("Mid@x.com", false), ("aaa2@x.com", false)]).await;
+            create(
+                &app,
+                "B",
+                "L",
+                &[("Mid@x.com", false), ("aaa2@x.com", false)],
+            )
+            .await;
             create(&app, "A", "L", &[]).await;
             create(&app, "D", "L", &[("BETA@x.com", true)]).await;
-            let (_, names) =
-                run(&app, "", UserListSortKey::Email, SortDirection::Asc, Some(0), Some(20)).await;
+            let (_, names) = run(
+                &app,
+                "",
+                UserListSortKey::Email,
+                SortDirection::Asc,
+                Some(0),
+                Some(20),
+            )
+            .await;
             assert_eq!(names, ["A", "D", "B", "C"]);
-            let (_, names) =
-                run(&app, "", UserListSortKey::Email, SortDirection::Desc, Some(1), Some(2)).await;
+            let (_, names) = run(
+                &app,
+                "",
+                UserListSortKey::Email,
+                SortDirection::Desc,
+                Some(1),
+                Some(2),
+            )
+            .await;
             assert_eq!(names, ["B", "D"]);
         }
     }

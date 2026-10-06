@@ -173,7 +173,10 @@ pub fn plan_member_merge(u1_members: &[Member], u2_members: &[Member]) -> Vec<Me
 pub fn merge_user_fields(user1: &User, user2: &User, updated_on: &str) -> MergedUserFields {
     MergedUserFields {
         admin: user1.admin == Some(true) || user2.admin == Some(true),
-        avatar_url: user1.avatar_url.clone().or_else(|| user2.avatar_url.clone()),
+        avatar_url: user1
+            .avatar_url
+            .clone()
+            .or_else(|| user2.avatar_url.clone()),
         bio: user1.bio.clone().or_else(|| user2.bio.clone()),
         emails: merge_user_emails(user1, user2),
         last_season_id: user1
