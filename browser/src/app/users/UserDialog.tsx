@@ -213,14 +213,6 @@ export function UserDialog({
                 items={[
                   {term: 'Created', detail: <span className="fr-num">{fmtDateTime(user.createdOn)}</span>},
                   {term: 'Last updated', detail: <span className="fr-num">{fmtDateTime(user.updatedOn)}</span>},
-                  {
-                    term: 'Id',
-                    detail: (
-                      <Text as="span" size="sm" mono>
-                        {user.id}
-                      </Text>
-                    ),
-                  },
                 ]}
               />
             </Stack>

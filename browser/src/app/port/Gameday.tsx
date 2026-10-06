@@ -173,8 +173,6 @@ export function GamedayRunDialog({
         <DescriptionList
           className="fr-port-dl"
           items={[
-            {term: 'Run ID', detail: <Text as="span" size="sm" mono>{run.id}</Text>},
-            {term: 'Config ID', detail: <Text as="span" size="sm" mono>{run.configId}</Text>},
             {term: 'Started', detail: fmtRunDate(run.startedOn)},
             {term: 'Finished', detail: fmtOptionalRunDate(run.finishedOn)},
             {term: 'Trigger', detail: fmtRunTrigger(run.trigger)},

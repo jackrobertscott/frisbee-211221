@@ -28,10 +28,10 @@
 
 /* Description list ---------------------------------------------------------- */
 .ui-dl { display: flex; flex-direction: column; font-size: var(--fs-sm); }
-.ui-dl__row { display: grid; grid-template-columns: minmax(120px, 200px) 1fr; gap: var(--sp-4); padding: var(--sp-3) 0; border-bottom: 1px solid var(--border-subtle); }
+.ui-dl__row { display: grid; grid-template-columns: minmax(120px, 200px) minmax(0, 1fr); gap: var(--sp-4); padding: var(--sp-3) 0; border-bottom: 1px solid var(--border-subtle); }
 .ui-dl__row:last-child { border-bottom: 0; }
 .ui-dl dt { color: var(--text-tertiary); }
-.ui-dl dd { color: var(--text); min-width: 0; }
+.ui-dl dd { color: var(--text); min-width: 0; overflow-wrap: anywhere; }
 .ui-dl[data-layout='vertical'] .ui-dl__row { grid-template-columns: 1fr; gap: var(--sp-1); }
 .ui-dl[data-layout='grid'] { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--sp-4) var(--sp-6); }
 .ui-dl[data-layout='grid'] .ui-dl__row { grid-template-columns: 1fr; gap: var(--sp-1); padding: 0; border: 0; }

@@ -13,6 +13,7 @@
 - Do use short lowercase word groups for commit messages.
 - Do commit each milestone's worth of work as it is completed, rather than leaving large amounts of uncommitted changes.
 - Do record any preference the user states for this codebase as a rule in this file.
+- Do make every change in a dedicated git worktree, merge it back, then remove the worktree and its branch when the work is finished.
 - Do build browser UI only from the `@ui` component library (`browser/src/ui`) and `lucide-react` icons.
 - Do put browser screens in `browser/src/app` and non-visual browser plumbing (auth, router, endpoint hooks) in `browser/src/core`.
 - Do check screens at phone and desktop widths; the app is used mostly on mobile.
@@ -30,6 +31,9 @@
 - Don't sort returned database data in memory when the database can express the required ordering.
 - Don't redesign screens or swap component types (e.g. tables into card lists, frozen/pinned table columns) unless asked.
 - Don't apply blanket wrapping rules to every table cell.
+- Don't show database IDs anywhere in the UI (fields, tables, tooltips, messages); keep them for keys and requests only.
+- Don't let dialog bodies scroll horizontally; long values must wrap within the dialog width.
+- Don't give an element a hover style unless the user can interact with it (e.g. table rows only when clickable).
 - Don't add an ellipsis (`...` or `…`) to button labels (e.g. "Merge…") unless the user specifically asks for it.
 - Don't use native UI controls (select, checkbox, date input, etc.) in the browser; use the `@ui` equivalents.
 - Don't edit `browser/src/ui` for app-specific needs; it is a vendored copy of the `uilib-261005` library, so change the library and re-copy it.
