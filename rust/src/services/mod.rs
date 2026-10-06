@@ -6,3 +6,4 @@ pub mod season_deletion;
 pub mod team_captaincy;
 pub mod user_email;
 pub mod user_fields;
+pub mod user_merge;
