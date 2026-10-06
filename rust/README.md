@@ -33,6 +33,16 @@ database file (parent directories are created automatically).
 | `NODE_ENV` | `production` enables production mode and loads `.env.production` instead of `.env`. |
 | `GAMEDAY_IMPORT_SCHEDULER_DISABLED` | `1`, `true`, `yes` or `on` disables the GameDay import scheduler. |
 
+GameDay imports run the separate `gameday-export` binary (build it
+alongside the server: `cargo build --release --bin gameday-export`). It
+drives a locally installed Chrome/Chromium; set
+`GAMEDAY_BROWSER_EXECUTABLE_PATH` (or `CHROME_PATH`) if it is not in a
+standard location. It reads the TS exporter's other variables too
+(`GAMEDAY_HEADLESS`, `GAMEDAY_TIMEOUT_MS`, `GAMEDAY_REPORT_ID`,
+`GAMEDAY_FIELDS`, `GAMEDAY_HEADERS`, `GAMEDAY_GENDER_FIELD`,
+`GAMEDAY_RECORD_FILTER`, `GAMEDAY_NORMALIZE_HEADERS`, `GAMEDAY_DEBUG`,
+`GAMEDAY_DEBUG_DIR`, and their unprefixed fallbacks).
+
 Outside production, security codes are not emailed; they are logged as
 `[security-code] <subject> <email> <code> (email delivery skipped in development)`,
 exactly like the TS server.
@@ -160,5 +170,12 @@ None of these change what the browser sees in normal use:
   case/accent-insensitive; Unicode lowercase) instead of using ICU.
 - `Date.parse` fallbacks for non-ISO strings are a best-effort port of V8's
   legacy parser; ISO strings behave identically.
+- The GameDay exporter drives Chrome over CDP (`chromiumoxide`) instead of
+  Playwright: there is no bundled Chromium (the `bundled` channel and the
+  fallback after a failed channel launch use any Chrome/Chromium found on
+  `PATH`), browser errors read like Playwright's (`page.goto: Timeout
+  60000ms exceeded.`) without its call logs, and the report download's
+  HTTP client starts from the browser's cookies when the report job starts
+  (Playwright shares one live cookie store).
 - Production email needs explicit `SES_ACCESS_KEY_ID`/`SES_SECRET_ACCESS_KEY`
   (the AWS SDK's other credential sources are not consulted).
