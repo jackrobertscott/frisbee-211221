@@ -2,6 +2,8 @@
 //! add their own modules (one per TS service file).
 
 pub mod auth_payload;
+pub mod fixture_schedule;
+pub mod round_robin;
 pub mod season_deletion;
 pub mod team_captaincy;
 pub mod user_email;
