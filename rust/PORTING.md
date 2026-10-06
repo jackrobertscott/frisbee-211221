@@ -36,12 +36,12 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/src/endpoints/Feature.ts` | src/endpoints/feature.rs (stub with empty `routes()`) | Feature | pending |
 | `server/src/endpoints/Fixture.ts` | src/endpoints/fixture.rs (stub with empty `routes()`) | Fixture | pending |
 | `server/src/endpoints/index.ts` | src/endpoints/mod.rs (`all`) | Foundation | done |
-| `server/src/endpoints/Member.ts` | src/endpoints/member.rs (stub with empty `routes()`) | Member | pending |
+| `server/src/endpoints/Member.ts` | src/endpoints/member.rs | Member | done |
 | `server/src/endpoints/Port.ts` | src/endpoints/port.rs (stub with empty `routes()`) | Port | pending |
 | `server/src/endpoints/Report.ts` | src/endpoints/report.rs (stub with empty `routes()`) | Report | pending |
-| `server/src/endpoints/Season.ts` | src/endpoints/season.rs (stub with empty `routes()`) | Season | pending |
-| `server/src/endpoints/Security.ts` | src/endpoints/security.rs (stub with empty `routes()`) | Security | pending |
-| `server/src/endpoints/Team.ts` | src/endpoints/team.rs (stub with empty `routes()`) | Team | pending |
+| `server/src/endpoints/Season.ts` | src/endpoints/season.rs | Season | done |
+| `server/src/endpoints/Security.ts` | src/endpoints/security.rs | Security | done |
+| `server/src/endpoints/Team.ts` | src/endpoints/team.rs | Team | done |
 | `server/src/endpoints/User.ts` | src/endpoints/user.rs (stub with empty `routes()`) | User | pending |
 | `server/src/gameday/credentials.test.ts` | src/gameday/credentials.rs (tests) | Port | pending |
 | `server/src/gameday/credentials.ts` | src/gameday/credentials.rs | Port | pending |
@@ -81,7 +81,7 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/src/queries/teamList.ts` | src/queries/team_list.rs | Feature | pending |
 | `server/src/queries/userList.test.ts` | src/queries/user_list.rs (tests) | User | pending |
 | `server/src/queries/userList.ts` | src/queries/user_list.rs | User | pending |
-| `server/src/services/authPayload.ts` | src/services/auth_payload.rs | Security | pending |
+| `server/src/services/authPayload.ts` | src/services/auth_payload.rs | Security | done |
 | `server/src/services/csvImport.test.ts` | src/services/csv_import.rs (tests) | Port | pending |
 | `server/src/services/csvImport.ts` | src/services/csv_import.rs | Port | pending |
 | `server/src/services/exportArchive.test.ts` | src/services/export_archive.rs (tests) | Port | pending |
@@ -99,10 +99,10 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/src/services/reportMvps.ts` | src/services/report_mvps.rs | Report | pending |
 | `server/src/services/roundRobin.test.ts` | src/services/round_robin.rs (tests) | Fixture | pending |
 | `server/src/services/roundRobin.ts` | src/services/round_robin.rs | Fixture | pending |
-| `server/src/services/seasonDeletion.ts` | src/services/season_deletion.rs | Season | pending |
+| `server/src/services/seasonDeletion.ts` | src/services/season_deletion.rs | Season | done |
 | `server/src/services/spiritStats.test.ts` | src/services/spirit_stats.rs (tests) | Feature | pending |
 | `server/src/services/spiritStats.ts` | src/services/spirit_stats.rs | Feature | pending |
-| `server/src/services/teamCaptaincy.ts` | src/services/team_captaincy.rs | Member | pending |
+| `server/src/services/teamCaptaincy.ts` | src/services/team_captaincy.rs | Member | done |
 | `server/src/services/userEmail.test.ts` | src/services/user_email_tests.rs | Foundation | done |
 | `server/src/services/userEmail.ts` | src/services/user_email.rs | Foundation | done |
 | `server/src/services/userFields.ts` | src/services/user_fields.rs | Foundation | done |
@@ -135,14 +135,14 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/test/integration/dashboards.test.ts` | tests/dashboards.rs | Feature | pending |
 | `server/test/integration/fixtures.test.ts` | tests/fixtures.rs | Fixture | pending |
 | `server/test/integration/gamedayImport.test.ts` | tests/gameday_import.rs | Port | pending |
-| `server/test/integration/http.test.ts` | tests/http.rs | Foundation | done; 5 cases `#[ignore]`d until Season/Security land |
-| `server/test/integration/members.test.ts` | tests/members.rs | Member | pending |
+| `server/test/integration/http.test.ts` | tests/http.rs | Foundation | done |
+| `server/test/integration/members.test.ts` | tests/members.rs | Member | done |
 | `server/test/integration/migrations.test.ts` | tests/migrations.rs | Foundation | done |
 | `server/test/integration/port.test.ts` | tests/port.rs | Port | pending |
 | `server/test/integration/reports.test.ts` | tests/reports.rs | Report | pending |
-| `server/test/integration/seasons.test.ts` | tests/seasons.rs | Season | pending |
-| `server/test/integration/security.test.ts` | tests/security.rs | Security | pending |
-| `server/test/integration/teams.test.ts` | tests/teams.rs | Team | pending |
+| `server/test/integration/seasons.test.ts` | tests/seasons.rs | Season | done |
+| `server/test/integration/security.test.ts` | tests/security.rs | Security | done; 3 cases `#[ignore]`d until User lands (`/UserCurrentUpdate`) |
+| `server/test/integration/teams.test.ts` | tests/teams.rs | Team | done; 11 `Feature*` cases `#[ignore]`d until Feature lands |
 | `server/test/integration/users.test.ts` | tests/users.rs | User | pending |
 | `server/test/setup.ts` | src/config.rs (`Config::for_tests`) | Foundation | done |
 | `shared/src/auth/authAccess.test.ts` | src/shared/auth_access.rs (tests) | Foundation | done |
@@ -212,3 +212,9 @@ integration tests in `server/test/integration/x.test.ts` become
   ended": `Tarpit::respond` builds the response, so it cannot run on an
   ended one.
 - `test/globalSetup.ts`: no shared database server is needed.
+- `seasons.test.ts` › "returns all seasons without a search": the TS suite
+  shares one database, so it counts whatever exists; the Rust test creates two
+  seasons first in its fresh database and compares against the stored count.
+- `security.test.ts` › "returns the current season and auth...": waits 5 ms
+  between the two season creations so their `createdOn` differ (the Rust
+  server can create both within one millisecond; ties are not broken by `id`).
