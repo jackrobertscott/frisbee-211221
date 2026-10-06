@@ -46,7 +46,7 @@ import {
 import {genderOptions, isUserGender, primaryEmail} from '../common/users'
 import {fmtDateTime, fullName} from '../common/format'
 import {ActionConfirm} from '../common/ActionConfirm'
-import {UserMembershipsTab} from './UserMembershipsTab'
+import {UserMembershipsTab, useUserMemberships} from './UserMembershipsTab'
 import {UserMergeDialog} from './UserMergeDialog'
 import './users.css'
 
@@ -79,6 +79,7 @@ export function UserDialog({
   const [merge, mergeSet] = useState(false)
   const $userUpdate = useEndpoint($UserUpdate)
   const userId = user?.id
+  const memberships = useUserMemberships(userProp?.id)
   useEffect(() => {
     tabSet('details')
     mergeSet(false)
@@ -214,7 +215,7 @@ export function UserDialog({
             </Stack>
           </TabPanel>
           <TabPanel value="teams" className="fr-users-panel">
-            <UserMembershipsTab userId={user.id} />
+            <UserMembershipsTab userId={user.id} state={memberships} />
           </TabPanel>
         </Tabs>
       </Dialog>

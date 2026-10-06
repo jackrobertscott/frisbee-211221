@@ -262,6 +262,13 @@ body { background: var(--bg-app); }
   from { min-height: 0; visibility: hidden; }
   to { min-height: var(--_min); visibility: visible; }
 }
+/* Inside dialogs, reserve a compact height straight away (only the spinner itself waits), so the dialog resizes once — loading to content — rather than empty, tall spinner, then content. */
+.ui-dialog .fr-loading { --_min: 160px; }
+.ui-dialog .fr-loading--pending { animation-name: fr-loading-reveal-in-place; }
+@keyframes fr-loading-reveal-in-place {
+  from { visibility: hidden; }
+  to { visibility: visible; }
+}
 
 @media print {
   .fr-share__bar { display: none; }

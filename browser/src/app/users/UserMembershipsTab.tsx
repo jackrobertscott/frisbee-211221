@@ -8,11 +8,33 @@ import {$FeatureDashboardUserMembershipsLoad} from '../../core/endpoints/Feature
 import {Loading} from '../common/Loading'
 import {TeamName} from '../common/TeamName'
 
-/** A user's team memberships across every season (one user's list, not paged). */
-export function UserMembershipsTab({userId}: {userId: string}) {
+/**
+ * Loads a user's memberships as soon as the user dialog opens, so the Teams tab
+ * is usually ready before it is clicked. Results are keyed by user so a previous
+ * user's teams never show while the next user's load.
+ */
+export function useUserMemberships(userId: string | undefined) {
   const $memberList = useEndpoint($FeatureDashboardUserMembershipsLoad)
-  const state = useLoad(() => $memberList.fetch({userId}), [userId])
-  if (!state.data) {
+  return useLoad(
+    () =>
+      userId
+        ? $memberList.fetch({userId}).then((data) => ({userId, ...data}))
+        : Promise.resolve(undefined),
+    [userId],
+  )
+}
+
+export type TUserMembershipsState = ReturnType<typeof useUserMemberships>
+
+/** A user's team memberships across every season (one user's list, not paged). */
+export function UserMembershipsTab({
+  userId,
+  state,
+}: {
+  userId: string
+  state: TUserMembershipsState
+}) {
+  if (!state.data || state.data.userId !== userId) {
     if (state.failed)
       return (
         <EmptyState
