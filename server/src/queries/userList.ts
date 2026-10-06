@@ -91,8 +91,8 @@ function getUserListSort(
       return {lastName: direction, firstName: 1}
     case 'email':
       return {_sortPrimaryEmail: direction, lastName: 1, firstName: 1}
-    case 'gender':
-      return {gender: direction, lastName: 1, firstName: 1}
+    case 'genderMatching':
+      return {genderMatching: direction, lastName: 1, firstName: 1}
     case 'createdOn':
       return {createdOn: direction}
   }

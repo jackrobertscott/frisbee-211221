@@ -30,7 +30,7 @@ const makeUser = (id: string, overrides: Partial<TUser> = {}): TUser => ({
   updatedOn: NOW,
   firstName: 'First',
   lastName: 'Last',
-  gender: 'other',
+  genderMatching: 'female',
   emails: [],
   termsAccepted: false,
   ...overrides,

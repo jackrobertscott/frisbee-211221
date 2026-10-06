@@ -1,5 +1,5 @@
 import {TUserEmailSafe, TUserSafe} from '@shared/schemas/ioUser'
-import {TUserGender} from '@shared/schemas/ioUserGender'
+import {TUserGenderMatching} from '@shared/schemas/ioUserGenderMatching'
 import {
   Avatar,
   Badge,
@@ -43,7 +43,11 @@ import {
   $UserToggleAdmin,
   $UserUpdate,
 } from '../../core/endpoints/User'
-import {genderOptions, isUserGender, primaryEmail} from '../common/users'
+import {
+  genderMatchingOptions,
+  isUserGenderMatching,
+  primaryEmail,
+} from '../common/users'
 import {fmtDateTime, fullName} from '../common/format'
 import {ActionConfirm} from '../common/ActionConfirm'
 import {UserMembershipsTab, useUserMemberships} from './UserMembershipsTab'
@@ -55,7 +59,7 @@ type TTab = 'details' | 'teams'
 const profileOf = (user: TUserSafe) => ({
   firstName: user.firstName,
   lastName: user.lastName,
-  gender: user.gender,
+  genderMatching: user.genderMatching,
 })
 
 /** Admin: view and edit a user (details, emails, password, admin, teams, merge). */
@@ -74,7 +78,13 @@ export function UserDialog({
   const user = userProp ?? last.current
   const [tab, tabSet] = useState<TTab>('details')
   const [form, formSet] = useState(() =>
-    user ? profileOf(user) : {firstName: '', lastName: '', gender: 'other' as TUserGender},
+    user
+      ? profileOf(user)
+      : {
+          firstName: '',
+          lastName: '',
+          genderMatching: 'female' as TUserGenderMatching,
+        },
   )
   const [merge, mergeSet] = useState(false)
   const $userUpdate = useEndpoint($UserUpdate)
@@ -95,7 +105,7 @@ export function UserDialog({
   const dirty =
     form.firstName !== user.firstName ||
     form.lastName !== user.lastName ||
-    form.gender !== user.gender
+    form.genderMatching !== user.genderMatching
   const save = (e?: FormEvent) => {
     e?.preventDefault()
     if (!dirty) return
@@ -104,7 +114,7 @@ export function UserDialog({
         userId: user.id,
         firstName: form.firstName,
         lastName: form.lastName,
-        gender: form.gender,
+        genderMatching: form.genderMatching,
         avatarUrl: user.avatarUrl,
       })
       .then((next) => {
@@ -185,12 +195,13 @@ export function UserDialog({
                       />
                     </Field>
                   </div>
-                  <Field label="Gender">
+                  <Field label="Gender matching">
                     <Select
-                      value={form.gender}
-                      options={genderOptions}
+                      value={form.genderMatching}
+                      options={genderMatchingOptions}
                       onValueChange={(v) =>
-                        isUserGender(v) && formSet({...form, gender: v})
+                        isUserGenderMatching(v) &&
+                        formSet({...form, genderMatching: v})
                       }
                     />
                   </Field>

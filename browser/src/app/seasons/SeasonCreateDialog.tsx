@@ -124,12 +124,12 @@ export function SeasonCreateDialog({
               <Radio
                 value="simple"
                 label="Simple scoring"
-                description="1 MVP per gender, 4 spirit points."
+                description="1 MVP per gender matching, 4 spirit points."
               />
               <Radio
                 value="official"
                 label="Official scoring"
-                description="2 MVPs per gender, 20 spirit points across five categories."
+                description="2 MVPs per gender matching, 20 spirit points across five categories."
               />
             </RadioGroup>
           </Field>

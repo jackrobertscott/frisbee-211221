@@ -54,7 +54,7 @@ export const SecuritySignUpDef = {
     email: ioUserEmail.shape.value,
     firstName: ioUser.shape.firstName,
     lastName: ioUser.shape.lastName,
-    gender: ioUser.shape.gender,
+    genderMatching: ioUser.shape.genderMatching,
     termsAccepted: ioUser.shape.termsAccepted,
     userAgent: ioSession.shape.userAgent,
   }),

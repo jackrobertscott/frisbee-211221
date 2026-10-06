@@ -1,6 +1,9 @@
 import {TGamedayImportConfig} from '@shared/schemas/ioGamedayImport'
-import {normalizeUserGender} from '@shared/schemas/ioUserGender'
-import type {TUserGender} from '@shared/schemas/ioUserGender'
+import {
+  FALLBACK_USER_GENDER_MATCHING,
+  normalizeUserGenderMatching,
+} from '@shared/schemas/ioUserGenderMatching'
+import type {TUserGenderMatching} from '@shared/schemas/ioUserGenderMatching'
 import {$GamedayImportRun} from '../tables/$GamedayImportRun'
 import {
   importMemberObjects,
@@ -114,7 +117,10 @@ const prepareGamedayImport = (
       email_address: member.email,
       first_name: member.firstName,
       last_name: member.lastName,
-      gender: normalizeGamedayGender(member.gender, unrecognisedGenders),
+      gender_matching: normalizeGamedayGenderMatching(
+        member.gender,
+        unrecognisedGenders,
+      ),
     })
   })
 
@@ -201,7 +207,7 @@ const formatUnrecognisedGendersNote = (
       values.length,
       'unrecognised GameDay gender value',
       'unrecognised GameDay gender values',
-    )} as "other":`,
+    )} as ${FALLBACK_USER_GENDER_MATCHING} gender matching:`,
     ...values.map((value) => `- "${value}"`),
   ].join('\n')
   console.warn(note)
@@ -216,16 +222,17 @@ const formatCount = (
   return `${count} ${count === 1 ? singular : plural}`
 }
 
-const normalizeGamedayGender = (
+/** GameDay records gender, which is mapped onto a male or female gender matching. */
+const normalizeGamedayGenderMatching = (
   value: string,
   unrecognisedValues: Set<string>,
-): TUserGender => {
+): TUserGenderMatching => {
   const trimmedValue = value.trim()
-  if (!trimmedValue) return 'other'
-  const normalizedGender = normalizeUserGender(trimmedValue)
-  if (normalizedGender) return normalizedGender
+  if (!trimmedValue) return FALLBACK_USER_GENDER_MATCHING
+  const genderMatching = normalizeUserGenderMatching(trimmedValue)
+  if (genderMatching) return genderMatching
   unrecognisedValues.add(trimmedValue)
-  return 'other'
+  return FALLBACK_USER_GENDER_MATCHING
 }
 
 const formatErrorMessage = (error: unknown) => {

@@ -26,13 +26,16 @@ const team: TTeam = {
   color: 'hsla(0, 50%, 50%, 1)',
   division: 2,
 }
-const user = (id: string, gender: TUserPublic['gender']): TUserPublic => ({
+const user = (
+  id: string,
+  genderMatching: TUserPublic['genderMatching'],
+): TUserPublic => ({
   id,
   createdOn: now,
   updatedOn: now,
   firstName: 'First',
   lastName: id,
-  gender,
+  genderMatching,
 })
 const row = (
   userId: string,
@@ -99,7 +102,7 @@ describe('toMvpRows', () => {
         teamName: 'Team',
         division: 2,
         votes: 5,
-        gender: 0,
+        genderMatching: 'male',
       },
       {
         userId: 'a',
@@ -108,24 +111,34 @@ describe('toMvpRows', () => {
         teamName: 'Team',
         division: 2,
         votes: 3,
-        gender: 1,
+        genderMatching: 'female',
       },
     ])
+  })
+
+  it('uses the profile gender matching over the slot votes', () => {
+    const rows = toMvpRows({
+      aggregateRows: [row('a', 4, 4, 0)],
+      season,
+      teams: [],
+      users: [user('a', 'female')],
+    })
+    expect(rows.map((item) => item.genderMatching)).toEqual(['female'])
   })
 
   it('falls back to the slot with more votes and drops unused slots', () => {
     const rows = toMvpRows({
       aggregateRows: [
         row('unknown', 4, 3, 1),
-        row('other', 2, 0, 2),
+        row('missing', 2, 0, 2),
         row('zero', 0, 0, 0),
       ],
       season: {...season, genderDivision: 'women'},
       teams: [],
-      users: [user('other', 'other')],
+      users: [],
     })
     expect(
-      rows.map((item) => [item.userId, item.userName, item.gender]),
-    ).toEqual([['other', 'First other', 1]])
+      rows.map((item) => [item.userId, item.userName, item.genderMatching]),
+    ).toEqual([['missing', 'missing', 'female']])
   })
 })

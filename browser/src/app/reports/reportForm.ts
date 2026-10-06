@@ -187,8 +187,8 @@ const slotOfField = (field: ReportMvpField): TMvpGenderSlot =>
 
 /**
  * Drops MVP picks that are no longer valid: disabled slots for the season's
- * gender division, players not in the opposition, ineligible genders and
- * duplicate 1st/2nd picks.
+ * gender division, players not in the opposition, players whose gender
+ * matching does not fit the slot and duplicate 1st/2nd picks.
  */
 export function sanitizeReportFormMvps(
   formData: Pick<ReportFormData, ReportMvpField>,

@@ -88,7 +88,7 @@ const importCsv = async (
 }
 
 const IMPORT_HEADINGS =
-  'team_name,team_division,type,email_address,first_name,last_name,gender'
+  'team_name,team_division,type,email_address,first_name,last_name,gender_matching'
 
 describe('PortExport', () => {
   const t = tag()
@@ -136,7 +136,7 @@ describe('PortExport', () => {
     expect(teams.endsWith('\n')).toBe(true)
 
     expect((entries.get('users.csv') ?? '').split('\n')[0]).toBe(
-      '"FIRST_NAME","LAST_NAME","PRIMARY_EMAIL","PRIMARY_EMAIL_VERIFIED","GENDER","ADMIN","TERMS_ACCEPTED","CREATED_ON"',
+      '"FIRST_NAME","LAST_NAME","PRIMARY_EMAIL","PRIMARY_EMAIL_VERIFIED","GENDER_MATCHING","ADMIN","TERMS_ACCEPTED","CREATED_ON"',
     )
     expect(entries.get('users.csv')).toContain(
       `"'+Plus${t}","Person","export.${t}@example.com","","male","","",`,
@@ -261,7 +261,7 @@ describe('PortImport', () => {
       `Alpha ${t},2,player,${playerEmail},Play,Er,m`,
       `alpha ${t},,player,${playerEmail.toUpperCase()},Dupe,Row,male`,
       `Beta ${t},,player,${existing.email.toUpperCase()},Renamed,Person,female`,
-      `Beta ${t},,player,,No,Email,non binary`,
+      `Beta ${t},,player,,No,Email,Male Matching`,
     ].join('\n')
 
     const first = await importCsv(csv, {seasonId: season.id})
@@ -278,7 +278,7 @@ describe('PortImport', () => {
     expect(captain).toMatchObject({
       firstName: 'Cap',
       lastName: 'Tain',
-      gender: 'female',
+      genderMatching: 'female',
       termsAccepted: false,
     })
     expect(captain.emails).toEqual([
@@ -294,7 +294,7 @@ describe('PortImport', () => {
 
     const noEmail = await $User.getOne({firstName: 'No', lastName: 'Email'})
     expect(noEmail.emails).toEqual([])
-    expect(noEmail.gender).toBe('non-binary')
+    expect(noEmail.genderMatching).toBe('male')
 
     const members = await $Member.getMany({seasonId: season.id})
     const memberOf = (userId: string) => members.filter((m) => m.userId === userId)
@@ -338,19 +338,38 @@ describe('PortImport', () => {
     expect(await $Team.count({seasonId: season.id})).toBe(2)
   })
 
-  it('rejects an invalid gender with the row number', async () => {
+  it.each(['banana', 'non-binary', 'other'])(
+    'rejects an invalid gender matching (%s) with the row number',
+    async (value) => {
+      const t = tag()
+      const season = await createSeason(server, admin, {name: `Import ${t}`})
+      const result = await importCsv(
+        `${IMPORT_HEADINGS}\nEpsilon ${t},,player,ok.${t}@example.com,A,B,male\nEpsilon ${t},,player,bad.${t}@example.com,C,D,${value}\n`,
+        {seasonId: season.id},
+      )
+      expect(result.status).toBe(400)
+      expect(result.body?.errorCode).toBe('upload.invalid_gender_matching')
+      expect(result.body?.message).toBe(
+        `Failed: row 3 has invalid gender matching "${value}". Use male or female.`,
+      )
+      expect(await $User.count({'emails.value': `ok.${t}@example.com`})).toBe(0)
+      // rows are validated before any team is created
+      expect(await $Team.count({seasonId: season.id})).toBe(0)
+    },
+  )
+
+  it('accepts the older gender heading for gender matching', async () => {
     const t = tag()
     const season = await createSeason(server, admin, {name: `Import ${t}`})
+    const email = `legacy.${t}@example.com`
     const result = await importCsv(
-      `${IMPORT_HEADINGS}\nEpsilon ${t},,player,ok.${t}@example.com,A,B,male\nEpsilon ${t},,player,bad.${t}@example.com,C,D,banana\n`,
+      `team_name,email_address,first_name,last_name,gender\nZeta ${t},${email},L,G,female\n`,
       {seasonId: season.id},
     )
-    expect(result.status).toBe(400)
-    expect(result.body?.errorCode).toBe('upload.invalid_gender')
-    expect(result.body?.message).toBe('Failed: row 3 has invalid gender "banana".')
-    expect(await $User.count({'emails.value': `ok.${t}@example.com`})).toBe(0)
-    // rows are validated before any team is created
-    expect(await $Team.count({seasonId: season.id})).toBe(0)
+    expect(result.status).toBe(204)
+    expect((await $User.getOne({'emails.value': email})).genderMatching).toBe(
+      'female',
+    )
   })
 })
 

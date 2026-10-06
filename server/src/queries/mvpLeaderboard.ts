@@ -2,6 +2,7 @@ import {TFeatureMvpRow} from '@shared/endpoints/FeatureDef'
 import {TSeason} from '@shared/schemas/ioSeason'
 import {TTeam} from '@shared/schemas/ioTeam'
 import {TUserPublic} from '@shared/schemas/ioUser'
+import {TUserGenderMatching} from '@shared/schemas/ioUserGenderMatching'
 import {
   getSeasonMvpSlots,
   isSeasonMvpSlotEnabled,
@@ -18,9 +19,6 @@ export type TMvpLeaderboardRow = {
   teamId?: string
 }
 
-const GENDER_MALE = 0
-const GENDER_FEMALE = 1
-
 /**
  * MVP vote totals per player across the given fixtures. Official scoring
  * gives 5 points to a first pick and 3 to a second; otherwise only first
@@ -34,20 +32,40 @@ export function getMvpLeaderboardPipeline(
   const useOfficialScoring = !!season.useOfficialScoring
   const firstPoints = useOfficialScoring ? 5 : 1
   const secondPoints = useOfficialScoring ? 3 : 0
-  const slotVotes = (first: string, second: string, gender: number) => [
-    {userId: first, points: firstPoints, gender, teamId: '$teamAgainstId'},
-    {userId: second, points: secondPoints, gender, teamId: '$teamAgainstId'},
+  const slotVotes = (
+    first: string,
+    second: string,
+    genderMatching: TUserGenderMatching,
+  ) => [
+    {
+      userId: first,
+      points: firstPoints,
+      genderMatching,
+      teamId: '$teamAgainstId',
+    },
+    {
+      userId: second,
+      points: secondPoints,
+      genderMatching,
+      teamId: '$teamAgainstId',
+    },
   ]
   const votes: Document[] = [
     ...(isSeasonMvpSlotEnabled(season, 'male')
-      ? slotVotes('$mvpMale', '$mvpMale2', GENDER_MALE)
+      ? slotVotes('$mvpMale', '$mvpMale2', 'male')
       : []),
     ...(isSeasonMvpSlotEnabled(season, 'female')
-      ? slotVotes('$mvpFemale', '$mvpFemale2', GENDER_FEMALE)
+      ? slotVotes('$mvpFemale', '$mvpFemale2', 'female')
       : []),
   ]
-  const pointsForGender = (gender: number) => ({
-    $sum: {$cond: [{$eq: ['$votes.gender', gender]}, '$votes.points', 0]},
+  const pointsForMatching = (genderMatching: TUserGenderMatching) => ({
+    $sum: {
+      $cond: [
+        {$eq: ['$votes.genderMatching', genderMatching]},
+        '$votes.points',
+        0,
+      ],
+    },
   })
   return [
     {$match: {fixtureId: {$in: fixtureIds}}},
@@ -73,8 +91,8 @@ export function getMvpLeaderboardPipeline(
       $group: {
         _id: '$votes.userId',
         votes: {$sum: '$votes.points'},
-        maleVotes: pointsForGender(GENDER_MALE),
-        femaleVotes: pointsForGender(GENDER_FEMALE),
+        maleVotes: pointsForMatching('male'),
+        femaleVotes: pointsForMatching('female'),
         teamId: {$first: '$votes.teamId'},
       },
     },
@@ -150,9 +168,9 @@ export function getMvpLeaderboardPipeline(
 }
 
 /**
- * Leaderboard rows in aggregate order. A player's gender comes from their
- * profile, falling back to whichever slot gave them more votes, and players
- * in slots the season does not use are dropped.
+ * Leaderboard rows in aggregate order. A player's gender matching comes from
+ * their profile, falling back to whichever slot gave them more votes when the
+ * user is missing, and players in slots the season does not use are dropped.
  */
 export function toMvpRows({
   aggregateRows,
@@ -179,24 +197,18 @@ export function toMvpRows({
         teamName: team?.name,
         division: team?.division,
         votes: row.votes,
-        gender: getMvpGender(row, user),
+        genderMatching: getMvpGenderMatching(row, user),
       }
     })
-    .filter(
-      (row) =>
-        row.votes > 0 &&
-        ((row.gender === GENDER_MALE && slots.male) ||
-          (row.gender === GENDER_FEMALE && slots.female)),
-    )
+    .filter((row) => row.votes > 0 && slots[row.genderMatching])
 }
 
-function getMvpGender(
+function getMvpGenderMatching(
   row: TMvpLeaderboardRow,
   user: TUserPublic | undefined,
-): number {
-  if (user?.gender === 'male') return GENDER_MALE
-  if (user?.gender === 'female') return GENDER_FEMALE
+): TUserGenderMatching {
+  if (user) return user.genderMatching
   const maleVotes = row.maleVotes ?? 0
   const femaleVotes = row.femaleVotes ?? 0
-  return maleVotes > femaleVotes ? GENDER_MALE : GENDER_FEMALE
+  return maleVotes > femaleVotes ? 'male' : 'female'
 }

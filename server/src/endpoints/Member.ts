@@ -68,16 +68,16 @@ export default new Map<string, RequestHandler>([
         const team = await $Team.getOne({id: teamId})
         let user = await userEmail.maybeUser(email)
         if (!user) {
-          if (!body.firstName?.trim() || !body.lastName?.trim() || !body.gender)
+          if (!body.firstName?.trim() || !body.lastName?.trim() || !body.genderMatching)
             throw badRequestError(
-              'First name, last name, and gender are required for a new user.',
+              'First name, last name, and gender matching are required for a new user.',
               {errorCode: 'member.user_details_required'},
             )
           const emails = [userEmail.create(email, true)]
           user = await $User.createOne({
             firstName: body.firstName,
             lastName: body.lastName,
-            gender: body.gender,
+            genderMatching: body.genderMatching,
             termsAccepted: false,
             emails,
           })

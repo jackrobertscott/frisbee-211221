@@ -12,7 +12,7 @@ import {navigate} from '../../core/router/navigate'
 import {Loading} from '../common/Loading'
 import {useShell} from '../shell/ShellProvider'
 
-/** Admin MVP tallies, one table per gender slot (server-ordered by points). */
+/** Admin MVP tallies, one table per gender matching slot (server-ordered by points). */
 export function MvpPage() {
   const auth = useAuth()
   const shell = useShell()
@@ -46,10 +46,16 @@ export function MvpPage() {
       )}
       <div className="fr-grid-2 fr-grid-2--wide">
         {slots.male && (
-          <MvpCard title="Male MVP points" rows={data.rows.filter((r) => r.gender === 0)} />
+          <MvpCard
+            title="Male MVP points"
+            rows={data.rows.filter((r) => r.genderMatching === 'male')}
+          />
         )}
         {slots.female && (
-          <MvpCard title="Female MVP points" rows={data.rows.filter((r) => r.gender === 1)} />
+          <MvpCard
+            title="Female MVP points"
+            rows={data.rows.filter((r) => r.genderMatching === 'female')}
+          />
         )}
       </div>
     </div>

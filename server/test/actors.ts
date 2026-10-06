@@ -20,7 +20,7 @@ export async function signUp(
     email?: string
     firstName?: string
     lastName?: string
-    gender?: string
+    genderMatching?: string
     admin?: boolean
     seasonId?: string
   } = {},
@@ -30,7 +30,7 @@ export async function signUp(
     email,
     firstName: options.firstName ?? 'Test',
     lastName: options.lastName ?? 'Player',
-    gender: options.gender ?? 'female',
+    genderMatching: options.genderMatching ?? 'female',
     termsAccepted: true,
     seasonId: options.seasonId,
   })
@@ -78,7 +78,7 @@ export async function addMember(
   server: TTestServer,
   admin: TActor,
   teamId: string,
-  user: {email?: string; firstName?: string; lastName?: string; gender?: string} = {},
+  user: {email?: string; firstName?: string; lastName?: string; genderMatching?: string} = {},
 ) {
   const response = await server.call(
     '/MemberCreate',
@@ -87,7 +87,7 @@ export async function addMember(
       email: user.email ?? uniqueEmail('member'),
       firstName: user.firstName ?? 'Member',
       lastName: user.lastName ?? 'Person',
-      gender: user.gender ?? 'male',
+      genderMatching: user.genderMatching ?? 'male',
     },
     {token: admin.token},
   )

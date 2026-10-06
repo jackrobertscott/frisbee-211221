@@ -32,12 +32,12 @@ const team = async (
 const player = async (
   admin: TActor,
   teamId: string,
-  options: {gender?: string; firstName?: string; lastName?: string} = {},
+  options: {genderMatching?: string; firstName?: string; lastName?: string} = {},
 ) => {
   const email = uniqueEmail('player')
   const actor = await signUp(server, {
     email,
-    gender: options.gender ?? 'female',
+    genderMatching: options.genderMatching ?? 'female',
     firstName: options.firstName,
     lastName: options.lastName,
   })
@@ -412,13 +412,13 @@ describe('FeatureDashboardMvpLoad', () => {
       [a.id, b.id],
       [c.id, d.id],
     ])
-    const person = (teamId: string, firstName: string, gender: string) =>
-      player(admin, teamId, {firstName, lastName: 'P', gender})
+    const person = (teamId: string, firstName: string, genderMatching: string) =>
+      player(admin, teamId, {firstName, lastName: 'P', genderMatching})
     const users = {
       m1: await person(b.id, 'Aaron', 'male'),
       f1: await person(b.id, 'Bella', 'female'),
       m3: await person(b.id, 'Carl', 'male'),
-      nb: await person(b.id, 'Dana', 'non-binary'),
+      f3: await person(b.id, 'Dana', 'female'),
       m2: await person(a.id, 'Zack', 'male'),
       f2: await person(a.id, 'Yara', 'female'),
       d1: await person(d.id, 'Adam', 'male'),
@@ -430,7 +430,7 @@ describe('FeatureDashboardMvpLoad', () => {
       mvpMale: users.m1.userId,
       mvpMale2: users.m3.userId,
       mvpFemale: users.f1.userId,
-      mvpFemale2: users.nb.userId,
+      mvpFemale2: users.f3.userId,
     })
     await report({
       fixtureId: f.id,
@@ -462,7 +462,7 @@ describe('FeatureDashboardMvpLoad', () => {
       teamName?: string
       division?: number
       votes: number
-      gender: number
+      genderMatching: string
     }>
   }
 
@@ -485,13 +485,12 @@ describe('FeatureDashboardMvpLoad', () => {
       teamName: 'Alpha',
       division: 1,
       votes: 5,
-      gender: 0,
+      genderMatching: 'male',
     })
-    expect(rows[2]).toMatchObject({teamId: b.id, division: 2, gender: 1})
+    expect(rows[2]).toMatchObject({teamId: b.id, division: 2, genderMatching: 'female'})
     expect(rows[3]).toMatchObject({teamId: d.id, teamName: 'Delta'})
     expect(rows[3].division).toBeUndefined()
-    // non-binary players take the gender of the slot they were voted into
-    expect(rows[6]).toMatchObject({userId: users.nb.userId, gender: 1})
+    expect(rows[6]).toMatchObject({userId: users.f3.userId, genderMatching: 'female'})
   })
 
   it('awards 1 point for primary picks only under simple scoring', async () => {
@@ -510,7 +509,7 @@ describe('FeatureDashboardMvpLoad', () => {
     const f = await fixture(season.id, admin.userId, 'Round 2', '2026-07-08T07:00:00.000Z', [
       [a.id, b.id],
     ])
-    // a woman voted into the male slot is still filtered out by her gender
+    // a woman voted into the male slot is still filtered out by her gender matching
     await report({fixtureId: f.id, teamId: a.id, teamAgainstId: b.id, mvpMale: users.f1.userId})
     const rows = await load(admin, season.id)
     expect(rows.map((r) => [r.userName, r.votes])).toEqual([
@@ -608,7 +607,7 @@ describe('fixture and report editor loaders', () => {
   it('loads report editor options with the opposition players', async () => {
     const {admin, season, a, b, d, later} = await setup()
     const alphaPlayer = await player(admin, a.id)
-    const bravo1 = await player(admin, b.id, {firstName: 'Bo', gender: 'male'})
+    const bravo1 = await player(admin, b.id, {firstName: 'Bo', genderMatching: 'male'})
     const bravo2 = await player(admin, b.id, {firstName: 'Bea'})
     const delta1 = await player(admin, d.id, {firstName: 'Dee'})
     // pending requests are not offered as MVP options
@@ -643,7 +642,7 @@ describe('fixture and report editor loaders', () => {
     expect(options[1].users.map((u) => u.id)).toEqual([delta1.userId])
     // only public user fields are exposed
     expect(Object.keys(options[0].users[0]).sort()).toEqual(
-      ['createdOn', 'firstName', 'gender', 'id', 'lastName', 'updatedOn'],
+      ['createdOn', 'firstName', 'genderMatching', 'id', 'lastName', 'updatedOn'],
     )
   })
 

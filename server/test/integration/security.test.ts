@@ -44,14 +44,14 @@ describe('security endpoints', () => {
       email,
       firstName: 'Sam',
       lastName: 'Lee',
-      gender: 'Non Binary',
+      genderMatching: 'Female Matching',
       termsAccepted: true,
     })
     expect(response.status).toBe(200)
     expect(response.body.user).toMatchObject({
       firstName: 'Sam',
       lastName: 'Lee',
-      gender: 'non-binary',
+      genderMatching: 'female',
       termsAccepted: true,
     })
     expect(response.body.user.password).toBeUndefined()
@@ -67,18 +67,29 @@ describe('security endpoints', () => {
       email: uniqueEmail(),
       firstName: 'A',
       lastName: 'B',
-      gender: 'male',
+      genderMatching: 'male',
       termsAccepted: false,
     })
     expect(terms.status).toBe(400)
     expect(terms.body.errorCode).toBe('auth.terms_required')
+
+    for (const genderMatching of ['non-binary', 'other']) {
+      const unmatched = await server.call('/SecuritySignUp', {
+        email: uniqueEmail(),
+        firstName: 'A',
+        lastName: 'B',
+        genderMatching,
+        termsAccepted: true,
+      })
+      expect(unmatched.status).toBe(422)
+    }
 
     const actor = await signUp(server)
     const duplicate = await server.call('/SecuritySignUp', {
       email: actor.email.toUpperCase(),
       firstName: 'A',
       lastName: 'B',
-      gender: 'male',
+      genderMatching: 'male',
       termsAccepted: true,
     })
     expect(duplicate.status).toBe(409)

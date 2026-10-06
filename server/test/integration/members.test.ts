@@ -183,7 +183,7 @@ describe('MemberCreate', () => {
         email,
         firstName: 'New',
         lastName: 'Person',
-        gender: 'female',
+        genderMatching: 'female',
       },
       {token: captain.token},
     )
@@ -198,7 +198,7 @@ describe('MemberCreate', () => {
     expect(user).toMatchObject({
       firstName: 'New',
       lastName: 'Person',
-      gender: 'female',
+      genderMatching: 'female',
       termsAccepted: false,
     })
     expect(user.emails).toEqual([
@@ -216,19 +216,19 @@ describe('MemberCreate', () => {
         email,
         firstName: '  ',
         lastName: 'Person',
-        gender: 'male',
+        genderMatching: 'male',
       },
       {token: captain.token},
     )
     expect(response.status).toBe(400)
     expect(response.body.errorCode).toBe('member.user_details_required')
-    const noGender = await server.call(
+    const noGenderMatching = await server.call(
       '/MemberCreate',
       {teamId: team.id, email, firstName: 'A', lastName: 'B'},
       {token: captain.token},
     )
-    expect(noGender.status).toBe(400)
-    expect(noGender.body.errorCode).toBe('member.user_details_required')
+    expect(noGenderMatching.status).toBe(400)
+    expect(noGenderMatching.body.errorCode).toBe('member.user_details_required')
     expect(await $User.count({'emails.value': email})).toBe(0)
   })
 
@@ -296,7 +296,7 @@ describe('MemberCreate', () => {
         email: uniqueEmail(),
         firstName: 'A',
         lastName: 'B',
-        gender: 'male',
+        genderMatching: 'male',
       },
       {token: player.token},
     )
@@ -316,7 +316,7 @@ describe('MemberCreate', () => {
         email: uniqueEmail(),
         firstName: 'A',
         lastName: 'B',
-        gender: 'male',
+        genderMatching: 'male',
       },
       {token: admin.token},
     )

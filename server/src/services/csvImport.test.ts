@@ -15,7 +15,7 @@ describe('assertMemberImportHeadings', () => {
           'email_address',
           'first_name',
           'last_name',
-          'gender',
+          'gender_matching',
         ]),
       ]),
     ).not.toThrow()

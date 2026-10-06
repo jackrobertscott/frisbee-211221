@@ -14,6 +14,8 @@ export const MEMBER_IMPORT_ALLOWED_HEADINGS: readonly string[] = [
   'email_address',
   'first_name',
   'last_name',
+  'gender_matching',
+  // older spreadsheets name the gender matching column `gender`
   'gender',
 ]
 

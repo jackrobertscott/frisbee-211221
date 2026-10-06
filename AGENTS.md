@@ -43,3 +43,4 @@
 - The browser `@ui` library is vendored from the `uilib-261005` repository (`src/lib`).
 - Server integration tests live in `server/test/integration` and drive the real request pipeline against an in-memory MongoDB.
 - Team colours must be `hsla(...)` strings from `browser/src/utils/colors.ts`; the server rejects other formats.
+- Users have a `genderMatching` of only `male` or `female` (no non-binary or other option); it decides which MVP slot (male or female) they can be voted into and is a different concept from gender.

@@ -8,7 +8,7 @@ import {
 } from '@shared/utils/seasonGenderDivision'
 import {$User} from '../tables/$User'
 
-type TMvpUser = Pick<TUser, 'gender'>
+type TMvpUser = Pick<TUser, 'genderMatching'>
 
 /** The non-empty user ids referenced by the MVP fields. */
 export function collectMvpUserIds(fields: TSeasonMvpFields): string[] {
@@ -19,7 +19,7 @@ export function collectMvpUserIds(fields: TSeasonMvpFields): string[] {
 
 /**
  * Clears MVP picks whose user is known to be ineligible for the slot's
- * gender. Empty picks are cleared; users missing from the map are kept.
+ * gender matching. Empty picks are cleared; users missing from the map are kept.
  */
 export function dropIneligibleMvps(
   fields: TSeasonMvpFields,

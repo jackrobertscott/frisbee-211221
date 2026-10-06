@@ -1,5 +1,5 @@
 import {TUserEmail} from '@shared/schemas/ioUser'
-import {TUserGender} from '@shared/schemas/ioUserGender'
+import {TUserGenderMatching} from '@shared/schemas/ioUserGenderMatching'
 import {random} from '../utils/random'
 
 export interface TMockTeamCreate {
@@ -17,7 +17,7 @@ export interface TMockUserCreate {
   firstName: string
   lastName: string
   termsAccepted: boolean
-  gender: TUserGender
+  genderMatching: TUserGenderMatching
   emails: TUserEmail[]
 }
 
@@ -67,13 +67,14 @@ export const generateMockSeasonData = (
       const lastName = pick(MOCK_LAST_NAMES)
       const email = mockEmail(firstName, lastName)
       if (teamUsers.some((u) => u.emails[0].value === email)) continue
-      const gender: TUserGender = Math.random() > 0.5 ? 'male' : 'female'
+      const genderMatching: TUserGenderMatching =
+        Math.random() > 0.5 ? 'male' : 'female'
       const user: TMockUserCreate = {
         id: random.generateId(),
         isMock: true,
         firstName,
         lastName,
-        gender,
+        genderMatching,
         termsAccepted: true,
         emails: [
           {

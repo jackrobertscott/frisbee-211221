@@ -11,7 +11,7 @@ export const $User = db.table({
     {key: {'emails.value': 1}, collation: EMAIL_COLLATION},
     {key: {firstName: 1, lastName: 1}},
     {key: {lastName: 1, firstName: 1}},
-    {key: {gender: 1, lastName: 1, firstName: 1}},
+    {key: {genderMatching: 1, lastName: 1, firstName: 1}},
     {key: {createdOn: -1}},
   ],
   schema: ioUser,

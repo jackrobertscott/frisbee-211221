@@ -90,7 +90,7 @@ Report features include:
 - Enter game scores.
 - Submit spirit scores.
 - Add spirit comments.
-- Select male and female MVPs.
+- Select male and female MVPs; each player can only be picked in the slot of their gender matching (male or female).
 - Support both simple scoring and official scoring modes.
 - In official scoring mode, support multiple spirit categories and first/second MVP point values.
 
@@ -129,7 +129,7 @@ The MVP page is an administrator page for viewing player MVP standings.
 
 Features include:
 
-- Separate male and female MVP tables.
+- Separate male and female MVP tables, split by each player's gender matching.
 - Player name, division, team, and points.
 - Official scoring note when official scoring is enabled: first-place MVP votes are worth 5 points and second-place MVP votes are worth 3 points.
 
@@ -191,7 +191,7 @@ The Users page is an administrator page for account management.
 Features include:
 
 - Search users.
-- Sort by first name, last name, email, gender, and creation date.
+- Sort by first name, last name, email, gender matching, and creation date.
 - Paginate through users.
 - Create a user manually.
 - Open and edit user details.

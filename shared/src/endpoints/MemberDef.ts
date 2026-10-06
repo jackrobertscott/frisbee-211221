@@ -23,7 +23,7 @@ export const MemberCreateDef = {
     email: ioUserEmail.shape.value,
     firstName: io.optional(ioUser.shape.firstName),
     lastName: io.optional(ioUser.shape.lastName),
-    gender: io.optional(ioUser.shape.gender),
+    genderMatching: io.optional(ioUser.shape.genderMatching),
   }),
   result: ioMember,
 } satisfies TEndpointDef

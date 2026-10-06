@@ -1,7 +1,7 @@
 import {authPoint} from '@shared/auth/authAccess'
 import {TMember} from '@shared/schemas/ioMember'
 import {TTeam} from '@shared/schemas/ioTeam'
-import {TUserGender} from '@shared/schemas/ioUserGender'
+import {TUserGenderMatching} from '@shared/schemas/ioUserGenderMatching'
 import {
   Avatar,
   Badge,
@@ -31,7 +31,10 @@ import {
   $MemberRemove,
   $MemberSetCaptain,
 } from '../../core/endpoints/Member'
-import {genderOptions, isUserGender} from '../common/users'
+import {
+  genderMatchingOptions,
+  isUserGenderMatching,
+} from '../common/users'
 import {fullName} from '../common/format'
 import {Loading} from '../common/Loading'
 import './team.css'
@@ -263,7 +266,7 @@ const initialMember = () => ({
   email: '',
   firstName: '',
   lastName: '',
-  gender: undefined as TUserGender | undefined,
+  genderMatching: undefined as TUserGenderMatching | undefined,
 })
 
 /** Look up a player by email; unknown emails continue to a details step that creates the user. */
@@ -319,7 +322,7 @@ function AddMemberDialog({
         email: form.email,
         firstName: form.firstName,
         lastName: form.lastName,
-        gender: form.gender,
+        genderMatching: form.genderMatching,
       })
       .then(() => {
         toast.success('Member created and added to team.')
@@ -385,17 +388,17 @@ function AddMemberDialog({
                   />
                 </Field>
               </div>
-              <Field label="Gender">
+              <Field label="Gender matching">
                 <Select
-                  value={form.gender ?? null}
+                  value={form.genderMatching ?? null}
                   onValueChange={(v) =>
                     formSet({
                       ...form,
-                      gender: isUserGender(v) ? v : undefined,
+                      genderMatching: isUserGenderMatching(v) ? v : undefined,
                     })
                   }
-                  placeholder="Select gender"
-                  options={genderOptions}
+                  placeholder="Select gender matching"
+                  options={genderMatchingOptions}
                 />
               </Field>
             </>

@@ -21,7 +21,7 @@ import {useEndpoint} from '../../core/endpoints/useEndpoint'
 import {useLoad} from '../../core/hooks/useLoad'
 import {$UserList} from '../../core/endpoints/User'
 import {navigate} from '../../core/router/navigate'
-import {genderLabel, primaryEmail} from '../common/users'
+import {genderMatchingLabel, primaryEmail} from '../common/users'
 import {fmtShort, fullName} from '../common/format'
 import {Toolbar} from '../common/Toolbar'
 import {useServerPaging} from '../common/useServerPaging'
@@ -166,12 +166,12 @@ export function UsersPage() {
             render: (u) => <UserEmailCell user={u} />,
           },
           {
-            key: 'gender',
-            header: 'Gender',
+            key: 'genderMatching',
+            header: 'Gender matching',
             sortable: true,
             nowrap: true,
             hideBelow: 'md',
-            render: (u) => genderLabel(u.gender),
+            render: (u) => genderMatchingLabel(u.genderMatching),
           },
           {
             key: 'createdOn',

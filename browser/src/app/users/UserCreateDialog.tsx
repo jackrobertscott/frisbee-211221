@@ -1,18 +1,18 @@
 import {TUserSafe} from '@shared/schemas/ioUser'
-import {TUserGender} from '@shared/schemas/ioUserGender'
+import {TUserGenderMatching} from '@shared/schemas/ioUserGenderMatching'
 import {Button, Dialog, Field, Input, Select, Stack, Switch, toast} from '@ui'
 import {Mail} from 'lucide-react'
 import {type FormEvent, useEffect, useState} from 'react'
 import {useEndpoint} from '../../core/endpoints/useEndpoint'
 import {$UserCreate} from '../../core/endpoints/User'
 import {fullName} from '../common/format'
-import {genderOptions, isUserGender} from '../common/users'
+import {genderMatchingOptions, isUserGenderMatching} from '../common/users'
 
 const initialForm = () => ({
   firstName: '',
   lastName: '',
   email: '',
-  gender: undefined as TUserGender | undefined,
+  genderMatching: undefined as TUserGenderMatching | undefined,
   termsAccepted: false,
 })
 
@@ -28,17 +28,17 @@ export function UserCreateDialog({
 }) {
   const $create = useEndpoint($UserCreate)
   const [form, formSet] = useState(initialForm)
-  const [genderError, genderErrorSet] = useState(false)
+  const [genderMatchingError, genderMatchingErrorSet] = useState(false)
   useEffect(() => {
     if (open) {
       formSet(initialForm())
-      genderErrorSet(false)
+      genderMatchingErrorSet(false)
     }
   }, [open])
   const submit = (e?: FormEvent) => {
     e?.preventDefault()
-    if (!form.gender) {
-      genderErrorSet(true)
+    if (!form.genderMatching) {
+      genderMatchingErrorSet(true)
       return
     }
     $create
@@ -46,7 +46,7 @@ export function UserCreateDialog({
         firstName: form.firstName,
         lastName: form.lastName,
         email: form.email,
-        gender: form.gender,
+        genderMatching: form.genderMatching,
         termsAccepted: form.termsAccepted,
       })
       .then((user) => {
@@ -101,17 +101,19 @@ export function UserCreateDialog({
             />
           </Field>
           <Field
-            label="Gender"
-            error={genderError ? 'Choose a gender.' : undefined}
+            label="Gender matching"
+            error={
+              genderMatchingError ? 'Choose a gender matching.' : undefined
+            }
           >
             <Select
-              value={form.gender ?? null}
-              placeholder="Select gender"
-              options={genderOptions}
+              value={form.genderMatching ?? null}
+              placeholder="Select gender matching"
+              options={genderMatchingOptions}
               onValueChange={(v) => {
-                if (isUserGender(v)) {
-                  formSet({...form, gender: v})
-                  genderErrorSet(false)
+                if (isUserGenderMatching(v)) {
+                  formSet({...form, genderMatching: v})
+                  genderMatchingErrorSet(false)
                 }
               }}
             />

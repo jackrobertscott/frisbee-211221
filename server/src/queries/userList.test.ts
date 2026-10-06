@@ -35,8 +35,8 @@ describe('getUserListPipeline', () => {
     expect(getUserListPipeline({}, 'lastName', 'desc')[1]).toEqual({
       $sort: {lastName: -1, firstName: 1},
     })
-    expect(getUserListPipeline({}, 'gender', 'asc')[1]).toEqual({
-      $sort: {gender: 1, lastName: 1, firstName: 1},
+    expect(getUserListPipeline({}, 'genderMatching', 'asc')[1]).toEqual({
+      $sort: {genderMatching: 1, lastName: 1, firstName: 1},
     })
   })
 

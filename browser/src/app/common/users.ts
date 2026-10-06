@@ -1,20 +1,25 @@
-/* User display helpers: gender options/labels and the primary email. */
+/* User display helpers: gender matching options/labels and the primary email. */
 import {TUserSafe} from '@shared/schemas/ioUser'
-import {TUserGender, USER_GENDERS} from '@shared/schemas/ioUserGender'
+import {TUserGenderMatching} from '@shared/schemas/ioUserGenderMatching'
 
-/** Gender select options, in display order. */
-export const genderOptions: Array<{value: TUserGender; label: string}> = [
+export {isUserGenderMatching} from '@shared/schemas/ioUserGenderMatching'
+
+/** Gender matching select options, in display order. */
+export const genderMatchingOptions: Array<{
+  value: TUserGenderMatching
+  label: string
+}> = [
   {value: 'male', label: 'Male'},
   {value: 'female', label: 'Female'},
-  {value: 'non-binary', label: 'Non-Binary'},
-  {value: 'other', label: 'Other'},
 ]
 
-export const genderLabel = (gender: TUserGender) =>
-  genderOptions.find((g) => g.value === gender)?.label ?? gender
+/** Explains gender matching wherever players pick their own. */
+export const GENDER_MATCHING_DESCRIPTION =
+  'Decides whether you are voted for as a male or female MVP.'
 
-export const isUserGender = (value: string | null): value is TUserGender =>
-  USER_GENDERS.some((g) => g === value)
+export const genderMatchingLabel = (genderMatching: TUserGenderMatching) =>
+  genderMatchingOptions.find((g) => g.value === genderMatching)?.label ??
+  genderMatching
 
 /** The user's primary email, falling back to their first one. */
 export const primaryEmail = (user: TUserSafe) =>

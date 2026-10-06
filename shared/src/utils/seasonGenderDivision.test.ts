@@ -31,15 +31,19 @@ describe('MVP slots', () => {
     expect(isSeasonMvpSlotEnabled(women, 'female')).toBe(true)
   })
 
-  it('lets non-binary and other users fill either slot', () => {
-    expect(isUserEligibleForMvpSlot({gender: 'male'}, 'male')).toBe(true)
-    expect(isUserEligibleForMvpSlot({gender: 'male'}, 'female')).toBe(false)
-    expect(isUserEligibleForMvpSlot({gender: 'female'}, 'female')).toBe(true)
-    expect(isUserEligibleForMvpSlot({gender: 'female'}, 'male')).toBe(false)
-    for (const gender of ['non-binary', 'other'] as const) {
-      expect(isUserEligibleForMvpSlot({gender}, 'male')).toBe(true)
-      expect(isUserEligibleForMvpSlot({gender}, 'female')).toBe(true)
-    }
+  it('only lets users fill the slot of their gender matching', () => {
+    expect(isUserEligibleForMvpSlot({genderMatching: 'male'}, 'male')).toBe(
+      true,
+    )
+    expect(isUserEligibleForMvpSlot({genderMatching: 'male'}, 'female')).toBe(
+      false,
+    )
+    expect(isUserEligibleForMvpSlot({genderMatching: 'female'}, 'female')).toBe(
+      true,
+    )
+    expect(isUserEligibleForMvpSlot({genderMatching: 'female'}, 'male')).toBe(
+      false,
+    )
   })
 })
 

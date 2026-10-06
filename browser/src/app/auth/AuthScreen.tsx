@@ -1,4 +1,4 @@
-import {TUserGender} from '@shared/schemas/ioUserGender'
+import {TUserGenderMatching} from '@shared/schemas/ioUserGenderMatching'
 import {
   Alert,
   Button,
@@ -29,7 +29,11 @@ import {
   $SecurityStatus,
   $SecurityVerify,
 } from '../../core/endpoints/Security'
-import {genderOptions, isUserGender} from '../common/users'
+import {
+  GENDER_MATCHING_DESCRIPTION,
+  genderMatchingOptions,
+  isUserGenderMatching,
+} from '../common/users'
 import {navigate} from '../../core/router/navigate'
 import {Logo} from '../shell/Logo'
 
@@ -315,7 +319,7 @@ function SignUpStep({
     firstName: '',
     lastName: '',
     email: initialEmail,
-    gender: undefined as TUserGender | undefined,
+    genderMatching: undefined as TUserGenderMatching | undefined,
     termsAccepted: false,
   })
   const [error, errorSet] = useState<string>()
@@ -323,7 +327,8 @@ function SignUpStep({
     e.preventDefault()
     if (!form.firstName.trim() || !form.lastName.trim())
       return errorSet('Enter your first and last name.')
-    if (!form.gender) return errorSet('Please select your gender.')
+    if (!form.genderMatching)
+      return errorSet('Please select your gender matching.')
     if (!isEmail(form.email)) return errorSet('Enter a valid email address.')
     if (!form.termsAccepted)
       return errorSet('Please accept the terms and conditions to continue.')
@@ -333,7 +338,7 @@ function SignUpStep({
       .fetch({
         ...form,
         email,
-        gender: form.gender,
+        genderMatching: form.genderMatching,
         seasonId: auth.season?.id,
         userAgent: navigator.userAgent,
       })
@@ -369,14 +374,17 @@ function SignUpStep({
             />
           </Field>
         </div>
-        <Field label="Gender">
+        <Field label="Gender matching" description={GENDER_MATCHING_DESCRIPTION}>
           <Select
             placeholder="Select…"
-            value={form.gender ?? null}
+            value={form.genderMatching ?? null}
             onValueChange={(v) =>
-              formSet({...form, gender: isUserGender(v) ? v : undefined})
+              formSet({
+                ...form,
+                genderMatching: isUserGenderMatching(v) ? v : undefined,
+              })
             }
-            options={genderOptions}
+            options={genderMatchingOptions}
           />
         </Field>
         <Field label="Email">

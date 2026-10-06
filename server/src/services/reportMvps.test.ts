@@ -17,9 +17,9 @@ describe('collectMvpUserIds', () => {
 })
 
 describe('dropIneligibleMvps', () => {
-  const users = new Map<string, Pick<TUser, 'gender'>>([
-    ['man', {gender: 'male'}],
-    ['woman', {gender: 'female'}],
+  const users = new Map<string, Pick<TUser, 'genderMatching'>>([
+    ['man', {genderMatching: 'male'}],
+    ['woman', {genderMatching: 'female'}],
   ])
 
   it('keeps eligible picks and picks for unknown users', () => {
@@ -36,7 +36,7 @@ describe('dropIneligibleMvps', () => {
     })
   })
 
-  it('clears picks in the wrong gender slot and empty picks', () => {
+  it('clears picks in the wrong gender matching slot and empty picks', () => {
     expect(
       dropIneligibleMvps(
         {mvpMale: 'woman', mvpMale2: '', mvpFemale: 'man', mvpFemale2: 'woman'},

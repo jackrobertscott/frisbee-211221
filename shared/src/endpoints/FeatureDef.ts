@@ -62,7 +62,7 @@ export const ioFeatureMvpRow = io.object({
   teamName: io.optional(ioTeam.shape.name),
   division: ioTeam.shape.division,
   votes: io.number(),
-  gender: io.number(),
+  genderMatching: ioUserPublic.shape.genderMatching,
 })
 
 export type TFeatureMvpRow = TypeIoValue<typeof ioFeatureMvpRow>

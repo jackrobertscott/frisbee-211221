@@ -1,5 +1,5 @@
 import {io, TypeIoValue} from '@shared/torva'
-import {ioUserGender} from './ioUserGender'
+import {ioUserGenderMatching} from './ioUserGenderMatching'
 
 export const ioUserEmail = io.object({
   value: io.string().email().trim(),
@@ -29,7 +29,7 @@ export const ioUser = io.object({
   isMock: io.optional(io.boolean()), // for testing purposes
   firstName: io.string(),
   lastName: io.string(),
-  gender: ioUserGender,
+  genderMatching: ioUserGenderMatching,
   password: io.optional(io.string()),
   emails: io.array(ioUserEmail), // this array may be empty for some old users that were imported without an email
   avatarUrl: io.optional(io.string().trim()),
@@ -52,7 +52,7 @@ export const ioUserPublic = ioUser.pick([
   'updatedOn',
   'firstName',
   'lastName',
-  'gender',
+  'genderMatching',
   'avatarUrl',
 ])
 

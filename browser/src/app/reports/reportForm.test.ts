@@ -1,7 +1,7 @@
 import {TFixture} from '@shared/schemas/ioFixture'
 import {TSeason, TSeasonGenderDivision} from '@shared/schemas/ioSeason'
 import {TUserPublic} from '@shared/schemas/ioUser'
-import {TUserGender} from '@shared/schemas/ioUserGender'
+import {TUserGenderMatching} from '@shared/schemas/ioUserGenderMatching'
 import {afterEach, describe, expect, it, vi} from 'vitest'
 import {
   createReportCreatePayload,
@@ -31,13 +31,16 @@ const season = (genderDivision?: TSeasonGenderDivision): TSeason => ({
   genderDivision,
 })
 
-const user = (id: string, gender: TUserGender): TUserPublic => ({
+const user = (
+  id: string,
+  genderMatching: TUserGenderMatching,
+): TUserPublic => ({
   id,
   createdOn: DATE,
   updatedOn: DATE,
   firstName: id,
   lastName: 'Player',
-  gender,
+  genderMatching,
 })
 
 const fixture = (id: string, date: string): TFixture => ({
@@ -203,7 +206,6 @@ describe('sanitizeReportFormMvps', () => {
     user('m1', 'male'),
     user('m2', 'male'),
     user('f1', 'female'),
-    user('nb', 'non-binary'),
   ]
 
   it('only applies season slots while players are unknown', () => {
@@ -235,13 +237,18 @@ describe('sanitizeReportFormMvps', () => {
     })
   })
 
-  it('lets non-binary players fill either slot', () => {
+  it('only keeps players in the slot of their gender matching', () => {
     expect(
       sanitizeReportFormMvps(
-        {mvpMale: 'nb', mvpFemale: undefined, mvpFemale2: 'nb'},
+        {mvpMale: 'f1', mvpMale2: 'm2', mvpFemale: 'f1', mvpFemale2: 'm1'},
         users,
       ),
-    ).toMatchObject({mvpMale: 'nb', mvpFemale2: 'nb'})
+    ).toEqual({
+      mvpMale: undefined,
+      mvpMale2: 'm2',
+      mvpFemale: 'f1',
+      mvpFemale2: undefined,
+    })
   })
 })
 
@@ -281,16 +288,19 @@ describe('getReportMvpSlots', () => {
 })
 
 describe('eligibleMvpUsers', () => {
-  it('filters by slot gender and excludes the paired pick', () => {
+  it('filters by slot gender matching and excludes the paired pick', () => {
     const users = [
       user('m1', 'male'),
       user('m2', 'male'),
       user('f1', 'female'),
-      user('o1', 'other'),
+      user('f2', 'female'),
     ]
     expect(eligibleMvpUsers(users, 'male', 'm2').map((u) => u.id)).toEqual([
       'm1',
-      'o1',
+    ])
+    expect(eligibleMvpUsers(users, 'female').map((u) => u.id)).toEqual([
+      'f1',
+      'f2',
     ])
   })
 })

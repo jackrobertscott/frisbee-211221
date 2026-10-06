@@ -2,8 +2,8 @@ import {badRequestError} from '@shared/errors'
 import type {TMember} from '@shared/schemas/ioMember'
 import type {TTeam} from '@shared/schemas/ioTeam'
 import type {TUser, TUserEmail} from '@shared/schemas/ioUser'
-import {normalizeUserGender} from '@shared/schemas/ioUserGender'
-import type {TUserGender} from '@shared/schemas/ioUserGender'
+import {normalizeUserGenderMatching} from '@shared/schemas/ioUserGenderMatching'
+import type {TUserGenderMatching} from '@shared/schemas/ioUserGenderMatching'
 import {$Member} from '../tables/$Member'
 import {$Team} from '../tables/$Team'
 import {$User, EMAIL_COLLATION} from '../tables/$User'
@@ -22,7 +22,7 @@ interface TMemberImportUserCreate {
   id: string
   firstName: string
   lastName: string
-  gender: TUserGender
+  genderMatching: TUserGenderMatching
   termsAccepted: false
   emails: TUserEmail[]
 }
@@ -147,7 +147,7 @@ const createUsersFromRows = async (
 
   // Member imports are intentionally additive. Imported GameDay/CSV field values
   // are only used when a team, user, or membership does not already exist; this
-  // path never updates names, genders, emails, teams, or captain flags on
+  // path never updates names, gender matchings, emails, teams, or captain flags on
   // existing records.
   const userCSVNewList = userCSVList.filter((i) => !existingUserIdForImportRow(i))
   if (userCSVNewList.length)
@@ -208,11 +208,13 @@ const prepareImportRow = (
   object: Record<string, string>,
   index: number,
 ): TPreparedMemberImportRow => {
-  const gender = normalizeUserGender(object.gender)
-  if (!gender)
+  // `gender` is the heading older spreadsheets used for the same value
+  const genderMatchingValue = object.gender_matching ?? object.gender ?? ''
+  const genderMatching = normalizeUserGenderMatching(genderMatchingValue)
+  if (!genderMatching)
     throw badRequestError(
-      `Failed: row ${index + 2} has invalid gender "${object.gender}".`,
-      {errorCode: 'upload.invalid_gender'},
+      `Failed: row ${index + 2} has invalid gender matching "${genderMatchingValue}". Use male or female.`,
+      {errorCode: 'upload.invalid_gender_matching'},
     )
 
   const email = userEmail.sanitizeValue(object.email_address)
@@ -233,7 +235,7 @@ const prepareImportRow = (
       id: userId,
       firstName,
       lastName,
-      gender,
+      genderMatching,
       termsAccepted: false,
       emails: email ? [userEmail.create(email, true)] : [],
     },

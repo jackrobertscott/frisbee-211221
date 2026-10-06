@@ -27,7 +27,11 @@ import {
   $UserCurrentEmailVerify,
   $UserCurrentUpdate,
 } from '../../core/endpoints/User'
-import {genderOptions, isUserGender} from '../common/users'
+import {
+  GENDER_MATCHING_DESCRIPTION,
+  genderMatchingOptions,
+  isUserGenderMatching,
+} from '../common/users'
 import {fullName} from '../common/format'
 import './settings.css'
 
@@ -36,10 +40,10 @@ const CODE_LENGTH = 8
 const profileOf = (user?: TUserSafe) => ({
   firstName: user?.firstName ?? '',
   lastName: user?.lastName ?? '',
-  gender: user?.gender,
+  genderMatching: user?.genderMatching,
 })
 
-/** Profile (name, gender, avatar) and email addresses of the signed-in user. */
+/** Profile (name, gender matching, avatar) and email addresses of the signed-in user. */
 export function AccountSettings({role}: {role: string}) {
   const auth = useAuth()
   const user = auth.current?.user
@@ -64,7 +68,7 @@ export function AccountSettings({role}: {role: string}) {
       .fetch({
         firstName: form.firstName,
         lastName: form.lastName,
-        gender: form.gender,
+        genderMatching: form.genderMatching,
         avatarUrl: user.avatarUrl,
       })
       .then((next) => {
@@ -105,17 +109,22 @@ export function AccountSettings({role}: {role: string}) {
               />
             </Field>
           </div>
-          <Field label="Gender">
+          <Field
+            label="Gender matching"
+            description={GENDER_MATCHING_DESCRIPTION}
+          >
             <Select
-              value={form.gender ?? null}
+              value={form.genderMatching ?? null}
               onValueChange={(v) =>
                 formSet({
                   ...form,
-                  gender: isUserGender(v) ? v : form.gender,
+                  genderMatching: isUserGenderMatching(v)
+                    ? v
+                    : form.genderMatching,
                 })
               }
-              placeholder="Select gender"
-              options={genderOptions}
+              placeholder="Select gender matching"
+              options={genderMatchingOptions}
             />
           </Field>
           <Button

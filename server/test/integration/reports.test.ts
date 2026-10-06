@@ -18,12 +18,12 @@ const server = useTestServer()
 const player = async (
   admin: TActor,
   teamId: string,
-  options: {gender?: string; firstName?: string; lastName?: string} = {},
+  options: {genderMatching?: string; firstName?: string; lastName?: string} = {},
 ) => {
   const email = uniqueEmail('player')
   const actor = await signUp(server, {
     email,
-    gender: options.gender ?? 'female',
+    genderMatching: options.genderMatching ?? 'female',
     firstName: options.firstName,
     lastName: options.lastName,
   })
@@ -324,10 +324,10 @@ describe('ReportCreate', () => {
       ['women', ['mvpFemale', 'mvpFemale2'], ['mvpMale', 'mvpMale2']],
     ] as const) {
       const {admin, a, b, fixture} = await setup({genderDivision})
-      const man = await player(admin, b.id, {gender: 'male'})
-      const man2 = await player(admin, b.id, {gender: 'male'})
-      const woman = await player(admin, b.id, {gender: 'female'})
-      const woman2 = await player(admin, b.id, {gender: 'female'})
+      const man = await player(admin, b.id, {genderMatching: 'male'})
+      const man2 = await player(admin, b.id, {genderMatching: 'male'})
+      const woman = await player(admin, b.id, {genderMatching: 'female'})
+      const woman2 = await player(admin, b.id, {genderMatching: 'female'})
       const response = await server.call(
         '/ReportCreate',
         reportPayload(fixture, a.id, b.id, {
@@ -348,16 +348,16 @@ describe('ReportCreate', () => {
     }
   })
 
-  it('drops MVP picks whose gender is ineligible for the slot', async () => {
+  it('drops MVP picks whose gender matching is ineligible for the slot', async () => {
     const {admin, a, b, fixture} = await setup()
-    const man = await player(admin, b.id, {gender: 'male'})
-    const woman = await player(admin, b.id, {gender: 'female'})
-    const nonBinary = await player(admin, b.id, {gender: 'non-binary'})
+    const man = await player(admin, b.id, {genderMatching: 'male'})
+    const woman = await player(admin, b.id, {genderMatching: 'female'})
+    const man2 = await player(admin, b.id, {genderMatching: 'male'})
     const response = await server.call(
       '/ReportCreate',
       reportPayload(fixture, a.id, b.id, {
         mvpMale: woman.userId, // ineligible
-        mvpMale2: nonBinary.userId, // eligible for either slot
+        mvpMale2: man2.userId, // eligible
         mvpFemale: man.userId, // ineligible
         mvpFemale2: 'unknown-user', // unknown users are kept as-is
       }),
@@ -366,7 +366,7 @@ describe('ReportCreate', () => {
     expect(response.status).toBe(200)
     const stored = await $Report.getOne({id: response.body.id})
     expect(stored.mvpMale).toBeUndefined()
-    expect(stored.mvpMale2).toBe(nonBinary.userId)
+    expect(stored.mvpMale2).toBe(man2.userId)
     expect(stored.mvpFemale).toBeUndefined()
     expect(stored.mvpFemale2).toBe('unknown-user')
   })
@@ -375,8 +375,8 @@ describe('ReportCreate', () => {
 describe('ReportUpdate and ReportDelete', () => {
   it('lets an admin update a report and sanitises it like create', async () => {
     const {admin, a, b, fixture, alphaPlayer} = await setup({useOfficialScoring: true})
-    const man = await player(admin, b.id, {gender: 'male'})
-    const woman = await player(admin, b.id, {gender: 'female'})
+    const man = await player(admin, b.id, {genderMatching: 'male'})
+    const woman = await player(admin, b.id, {genderMatching: 'female'})
     const created = await server.call(
       '/ReportCreate',
       reportPayload(fixture, a.id, b.id, {

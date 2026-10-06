@@ -188,7 +188,7 @@ const USER_MESSAGE_BY_ERROR_CODE: Record<string, string> = {
   'member.request_exists':
     'A membership request has already been sent for this season.',
   'member.user_details_required':
-    'Please enter the first name, last name, and gender for the new member.',
+    'Please enter the first name, last name, and gender matching for the new member.',
 
   'report.already_submitted':
     'A score report has already been submitted for this game.',
@@ -226,8 +226,8 @@ const USER_MESSAGE_BY_ERROR_CODE: Record<string, string> = {
   'upload.file_missing': 'Please choose a file to upload.',
   'upload.files_limit': 'Please upload fewer files.',
   'upload.invalid_file_type': 'Please upload a CSV file.',
-  'upload.invalid_gender':
-    'One of the uploaded gender values was not recognised.',
+  'upload.invalid_gender_matching':
+    'One of the uploaded gender matching values was not recognised.',
   'upload.parts_limit': 'The upload was too large to process.',
   'upload.size_limit': 'The uploaded file is too large.',
 
@@ -256,7 +256,7 @@ const VALIDATION_FIELD_LABELS: Record<string, string> = {
   fileType: 'file type',
   firstName: 'first name',
   fixtureId: 'fixture',
-  gender: 'gender',
+  genderMatching: 'gender matching',
   lastName: 'last name',
   memberId: 'member',
   newPassword: 'new password',

@@ -1,4 +1,5 @@
 import {runStartupIndexSync} from './db/syncIndexes'
+import {runUserGenderMatchingMigration} from './migrations/userGenderMatching'
 import config from './config'
 
 type TStartupTask = {
@@ -14,6 +15,10 @@ const startupTasks: TStartupTask[] = [
   {
     name: 'Mongo index sync',
     run: runStartupIndexSync,
+  },
+  {
+    name: 'User gender matching backfill',
+    run: runUserGenderMatchingMigration,
   },
   // runStartupSchemaAudit // uncomment to enable Mongo schema audit on startup
 ]

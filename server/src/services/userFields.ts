@@ -7,7 +7,7 @@ export const selectPublicUserFields = (user: TUser): TUserPublic => ({
   updatedOn: user.updatedOn,
   firstName: user.firstName,
   lastName: user.lastName,
-  gender: user.gender,
+  genderMatching: user.genderMatching,
   avatarUrl: user.avatarUrl,
 })
 

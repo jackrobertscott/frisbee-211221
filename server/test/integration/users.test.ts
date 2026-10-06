@@ -28,7 +28,7 @@ const createUser = async (payload: {
   email?: string
   firstName?: string
   lastName?: string
-  gender?: string
+  genderMatching?: string
 }) => {
   const response = await server.call<TUserSafe>(
     '/UserCreate',
@@ -36,7 +36,7 @@ const createUser = async (payload: {
       email: payload.email ?? uniqueEmail(),
       firstName: payload.firstName ?? 'Created',
       lastName: payload.lastName ?? 'User',
-      gender: payload.gender ?? 'female',
+      genderMatching: payload.genderMatching ?? 'female',
       termsAccepted: false,
     },
     {token: admin.token},
@@ -84,21 +84,21 @@ describe('UserList', () => {
       firstName: 'Cara',
       lastName: `Beta${t}`,
       email: `alpha.${t}@example.com`,
-      gender: 'female',
+      genderMatching: 'female',
     })
     await wait(5)
     u2 = await createUser({
       firstName: 'Abe',
       lastName: `Gamma${t}`,
       email: `charlie.${t}@example.com`,
-      gender: 'male',
+      genderMatching: 'male',
     })
     await wait(5)
     u3 = await createUser({
       firstName: 'Bob',
       lastName: `Alpha${t}`,
       email: `bravo.${t}@example.com`,
-      gender: 'non-binary',
+      genderMatching: 'male',
     })
     // u2 gains a non-primary email that would sort first if it were used
     await server.call(
@@ -174,8 +174,9 @@ describe('UserList', () => {
     // primary emails: alpha (u1), charlie (u2), zulu (u3)
     ['email', 'asc', () => [u1, u2, u3]],
     ['email', 'desc', () => [u3, u2, u1]],
-    ['gender', 'asc', () => [u1, u2, u3]],
-    ['gender', 'desc', () => [u3, u2, u1]],
+    // female (u1) before male, with males tie-broken by last name: Alpha (u3), Gamma (u2)
+    ['genderMatching', 'asc', () => [u1, u3, u2]],
+    ['genderMatching', 'desc', () => [u3, u2, u1]],
     ['createdOn', 'asc', () => [u1, u2, u3]],
     ['createdOn', 'desc', () => [u3, u2, u1]],
   ] as const)('sorts by %s %s', async (sortBy, sortDirection, expected) => {
@@ -186,14 +187,14 @@ describe('UserList', () => {
 
   it('uses name tie-breakers in ascending order regardless of direction', async () => {
     const t2 = tag()
-    const a = await createUser({firstName: 'Same', lastName: `B${t2}`, gender: 'male'})
-    const b = await createUser({firstName: 'Same', lastName: `A${t2}`, gender: 'male'})
-    const c = await createUser({firstName: 'Zed', lastName: `C${t2}`, gender: 'male'})
+    const a = await createUser({firstName: 'Same', lastName: `B${t2}`, genderMatching: 'male'})
+    const b = await createUser({firstName: 'Same', lastName: `A${t2}`, genderMatching: 'male'})
+    const c = await createUser({firstName: 'Zed', lastName: `C${t2}`, genderMatching: 'male'})
     expect(
       ids(await list({search: t2, sortBy: 'firstName', sortDirection: 'desc'})),
     ).toEqual([c.id, b.id, a.id])
     expect(
-      ids(await list({search: t2, sortBy: 'gender', sortDirection: 'desc'})),
+      ids(await list({search: t2, sortBy: 'genderMatching', sortDirection: 'desc'})),
     ).toEqual([b.id, a.id, c.id])
   })
 
@@ -224,10 +225,10 @@ describe('UserList', () => {
 describe('UserCreate / UserUpdate / UserToggleAdmin', () => {
   it('creates a user with one unverified primary email', async () => {
     const email = uniqueEmail()
-    const user = await createUser({email, firstName: 'New', gender: 'Female'})
+    const user = await createUser({email, firstName: 'New', genderMatching: 'Female'})
     expect(user).toMatchObject({
       firstName: 'New',
-      gender: 'female',
+      genderMatching: 'female',
       termsAccepted: false,
     })
     expect(user.emails).toEqual([
@@ -245,7 +246,7 @@ describe('UserCreate / UserUpdate / UserToggleAdmin', () => {
         email: email.toUpperCase(),
         firstName: 'A',
         lastName: 'B',
-        gender: 'male',
+        genderMatching: 'male',
         termsAccepted: true,
       },
       {token: admin.token},
@@ -262,7 +263,7 @@ describe('UserCreate / UserUpdate / UserToggleAdmin', () => {
         email: uniqueEmail(),
         firstName: 'A',
         lastName: 'B',
-        gender: 'male',
+        genderMatching: 'male',
         termsAccepted: true,
       },
       {token: player.token},
@@ -275,7 +276,7 @@ describe('UserCreate / UserUpdate / UserToggleAdmin', () => {
     await wait(5)
     const response = await server.call<TUserSafe>(
       '/UserUpdate',
-      {userId: user.id, firstName: 'Changed', gender: 'non binary'},
+      {userId: user.id, firstName: 'Changed', genderMatching: 'Male Matching'},
       {token: admin.token},
     )
     expect(response.status).toBe(200)
@@ -283,11 +284,21 @@ describe('UserCreate / UserUpdate / UserToggleAdmin', () => {
       id: user.id,
       firstName: 'Changed',
       lastName: user.lastName,
-      gender: 'non-binary',
+      genderMatching: 'male',
     })
     expect(response.body.updatedOn > user.updatedOn).toBe(true)
     const stored = await $User.getOne({id: user.id})
     expect(stored.firstName).toBe('Changed')
+
+    for (const genderMatching of ['non-binary', 'other']) {
+      const unmatched = await server.call(
+        '/UserUpdate',
+        {userId: user.id, genderMatching},
+        {token: admin.token},
+      )
+      expect(unmatched.status).toBe(422)
+    }
+    expect((await $User.getOne({id: user.id})).genderMatching).toBe('male')
 
     const missing = await server.call(
       '/UserUpdate',
@@ -444,7 +455,7 @@ describe('current user', () => {
     const actor = await signUp(server)
     const response = await server.call<TUserSafe>(
       '/UserCurrentUpdate',
-      {firstName: 'Me', lastName: 'Myself', gender: 'm'},
+      {firstName: 'Me', lastName: 'Myself', genderMatching: 'm'},
       {token: actor.token},
     )
     expect(response.status).toBe(200)
@@ -452,7 +463,7 @@ describe('current user', () => {
       id: actor.userId,
       firstName: 'Me',
       lastName: 'Myself',
-      gender: 'male',
+      genderMatching: 'male',
     })
     expect(response.body).not.toHaveProperty('password')
   })

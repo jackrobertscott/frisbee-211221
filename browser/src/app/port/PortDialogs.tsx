@@ -38,7 +38,7 @@ const CSV_HEADINGS: {name: string; optional?: boolean}[] = [
   {name: 'first_name'},
   {name: 'last_name'},
   {name: 'email_address'},
-  {name: 'gender'},
+  {name: 'gender_matching'},
 ]
 
 export function ImportCsvDialog({

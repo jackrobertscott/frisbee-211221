@@ -12,7 +12,7 @@ export const USER_LIST_SORT_KEYS = [
   'firstName',
   'lastName',
   'email',
-  'gender',
+  'genderMatching',
   'createdOn',
 ] as const
 
@@ -24,7 +24,7 @@ export const UserCurrentUpdateDef = {
   payload: io.object({
     firstName: io.optional(ioUser.shape.firstName),
     lastName: io.optional(ioUser.shape.lastName),
-    gender: io.optional(ioUser.shape.gender),
+    genderMatching: io.optional(ioUser.shape.genderMatching),
     avatarUrl: ioUser.shape.avatarUrl,
   }),
   result: ioUserSafe,
@@ -150,7 +150,7 @@ export const UserCreateDef = {
     email: ioUserEmail.shape.value,
     firstName: ioUser.shape.firstName,
     lastName: ioUser.shape.lastName,
-    gender: ioUser.shape.gender,
+    genderMatching: ioUser.shape.genderMatching,
     termsAccepted: ioUser.shape.termsAccepted,
   }),
   result: ioUserSafe,
@@ -163,7 +163,7 @@ export const UserUpdateDef = {
     userId: ioUser.shape.id,
     firstName: io.optional(ioUser.shape.firstName),
     lastName: io.optional(ioUser.shape.lastName),
-    gender: io.optional(ioUser.shape.gender),
+    genderMatching: io.optional(ioUser.shape.genderMatching),
     avatarUrl: ioUser.shape.avatarUrl,
   }),
   result: ioUserSafe,

@@ -1,14 +1,12 @@
 import {TReport} from '@shared/schemas/ioReport'
-import {
-  TSeason,
-  TSeasonGenderDivision,
-} from '@shared/schemas/ioSeason'
-import {TUserGender} from '@shared/schemas/ioUserGender'
+import {TSeason, TSeasonGenderDivision} from '@shared/schemas/ioSeason'
+import {TUserGenderMatching} from '@shared/schemas/ioUserGenderMatching'
 
-export type TMvpGenderSlot = 'male' | 'female'
+/** MVP slots line up one-to-one with gender matchings. */
+export type TMvpGenderSlot = TUserGenderMatching
 
-type TGenderedUser = {
-  gender: TUserGender
+type TGenderMatchedUser = {
+  genderMatching: TUserGenderMatching
 }
 
 export type TSeasonMvpFields = Pick<
@@ -37,10 +35,10 @@ export function isSeasonMvpSlotEnabled(
 }
 
 export function isUserEligibleForMvpSlot(
-  user: TGenderedUser,
+  user: TGenderMatchedUser,
   slot: TMvpGenderSlot,
 ): boolean {
-  return slot === 'male' ? user.gender !== 'female' : user.gender !== 'male'
+  return user.genderMatching === slot
 }
 
 export function getSeasonMvpSlots(season: TSeasonGenderDivisionSource): {
