@@ -5,6 +5,12 @@ League management for ultimate frisbee competitions.
 - www.marlowst.com
 - www.perthulti.com
 
+| Document | Read it for |
+| --- | --- |
+| [SCOPE.md](SCOPE.md) | What the app does, screen by screen. |
+| [AGENTS.md](AGENTS.md) | How to work in this repo: workflow, checks and coding rules. |
+| [rust/README.md](rust/README.md) | The Rust/SQLite server that is replacing `server/`. |
+
 ## Packages
 
 | Package | Purpose |
@@ -12,6 +18,7 @@ League management for ultimate frisbee competitions.
 | `shared/` | Endpoint contracts (`src/endpoints/*Def.ts`), validation schemas (`src/schemas`, built on the `src/torva` validator), errors and pure domain rules used by both sides. |
 | `server/` | Node HTTP API (micro + MongoDB). |
 | `browser/` | React + Vite web app. |
+| `rust/` | Rust + SQLite rewrite of `server/`, a drop-in replacement awaiting confirmation. |
 
 ### Server layout (`server/src`)
 
@@ -28,7 +35,7 @@ League management for ultimate frisbee competitions.
 
 - `app/` screens, grouped by feature (`fixtures/`, `ladder/`, `reports/`, `teams/`, ...); `app/common/` holds small shared compositions and `app/shell/` the dashboard frame.
 - `core/` non-visual plumbing: auth, router, endpoint clients and hooks.
-- `ui/` vendored component library (do not edit here).
+- `ui/` the `@ui` component library, vendored from `uilib-261005`; change it there and copy it back.
 - `utils/` pure helpers.
 
 ## Development

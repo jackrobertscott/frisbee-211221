@@ -1,52 +1,135 @@
-## Do
+# Agent guide
 
-- Do add explicit TypeScript types, typed conversions, or proper narrowing.
-- Do run and pass the `server` and `browser` package type checks before finishing.
-- Do run and pass the `shared`, `server` and `browser` test suites (`npm test`) before finishing.
-- Do implement sorting and filtering for paginated or shared list views in the shared endpoint contract and server handler.
-- Do update endpoint payloads and backend logic before wiring frontend controls for list ordering changes across requests or pages.
-- Do apply sorted paginated list ordering in the database query path before `skip` and `limit`.
-- Do use meaningful domain fields for sorting.
-- Do prefer database sorting through typed table queries when the database can express the ordering.
-- Do use typed table helpers for all database access outside the DB/table definition layer.
-- Do commit all current changes to `stage`, merge them into `master`, push both `stage` and `master` to `origin`, then check out `stage` when asked to publish changes.
-- Do use short lowercase word groups for commit messages.
-- Do commit each milestone's worth of work as it is completed, rather than leaving large amounts of uncommitted changes.
-- Do record any preference the user states for this codebase as a rule in this file.
-- Do make every change in a dedicated git worktree, merge it back, then remove the worktree and its branch when the work is finished.
-- Do build browser UI only from the `@ui` component library (`browser/src/ui`) and `lucide-react` icons.
-- Do put browser screens in `browser/src/app` and non-visual browser plumbing (auth, router, endpoint hooks) in `browser/src/core`.
-- Do check screens at phone and desktop widths; the app is used mostly on mobile.
-- Do fix UI issues minimally within the existing components and layouts; keep tables as tables.
-- Do show one loading state until a form or dialog has all its initial data, rather than revealing fields as each request lands.
-- Do render stacked card-style radio options as one connected list (shared edges, only the selected option outlined), not separate tiles.
-- Do decide wrapping per table column: keep short atomic values (dates, times, places, divisions, names, numbers) on one line, and let long free text (team names, comments) wrap or truncate only where that keeps the table fitting.
+How to work in this repository. Read [README.md](README.md) for the package
+layout and commands, [SCOPE.md](SCOPE.md) for what the app does, and
+[rust/README.md](rust/README.md) for the Rust server.
 
-## Don't
+When the user states a preference for this codebase, add it to the section
+below that it belongs to, written as a plain statement of how things work
+here (no "Do" / "Don't" prefixes).
 
-- Don't use `as any` in TypeScript code.
-- Don't implement sorting or filtering only in browser state for paginated or shared list views.
-- Don't fetch a page unsorted and reorder it in application code.
-- Don't use `id` as a sort field or sort tie-breaker.
-- Don't sort returned database data in memory when the database can express the required ordering.
-- Don't redesign screens or swap component types (e.g. tables into card lists, frozen/pinned table columns) unless asked.
-- Don't apply blanket wrapping rules to every table cell.
-- Don't show database IDs anywhere in the UI (fields, tables, tooltips, messages); keep them for keys and requests only.
-- Don't let dialog bodies scroll horizontally; long values must wrap within the dialog width.
-- Don't give an element a hover style unless the user can interact with it (e.g. table rows only when clickable).
-- Don't add an ellipsis (`...` or `…`) to button labels (e.g. "Merge…") unless the user specifically asks for it.
-- Don't use native UI controls (select, checkbox, date input, etc.) in the browser; use the `@ui` equivalents.
-- Don't edit `browser/src/ui` for app-specific needs; it is a vendored copy of the `uilib-261005` library, so change the library and re-copy it.
-- Don't remove or rewrite the TypeScript `server/` while the Rust server in `rust/` is awaiting confirmation; keep both working.
-- Don't call `mongo.collection('...')` or access collections by raw string names outside the DB/table definition layer.
+## Before you finish
 
-## Facts
+Every change must pass these, run from the repo root:
 
-- Typed table helper examples include `$Report.getMany(...)` and `$Report.aggregate(...)`.
-- The publishing branches are `stage` and `master`.
-- The remote is `origin`.
-- The browser `@ui` library is vendored from the `uilib-261005` repository (`src/lib`).
-- Server integration tests live in `server/test/integration` and drive the real request pipeline against an in-memory MongoDB.
-- Team colours must be `hsla(...)` strings from `browser/src/utils/colors.ts`; the server rejects other formats.
-- Users have a `genderMatching` of only `male` or `female` (no non-binary or other option); it decides which MVP slot (male or female) they can be voted into and is a different concept from gender.
-- `rust/` is a Rust/SQLite rewrite of `server/` meant as a drop-in replacement; `rust/README.md` covers running it, migrating a `mongodump`, and the parity harness in `rust/parity/`.
+```sh
+npm --prefix shared run typecheck && npm --prefix shared test
+npm --prefix server run typecheck && npm --prefix server test
+npm --prefix browser run typecheck && npm --prefix browser test
+```
+
+If the change touches the browser, look at the affected screens at both phone
+and desktop widths. Most people use the app on their phone.
+
+## Git workflow
+
+**One worktree per change.** Make each change in its own git worktree and
+branch. When the work is done, merge it back, then remove the worktree and
+delete the branch.
+
+**Commit as you go.** Commit after each milestone instead of building up a
+large uncommitted diff. Commit messages are short lowercase word groups, e.g.
+`fix report sort order`.
+
+**Publishing.** The remote is `origin`; the publishing branches are `stage`
+and `master`. When asked to publish:
+
+1. Commit all current changes to `stage`.
+2. Merge `stage` into `master`.
+3. Push both `stage` and `master` to `origin`.
+4. Check out `stage` again.
+
+## Project landmarks
+
+| Path | What to know |
+| --- | --- |
+| `shared/` | Endpoint contracts and validation used by both server and browser. |
+| `server/` | TypeScript API on MongoDB. Integration tests in `server/test/integration` run the real request pipeline against an in-memory MongoDB. |
+| `rust/` | Rust/SQLite rewrite of `server/`, meant as a drop-in replacement. Its README covers running it, migrating a `mongodump`, and the parity harness in `rust/parity/`. |
+| `browser/src/app` | Screens. |
+| `browser/src/core` | Non-visual browser plumbing: auth, router, endpoint hooks. |
+| `browser/src/ui` | The `@ui` component library, vendored from `src/lib` in the `uilib-261005` repository. |
+
+**Keep both servers working.** The Rust server is awaiting confirmation, so
+the TypeScript `server/` must not be removed or rewritten in the meantime.
+
+**The `@ui` folder is a copy.** Never edit `browser/src/ui` for app-specific
+needs. Change `uilib-261005` and copy it across again.
+
+## Domain rules
+
+- **Team colours** are `hsla(...)` strings taken from
+  `browser/src/utils/colors.ts`. The server rejects any other format.
+- **Gender matching.** Every user has a `genderMatching` of `male` or
+  `female`; there is no other option. It decides which MVP slot (male or
+  female) a player can be voted into, and is a separate concept from gender.
+
+## TypeScript
+
+Give values explicit types and narrow them properly (typed conversions, type
+guards). `as any` is never acceptable.
+
+## Database access
+
+All database access outside the DB/table definition layer goes through the
+typed table helpers, such as `$Report.getMany(...)` and
+`$Report.aggregate(...)`. Calling `mongo.collection('...')` or naming a
+collection by string anywhere else is not allowed.
+
+## Sorting, filtering and pagination
+
+These rules apply to any list that is paginated or shared between users.
+
+**The server owns ordering.** Sorting and filtering are part of the shared
+endpoint contract and implemented in the server handler, never only in
+browser state. When changing how a list is ordered, update the endpoint
+payload and backend first, then wire up the frontend controls.
+
+**Sort in the database.** Apply the sort in the query, before `skip` and
+`limit`, using typed table queries. Fetching a page unsorted and reordering it
+in code is wrong, as is sorting returned rows in memory when the database
+could have done it.
+
+**Sort by real fields.** Use meaningful domain fields (name, date, division,
+...). `id` is never a sort field, not even as a tie-breaker.
+
+## Browser UI
+
+### Building blocks
+
+- Build everything from `@ui` components and `lucide-react` icons.
+- Never use native controls (select, checkbox, date input, ...). Use the
+  `@ui` equivalent.
+
+### Changing existing screens
+
+- Fix UI issues minimally, inside the existing components and layout.
+- Don't redesign screens or swap component types (tables into card lists,
+  frozen or pinned table columns, ...) unless the user asks.
+
+### Tables
+
+- Tables stay tables.
+- Decide wrapping per column, not with a blanket rule:
+  - short atomic values (dates, times, places, divisions, names, numbers)
+    stay on one line;
+  - long free text (team names, comments) wraps or truncates, and only where
+    that is what keeps the table fitting.
+- Rows get a hover style only when they are clickable. The same goes for any
+  other element: no hover style without an interaction.
+
+### Forms and dialogs
+
+- Show a single loading state until the form or dialog has all of its initial
+  data. Don't reveal fields one by one as requests land.
+- Dialog bodies never scroll horizontally. Long values wrap within the dialog
+  width.
+- Stacked card-style radio options render as one connected list: shared
+  edges, with only the selected option outlined. Not separate tiles.
+
+### Text
+
+- Database IDs never appear in the UI: not in fields, tables, tooltips or
+  messages. Use them only for keys and requests.
+- Button labels have no ellipsis (`...` or `…`), e.g. "Merge" not "Merge…",
+  unless the user asks for one.
