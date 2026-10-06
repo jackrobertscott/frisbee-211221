@@ -72,9 +72,42 @@ FRISBEE_LOG_VERBOSE=1 cargo test -- --nocapture   # see server logs in tests
 ```
 
 Integration tests (`tests/*.rs`) start the real app on an ephemeral port with
-a fresh SQLite database per test, so they run in parallel. Tests marked
-`#[ignore = "pending ..."]` wait on a domain's endpoints; run them with
-`cargo test -- --ignored`.
+a fresh SQLite database per test, so they run in parallel. The one ignored
+test, `tests/gameday_export_smoke.rs`, drives a locally installed Chrome; run
+it with `cargo test -- --ignored`. [`TEST_PARITY.md`](TEST_PARITY.md) maps
+every TS test to the Rust test(s) covering it.
+
+## Deploy (Docker / Railway)
+
+`Dockerfile` (build context: this directory) builds `frisbee-server`,
+`gameday-export` and `migrate-mongo` in release mode and copies them into a
+Debian slim image with Chromium, fonts and `tini`. The image sets
+`NODE_ENV=production`, `PORT=8080`, `SQLITE_PATH=/data/frisbee.sqlite`,
+`GAMEDAY_EXPORT_BIN=/app/gameday-export` and
+`GAMEDAY_BROWSER_EXECUTABLE_PATH=/usr/bin/chromium`, and runs the server
+under `tini` (which reaps Chromium's processes and forwards `SIGTERM`).
+
+```sh
+cd rust
+docker build -t frisbee-rust .
+docker run --rm -p 8080:8080 -v frisbee-data:/data \
+  -e APP_NAME=... -e URL_CLIENT=... -e JWT_SECRET=... \
+  -e SES_ACCESS_KEY_ID=... -e SES_SECRET_ACCESS_KEY=... -e SES_REGION=... -e SES_FROM_EMAIL=... \
+  frisbee-rust
+```
+
+On Railway: set the service's root directory to `rust`, point the config
+file at `/rust/railway.json` (config files do not follow the root
+directory), attach a volume at `/data` (Railway does not allow the
+`VOLUME` instruction, so the Dockerfile only sets the path) and set the
+variables from `.env.example`. `railway.json` builds with the Dockerfile
+and health-checks `/health` with a 300 second timeout, since in production
+the server retries its startup tasks for up to four minutes before it
+listens. Keep one replica: SQLite has a single writer. To import the Mongo
+data on Railway, copy a dump into the volume and run
+`/app/migrate-mongo --dump <dump> --sqlite /data/frisbee.sqlite` in the
+service shell (`railway ssh`), then redeploy; it refuses to replace a
+database that already holds records unless given `--force`.
 
 ## Point the browser at it
 

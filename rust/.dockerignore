@@ -1,0 +1,17 @@
+target
+tests
+data
+*.sqlite
+*.sqlite-*
+.env
+.env.*
+*.md
+.git
+.gitignore
+.dockerignore
+Dockerfile
+railway.json
+.DS_Store
+*.log
+.vscode
+.idea
