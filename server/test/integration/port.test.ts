@@ -1,7 +1,7 @@
 import {randomBytes} from 'crypto'
 import {TGamedayImportConfigSafe} from '@shared/schemas/ioGamedayImport'
 import AdmZip from 'adm-zip'
-import {beforeAll, describe, expect, it} from 'vitest'
+import {beforeAll, describe, expect, it, vi} from 'vitest'
 import {$GamedayImportConfig} from '../../src/tables/$GamedayImportConfig'
 import {$Member} from '../../src/tables/$Member'
 import {$Report} from '../../src/tables/$Report'
@@ -221,6 +221,29 @@ describe('PortImport', () => {
     })
     expect(json.status).toBe(400)
     expect(json.body?.errorCode).toBe('upload.invalid_file_type')
+  })
+
+  it('rejects a request that is not a multipart upload as a bad request', async () => {
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      const season = await createSeason(server, admin, {name: `Import ${tag()}`})
+      const result = await server.call(
+        '/PortImport',
+        {seasonId: season.id},
+        {token: admin.token},
+      )
+      expect(result.status).toBe(400)
+      expect(result.body).toMatchObject({
+        statusCode: 400,
+        errorCode: 'upload.unsupported_content_type',
+      })
+      const serverErrors = errors.mock.calls.filter((args) =>
+        String(args[0]).includes('| 500 |'),
+      )
+      expect(serverErrors).toEqual([])
+    } finally {
+      errors.mockRestore()
+    }
   })
 
   it('rejects missing and unexpected headings', async () => {

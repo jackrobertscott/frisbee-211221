@@ -16,6 +16,7 @@ import {
   isSerializedAppError,
   methodNotAllowedError,
   notFoundError,
+  payloadTooLargeError,
   serializeError,
   serviceUnavailableError,
   toAppError,
@@ -54,6 +55,7 @@ describe('AppError', () => {
       [404, 'not_found', true],
       [405, 'method_not_allowed', true],
       [409, 'conflict', true],
+      [413, 'payload_too_large', true],
       [422, 'validation_error', true],
       [429, 'too_many_requests', true],
       [503, 'service_unavailable', false],
@@ -205,6 +207,12 @@ describe('error factories', () => {
         409,
         'conflict',
         'That change could not be saved because it conflicts with existing information.',
+      ],
+      [
+        payloadTooLargeError('x'),
+        413,
+        'payload_too_large',
+        'That upload is too large.',
       ],
       [
         validationError('x'),

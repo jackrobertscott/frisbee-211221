@@ -1,6 +1,7 @@
 import {getErrorStatusCode, isAppError} from '@shared/errors'
 import fs from 'fs-extra'
 import http from 'http'
+import nodeFs from 'fs'
 import {AddressInfo} from 'net'
 import os from 'os'
 import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi} from 'vitest'
@@ -49,7 +50,6 @@ beforeEach(() => {
 
 afterEach(async () => {
   vi.restoreAllMocks()
-  // a temp file can be left behind by the files limit bug below
   await Promise.all(removed.map((filepath) => fs.remove(filepath)))
 })
 
@@ -153,9 +153,39 @@ describe('blob.digestRequest', () => {
     expect(removed).toHaveLength(1)
   })
 
-  // BUG: when the limit is hit before the first file's write stream has opened,
-  // the removal runs first and the stream then creates the file, leaking it
-  it.todo('removes the temp file of an upload rejected for too many files')
+  it('removes the temp file of an upload rejected for too many files', async () => {
+    // open the temp file late so the files limit is always hit before the
+    // write stream has created it
+    vi.spyOn(fs, 'createWriteStream').mockImplementation((filepath, options) =>
+      nodeFs.createWriteStream(filepath, {
+        ...(typeof options === 'object' ? options : {}),
+        fs: {
+          open: (...args: Parameters<typeof nodeFs.open>) => {
+            setTimeout(() => nodeFs.open(...args), 30)
+          },
+          write: nodeFs.write,
+          close: nodeFs.close,
+        },
+      }),
+    )
+    const result = await post(
+      multipart(
+        Array.from({length: 4}, (_, index) => ({
+          name: 'file',
+          filename: `file${index}.csv`,
+          content: `content ${index}`,
+        })),
+      ),
+    )
+    expect(result.status).toBe(429)
+    expect(await rejection()).toMatchObject({errorCode: 'upload.files_limit'})
+    expect(removed).toHaveLength(1)
+    // give a late-opening write stream the chance to recreate the file
+    await new Promise((resolve) => setTimeout(resolve, 60))
+    for (const filepath of removed) {
+      expect(await fs.pathExists(filepath)).toBe(false)
+    }
+  })
 
   it('rejects too many fields', async () => {
     const fields = Array.from({length: 17}, (_, index) => ({
@@ -167,13 +197,43 @@ describe('blob.digestRequest', () => {
     expect(await rejection()).toMatchObject({errorCode: 'upload.fields_limit'})
   })
 
-  // BUG: the size-limit rejection is created before busboy finishes, so it is
-  // unhandled for a moment and crashes the process (see uploads.ts:104-117)
-  it.todo('rejects files over 5MB and removes the partial file')
+  it('rejects files over 5MB and removes the partial file', async () => {
+    const unhandled: unknown[] = []
+    const onUnhandled = (reason: unknown) => unhandled.push(reason)
+    process.on('unhandledRejection', onUnhandled)
+    try {
+      const result = await post(
+        multipart([
+          {name: 'file', filename: 'big.csv', content: Buffer.alloc(5 * 1024 * 1024 + 1, 'a')},
+        ]),
+      )
+      expect(result.status).toBe(413)
+      const error = await rejection()
+      expect(isAppError(error)).toBe(true)
+      expect(error).toMatchObject({statusCode: 413, errorCode: 'upload.size_limit'})
+      expect(removed).toHaveLength(1)
+      expect(await fs.pathExists(removed[0])).toBe(false)
+      await new Promise((resolve) => setTimeout(resolve, 10))
+      expect(unhandled).toEqual([])
+    } finally {
+      process.off('unhandledRejection', onUnhandled)
+    }
+  })
 
-  // BUG: busboy throws for a non-multipart content type inside the promise
-  // executor, so the caller gets a plain Error (a 500) instead of a 400
-  it.todo('rejects a request that is not multipart as a bad request')
+  it('rejects a request that is not multipart as a bad request', async () => {
+    const result = await post(
+      Buffer.from(JSON.stringify({payload: {}})),
+      'application/json',
+    )
+    expect(result.status).toBe(400)
+    const error = await rejection()
+    expect(isAppError(error)).toBe(true)
+    expect(error).toMatchObject({
+      statusCode: 400,
+      errorCode: 'upload.unsupported_content_type',
+    })
+    expect(removed).toEqual([])
+  })
 
   it('rejects a request that is aborted mid-upload', async () => {
     const client = http.request(baseUrl, {

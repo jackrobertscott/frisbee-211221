@@ -5,6 +5,7 @@ export const HTTP_STATUS = {
   NOT_FOUND: 404,
   METHOD_NOT_ALLOWED: 405,
   CONFLICT: 409,
+  PAYLOAD_TOO_LARGE: 413,
   UNPROCESSABLE_ENTITY: 422,
   TOO_MANY_REQUESTS: 429,
   INTERNAL_SERVER_ERROR: 500,
@@ -18,6 +19,7 @@ const STATUS_TEXT_BY_CODE: Record<number, string> = {
   [HTTP_STATUS.NOT_FOUND]: 'Not Found',
   [HTTP_STATUS.METHOD_NOT_ALLOWED]: 'Method Not Allowed',
   [HTTP_STATUS.CONFLICT]: 'Conflict',
+  [HTTP_STATUS.PAYLOAD_TOO_LARGE]: 'Payload Too Large',
   [HTTP_STATUS.UNPROCESSABLE_ENTITY]: 'Unprocessable Entity',
   [HTTP_STATUS.TOO_MANY_REQUESTS]: 'Too Many Requests',
   [HTTP_STATUS.INTERNAL_SERVER_ERROR]: 'Internal Server Error',
@@ -100,6 +102,8 @@ const getDefaultErrorCode = (statusCode: number) => {
       return 'method_not_allowed'
     case HTTP_STATUS.CONFLICT:
       return 'conflict'
+    case HTTP_STATUS.PAYLOAD_TOO_LARGE:
+      return 'payload_too_large'
     case HTTP_STATUS.UNPROCESSABLE_ENTITY:
       return 'validation_error'
     case HTTP_STATUS.TOO_MANY_REQUESTS:
@@ -123,6 +127,7 @@ const STATUS_USER_MESSAGE_BY_CODE: Record<number, string> = {
   [HTTP_STATUS.METHOD_NOT_ALLOWED]: 'This action is not available from here.',
   [HTTP_STATUS.CONFLICT]:
     'That change could not be saved because it conflicts with existing information.',
+  [HTTP_STATUS.PAYLOAD_TOO_LARGE]: 'That upload is too large.',
   [HTTP_STATUS.UNPROCESSABLE_ENTITY]:
     'Please check the information you entered and try again.',
   [HTTP_STATUS.TOO_MANY_REQUESTS]:
@@ -140,6 +145,7 @@ const USER_MESSAGE_BY_ERROR_CODE: Record<string, string> = {
   method_not_allowed:
     STATUS_USER_MESSAGE_BY_CODE[HTTP_STATUS.METHOD_NOT_ALLOWED],
   not_found: STATUS_USER_MESSAGE_BY_CODE[HTTP_STATUS.NOT_FOUND],
+  payload_too_large: STATUS_USER_MESSAGE_BY_CODE[HTTP_STATUS.PAYLOAD_TOO_LARGE],
   service_unavailable:
     STATUS_USER_MESSAGE_BY_CODE[HTTP_STATUS.SERVICE_UNAVAILABLE],
   too_many_requests: STATUS_USER_MESSAGE_BY_CODE[HTTP_STATUS.TOO_MANY_REQUESTS],
@@ -230,6 +236,7 @@ const USER_MESSAGE_BY_ERROR_CODE: Record<string, string> = {
     'One of the uploaded gender matching values was not recognised.',
   'upload.parts_limit': 'The upload was too large to process.',
   'upload.size_limit': 'The uploaded file is too large.',
+  'upload.unsupported_content_type': 'The upload was not sent as a file. Please try again.',
 
   'user.code_delivery_rate_limited':
     'Too many codes were requested. Please wait before asking for another one.',
@@ -463,6 +470,10 @@ export const methodNotAllowedError = createStatusFactory(
 export const conflictError = createStatusFactory(
   HTTP_STATUS.CONFLICT,
   'conflict',
+)
+export const payloadTooLargeError = createStatusFactory(
+  HTTP_STATUS.PAYLOAD_TOO_LARGE,
+  'payload_too_large',
 )
 export const validationError = createStatusFactory(
   HTTP_STATUS.UNPROCESSABLE_ENTITY,
