@@ -251,15 +251,15 @@ export function ReportFormDialog({
     (!isEditing && !form.fixtureId && !!defaultFixtureId) ||
     (!!form.fixtureId && !!form.teamId && !againstOptions)
 
-  const againstField = (
-    <Field
-      label={isDashboard ? 'Against' : 'Opponent'}
-      description={
-        againstOptions && !againstOptions.length
-          ? 'No opposition found for this team in the selected fixture.'
-          : undefined
-      }
-    >
+  // The chosen fixture has no opposition for this team, so nothing can be reported.
+  const noOpponent = !!againstOptions && !againstOptions.length
+
+  const againstField = noOpponent ? (
+    <Alert tone="info">
+      No opposition found for this team in the selected fixture.
+    </Alert>
+  ) : (
+    <Field label={isDashboard ? 'Against' : 'Opponent'}>
       <Select
         placeholder={loadingAgainst ? 'Loading…' : 'Select opponent'}
         searchable={againstSelectOptions.length > 8}
@@ -276,7 +276,8 @@ export function ReportFormDialog({
   if (initializing) {
     body = <Loading label="Loading report" />
   } else {
-    const ready = !!againstOptions && (isDashboard || !!selectedTeam)
+    const ready =
+      !!againstOptions && !noOpponent && (isDashboard || !!selectedTeam)
     body = (
       <Stack gap={5}>
         {error && (
@@ -324,9 +325,9 @@ export function ReportFormDialog({
             )}
           </Field>
         </div>
-        {(isDashboard || ready) && againstField}
+        {(isDashboard || ready || noOpponent) && againstField}
         {!ready ? (
-          isDashboard ? null : (
+          isDashboard || noOpponent ? null : (
             <EmptyState
               icon={<Megaphone />}
               title="Submit a report"
@@ -380,7 +381,7 @@ export function ReportFormDialog({
           <Button
             variant="primary"
             loading={loading}
-            disabled={initializing || loadingAgainst}
+            disabled={initializing || loadingAgainst || noOpponent}
             onClick={submit}
           >
             {isEditing ? 'Save report' : 'Submit report'}

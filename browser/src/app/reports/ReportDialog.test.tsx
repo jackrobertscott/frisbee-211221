@@ -177,9 +177,11 @@ describe('ReportDialog (player report)', () => {
     expect(
       await within(modal).findByText('No opposition found for this team in the selected fixture.'),
     ).toBeInTheDocument()
-    const mvp = within(modal).getByRole('combobox', {name: /Male MVP/})
-    expect(mvp).toBeDisabled()
-    expect(mvp).toHaveTextContent('Choose opponent first')
+    expect(within(modal).queryByRole('combobox', {name: 'Opponent'})).not.toBeInTheDocument()
+    expect(within(modal).queryByRole('combobox', {name: /Male MVP/})).not.toBeInTheDocument()
+    expect(within(modal).queryByRole('spinbutton', {name: 'Your score'})).not.toBeInTheDocument()
+    expect(within(modal).queryByRole('radiogroup', {name: 'Spirit score'})).not.toBeInTheDocument()
+    expect(within(modal).getByRole('button', {name: 'Submit report'})).toBeDisabled()
   })
 
   it('lets admins choose the team they report for', async () => {
