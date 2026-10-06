@@ -3,4 +3,5 @@
 pub mod csv;
 pub mod html;
 pub mod is_record;
+pub mod mail;
 pub mod random;
