@@ -132,9 +132,11 @@ export function GamedayRunsCard({
             key: 'error',
             header: 'Error',
             hideBelow: 'md',
+            // Free text: takes whatever width is left and truncates (full error is in the run dialog).
+            width: '100%',
             render: (r) =>
               r.errorMessage ? (
-                <Text as="span" size="sm" tone="danger" truncate>
+                <Text as="span" size="sm" tone="danger" truncate className="fr-comment">
                   {r.errorMessage}
                 </Text>
               ) : (
