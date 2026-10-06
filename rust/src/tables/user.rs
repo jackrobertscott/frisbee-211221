@@ -103,3 +103,49 @@ impl Record for User {
         &TABLE
     }
 }
+
+/// Legacy-data helpers for the gender matching backfill
+/// (`migrations::user_gender_matching`).
+pub mod legacy {
+    use crate::shared::errors::AppResult;
+    use crate::shared::schemas::GenderMatching;
+    use rusqlite::Connection;
+    use std::collections::HashMap;
+
+    /// How many times each user was picked in a male or female MVP slot:
+    /// `user id -> (male picks, female picks)`.
+    pub fn mvp_slot_picks(conn: &Connection, user_ids: &[String]) -> AppResult<HashMap<String, (i64, i64)>> {
+        if user_ids.is_empty() {
+            return Ok(HashMap::new());
+        }
+        let ids = serde_json::to_string(user_ids)?;
+        let sql = r#"
+            SELECT user_id, SUM(slot = 'male'), SUM(slot = 'female') FROM (
+                SELECT "mvp_male" AS user_id, 'male' AS slot FROM "report" WHERE "mvp_male" IN (SELECT value FROM json_each(?1))
+                UNION ALL SELECT "mvp_male2", 'male' FROM "report" WHERE "mvp_male2" IN (SELECT value FROM json_each(?1))
+                UNION ALL SELECT "mvp_female", 'female' FROM "report" WHERE "mvp_female" IN (SELECT value FROM json_each(?1))
+                UNION ALL SELECT "mvp_female2", 'female' FROM "report" WHERE "mvp_female2" IN (SELECT value FROM json_each(?1))
+            ) GROUP BY user_id"#;
+        let mut statement = conn.prepare(sql)?;
+        let rows = statement.query_map([ids], |row| Ok((row.get::<_, String>(0)?, (row.get(1)?, row.get(2)?))))?;
+        Ok(rows.collect::<Result<HashMap<_, _>, _>>()?)
+    }
+
+    /// Sets `genderMatching` and removes the legacy `gender` field.
+    pub fn set_gender_matching_clearing_legacy(conn: &Connection, user_id: &str, gender_matching: GenderMatching) -> AppResult<()> {
+        conn.execute(
+            r#"UPDATE "user" SET "gender_matching" = ?1, "gender" = NULL WHERE "id" = ?2"#,
+            (gender_matching.as_str(), user_id),
+        )?;
+        Ok(())
+    }
+
+    /// Stores a user the way they looked before gender matching existed
+    /// (`gender` set, `genderMatching` missing). For tests and imports.
+    pub fn set_legacy_gender(conn: &Connection, user_id: &str, gender: &str) -> AppResult<()> {
+        conn.execute(r#"UPDATE "user" SET "gender" = ?1, "gender_matching" = NULL WHERE "id" = ?2"#, (gender, user_id))?;
+        Ok(())
+    }
+}
+
+pub use legacy::{mvp_slot_picks, set_gender_matching_clearing_legacy};

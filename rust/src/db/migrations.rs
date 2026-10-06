@@ -228,3 +228,15 @@ pub fn run_startup_schema(conn: &Connection) -> AppResult<()> {
 #[cfg(test)]
 #[path = "migrations_tests.rs"]
 mod tests;
+
+/// [`run_startup_schema`] without logging (test setup).
+pub fn run_startup_schema_quiet(conn: &Connection) -> AppResult<()> {
+    let current: i64 = conn.query_row("PRAGMA user_version", [], |row| row.get(0))?;
+    if current < MIGRATIONS.last().map(|m| m.0).unwrap_or(0) {
+        for (_, _, sql) in MIGRATIONS.iter().filter(|(version, _, _)| *version > current) {
+            conn.execute_batch(sql)?;
+        }
+        conn.pragma_update(None, "user_version", MIGRATIONS.last().map(|m| m.0).unwrap_or(0))?;
+    }
+    sync_indexes_into(conn, &crate::tables::all_tables(), &mut Vec::new())
+}
