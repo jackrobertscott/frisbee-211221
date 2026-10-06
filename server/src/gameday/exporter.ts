@@ -537,7 +537,8 @@ const selectCompetition = async (
       : ''
     log(`Matched GameDay competition "${matchingCompetition.title}"${season}.`)
     await page.goto(
-      resolveUrl(decodeHtmlEntities(matchingCompetition.selectLink), page.url()),
+      // selectLink was decoded when the competition list was read
+      resolveUrl(matchingCompetition.selectLink, page.url()),
       {waitUntil: 'domcontentloaded', timeout: 60_000},
     )
     await page.waitForLoadState('domcontentloaded', {timeout: 60_000}).catch(() => null)
@@ -928,14 +929,17 @@ export const formatCompetitionListForError = (items: TGamedayCompetitionListItem
   return ` Available competitions: ${preview}${suffix}.`
 }
 
-export const decodeHtmlEntities = (value: string) => {
-  return value
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
+const HTML_ENTITIES: Record<string, string> = {
+  '&amp;': '&',
+  '&quot;': '"',
+  '&#39;': "'",
+  '&lt;': '<',
+  '&gt;': '>',
 }
+
+// a single pass, so decoded text is never decoded again (`&amp;lt;` -> `&lt;`)
+export const decodeHtmlEntities = (value: string) =>
+  value.replace(/&(?:amp|quot|#39|lt|gt);/g, (entity) => HTML_ENTITIES[entity] ?? entity)
 
 const openAdvancedMemberReport = async (
   page: Page,

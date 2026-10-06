@@ -258,7 +258,7 @@ describe('readCompetitionGridDataItems', () => {
         JSON.stringify([
           {
             strTitle: ' Mixed [A] &amp; "B" ',
-            SelectLink: 'main.cgi?a=C&amp;id=1',
+            SelectLink: 'main.cgi?a=C&amp;id=1&amp;amp;x=y',
             strSeasonName: 'Summer',
             intFixtureType: 2,
             teams: 8,
@@ -276,7 +276,8 @@ describe('readCompetitionGridDataItems', () => {
     expect(items).toEqual([
       {
         title: 'Mixed [A] & "B"',
-        selectLink: 'main.cgi?a=C&id=1',
+        // decoded exactly once
+        selectLink: 'main.cgi?a=C&id=1&amp;x=y',
         seasonName: 'Summer',
         fixtureType: '2',
         teams: '8',
@@ -379,6 +380,13 @@ describe('competition list helpers', () => {
     expect(decodeHtmlEntities('&lt;a href=&quot;x&quot;&gt;Tom&#39;s &amp; co')).toBe(
       `<a href="x">Tom's & co`,
     )
+  })
+
+  it('decodes entities in a single pass', () => {
+    expect(decodeHtmlEntities('&amp;lt;b&amp;gt; &amp;amp; &amp;#39;')).toBe(
+      '&lt;b&gt; &amp; &#39;',
+    )
+    expect(decodeHtmlEntities('a &unknown; &amp b')).toBe('a &unknown; &amp b')
   })
 })
 
