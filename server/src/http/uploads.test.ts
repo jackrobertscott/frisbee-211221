@@ -70,7 +70,9 @@ const multipart = (parts: TPart[]) =>
         '',
         '',
       ].join('\r\n')
-      return [Buffer.from(head), Buffer.from(part.content), Buffer.from('\r\n')]
+      const content =
+        typeof part.content === 'string' ? Buffer.from(part.content) : part.content
+      return [Buffer.from(head), content, Buffer.from('\r\n')]
     }),
     Buffer.from(`--${BOUNDARY}--\r\n`),
   ])
