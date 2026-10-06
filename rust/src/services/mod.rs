@@ -3,6 +3,8 @@
 
 pub mod auth_payload;
 pub mod fixture_schedule;
+pub mod missing_reports;
+pub mod report_mvps;
 pub mod round_robin;
 pub mod season_deletion;
 pub mod team_captaincy;
