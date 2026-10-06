@@ -178,7 +178,13 @@ export async function startTsServer(options: TStartOptions): Promise<IServer> {
     }),
     path.join(options.workDir, 'ts-server.log'),
   )
-  await proc.waitFor(/^Started: DEV MASTER/)
+  try {
+    await proc.waitFor(/^Started: DEV MASTER/)
+  } catch (error) {
+    await proc.stop()
+    await mongod.stop()
+    throw error
+  }
   const client = new MongoClient(mongoUri)
   await client.connect()
   return {
