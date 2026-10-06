@@ -139,7 +139,7 @@ export function UserDialog({
               className="fr-footer-left"
               onClick={() => mergeSet(true)}
             >
-              Merge…
+              Merge
             </Button>
             <Button onClick={onClose}>Close</Button>
             {tab === 'details' && (

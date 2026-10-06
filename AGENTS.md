@@ -29,6 +29,7 @@
 - Don't sort returned database data in memory when the database can express the required ordering.
 - Don't redesign screens or swap component types (e.g. tables into card lists, frozen/pinned table columns) unless asked.
 - Don't apply blanket wrapping rules to every table cell.
+- Don't add an ellipsis (`...` or `…`) to button labels (e.g. "Merge…") unless the user specifically asks for it.
 - Don't use native UI controls (select, checkbox, date input, etc.) in the browser; use the `@ui` equivalents.
 - Don't edit `browser/src/ui` for app-specific needs; it is a vendored copy of the `uilib-261005` library, so change the library and re-copy it.
 - Don't call `mongo.collection('...')` or access collections by raw string names outside the DB/table definition layer.
