@@ -19,13 +19,13 @@ export function FixtureGames({
   fixture,
   teams,
   myTeamId,
-  showScore,
+  layout,
 }: {
   fixture: TFixture
   teams: TTeam[]
   myTeamId?: string
-  /** Show the score column; pass the same value for every fixture so their columns line up. */
-  showScore: boolean
+  /** Shared by every fixture on the page so their columns line up. */
+  layout: TFixtureLayout
 }) {
   const teamById = (id: string) => teams.find((t) => t.id === id)
   const games = [...fixture.games].sort(compareGameSlot)
@@ -38,14 +38,14 @@ export function FixtureGames({
       </Text>
     )
   const columns: Column<TFixtureGame>[] = [
-    {key: 'time', header: 'Time', width: 84, nowrap: true},
-    {key: 'place', header: 'Place', width: 110, nowrap: true},
+    {key: 'time', header: 'Time', width: layout.timeWidth, nowrap: true},
+    {key: 'place', header: 'Place', width: layout.placeWidth, nowrap: true},
     {
       key: 'team1',
       header: 'Team 1',
       render: (g) => <TeamName team={teamById(g.team1Id)} muted={muted(g)} wrap />,
     },
-    ...(showScore
+    ...(layout.showScore
       ? [
           {
             key: 'score',
@@ -84,8 +84,29 @@ export function FixtureGames({
   )
 }
 
-export const hasScore = (g: TFixtureGame) =>
+const hasScore = (g: TFixtureGame) =>
   typeof g.team1Score === 'number' && typeof g.team2Score === 'number'
+
+export type TFixtureLayout = {
+  showScore: boolean
+  timeWidth: string
+  placeWidth: string
+}
+
+/** Fits the time and place columns to the longest value (or header) across all fixtures. */
+const slotWidth = (header: string, values: string[]) => {
+  const chars = Math.max(header.length, ...values.map((v) => v.trim().length))
+  return `calc(${chars + 1}ch + 2 * var(--_cell-px))`
+}
+
+export const fixtureLayout = (fixtures: TFixture[]): TFixtureLayout => {
+  const games = fixtures.flatMap((f) => f.games)
+  return {
+    showScore: games.some(hasScore),
+    timeWidth: slotWidth('Time', games.map((g) => g.time)),
+    placeWidth: slotWidth('Place', games.map((g) => g.place)),
+  }
+}
 
 function Score({a, b}: {a: number; b: number}) {
   return (
