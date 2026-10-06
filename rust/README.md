@@ -78,3 +78,24 @@ VITE_URL_SERVER=http://localhost:5000
 import the Mongo data with the `migrate-mongo` binary (see `PORTING.md`),
 keep `JWT_SECRET` so existing sessions and security codes stay valid, and
 replace `MONGODB_URI`/`MONGODB_DB` with `SQLITE_PATH` (on a persistent volume).
+
+## Known differences from the TS server
+
+None of these change what the browser sees in normal use:
+
+- Development-mode error bodies include `lines: ["AppError: <message>"]`
+  rather than a full JavaScript stack trace (production omits `lines`, as before).
+- JSON object keys follow schema order; MongoDB appended fields set by a
+  later update at the end of the document.
+- Queries without a sort return rows in insertion order. MongoDB's natural
+  order could follow whichever index the planner picked.
+- Log wording mentions SQLite instead of Mongo (`Syncing SQLite indexes...`,
+  startup task `SQLite schema sync`) and the server always logs `MASTER`:
+  Node's cluster workers and load-based scaling are replaced by one
+  multi-threaded process (graceful draining on shutdown is kept).
+- The season-name and email collations are reimplemented (numeric,
+  case/accent-insensitive; Unicode lowercase) instead of using ICU.
+- `Date.parse` fallbacks for non-ISO strings are a best-effort port of V8's
+  legacy parser; ISO strings behave identically.
+- Production email needs explicit `SES_ACCESS_KEY_ID`/`SES_SECRET_ACCESS_KEY`
+  (the AWS SDK's other credential sources are not consulted).
