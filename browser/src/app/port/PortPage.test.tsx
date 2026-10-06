@@ -101,6 +101,33 @@ describe('PortPage', () => {
     expect(tool(/^GameDay settings/)).toHaveTextContent('Saved for Perth Ultimate / Winter League.')
   })
 
+  it('saves GameDay settings when pressing Enter once they are complete', async () => {
+    const season = makeSeason()
+    const server = mockServer({
+      '/PortGamedayImportLoad': () => ({runs: []}),
+      '/PortGamedayImportSave': (payload) => makeConfig(season.id, payload as Partial<TGamedayImportConfigSafe>),
+    })
+    const {user} = renderScreen(<PortPage />, {auth: admin(), context: {season}})
+    expect(await screen.findByText('No imports yet')).toBeInTheDocument()
+    await user.click(tool(/^GameDay settings/))
+    const dialog = await screen.findByRole('dialog', {name: 'GameDay import settings'})
+    await user.type(within(dialog).getByRole('textbox', {name: /Username/}), 'league-admin')
+    await user.type(within(dialog).getByRole('textbox', {name: /Association/}), 'Perth Ultimate')
+    await user.type(within(dialog).getByRole('textbox', {name: /Competition/}), 'Winter League{Enter}')
+    expect(server.payloads('/PortGamedayImportSave')).toEqual([])
+    await user.type(within(dialog).getByLabelText(/Password/), 'secret{Enter}')
+    expect(await screen.findByText('GameDay import settings saved.')).toBeInTheDocument()
+    expect(server.payloads('/PortGamedayImportSave')).toEqual([
+      expect.objectContaining({
+        seasonId: season.id,
+        username: 'league-admin',
+        password: 'secret',
+        association: 'Perth Ultimate',
+        competition: 'Winter League',
+      }),
+    ])
+  })
+
   it('flags a schedule that ends before it starts', async () => {
     const season = makeSeason()
     const config = makeConfig(season.id, {

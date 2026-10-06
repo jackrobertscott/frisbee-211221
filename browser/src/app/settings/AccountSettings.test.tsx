@@ -113,6 +113,23 @@ describe('AccountSettings emails', () => {
     )
   })
 
+  it('verifies the code when pressing Enter once it is complete', async () => {
+    const user = setupUser()
+    const toasts = spyToasts()
+    const {server} = renderAccount(threeEmails, {
+      '/UserCurrentEmailVerify': () => makeAuth().user,
+    })
+    await user.click(screen.getByRole('button', {name: 'Verify'}))
+    const verify = await findDialog('Verify email')
+    await typeCode(user, verify, 'ABCD{Enter}')
+    expect(server.payloads('/UserCurrentEmailVerify')).toEqual([])
+    await user.keyboard('1234{Enter}')
+    await waitFor(() => expect(toasts.success).toHaveBeenCalledWith('Email verified.'))
+    expect(server.payloads('/UserCurrentEmailVerify')).toEqual([
+      {email: 'new@example.com', code: 'ABCD1234'},
+    ])
+  })
+
   it('keeps the verify dialog open on a wrong code', async () => {
     const user = setupUser()
     const toasts = spyToasts()

@@ -108,7 +108,7 @@ export function UserDialog({
     form.genderMatching !== user.genderMatching
   const save = (e?: FormEvent) => {
     e?.preventDefault()
-    if (!dirty) return
+    if (!dirty || $userUpdate.loading) return
     $userUpdate
       .fetch({
         userId: user.id,
@@ -206,6 +206,7 @@ export function UserDialog({
                     />
                   </Field>
                 </Stack>
+                <button type="submit" hidden />
               </form>
               <UserEmails user={user} onUser={applyUser} />
               <UserAccess user={user} onUser={applyUser} />

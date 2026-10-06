@@ -336,7 +336,7 @@ function EmailVerifyDialog({
   useEffect(() => codeSet(''), [email])
   const submit = (e?: FormEvent) => {
     e?.preventDefault()
-    if (!email || $emailVerify.loading) return
+    if (!email || code.length < CODE_LENGTH || $emailVerify.loading) return
     $emailVerify
       .fetch({email, code})
       .then(onVerified)
@@ -391,6 +391,7 @@ function EmailVerifyDialog({
             onValueChange={codeSet}
           />
         </Field>
+        <button type="submit" hidden />
       </form>
     </Dialog>
   )

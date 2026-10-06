@@ -416,6 +416,7 @@ export function GamedaySettingsDialog({
               </Field>
             </div>
           </Stack>
+          <button type="submit" hidden />
         </form>
       )}
     </Dialog>

@@ -37,6 +37,7 @@ export function UserCreateDialog({
   }, [open])
   const submit = (e?: FormEvent) => {
     e?.preventDefault()
+    if ($create.loading) return
     if (!form.genderMatching) {
       genderMatchingErrorSet(true)
       return
@@ -126,6 +127,7 @@ export function UserCreateDialog({
             labelPosition="start"
           />
         </Stack>
+        <button type="submit" hidden />
       </form>
     </Dialog>
   )

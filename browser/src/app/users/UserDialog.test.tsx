@@ -121,6 +121,24 @@ describe('UserDialog details', () => {
     )
   })
 
+  it('saves profile changes when pressing Enter in a field', async () => {
+    const user = setupUser()
+    const toasts = spyToasts()
+    const kim = twoEmails()
+    const {server} = renderDialog(kim, {
+      '/UserUpdate': (payload) => ({...kim, ...(payload as Partial<TUserSafe>)}),
+    })
+    const modal = await findDialog(/Kim Lee/)
+    const lastName = within(modal).getByLabelText('Last name')
+    await user.type(lastName, '{Enter}')
+    expect(server.payloads('/UserUpdate')).toEqual([])
+    await user.type(lastName, 'son{Enter}')
+    await waitFor(() => expect(toasts.success).toHaveBeenCalledWith('User saved'))
+    expect(server.payloads('/UserUpdate')).toEqual([
+      expect.objectContaining({userId: kim.id, firstName: 'Kim', lastName: 'Leeson'}),
+    ])
+  })
+
   it('closes from the footer', async () => {
     const user = setupUser()
     const {onClose} = renderDialog(twoEmails())

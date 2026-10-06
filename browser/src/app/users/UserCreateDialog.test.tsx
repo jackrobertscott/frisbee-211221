@@ -61,6 +61,28 @@ describe('UserCreateDialog', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false)
   })
 
+  it('creates the user when pressing Enter in a field', async () => {
+    const user = setupUser()
+    const created = makeUser({firstName: 'Dee', lastName: 'Dunn'})
+    const server = mockServer({'/UserCreate': () => created})
+    const {modal, onCreated} = renderDialog()
+    await user.type(within(modal).getByLabelText('First name'), 'Dee')
+    await user.type(within(modal).getByLabelText('Last name'), 'Dunn{Enter}')
+    expect(within(modal).getByText('Choose a gender matching.')).toBeInTheDocument()
+    expect(server.calls).toHaveLength(0)
+    await chooseOption(user, 'Gender matching', 'Female')
+    await user.type(within(modal).getByLabelText('Email'), 'dee@example.com{Enter}')
+    await waitFor(() => expect(onCreated).toHaveBeenCalledWith(created))
+    expect(server.payloads('/UserCreate')).toEqual([
+      expect.objectContaining({
+        firstName: 'Dee',
+        lastName: 'Dunn',
+        email: 'dee@example.com',
+        genderMatching: 'female',
+      }),
+    ])
+  })
+
   it('stays open when the email is taken', async () => {
     const user = setupUser()
     const toasts = spyToasts()
