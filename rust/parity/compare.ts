@@ -47,7 +47,12 @@ export class IdMap {
 
 const replaceKnown = (value: string, map: Map<string, string>): string => {
   if (value.length < 24) return value
-  return value.replace(/[A-Za-z0-9]{24}/g, (id) => map.get(id) ?? id)
+  const tokens = value.replace(/eyJ[\w-]+\.[\w-]+\.[\w-]+/g, (token) => map.get(token) ?? `\u0000${token}\u0000`)
+  // ids inside tokens are left alone
+  return tokens
+    .split('\u0000')
+    .map((part, i) => (i % 2 ? part : part.replace(/[A-Za-z0-9]{24}/g, (id) => map.get(id) ?? id)))
+    .join('')
 }
 
 export const mapStrings = (value: unknown, fn: (s: string) => string): unknown => {

@@ -10,7 +10,9 @@
 import {FEATURE_SPIRIT_SORT_KEYS} from '@shared/endpoints/FeatureDef'
 import {TEAM_LIST_SORT_KEYS} from '@shared/endpoints/TeamDef'
 import {USER_LIST_SORT_KEYS} from '@shared/endpoints/UserDef'
+import {createHmac} from 'node:crypto'
 import {Harness, PerSide, TActor, TSide} from './harness'
+import {SHARED_ENV} from './servers'
 
 const PASSWORD = 'parity-password-1'
 const USER_AGENT = 'parity-harness/1.0'
@@ -750,6 +752,8 @@ export async function runScenario(h: Harness) {
   await usersSection(h, {admin, cora, pete, quinn, ravi, season})
 
   // --------------------------------------------------------------------- port
+  await validationMatrix(h, admin, {season, fixture: fixtures[0], team: echo, report: reports[0]})
+  await sessionsAndMore(h, {admin, pete, ravi, quinn, season, echo, alpha})
   await portSection(h, admin, {season, spring, season10, allTeams})
 
   // -------------------------------------------------------- season deletion
@@ -905,6 +909,112 @@ async function dateCases(h: Harness, admin: TActor) {
       games: [{id: `dstgame00${index}`.slice(0, 10), team1Id: dstTeams[0].id, team2Id: dstTeams[1].id, place: 'Oval', time: '6pm'}],
     }, {as: admin, expect: 200})
   }
+}
+
+/** Schema validation errors (422 messages and user messages) across shapes. */
+async function validationMatrix(
+  h: Harness,
+  admin: TActor,
+  {season, fixture, team, report}: {season: TBody; fixture: TBody; team: TBody; report: TBody},
+) {
+  const cases: Array<[string, string, unknown]> = [
+    ['id too short', '/FeatureCompetitionLoad', {seasonId: 'short'}],
+    ['id with symbols', '/FeatureCompetitionLoad', {seasonId: 'abc-def'}],
+    ['id null', '/FeatureCompetitionLoad', {seasonId: null}],
+    ['id number', '/FeatureCompetitionLoad', {seasonId: 12345}],
+    ['id padded', '/FeatureCompetitionLoad', {seasonId: `  ${season.id}  `}],
+    ['bare id as object', '/MemberListOfTeam', {teamId: team.id}],
+    ['bare id empty', '/MemberListOfTeam', ''],
+    ['boolean as string', '/MemberAcceptOrDecline', {memberId: 'AAAAAAAAAAAAAAAAAAAAAAAA', accept: 'true'}],
+    ['number as string', '/FixtureAdjustMultiple', {seasonId: season.id, referenceFixtureId: fixture.id, amount: '1', unit: 'day', direction: 'forward'}],
+    ['number not integer', '/FixtureAdjustMultiple', {seasonId: season.id, referenceFixtureId: fixture.id, amount: 1.5, unit: 'day', direction: 'forward'}],
+    ['number negative', '/FixtureAdjustMultiple', {seasonId: season.id, referenceFixtureId: fixture.id, amount: -1, unit: 'day', direction: 'forward'}],
+    ['enum wrong case', '/FixtureAdjustMultiple', {seasonId: season.id, referenceFixtureId: fixture.id, amount: 1, unit: 'Day', direction: 'forward'}],
+    ['missing nested field', '/FixtureCreate', {seasonId: season.id, title: 'X', date: '2028-01-01', games: [{id: 'g1', team1Id: team.id, place: 'P', time: 'T'}]}],
+    ['nested wrong type', '/FixtureCreate', {seasonId: season.id, title: 'X', date: '2028-01-01', games: [{id: 'g1', team1Id: team.id, team2Id: team.id, place: 5, time: 'T'}]}],
+    ['array expected', '/FixtureCreate', {seasonId: season.id, title: 'X', date: '2028-01-01', games: {}}],
+    ['object in array expected', '/FixtureCreate', {seasonId: season.id, title: 'X', date: '2028-01-01', games: ['x']}],
+    ['nested extra keys dropped', '/FixtureUpdate', {fixtureId: fixture.id, title: fixture.title, date: fixture.date, games: fixture.games.map((g: TBody) => ({...g, extra: 1})), grading: true}],
+    ['final results bad position', '/SeasonUpdate', {seasonId: season.id, name: 'Summer 2028', signUpOpen: false, finalResults: [{teamId: team.id, position: 'first'}]}],
+    ['empty title allowed?', '/FixtureCreate', {seasonId: season.id, title: '', date: '2028-01-01', games: []}],
+    ['whitespace name', '/SeasonCreate', {name: '   '}],
+    ['colour with spaces', '/TeamCreate', {seasonId: season.id, name: 'Spacey', color: 'hsla( 10 , 50% , 50% , 0.5 )'}],
+    ['colour negative hue', '/TeamCreate', {seasonId: season.id, name: 'Negative', color: 'hsla(-10, 50%, 50%, .5)'}],
+    ['colour rgb', '/TeamCreate', {seasonId: season.id, name: 'Rgb', color: 'rgb(1,2,3)'}],
+    ['email with spaces', '/TeamUpdate', {teamId: team.id, name: team.name, color: team.color, email: ' padded@example.com '}],
+    ['email uppercase', '/MemberLookupByEmail', {teamId: team.id, email: 'PETE.PLAYER@EXAMPLE.COM'}],
+    ['email invalid', '/MemberLookupByEmail', {teamId: team.id, email: 'pete@'}],
+    ['report score as string', '/ReportUpdate', {reportId: report.id, scoreFor: '1', scoreAgainst: 1, spiritComment: ''}],
+    ['report spirit float', '/ReportUpdate', {reportId: report.id, scoreFor: 13.5, scoreAgainst: 1e21, spirit: 2.25, spiritComment: '<b>bold</b> \u2028 \u0001 😀', mvpFemale: null}],
+    ['report mvp invalid id', '/ReportUpdate', {reportId: report.id, scoreFor: 1, scoreAgainst: 1, spiritComment: '', mvpMale: 'nope'}],
+    ['date number', '/FixtureCreate', {seasonId: season.id, title: 'X', date: 1700000000000, games: []}],
+    ['date far future', '/FixtureCreate', {seasonId: season.id, title: 'Far', date: '+275760-09-13T00:00:00.000Z', games: []}],
+    ['date beyond range', '/FixtureCreate', {seasonId: season.id, title: 'Too far', date: '+275760-09-13T00:00:00.001Z', games: []}],
+    ['gameday dates invalid', '/PortGamedayImportSave', {seasonId: season.id, username: 'u', password: 'p', association: 'a', competition: 'c', scheduleEnabled: true, scheduleStartOn: 'soon', scheduleEndOn: 'later'}],
+    ['limit float', '/UserList', {limit: 2.5}],
+    ['skip string', '/UserList', {skip: '1'}],
+    ['sort direction wrong', '/UserList', {sortDirection: 'up'}],
+    ['search null', '/UserList', {search: null}],
+    ['search number', '/UserList', {search: 5}],
+    ['password not string', '/UserChangePassword', {userId: admin.userId, newPassword: 12345}],
+    ['user agent missing', '/SecurityLogin', {email: admin.email, password: 'x'}],
+    ['terms as string', '/UserCreate', {email: 'terms2@example.com', firstName: 'T', lastName: 'T', genderMatching: 'female', termsAccepted: 'yes'}],
+    ['gender alias', '/UserCreate', {email: 'alias@example.com', firstName: 'Al', lastName: 'Ias', genderMatching: 'Woman', termsAccepted: true}],
+    ['name not trimmed', '/UserCreate', {email: 'trim@example.com', firstName: '  Tim  ', lastName: ' Trim ', genderMatching: 'm', termsAccepted: true}],
+  ]
+  for (const [name, path, payload] of cases)
+    await h.call(`validation: ${name}`, path, payload, {as: admin})
+}
+
+const jwt = (payload: object, secret: string) => {
+  const encode = (value: object) => Buffer.from(JSON.stringify(value)).toString('base64url')
+  const head = `${encode({alg: 'HS256', typ: 'JWT'})}.${encode(payload)}`
+  return `${head}.${createHmac('sha256', secret).update(head).digest('base64url')}`
+}
+
+/** Session edge cases, account states and team membership leftovers. */
+async function sessionsAndMore(
+  h: Harness,
+  {admin, pete, ravi, quinn, season, echo, alpha}: {admin: TActor; pete: TActor; ravi: TActor; quinn: TActor; season: TBody; echo: TBody; alpha: TBody},
+) {
+  const now = Math.floor(Date.now() / 1000)
+  const claims = {sessionId: 'AAAAAAAAAAAAAAAAAAAAAAAA', userId: 'BBBBBBBBBBBBBBBBBBBBBBBB', createdOn: new Date().toISOString()}
+  await h.call('token signed with another secret', '/SecurityCurrent', {}, {authorization: jwt({...claims, iat: now}, 'other-secret')})
+  await h.call('token for an unknown session', '/SecurityCurrent', {}, {authorization: jwt({...claims, iat: now}, SHARED_ENV.JWT_SECRET)})
+  await h.call('expired token', '/SecurityCurrent', {}, {authorization: jwt({...claims, iat: now - 100, exp: now - 10}, SHARED_ENV.JWT_SECRET)})
+  await h.call('token with bad claims', '/SeasonCreate', {name: 'X'}, {authorization: jwt({sessionId: 5, iat: now}, SHARED_ENV.JWT_SECRET)})
+  await h.call('oversized token', '/SecurityCurrent', {}, {authorization: 'x'.repeat(5000)})
+  await h.call('bearer token', '/SecurityCurrent', {seasonId: season.id}, {authorization: `Bearer ${admin.token}`})
+  await h.call('current falls back to last season', '/SecurityCurrent', {}, {as: ravi})
+  await h.call('current for admin without team', '/SecurityCurrent', {seasonId: season.id}, {as: admin})
+  await h.call('team current update: member but not captain', '/TeamCurrentUpdate', {teamId: echo.id, name: 'Echo', color: PURPLE}, {as: ravi})
+  await h.call('member leaves team', '/MemberListOfTeam', echo.id, {as: ravi, normalize: h.unordered(['members', 'users'])})
+  const ownMember = body(await h.call('ravi lookup', '/MemberListOfTeam', echo.id, {as: admin, normalize: h.unordered(['members', 'users'])}))
+    .members.find((member: TBody) => member.userId === ravi.userId)
+  if (ownMember) await h.call('member removes self', '/MemberRemove', ownMember.id, {as: ravi})
+  await h.call('team setup after leaving', '/FeatureTeamSetupLoad', {seasonId: season.id}, {as: ravi})
+  await h.call('request again after leaving', '/MemberRequestCreate', alpha.id, {as: ravi})
+  await h.call('team delete with members', '/TeamDelete', {teamId: alpha.id}, {as: admin})
+  await h.call('members of deleted team', '/MemberListOfTeam', alpha.id, {as: admin, normalize: h.unordered(['members', 'users'])})
+  await h.call('competition after team delete', '/FeatureCompetitionLoad', {seasonId: season.id})
+  await h.call('missing reports after team delete', '/ReportMissingList', {seasonId: season.id}, {as: admin})
+  // an account with a password but no verified email
+  const created = body(await h.call('unverified user', '/UserCreate', {email: 'unverified@example.com', firstName: 'Una', lastName: 'Verified', genderMatching: 'female', termsAccepted: true}, {as: admin, expect: 200}))
+  await h.call('unverified user password', '/UserChangePassword', {userId: created.id, newPassword: 'una-password'}, {as: admin, expect: 200})
+  await h.call('status: unverified', '/SecurityStatus', {email: 'unverified@example.com'})
+  await h.call('login unverified', '/SecurityLogin', {email: 'unverified@example.com', password: 'una-password', userAgent: USER_AGENT})
+  await h.call('verify with empty new password keeps password', '/SecurityVerify', {email: quinn.email, code: 'NOPE-NOPE', newPassword: '', userAgent: USER_AGENT}, {ip: h.nextIp()})
+  await h.call('email add: another account', '/UserCurrentEmailAdd', {email: admin.email}, {as: pete, ip: h.nextIp()})
+  await h.call('email add: own email', '/UserCurrentEmailAdd', {email: pete.email.toUpperCase()}, {as: pete, ip: h.nextIp()})
+  await h.call('email verify: not on account', '/UserCurrentEmailVerify', {email: 'nope@example.com', code: 'AAAA-AAAA'}, {as: pete, ip: h.nextIp()})
+  // a season with data can be deleted with the password
+  const doomed = body(await h.call('doomed season', '/SeasonCreate', {name: 'Doomed'}, {as: admin, expect: 200}))
+  const doomedTeam = body(await h.call('doomed team', '/TeamCreate', {seasonId: doomed.id, name: 'Doom', color: RED}, {as: admin, expect: 200}))
+  await h.call('doomed member', '/MemberCreate', {teamId: doomedTeam.id, email: 'doom@example.com', firstName: 'Doom', lastName: 'Er', genderMatching: 'male'}, {as: admin, expect: 200})
+  await h.call('doomed fixture', '/FixtureCreate', {seasonId: doomed.id, title: 'Last', date: '2029-01-01', games: []}, {as: admin, expect: 200})
+  await h.call('doomed delete status', '/SeasonDeleteStatus', {seasonId: doomed.id}, {as: admin})
+  await h.call('doomed delete', '/SeasonDelete', {seasonId: doomed.id, password: PASSWORD}, {as: admin})
+  await h.call('doomed user memberships', '/UserList', {search: 'doom'}, {as: admin})
 }
 
 /** Each division's games in a generated round must pair every team once. */
