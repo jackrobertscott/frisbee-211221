@@ -3,7 +3,7 @@
 
 use crate::io_schema;
 use crate::shared::auth_access::AuthPoint;
-use crate::shared::torva::{io, Io};
+use crate::shared::torva::{Io, io};
 use serde::{Deserialize, Serialize};
 
 pub const LIST_LIMIT_MAX: f64 = 100.0;
@@ -52,7 +52,14 @@ pub struct EndpointDef {
 
 impl EndpointDef {
     pub const fn new(name: &'static str, path: &'static str) -> Self {
-        EndpointDef { name, path, access: None, payload: None, result: None, multipart: false }
+        EndpointDef {
+            name,
+            path,
+            access: None,
+            payload: None,
+            result: None,
+            multipart: false,
+        }
     }
     pub const fn access(mut self, access: AuthPoint) -> Self {
         self.access = Some(access);
@@ -75,7 +82,7 @@ impl EndpointDef {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::{json, Value};
+    use serde_json::{Value, json};
 
     fn check(schema: &Io, value: Option<Value>) -> Result<Option<Value>, String> {
         schema.validate_opt(value.as_ref())
@@ -92,7 +99,10 @@ mod tests {
         #[test]
         fn accepts_whole_page_sizes_from_1_to_the_maximum() {
             assert_eq!(check(&io_list_limit(), Some(json!(1))), Ok(Some(json!(1))));
-            assert_eq!(check(&io_list_limit(), Some(json!(100))), Ok(Some(json!(100))));
+            assert_eq!(
+                check(&io_list_limit(), Some(json!(100))),
+                Ok(Some(json!(100)))
+            );
         }
 
         #[test]
@@ -112,7 +122,10 @@ mod tests {
         fn accepts_zero_and_positive_whole_offsets() {
             assert!(check(&io_list_skip(), None).is_ok());
             assert_eq!(check(&io_list_skip(), Some(json!(0))), Ok(Some(json!(0))));
-            assert_eq!(check(&io_list_skip(), Some(json!(500))), Ok(Some(json!(500))));
+            assert_eq!(
+                check(&io_list_skip(), Some(json!(500))),
+                Ok(Some(json!(500)))
+            );
         }
 
         #[test]

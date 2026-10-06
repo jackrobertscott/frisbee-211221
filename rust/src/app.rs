@@ -29,7 +29,10 @@ pub struct SecurityCodeLog {
 
 impl SecurityCodeLog {
     pub fn record(&self, code: SentCode) {
-        self.codes.lock().unwrap_or_else(|e| e.into_inner()).push(code);
+        self.codes
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .push(code);
     }
 
     /// The latest code sent to `email`.
@@ -74,7 +77,10 @@ impl AppState {
     /// State serving `endpoints` (usually [`crate::endpoints::all`]).
     pub fn new(config: Arc<Config>, db: Db, mailer: Mailer, endpoints: Vec<Endpoint>) -> AppState {
         let origin = Origin::new(&config.url_client);
-        let endpoints = endpoints.into_iter().map(|endpoint| (endpoint.def.path, endpoint)).collect();
+        let endpoints = endpoints
+            .into_iter()
+            .map(|endpoint| (endpoint.def.path, endpoint))
+            .collect();
         AppState(Arc::new(AppInner {
             config,
             db,

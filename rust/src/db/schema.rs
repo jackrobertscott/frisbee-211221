@@ -75,7 +75,12 @@ pub struct IndexDef {
 
 impl IndexDef {
     pub const fn new(key: &'static [(&'static str, Direction)]) -> Self {
-        IndexDef { key, name: None, unique: false, collation: None }
+        IndexDef {
+            key,
+            name: None,
+            unique: false,
+            collation: None,
+        }
     }
     pub const fn unique(mut self) -> Self {
         self.unique = true;
@@ -144,7 +149,11 @@ pub struct CompiledIndex {
 
 impl TableDef {
     pub fn column(&self, field: &str) -> Option<&'static ColumnDef> {
-        self.columns.iter().chain(self.legacy_columns.iter()).copied().find(|c| c.field == field)
+        self.columns
+            .iter()
+            .chain(self.legacy_columns.iter())
+            .copied()
+            .find(|c| c.field == field)
     }
 
     /// Child tables of this table.
@@ -157,7 +166,11 @@ impl TableDef {
 
     /// Plain (non-child) columns, including legacy ones when asked.
     pub fn plain_columns(&self, include_legacy: bool) -> Vec<&'static ColumnDef> {
-        let legacy: &[&'static ColumnDef] = if include_legacy { self.legacy_columns } else { &[] };
+        let legacy: &[&'static ColumnDef] = if include_legacy {
+            self.legacy_columns
+        } else {
+            &[]
+        };
         self.columns
             .iter()
             .chain(legacy.iter())
@@ -172,7 +185,10 @@ impl TableDef {
         for index in self.indexes {
             let compiled = compile_index(self, index)?;
             if out.iter().any(|other| other.name == compiled.name) {
-                return Err(format!("Duplicate index name \"{}\" on table \"{}\".", compiled.name, self.key));
+                return Err(format!(
+                    "Duplicate index name \"{}\" on table \"{}\".",
+                    compiled.name, self.key
+                ));
             }
             out.push(compiled);
         }
@@ -189,7 +205,16 @@ pub fn compile_index(table: &TableDef, index: &IndexDef) -> Result<CompiledIndex
         index
             .key
             .iter()
-            .map(|(field, direction)| format!("{field}_{}", if *direction == Direction::Asc { "asc" } else { "desc" }))
+            .map(|(field, direction)| {
+                format!(
+                    "{field}_{}",
+                    if *direction == Direction::Asc {
+                        "asc"
+                    } else {
+                        "desc"
+                    }
+                )
+            })
             .collect::<Vec<_>>()
             .join("__")
     });
@@ -201,27 +226,42 @@ pub fn compile_index(table: &TableDef, index: &IndexDef) -> Result<CompiledIndex
                 let child = table
                     .children()
                     .find(|child| child.field == parent)
-                    .ok_or_else(|| format!("Unknown index field \"{path}\" on table \"{}\".", table.key))?;
+                    .ok_or_else(|| {
+                        format!("Unknown index field \"{path}\" on table \"{}\".", table.key)
+                    })?;
                 let column = child
                     .columns
                     .iter()
                     .find(|c| c.field == child_field)
-                    .ok_or_else(|| format!("Unknown index field \"{path}\" on table \"{}\".", table.key))?;
+                    .ok_or_else(|| {
+                        format!("Unknown index field \"{path}\" on table \"{}\".", table.key)
+                    })?;
                 (child.table.to_string(), column.sql)
             }
             None => {
-                let column =
-                    table.column(path).ok_or_else(|| format!("Unknown index field \"{path}\" on table \"{}\".", table.key))?;
+                let column = table.column(path).ok_or_else(|| {
+                    format!("Unknown index field \"{path}\" on table \"{}\".", table.key)
+                })?;
                 (table.sql.to_string(), column.sql)
             }
         };
         if parts.is_empty() {
             target_table = sql_table;
         } else if target_table != sql_table {
-            return Err(format!("Index \"{name}\" mixes tables on \"{}\".", table.key));
+            return Err(format!(
+                "Index \"{name}\" mixes tables on \"{}\".",
+                table.key
+            ));
         }
-        let collate = index.collation.map(|c| format!(" COLLATE {}", c.sql_name())).unwrap_or_default();
-        let dir = if *direction == Direction::Asc { "ASC" } else { "DESC" };
+        let collate = index
+            .collation
+            .map(|c| format!(" COLLATE {}", c.sql_name()))
+            .unwrap_or_default();
+        let dir = if *direction == Direction::Asc {
+            "ASC"
+        } else {
+            "DESC"
+        };
         parts.push(format!("\"{column}\"{collate} {dir}"));
     }
     let sql_name = format!("{}__{}", table.sql, name);
@@ -230,7 +270,12 @@ pub fn compile_index(table: &TableDef, index: &IndexDef) -> Result<CompiledIndex
         if index.unique { "UNIQUE " } else { "" },
         parts.join(", ")
     );
-    Ok(CompiledIndex { name, sql_name, table: target_table, create_sql })
+    Ok(CompiledIndex {
+        name,
+        sql_name,
+        table: target_table,
+        create_sql,
+    })
 }
 
 /// A typed handle on a column, used to build filters, sorts and patches:
@@ -242,7 +287,10 @@ pub struct Col<V> {
 
 impl<V> Col<V> {
     pub const fn new(def: &'static ColumnDef) -> Self {
-        Col { def, _value: PhantomData }
+        Col {
+            def,
+            _value: PhantomData,
+        }
     }
     pub fn field(&self) -> &'static str {
         self.def.field
@@ -287,7 +335,11 @@ impl ColumnValue for i64 {
 }
 impl ColumnValue for f64 {
     fn to_sql(&self) -> SqlValue {
-        if self.fract() == 0.0 && self.abs() < 9.2e18 { SqlValue::Integer(*self as i64) } else { SqlValue::Real(*self) }
+        if self.fract() == 0.0 && self.abs() < 9.2e18 {
+            SqlValue::Integer(*self as i64)
+        } else {
+            SqlValue::Real(*self)
+        }
     }
 }
 
@@ -309,12 +361,22 @@ enum_column_value!(
 
 impl ColumnValue for crate::shared::schemas::GamedayImportRunStatus {
     fn to_sql(&self) -> SqlValue {
-        SqlValue::Text(serde_json::to_value(self).ok().and_then(|v| v.as_str().map(str::to_string)).unwrap_or_default())
+        SqlValue::Text(
+            serde_json::to_value(self)
+                .ok()
+                .and_then(|v| v.as_str().map(str::to_string))
+                .unwrap_or_default(),
+        )
     }
 }
 impl ColumnValue for crate::shared::schemas::GamedayImportRunTrigger {
     fn to_sql(&self) -> SqlValue {
-        SqlValue::Text(serde_json::to_value(self).ok().and_then(|v| v.as_str().map(str::to_string)).unwrap_or_default())
+        SqlValue::Text(
+            serde_json::to_value(self)
+                .ok()
+                .and_then(|v| v.as_str().map(str::to_string))
+                .unwrap_or_default(),
+        )
     }
 }
 
@@ -328,7 +390,11 @@ pub fn json_to_sql(kind: ColumnKind, value: &Value) -> SqlValue {
         Value::Bool(b) => SqlValue::Integer(i64::from(*b)),
         Value::Number(n) => {
             if let Some(i) = n.as_i64() {
-                if kind == ColumnKind::Real { SqlValue::Real(i as f64) } else { SqlValue::Integer(i) }
+                if kind == ColumnKind::Real {
+                    SqlValue::Real(i as f64)
+                } else {
+                    SqlValue::Integer(i)
+                }
             } else {
                 let f = n.as_f64().unwrap_or(0.0);
                 if kind != ColumnKind::Real && js::is_integer(f) && f.abs() < 9.2e18 {
@@ -353,10 +419,12 @@ pub fn sql_to_json(kind: ColumnKind, value: SqlValue) -> Option<Value> {
         }),
         SqlValue::Real(f) => Some(js::number(f)),
         SqlValue::Text(text) => Some(match kind {
-            ColumnKind::Json => serde_json::from_str(&text).map(|mut v: Value| {
-                js::normalize_numbers(&mut v);
-                v
-            }).unwrap_or(Value::String(text)),
+            ColumnKind::Json => serde_json::from_str(&text)
+                .map(|mut v: Value| {
+                    js::normalize_numbers(&mut v);
+                    v
+                })
+                .unwrap_or(Value::String(text)),
             _ => Value::String(text),
         }),
         SqlValue::Blob(bytes) => Some(Value::String(String::from_utf8_lossy(&bytes).into_owned())),
@@ -364,7 +432,11 @@ pub fn sql_to_json(kind: ColumnKind, value: SqlValue) -> Option<Value> {
 }
 
 /// Reads the plain columns of `row` (starting at `offset`) into a JSON object.
-pub fn row_to_map(row: &rusqlite::Row<'_>, columns: &[&'static ColumnDef], offset: usize) -> rusqlite::Result<Map<String, Value>> {
+pub fn row_to_map(
+    row: &rusqlite::Row<'_>,
+    columns: &[&'static ColumnDef],
+    offset: usize,
+) -> rusqlite::Result<Map<String, Value>> {
     let mut map = Map::new();
     for (index, column) in columns.iter().enumerate() {
         let value: SqlValue = row.get(offset + index)?;
@@ -377,5 +449,9 @@ pub fn row_to_map(row: &rusqlite::Row<'_>, columns: &[&'static ColumnDef], offse
 
 /// Comma-separated, alias-qualified column list for `SELECT`.
 pub fn select_list(alias: &str, columns: &[&'static ColumnDef]) -> String {
-    columns.iter().map(|c| format!("{alias}.\"{}\"", c.sql)).collect::<Vec<_>>().join(", ")
+    columns
+        .iter()
+        .map(|c| format!("{alias}.\"{}\"", c.sql))
+        .collect::<Vec<_>>()
+        .join(", ")
 }

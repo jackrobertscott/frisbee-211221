@@ -6,10 +6,10 @@ use axum::body::Body;
 use axum::http::{HeaderValue, Response, StatusCode};
 use bytes::Bytes;
 use futures_util::stream;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::convert::Infallible;
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 use tokio::time::Instant;
 
@@ -42,8 +42,15 @@ impl TarpitPlan {
         let drip = value.get("dripIntervalMs")?.as_f64()?;
         let hold = value.get("holdMs")?.as_f64()?;
         let status = value.get("statusCode")?.as_f64()?;
-        let status_code = u16::try_from(status as i64).ok().filter(|s| StatusCode::from_u16(*s).is_ok())?;
-        Some(TarpitPlan { body, drip_interval_ms: drip.max(0.0) as u64, hold_ms: hold.max(0.0) as u64, status_code })
+        let status_code = u16::try_from(status as i64)
+            .ok()
+            .filter(|s| StatusCode::from_u16(*s).is_ok())?;
+        Some(TarpitPlan {
+            body,
+            drip_interval_ms: drip.max(0.0) as u64,
+            hold_ms: hold.max(0.0) as u64,
+            status_code,
+        })
     }
 }
 
@@ -58,7 +65,11 @@ struct ActiveGuard(Arc<AtomicUsize>);
 impl Drop for ActiveGuard {
     fn drop(&mut self) {
         // closed connections stop their tarpit and free its slot
-        let _ = self.0.fetch_update(Ordering::SeqCst, Ordering::SeqCst, |n| Some(n.saturating_sub(1)));
+        let _ = self
+            .0
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |n| {
+                Some(n.saturating_sub(1))
+            });
     }
 }
 
@@ -66,10 +77,19 @@ fn base_response(status_code: u16, body: Body) -> Response<Body> {
     let mut response = Response::new(body);
     *response.status_mut() = StatusCode::from_u16(status_code).unwrap_or(StatusCode::NOT_FOUND);
     let headers = response.headers_mut();
-    headers.insert("cache-control", HeaderValue::from_static("no-store, max-age=0"));
+    headers.insert(
+        "cache-control",
+        HeaderValue::from_static("no-store, max-age=0"),
+    );
     headers.insert("connection", HeaderValue::from_static("close"));
-    headers.insert("content-type", HeaderValue::from_static("text/plain; charset=utf-8"));
-    headers.insert("x-content-type-options", HeaderValue::from_static("nosniff"));
+    headers.insert(
+        "content-type",
+        HeaderValue::from_static("text/plain; charset=utf-8"),
+    );
+    headers.insert(
+        "x-content-type-options",
+        HeaderValue::from_static("nosniff"),
+    );
     response
 }
 
@@ -93,7 +113,9 @@ impl Tarpit {
     pub fn respond(&self, plan: &TarpitPlan) -> Response<Body> {
         let reserved = self
             .active
-            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |n| (n < MAX_CONCURRENT_TARPITS).then_some(n + 1))
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |n| {
+                (n < MAX_CONCURRENT_TARPITS).then_some(n + 1)
+            })
             .is_ok();
         if !reserved {
             let mut response = base_response(plan.status_code, Body::from(plan.body.clone()));
@@ -110,7 +132,10 @@ impl Tarpit {
             let plan = plan.clone();
             async move {
                 match step {
-                    Step::Start => Some((Ok::<Bytes, Infallible>(Bytes::from_static(b" ")), (Step::Wait, guard))),
+                    Step::Start => Some((
+                        Ok::<Bytes, Infallible>(Bytes::from_static(b" ")),
+                        (Step::Wait, guard),
+                    )),
                     Step::Wait => loop {
                         let elapsed = started_at.elapsed().as_millis() as u64;
                         let remaining = plan.hold_ms.saturating_sub(elapsed);

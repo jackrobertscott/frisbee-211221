@@ -6,7 +6,7 @@
 use crate::config::Config;
 use crate::shared::errors::{AppError, AppResult};
 use hmac::{Hmac, KeyInit, Mac};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use sha2::{Digest, Sha256};
 use std::future::Future;
 use std::pin::Pin;
@@ -26,7 +26,10 @@ pub struct MailMessage {
 
 /// The `SendEmailCommand` input (also the SES v2 JSON request body).
 pub fn send_email_input(config: &Config, message: &MailMessage) -> Value {
-    let from = message.from.clone().unwrap_or_else(|| format!("{} <{}>", config.app_name, config.ses_from_email));
+    let from = message
+        .from
+        .clone()
+        .unwrap_or_else(|| format!("{} <{}>", config.app_name, config.ses_from_email));
     let body = match &message.html {
         Some(html) if !html.is_empty() => json!({"Html": {"Data": html}}),
         _ => match &message.text {
@@ -37,7 +40,10 @@ pub fn send_email_input(config: &Config, message: &MailMessage) -> Value {
     let mut input = Map::new();
     input.insert("FromEmailAddress".into(), json!(from));
     input.insert("Destination".into(), json!({"ToAddresses": message.to}));
-    input.insert("Content".into(), json!({"Simple": {"Subject": {"Data": message.subject}, "Body": body}}));
+    input.insert(
+        "Content".into(),
+        json!({"Simple": {"Subject": {"Data": message.subject}, "Body": body}}),
+    );
     if let Some(reply) = &message.reply {
         input.insert("ReplyToAddresses".into(), json!([reply]));
     }
@@ -85,11 +91,18 @@ pub struct CapturingTransport {
 
 impl MailTransport for CapturingTransport {
     fn send(&self, input: Value) -> SendFuture {
-        let failure = self.fail_with.lock().unwrap_or_else(|e| e.into_inner()).clone();
+        let failure = self
+            .fail_with
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone();
         if let Some(message) = failure {
             return Box::pin(async move { Err(AppError::internal_from(message)) });
         }
-        self.sent.lock().unwrap_or_else(|e| e.into_inner()).push(input);
+        self.sent
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .push(input);
         Box::pin(async { Ok(()) })
     }
 }
@@ -122,7 +135,9 @@ impl MailTransport for SesTransport {
         Box::pin(async move {
             let region = region.ok_or_else(|| AppError::internal_from("Region is missing"))?;
             if key.is_empty() || secret.is_empty() {
-                return Err(AppError::internal_from("Could not load credentials from any providers"));
+                return Err(AppError::internal_from(
+                    "Could not load credentials from any providers",
+                ));
             }
             let host = format!("email.{region}.amazonaws.com");
             let path = "/v2/email/outbound-emails";
@@ -153,7 +168,9 @@ impl MailTransport for SesTransport {
             if !response.status().is_success() {
                 let status = response.status();
                 let text = response.text().await.unwrap_or_default();
-                return Err(AppError::internal_from(format!("SES SendEmail failed ({status}): {text}")));
+                return Err(AppError::internal_from(format!(
+                    "SES SendEmail failed ({status}): {text}"
+                )));
             }
             Ok(())
         })
@@ -203,8 +220,15 @@ pub fn sign_v4(request: &SigV4Request<'_>) -> String {
         sha256_hex(request.body)
     );
     let scope = format!("{date}/{}/{}/aws4_request", request.region, request.service);
-    let string_to_sign = format!("AWS4-HMAC-SHA256\n{}\n{scope}\n{}", request.amz_date, sha256_hex(canonical_request.as_bytes()));
-    let k_date = hmac(format!("AWS4{}", request.secret_access_key).as_bytes(), date);
+    let string_to_sign = format!(
+        "AWS4-HMAC-SHA256\n{}\n{scope}\n{}",
+        request.amz_date,
+        sha256_hex(canonical_request.as_bytes())
+    );
+    let k_date = hmac(
+        format!("AWS4{}", request.secret_access_key).as_bytes(),
+        date,
+    );
     let k_region = hmac(&k_date, request.region);
     let k_service = hmac(&k_region, request.service);
     let k_signing = hmac(&k_service, "aws4_request");
@@ -272,7 +296,10 @@ mod tests {
                 .unwrap();
             let sent = transport.sent.lock().unwrap();
             assert_eq!(sent[0]["FromEmailAddress"], "Other <other@example.com>");
-            assert_eq!(sent[0]["Content"]["Simple"]["Body"], json!({"Text": {"Data": "Just text"}}));
+            assert_eq!(
+                sent[0]["Content"]["Simple"]["Body"],
+                json!({"Text": {"Data": "Just text"}})
+            );
             assert_eq!(sent[0]["ReplyToAddresses"], json!(["reply@example.com"]));
         }
 
@@ -282,7 +309,12 @@ mod tests {
             *transport.fail_with.lock().unwrap() = Some("MessageRejected".into());
             let mailer = Mailer::new(config(), transport);
             let error = mailer
-                .send(MailMessage { to: vec!["a@example.com".into()], subject: "x".into(), text: Some("y".into()), ..Default::default() })
+                .send(MailMessage {
+                    to: vec!["a@example.com".into()],
+                    subject: "x".into(),
+                    text: Some("y".into()),
+                    ..Default::default()
+                })
                 .await
                 .unwrap_err();
             assert_eq!(error.message, "MessageRejected");

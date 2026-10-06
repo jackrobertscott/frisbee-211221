@@ -54,12 +54,27 @@ impl AuthPoint {
 
     /// `authRuleByPoint[point]`.
     pub fn rule(self) -> AuthRule {
-        let signed_in = AuthRule { signed_in: true, team: false, admin: false };
-        let team = AuthRule { signed_in: false, team: true, admin: false };
-        let admin = AuthRule { signed_in: false, team: false, admin: true };
+        let signed_in = AuthRule {
+            signed_in: true,
+            team: false,
+            admin: false,
+        };
+        let team = AuthRule {
+            signed_in: false,
+            team: true,
+            admin: false,
+        };
+        let admin = AuthRule {
+            signed_in: false,
+            team: false,
+            admin: true,
+        };
         match self {
             AuthPoint::UserSelf | AuthPoint::TeamJoin => signed_in,
-            AuthPoint::TeamManage | AuthPoint::MemberRead | AuthPoint::MemberManage | AuthPoint::ReportWrite => team,
+            AuthPoint::TeamManage
+            | AuthPoint::MemberRead
+            | AuthPoint::MemberManage
+            | AuthPoint::ReportWrite => team,
             AuthPoint::UserManage
             | AuthPoint::TeamDirectoryManage
             | AuthPoint::ReportManage
@@ -108,10 +123,18 @@ impl AuthDeny {
 pub fn read_auth_deny(state: AuthState, point: AuthPoint) -> Option<AuthDeny> {
     let rule = point.rule();
     if rule.admin && !state.admin {
-        return Some(if state.signed_in { AuthDeny::Admin } else { AuthDeny::SignIn });
+        return Some(if state.signed_in {
+            AuthDeny::Admin
+        } else {
+            AuthDeny::SignIn
+        });
     }
     if rule.team && !state.admin && !state.team {
-        return Some(if state.signed_in { AuthDeny::Team } else { AuthDeny::SignIn });
+        return Some(if state.signed_in {
+            AuthDeny::Team
+        } else {
+            AuthDeny::SignIn
+        });
     }
     if rule.signed_in && !state.signed_in {
         return Some(AuthDeny::SignIn);
@@ -128,10 +151,26 @@ pub fn can_access_auth_point(state: AuthState, point: AuthPoint) -> bool {
 mod tests {
     use super::*;
 
-    const ANONYMOUS: AuthState = AuthState { signed_in: false, team: false, admin: false };
-    const SIGNED_IN: AuthState = AuthState { signed_in: true, team: false, admin: false };
-    const TEAM_MEMBER: AuthState = AuthState { signed_in: true, team: true, admin: false };
-    const ADMIN: AuthState = AuthState { signed_in: true, team: false, admin: true };
+    const ANONYMOUS: AuthState = AuthState {
+        signed_in: false,
+        team: false,
+        admin: false,
+    };
+    const SIGNED_IN: AuthState = AuthState {
+        signed_in: true,
+        team: false,
+        admin: false,
+    };
+    const TEAM_MEMBER: AuthState = AuthState {
+        signed_in: true,
+        team: true,
+        admin: false,
+    };
+    const ADMIN: AuthState = AuthState {
+        signed_in: true,
+        team: false,
+        admin: true,
+    };
 
     mod auth_rule_by_point {
         use super::*;
@@ -155,7 +194,11 @@ mod tests {
         #[test]
         fn denies_everything_requiring_access_to_anonymous_users_with_sign_in() {
             for point in AuthPoint::ALL {
-                assert_eq!(read_auth_deny(ANONYMOUS, point), Some(AuthDeny::SignIn), "{point:?}");
+                assert_eq!(
+                    read_auth_deny(ANONYMOUS, point),
+                    Some(AuthDeny::SignIn),
+                    "{point:?}"
+                );
             }
         }
 
@@ -174,8 +217,17 @@ mod tests {
 
         #[test]
         fn requires_a_team_for_team_rules_unless_admin() {
-            for point in [AuthPoint::TeamManage, AuthPoint::MemberRead, AuthPoint::MemberManage, AuthPoint::ReportWrite] {
-                assert_eq!(read_auth_deny(SIGNED_IN, point), Some(AuthDeny::Team), "{point:?}");
+            for point in [
+                AuthPoint::TeamManage,
+                AuthPoint::MemberRead,
+                AuthPoint::MemberManage,
+                AuthPoint::ReportWrite,
+            ] {
+                assert_eq!(
+                    read_auth_deny(SIGNED_IN, point),
+                    Some(AuthDeny::Team),
+                    "{point:?}"
+                );
                 assert_eq!(read_auth_deny(TEAM_MEMBER, point), None, "{point:?}");
             }
         }
@@ -190,8 +242,16 @@ mod tests {
                 AuthPoint::SeasonManage,
                 AuthPoint::PortManage,
             ] {
-                assert_eq!(read_auth_deny(SIGNED_IN, point), Some(AuthDeny::Admin), "{point:?}");
-                assert_eq!(read_auth_deny(TEAM_MEMBER, point), Some(AuthDeny::Admin), "{point:?}");
+                assert_eq!(
+                    read_auth_deny(SIGNED_IN, point),
+                    Some(AuthDeny::Admin),
+                    "{point:?}"
+                );
+                assert_eq!(
+                    read_auth_deny(TEAM_MEMBER, point),
+                    Some(AuthDeny::Admin),
+                    "{point:?}"
+                );
             }
         }
 
@@ -199,12 +259,36 @@ mod tests {
         fn trusts_the_state_flags_as_given_even_if_inconsistent() {
             // admin/team without signedIn still count, but deny reasons fall back to sign_in
             assert_eq!(
-                read_auth_deny(AuthState { signed_in: false, team: false, admin: true }, AuthPoint::UserSelf),
+                read_auth_deny(
+                    AuthState {
+                        signed_in: false,
+                        team: false,
+                        admin: true
+                    },
+                    AuthPoint::UserSelf
+                ),
                 Some(AuthDeny::SignIn)
             );
-            assert_eq!(read_auth_deny(AuthState { signed_in: false, team: true, admin: false }, AuthPoint::MemberRead), None);
             assert_eq!(
-                read_auth_deny(AuthState { signed_in: false, team: true, admin: false }, AuthPoint::SeasonManage),
+                read_auth_deny(
+                    AuthState {
+                        signed_in: false,
+                        team: true,
+                        admin: false
+                    },
+                    AuthPoint::MemberRead
+                ),
+                None
+            );
+            assert_eq!(
+                read_auth_deny(
+                    AuthState {
+                        signed_in: false,
+                        team: true,
+                        admin: false
+                    },
+                    AuthPoint::SeasonManage
+                ),
                 Some(AuthDeny::SignIn)
             );
         }

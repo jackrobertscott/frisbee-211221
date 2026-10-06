@@ -4,7 +4,7 @@ use super::*;
 use crate::shared::auth_access::AuthPoint;
 use crate::shared::torva::Io;
 use crate::shared::utils::endpoint_def::LIST_LIMIT_MAX;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::HashSet;
 
 const ID: &str = "0123456789abcdef01234567";
@@ -30,7 +30,17 @@ mod endpoint_definitions {
     fn are_discovered_from_every_module() {
         let defs = all_defs();
         assert!(defs.len() > 50);
-        for module in ["FeatureDef", "FixtureDef", "MemberDef", "PortDef", "ReportDef", "SeasonDef", "SecurityDef", "TeamDef", "UserDef"] {
+        for module in [
+            "FeatureDef",
+            "FixtureDef",
+            "MemberDef",
+            "PortDef",
+            "ReportDef",
+            "SeasonDef",
+            "SecurityDef",
+            "TeamDef",
+            "UserDef",
+        ] {
             assert!(defs.iter().any(|(m, _)| *m == module), "{module}");
         }
     }
@@ -45,7 +55,11 @@ mod endpoint_definitions {
     #[test]
     fn path_belongs_to_its_module_namespace() {
         for (module, def) in all_defs() {
-            assert!(def.name.starts_with(module.trim_end_matches("Def")), "{}", def.name);
+            assert!(
+                def.name.starts_with(module.trim_end_matches("Def")),
+                "{}",
+                def.name
+            );
         }
     }
 
@@ -80,7 +94,10 @@ mod endpoint_definitions {
 
     #[test]
     fn multipart_endpoints_do_not_declare_a_json_payload() {
-        let multipart: Vec<_> = all_defs().into_iter().filter(|(_, def)| def.multipart).collect();
+        let multipart: Vec<_> = all_defs()
+            .into_iter()
+            .filter(|(_, def)| def.multipart)
+            .collect();
         assert!(!multipart.is_empty());
         for (_, def) in multipart {
             assert!(def.payload.is_none());
@@ -89,7 +106,12 @@ mod endpoint_definitions {
 
     #[test]
     fn only_admin_access_points_guard_admin_namespaces() {
-        let admin_only = [AuthPoint::UserManage, AuthPoint::SeasonManage, AuthPoint::PortManage, AuthPoint::FixtureManage];
+        let admin_only = [
+            AuthPoint::UserManage,
+            AuthPoint::SeasonManage,
+            AuthPoint::PortManage,
+            AuthPoint::FixtureManage,
+        ];
         for (module, def) in all_defs() {
             if module == "PortDef" {
                 assert_eq!(def.access, Some(AuthPoint::PortManage));
@@ -101,7 +123,11 @@ mod endpoint_definitions {
                 assert_eq!(def.access, Some(AuthPoint::FixtureManage));
             }
             if def.path.starts_with("/User") && !def.path.starts_with("/UserCurrent") {
-                assert!(def.access.is_some_and(|a| admin_only.contains(&a)), "{}", def.path);
+                assert!(
+                    def.access.is_some_and(|a| admin_only.contains(&a)),
+                    "{}",
+                    def.path
+                );
             }
             if def.path.starts_with("/UserCurrent") {
                 assert_eq!(def.access, Some(AuthPoint::UserSelf));
@@ -115,7 +141,11 @@ mod list_sort_keys {
 
     #[test]
     fn sort_keys_use_domain_fields_not_ids() {
-        for keys in [&team::TEAM_LIST_SORT_KEYS[..], &user::USER_LIST_SORT_KEYS[..], &feature::FEATURE_SPIRIT_SORT_KEYS[..]] {
+        for keys in [
+            &team::TEAM_LIST_SORT_KEYS[..],
+            &user::USER_LIST_SORT_KEYS[..],
+            &feature::FEATURE_SPIRIT_SORT_KEYS[..],
+        ] {
             assert!(!keys.contains(&"id"));
             assert!(!keys.iter().any(|key| key.ends_with("Id")));
             let unique: HashSet<&&str> = keys.iter().collect();
@@ -125,7 +155,10 @@ mod list_sort_keys {
 
     #[test]
     fn paginated_list_payloads_bound_the_page_size() {
-        for schema in [user::user_list_payload as fn() -> Io, feature::feature_dashboard_teams_load_payload] {
+        for schema in [
+            user::user_list_payload as fn() -> Io,
+            feature::feature_dashboard_teams_load_payload,
+        ] {
             let base = json!({"seasonId": ID});
             assert!(check(schema, with(&base, json!({"limit": LIST_LIMIT_MAX}))).is_ok());
             assert!(check(schema, with(&base, json!({"limit": LIST_LIMIT_MAX + 1.0}))).is_err());
@@ -146,18 +179,40 @@ mod payload_validation {
 
     #[test]
     fn login_requires_a_valid_email_and_trims_it() {
-        assert!(check(security::security_login_payload, json!({"email": "nope", "password": "x"})).is_err());
+        assert!(
+            check(
+                security::security_login_payload,
+                json!({"email": "nope", "password": "x"})
+            )
+            .is_err()
+        );
         assert_eq!(
-            check(security::security_login_payload, json!({"email": " a@b.co ", "password": "x"})),
+            check(
+                security::security_login_payload,
+                json!({"email": " a@b.co ", "password": "x"})
+            ),
             Ok(json!({"email": "a@b.co", "password": "x"}))
         );
     }
 
     #[test]
     fn sign_up_only_accepts_male_or_female_gender_matching() {
-        let base = json!({"email": "a@b.co", "firstName": "A", "lastName": "B", "termsAccepted": true});
-        assert!(check(security::security_sign_up_payload, with(&base, json!({"genderMatching": "female"}))).is_ok());
-        assert!(check(security::security_sign_up_payload, with(&base, json!({"genderMatching": "other"}))).is_err());
+        let base =
+            json!({"email": "a@b.co", "firstName": "A", "lastName": "B", "termsAccepted": true});
+        assert!(
+            check(
+                security::security_sign_up_payload,
+                with(&base, json!({"genderMatching": "female"}))
+            )
+            .is_ok()
+        );
+        assert!(
+            check(
+                security::security_sign_up_payload,
+                with(&base, json!({"genderMatching": "other"}))
+            )
+            .is_err()
+        );
         assert!(check(security::security_sign_up_payload, base).is_err());
     }
 
@@ -187,43 +242,131 @@ mod payload_validation {
     #[test]
     fn report_update_distinguishes_cleared_mvps_from_omitted_ones() {
         let base = json!({"reportId": ID, "scoreFor": 1, "scoreAgainst": 1, "spiritComment": ""});
-        let result = check(report::report_update_payload, with(&base, json!({"mvpMale": null}))).unwrap();
+        let result = check(
+            report::report_update_payload,
+            with(&base, json!({"mvpMale": null})),
+        )
+        .unwrap();
         assert_eq!(result.get("mvpMale"), Some(&Value::Null));
         assert!(result.get("mvpFemale").is_none());
-        assert!(check(report::report_update_payload, with(&base, json!({"mvpMale": ""}))).is_err());
+        assert!(
+            check(
+                report::report_update_payload,
+                with(&base, json!({"mvpMale": ""}))
+            )
+            .is_err()
+        );
     }
 
     #[test]
     fn team_colours_must_be_hsla_strings() {
         let base = json!({"seasonId": ID, "name": "Team"});
-        assert!(check(team::team_current_create_payload, with(&base, json!({"color": "hsla(10, 50%, 50%, 1)"}))).is_ok());
-        assert!(check(team::team_current_create_payload, with(&base, json!({"color": "#ff0000"}))).is_err());
+        assert!(
+            check(
+                team::team_current_create_payload,
+                with(&base, json!({"color": "hsla(10, 50%, 50%, 1)"}))
+            )
+            .is_ok()
+        );
+        assert!(
+            check(
+                team::team_current_create_payload,
+                with(&base, json!({"color": "#ff0000"}))
+            )
+            .is_err()
+        );
     }
 
     #[test]
     fn season_gender_division_is_restricted_to_known_divisions() {
-        assert!(check(season::season_create_payload, json!({"name": "S", "genderDivision": "women"})).is_ok());
-        assert!(check(season::season_create_payload, json!({"name": "S", "genderDivision": "open"})).is_err());
+        assert!(
+            check(
+                season::season_create_payload,
+                json!({"name": "S", "genderDivision": "women"})
+            )
+            .is_ok()
+        );
+        assert!(
+            check(
+                season::season_create_payload,
+                json!({"name": "S", "genderDivision": "open"})
+            )
+            .is_err()
+        );
     }
 
     #[test]
     fn bounds_generated_and_adjusted_fixture_counts() {
         let generate = json!({"seasonId": ID, "startingDate": "2026-01-01", "slots": []});
-        assert!(check(fixture::fixture_generate_payload, with(&generate, json!({"roundCount": 100}))).is_ok());
-        assert!(check(fixture::fixture_generate_payload, with(&generate, json!({"roundCount": 101}))).is_err());
-        assert!(check(fixture::fixture_generate_payload, with(&generate, json!({"roundCount": 0}))).is_err());
+        assert!(
+            check(
+                fixture::fixture_generate_payload,
+                with(&generate, json!({"roundCount": 100}))
+            )
+            .is_ok()
+        );
+        assert!(
+            check(
+                fixture::fixture_generate_payload,
+                with(&generate, json!({"roundCount": 101}))
+            )
+            .is_err()
+        );
+        assert!(
+            check(
+                fixture::fixture_generate_payload,
+                with(&generate, json!({"roundCount": 0}))
+            )
+            .is_err()
+        );
         let adjust = json!({"seasonId": ID, "referenceFixtureId": ID2, "unit": "week", "direction": "forward"});
-        assert!(check(fixture::fixture_adjust_multiple_payload, with(&adjust, json!({"amount": 0}))).is_ok());
-        assert!(check(fixture::fixture_adjust_multiple_payload, with(&adjust, json!({"amount": -1}))).is_err());
-        assert!(check(fixture::fixture_adjust_multiple_payload, with(&adjust, json!({"unit": "year", "amount": 1}))).is_err());
+        assert!(
+            check(
+                fixture::fixture_adjust_multiple_payload,
+                with(&adjust, json!({"amount": 0}))
+            )
+            .is_ok()
+        );
+        assert!(
+            check(
+                fixture::fixture_adjust_multiple_payload,
+                with(&adjust, json!({"amount": -1}))
+            )
+            .is_err()
+        );
+        assert!(
+            check(
+                fixture::fixture_adjust_multiple_payload,
+                with(&adjust, json!({"unit": "year", "amount": 1}))
+            )
+            .is_err()
+        );
     }
 
     #[test]
     fn bounds_mock_data_generation() {
         let base = json!({"seasonId": ID});
-        assert!(check(port::port_mock_generate_payload, with(&base, json!({"teams": 500, "usersPerTeam": 100}))).is_ok());
-        assert!(check(port::port_mock_generate_payload, with(&base, json!({"teams": 501, "usersPerTeam": 1}))).is_err());
-        assert!(check(port::port_mock_generate_payload, with(&base, json!({"teams": 1, "usersPerTeam": 101}))).is_err());
+        assert!(
+            check(
+                port::port_mock_generate_payload,
+                with(&base, json!({"teams": 500, "usersPerTeam": 100}))
+            )
+            .is_ok()
+        );
+        assert!(
+            check(
+                port::port_mock_generate_payload,
+                with(&base, json!({"teams": 501, "usersPerTeam": 1}))
+            )
+            .is_err()
+        );
+        assert!(
+            check(
+                port::port_mock_generate_payload,
+                with(&base, json!({"teams": 1, "usersPerTeam": 101}))
+            )
+            .is_err()
+        );
     }
 }
 

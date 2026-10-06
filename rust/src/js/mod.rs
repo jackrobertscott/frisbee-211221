@@ -23,19 +23,19 @@ pub fn is_whitespace(c: char) -> bool {
             | '\u{0020}'
             | '\u{00A0}'
             | '\u{1680}'
-            | '\u{2000}'..='\u{200A}'
-            | '\u{2028}'
-            | '\u{2029}'
-            | '\u{202F}'
-            | '\u{205F}'
-            | '\u{3000}'
-            | '\u{FEFF}'
+            | '\u{2000}'
+            ..='\u{200A}'
+                | '\u{2028}'
+                | '\u{2029}'
+                | '\u{202F}'
+                | '\u{205F}'
+                | '\u{3000}'
+                | '\u{FEFF}'
     )
 }
 
 /// The JavaScript `\s` class written out for the Rust `regex` crate.
-pub const WS_CLASS: &str =
-    r"\t\n\x0B\x0C\r \x{A0}\x{1680}\x{2000}-\x{200A}\x{2028}\x{2029}\x{202F}\x{205F}\x{3000}\x{FEFF}";
+pub const WS_CLASS: &str = r"\t\n\x0B\x0C\r \x{A0}\x{1680}\x{2000}-\x{200A}\x{2028}\x{2029}\x{202F}\x{205F}\x{3000}\x{FEFF}";
 
 /// `String.prototype.trim()`.
 pub fn trim(value: &str) -> &str {
@@ -125,15 +125,18 @@ pub fn string_to_number(value: &str) -> f64 {
             if digits.is_empty() || !digits.chars().all(|c| c.is_digit(radix)) {
                 return f64::NAN;
             }
-            return digits
-                .chars()
-                .fold(0.0, |acc, c| acc * f64::from(radix) + f64::from(c.to_digit(radix).unwrap_or(0)));
+            return digits.chars().fold(0.0, |acc, c| {
+                acc * f64::from(radix) + f64::from(c.to_digit(radix).unwrap_or(0))
+            });
         }
     }
     if !is_decimal_literal(unsigned) {
         return f64::NAN;
     }
-    unsigned.parse::<f64>().map(|v| sign * v).unwrap_or(f64::NAN)
+    unsigned
+        .parse::<f64>()
+        .map(|v| sign * v)
+        .unwrap_or(f64::NAN)
 }
 
 fn is_decimal_literal(value: &str) -> bool {
@@ -186,7 +189,9 @@ pub fn number(value: f64) -> Value {
     if value.fract() == 0.0 && value.abs() < 9.2e18 {
         return Value::Number(Number::from(value as i64));
     }
-    Number::from_f64(value).map(Value::Number).unwrap_or(Value::Null)
+    Number::from_f64(value)
+        .map(Value::Number)
+        .unwrap_or(Value::Null)
 }
 
 /// Reads a JSON number as a JavaScript number.
@@ -199,10 +204,10 @@ pub fn as_f64(value: &Value) -> Option<f64> {
 pub fn normalize_numbers(value: &mut Value) {
     match value {
         Value::Number(n) => {
-            if n.is_f64() {
-                if let Some(f) = n.as_f64() {
-                    *value = number(f);
-                }
+            if n.is_f64()
+                && let Some(f) = n.as_f64()
+            {
+                *value = number(f);
             }
         }
         Value::Array(items) => items.iter_mut().for_each(normalize_numbers),
@@ -276,6 +281,9 @@ mod tests {
 
     #[test]
     fn stringifies_like_json_stringify() {
-        assert_eq!(stringify(&json!({"a": 3.0, "b": [1.5, -0.0]})), r#"{"a":3,"b":[1.5,0]}"#);
+        assert_eq!(
+            stringify(&json!({"a": 3.0, "b": [1.5, -0.0]})),
+            r#"{"a":3,"b":[1.5,0]}"#
+        );
     }
 }

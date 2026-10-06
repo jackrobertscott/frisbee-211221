@@ -95,7 +95,10 @@ const MIGRATION_INDEXES: [&str; 1] = ["user_email__user_id"];
 pub fn run_schema_migrations(conn: &Connection) -> AppResult<usize> {
     let current: i64 = conn.query_row("PRAGMA user_version", [], |row| row.get(0))?;
     let mut applied = 0;
-    for (version, description, sql) in MIGRATIONS.iter().filter(|(version, _, _)| *version > current) {
+    for (version, description, sql) in MIGRATIONS
+        .iter()
+        .filter(|(version, _, _)| *version > current)
+    {
         conn.execute_batch("BEGIN IMMEDIATE")?;
         let result = conn
             .execute_batch(sql)
@@ -104,7 +107,9 @@ pub fn run_schema_migrations(conn: &Connection) -> AppResult<usize> {
             Ok(()) => conn.execute_batch("COMMIT")?,
             Err(error) => {
                 let _ = conn.execute_batch("ROLLBACK");
-                return Err(AppError::internal_from(format!("Migration {version} ({description}) failed: {error}")));
+                return Err(AppError::internal_from(format!(
+                    "Migration {version} ({description}) failed: {error}"
+                )));
             }
         }
         log::log(format!("Applied SQLite migration {version}: {description}"));
@@ -119,7 +124,9 @@ fn existing_indexes(conn: &Connection, sql_table: &str) -> AppResult<Vec<(String
         "SELECT name, COALESCE(sql, '') FROM sqlite_master WHERE type = 'index' AND tbl_name = ? AND sql IS NOT NULL ORDER BY rowid",
     )?;
     let rows = statement
-        .query_map([sql_table], |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)))?
+        .query_map([sql_table], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+        })?
         .collect::<Result<Vec<_>, _>>()?;
     Ok(rows)
 }
@@ -135,7 +142,11 @@ pub fn sync_indexes(conn: &Connection, tables: &[&TableDef]) -> AppResult<()> {
 }
 
 /// The index sync, collecting its log lines into `lines`.
-pub fn sync_indexes_into(conn: &Connection, tables: &[&TableDef], lines: &mut Vec<String>) -> AppResult<()> {
+pub fn sync_indexes_into(
+    conn: &Connection,
+    tables: &[&TableDef],
+    lines: &mut Vec<String>,
+) -> AppResult<()> {
     lines.push("Syncing SQLite indexes...".into());
     for table in tables {
         if let Some(line) = sync_table_indexes(conn, table)? {
@@ -160,11 +171,18 @@ fn sync_table_indexes(conn: &Connection, table: &TableDef) -> AppResult<Option<S
             existing.push((name, sql));
         }
     }
-    let display = |sql_name: &str| sql_name.strip_prefix(&prefix).unwrap_or(sql_name).to_string();
+    let display = |sql_name: &str| {
+        sql_name
+            .strip_prefix(&prefix)
+            .unwrap_or(sql_name)
+            .to_string()
+    };
 
     let mut dropped = Vec::new();
     for (name, sql) in &existing {
-        let matches = desired.iter().any(|index| &index.sql_name == name && &index.create_sql == sql);
+        let matches = desired
+            .iter()
+            .any(|index| &index.sql_name == name && &index.create_sql == sql);
         if !matches {
             conn.execute_batch(&format!("DROP INDEX \"{name}\""))?;
             dropped.push(display(name));
@@ -195,14 +213,21 @@ fn sync_table_indexes(conn: &Connection, table: &TableDef) -> AppResult<Option<S
 fn existing_indexes_for(conn: &Connection, sql_tables: &[String]) -> AppResult<Vec<String>> {
     let mut names = Vec::new();
     for sql_table in sql_tables {
-        names.extend(existing_indexes(conn, sql_table)?.into_iter().map(|(name, _)| name));
+        names.extend(
+            existing_indexes(conn, sql_table)?
+                .into_iter()
+                .map(|(name, _)| name),
+        );
     }
     Ok(names)
 }
 
 /// Every index name declared on `table` (`table.indexes().map(i => i.name)`).
 pub fn declared_index_names(table: &TableDef) -> Vec<String> {
-    table.compiled_indexes().map(|indexes| indexes.into_iter().map(|i| i.name).collect()).unwrap_or_default()
+    table
+        .compiled_indexes()
+        .map(|indexes| indexes.into_iter().map(|i| i.name).collect())
+        .unwrap_or_default()
 }
 
 /// The non-automatic index names currently on a table and its child tables.
@@ -233,10 +258,17 @@ mod tests;
 pub fn run_startup_schema_quiet(conn: &Connection) -> AppResult<()> {
     let current: i64 = conn.query_row("PRAGMA user_version", [], |row| row.get(0))?;
     if current < MIGRATIONS.last().map(|m| m.0).unwrap_or(0) {
-        for (_, _, sql) in MIGRATIONS.iter().filter(|(version, _, _)| *version > current) {
+        for (_, _, sql) in MIGRATIONS
+            .iter()
+            .filter(|(version, _, _)| *version > current)
+        {
             conn.execute_batch(sql)?;
         }
-        conn.pragma_update(None, "user_version", MIGRATIONS.last().map(|m| m.0).unwrap_or(0))?;
+        conn.pragma_update(
+            None,
+            "user_version",
+            MIGRATIONS.last().map(|m| m.0).unwrap_or(0),
+        )?;
     }
     sync_indexes_into(conn, &crate::tables::all_tables(), &mut Vec::new())
 }

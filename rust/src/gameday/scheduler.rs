@@ -9,8 +9,6 @@ use crate::app::AppState;
 
 /// `startGamedayImportScheduler()`. Not implemented yet: does nothing.
 pub fn start_gameday_import_scheduler(state: &AppState) {
-    if state.config.gameday_import_scheduler_disabled {
-        return;
-    }
+    if state.config.gameday_import_scheduler_disabled {}
     // TODO(port domain): port the scheduler loop from gameday/scheduler.ts.
 }

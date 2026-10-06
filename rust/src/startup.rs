@@ -25,10 +25,16 @@ pub struct TaskError {
 
 impl TaskError {
     pub fn named(name: &str, message: &str) -> Self {
-        TaskError { name: Some(name.into()), message: message.into() }
+        TaskError {
+            name: Some(name.into()),
+            message: message.into(),
+        }
     }
     pub fn plain(message: &str) -> Self {
-        TaskError { name: None, message: message.into() }
+        TaskError {
+            name: None,
+            message: message.into(),
+        }
     }
 }
 
@@ -61,7 +67,10 @@ impl StartupTask {
         F: Fn() -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), TaskError>> + Send + 'static,
     {
-        StartupTask { name: name.into(), run: Box::new(move || Box::pin(run())) }
+        StartupTask {
+            name: name.into(),
+            run: Box::new(move || Box::pin(run())),
+        }
     }
 }
 
@@ -72,12 +81,18 @@ pub fn startup_tasks(db: &Db) -> Vec<StartupTask> {
     vec![
         StartupTask::new("SQLite schema sync", move || {
             let db = schema_db.clone();
-            async move { db.call(crate::db::migrations::run_startup_schema).await.map_err(TaskError::from) }
+            async move {
+                db.call(crate::db::migrations::run_startup_schema)
+                    .await
+                    .map_err(TaskError::from)
+            }
         }),
         StartupTask::new("User gender matching backfill", move || {
             let db = backfill_db.clone();
             async move {
-                crate::migrations::user_gender_matching::run_user_gender_matching_migration(&db).await.map_err(TaskError::from)
+                crate::migrations::user_gender_matching::run_user_gender_matching_migration(&db)
+                    .await
+                    .map_err(TaskError::from)
             }
         }),
         // runStartupSchemaAudit is available in db::audit but, as in TS, not run by default
@@ -85,7 +100,10 @@ pub fn startup_tasks(db: &Db) -> Vec<StartupTask> {
 }
 
 /// `runStartupTasks()`.
-pub async fn run_startup_tasks(tasks: &[StartupTask], is_production: bool) -> Result<(), TaskError> {
+pub async fn run_startup_tasks(
+    tasks: &[StartupTask],
+    is_production: bool,
+) -> Result<(), TaskError> {
     for task in tasks {
         run_startup_task(task, is_production).await?;
     }
@@ -103,7 +121,10 @@ async fn run_startup_task(task: &StartupTask, is_production: bool) -> Result<(),
         match (task.run)().await {
             Ok(()) => {
                 if attempt > 1 {
-                    log::log(format!("Startup task \"{}\" succeeded after {attempt} attempts.", task.name));
+                    log::log(format!(
+                        "Startup task \"{}\" succeeded after {attempt} attempts.",
+                        task.name
+                    ));
                 }
                 return Ok(());
             }
@@ -135,7 +156,11 @@ mod tests {
     type Script = Arc<Mutex<Vec<Result<(), TaskError>>>>;
 
     /// A task that plays back `script` (then succeeds) and counts its runs.
-    fn scripted(name: &str, script: Vec<Result<(), TaskError>>, order: Arc<Mutex<Vec<String>>>) -> (StartupTask, Arc<AtomicUsize>) {
+    fn scripted(
+        name: &str,
+        script: Vec<Result<(), TaskError>>,
+        order: Arc<Mutex<Vec<String>>>,
+    ) -> (StartupTask, Arc<AtomicUsize>) {
         let calls = Arc::new(AtomicUsize::new(0));
         let script: Script = Arc::new(Mutex::new(script.into_iter().rev().collect()));
         let counter = calls.clone();
@@ -178,7 +203,10 @@ mod tests {
             let failure = TaskError::named("Error", "db down");
             let (index, index_calls) = always_failing("index", failure.clone());
             let (migration, migration_calls) = scripted("migration", vec![], order);
-            assert_eq!(run_startup_tasks(&[index, migration], false).await, Err(failure));
+            assert_eq!(
+                run_startup_tasks(&[index, migration], false).await,
+                Err(failure)
+            );
             assert_eq!(index_calls.load(Ordering::SeqCst), 1);
             assert_eq!(migration_calls.load(Ordering::SeqCst), 0);
         }
@@ -208,9 +236,9 @@ mod tests {
                     "Startup task \"Retry index sync\" failed on attempt 3. Retrying in 4000ms. Error: third",
                 ]
             );
-            assert!(capture
-                .lines(log::Level::Log)
-                .contains(&"Startup task \"Retry index sync\" succeeded after 4 attempts.".to_string()));
+            assert!(capture.lines(log::Level::Log).contains(
+                &"Startup task \"Retry index sync\" succeeded after 4 attempts.".to_string()
+            ));
         }
 
         #[tokio::test(start_paused = true)]
@@ -220,12 +248,18 @@ mod tests {
             let (index, index_calls) = scripted("Budget index sync", vec![], order);
             let failure = TaskError::named("Error", "still down");
             let (migration, _) = always_failing("Budget migration", failure.clone());
-            assert_eq!(run_startup_tasks(&[index, migration], true).await, Err(failure));
+            assert_eq!(
+                run_startup_tasks(&[index, migration], true).await,
+                Err(failure)
+            );
             let delays: Vec<u64> = capture
                 .matching(log::Level::Warn, "\"Budget migration\"")
                 .iter()
                 .filter_map(|line| {
-                    line.split("Retrying in ").nth(1).and_then(|rest| rest.split("ms").next()).and_then(|n| n.parse().ok())
+                    line.split("Retrying in ")
+                        .nth(1)
+                        .and_then(|rest| rest.split("ms").next())
+                        .and_then(|n| n.parse().ok())
                 })
                 .collect();
             assert_eq!(delays[..6], [1000, 2000, 4000, 8000, 10000, 10000]);

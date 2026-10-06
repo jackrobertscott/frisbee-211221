@@ -2,9 +2,9 @@
 
 use super::{default_false, default_id, default_now};
 use crate::columns;
-use crate::db::schema::{Collation, Direction::*, IndexDef, TableDef};
 use crate::db::Record;
-use crate::shared::schemas::{io_season, Season, SeasonFinalResult, SeasonGenderDivision};
+use crate::db::schema::{Collation, Direction::*, IndexDef, TableDef};
+use crate::shared::schemas::{Season, SeasonFinalResult, SeasonGenderDivision, io_season};
 
 columns!(Season {
     ID: String = "id" / "id" (Text),

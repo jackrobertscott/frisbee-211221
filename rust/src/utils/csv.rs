@@ -61,14 +61,20 @@ pub fn parse_csv_string(csv: &str) -> Vec<IndexMap<String, String>> {
         .iter()
         .map(|token| {
             let trimmed = crate::js::trim(token);
-            trimmed.strip_prefix('\u{FEFF}').unwrap_or(trimmed).to_string()
+            trimmed
+                .strip_prefix('\u{FEFF}')
+                .unwrap_or(trimmed)
+                .to_string()
         })
         .collect();
     body.iter()
         .map(|tokens| {
             let mut all = IndexMap::new();
             for (index, key) in cols.iter().enumerate() {
-                let value = tokens.get(index).map(|t| crate::js::trim(t).to_string()).unwrap_or_default();
+                let value = tokens
+                    .get(index)
+                    .map(|t| crate::js::trim(t).to_string())
+                    .unwrap_or_default();
                 all.insert(key.clone(), value);
             }
             all
@@ -93,7 +99,11 @@ pub fn csv_escape_value(value: Option<&Value>) -> String {
         Some(Value::String(s)) => s.clone(),
         Some(Value::Bool(b)) => b.to_string(),
         Some(Value::Number(n)) => crate::js::number_to_string(n.as_f64().unwrap_or(f64::NAN)),
-        Some(Value::Array(items)) => items.iter().map(|item| csv_escape_value(Some(item))).collect::<Vec<_>>().join(","),
+        Some(Value::Array(items)) => items
+            .iter()
+            .map(|item| csv_escape_value(Some(item)))
+            .collect::<Vec<_>>()
+            .join(","),
         Some(Value::Object(_)) => "[object Object]".into(),
     };
     csv_escape(&text)
@@ -108,7 +118,11 @@ pub fn replace_csv_header(csv: &[u8], headers: &[&str]) -> Vec<u8> {
         None => ("", text.as_ref()),
     };
     let end = find_first_csv_record_end(body);
-    let header = headers.iter().map(|h| csv_escape(h)).collect::<Vec<_>>().join(",");
+    let header = headers
+        .iter()
+        .map(|h| csv_escape(h))
+        .collect::<Vec<_>>()
+        .join(",");
     format!("{bom}{header}{}", &body[end..]).into_bytes()
 }
 
@@ -141,13 +155,20 @@ mod tests {
     use serde_json::json;
 
     fn rows(value: &[&[&str]]) -> Vec<Vec<String>> {
-        value.iter().map(|row| row.iter().map(|s| s.to_string()).collect()).collect()
+        value
+            .iter()
+            .map(|row| row.iter().map(|s| s.to_string()).collect())
+            .collect()
     }
 
     fn records(value: &[&[(&str, &str)]]) -> Vec<IndexMap<String, String>> {
         value
             .iter()
-            .map(|row| row.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect())
+            .map(|row| {
+                row.iter()
+                    .map(|(k, v)| (k.to_string(), v.to_string()))
+                    .collect()
+            })
             .collect()
     }
 
@@ -156,7 +177,10 @@ mod tests {
 
         #[test]
         fn splits_rows_and_columns() {
-            assert_eq!(parse_csv_rows("a,b\n1,2"), rows(&[&["a", "b"], &["1", "2"]]));
+            assert_eq!(
+                parse_csv_rows("a,b\n1,2"),
+                rows(&[&["a", "b"], &["1", "2"]])
+            );
         }
 
         #[test]
@@ -176,7 +200,10 @@ mod tests {
 
         #[test]
         fn handles_crlf_and_lone_cr_line_endings() {
-            assert_eq!(parse_csv_rows("a,b\r\n1,2\r\n"), rows(&[&["a", "b"], &["1", "2"]]));
+            assert_eq!(
+                parse_csv_rows("a,b\r\n1,2\r\n"),
+                rows(&[&["a", "b"], &["1", "2"]])
+            );
             assert_eq!(parse_csv_rows("a\rb"), rows(&[&["a"], &["b"]]));
         }
 
@@ -185,7 +212,10 @@ mod tests {
             assert_eq!(parse_csv_rows("a,\"b,c\""), rows(&[&["a", "b,c"]]));
             assert_eq!(parse_csv_rows("\"x\ny\",z\n"), rows(&[&["x\ny", "z"]]));
             assert_eq!(parse_csv_rows("\"x\r\ny\""), rows(&[&["x\r\ny"]]));
-            assert_eq!(parse_csv_rows("\"he said \"\"hi\"\"\""), rows(&[&["he said \"hi\""]]));
+            assert_eq!(
+                parse_csv_rows("\"he said \"\"hi\"\"\""),
+                rows(&[&["he said \"hi\""]])
+            );
             assert_eq!(parse_csv_rows("\"\""), rows(&[]));
             assert_eq!(parse_csv_rows("\"\",a"), rows(&[&["", "a"]]));
         }
@@ -199,7 +229,10 @@ mod tests {
         fn keeps_a_trailing_empty_column_after_a_trailing_comma() {
             assert_eq!(parse_csv_rows("a,"), rows(&[&["a", ""]]));
             assert_eq!(parse_csv_rows(","), rows(&[&["", ""]]));
-            assert_eq!(parse_csv_rows("a,b,\n1,2,"), rows(&[&["a", "b", ""], &["1", "2", ""]]));
+            assert_eq!(
+                parse_csv_rows("a,b,\n1,2,"),
+                rows(&[&["a", "b", ""], &["1", "2", ""]])
+            );
         }
 
         #[test]
@@ -215,13 +248,19 @@ mod tests {
         fn maps_rows_to_header_keys_trimming_keys_and_values() {
             assert_eq!(
                 parse_csv_string(" name , age \nJack, 30 \nJill,25"),
-                records(&[&[("name", "Jack"), ("age", "30")], &[("name", "Jill"), ("age", "25")]])
+                records(&[
+                    &[("name", "Jack"), ("age", "30")],
+                    &[("name", "Jill"), ("age", "25")]
+                ])
             );
         }
 
         #[test]
         fn strips_a_bom_from_the_header() {
-            assert_eq!(parse_csv_string("\u{FEFF}name\nJack"), records(&[&[("name", "Jack")]]));
+            assert_eq!(
+                parse_csv_string("\u{FEFF}name\nJack"),
+                records(&[&[("name", "Jack")]])
+            );
         }
 
         #[test]
@@ -276,7 +315,11 @@ mod tests {
         #[test]
         fn round_trips_through_parse_csv_rows() {
             let values = ["a", "b,c", "d\"e", "f\ng"];
-            let line = values.iter().map(|v| csv_escape(v)).collect::<Vec<_>>().join(",");
+            let line = values
+                .iter()
+                .map(|v| csv_escape(v))
+                .collect::<Vec<_>>()
+                .join(",");
             assert_eq!(parse_csv_rows(&line), rows(&[&values]));
         }
     }
@@ -290,7 +333,10 @@ mod tests {
 
         #[test]
         fn replaces_the_first_record_and_escapes_new_headers() {
-            assert_eq!(replace("old1,old2\n1,2\n", &["A", "B,C"]), "A,\"B,C\"\n1,2\n");
+            assert_eq!(
+                replace("old1,old2\n1,2\n", &["A", "B,C"]),
+                "A,\"B,C\"\n1,2\n"
+            );
         }
 
         #[test]

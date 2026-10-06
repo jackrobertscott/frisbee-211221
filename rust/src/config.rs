@@ -51,7 +51,11 @@ impl Config {
     /// Loads `.env` (or `.env.production` when `NODE_ENV=production`) without
     /// overriding variables already set, then validates the process environment.
     pub fn load() -> Result<Config, String> {
-        let file = if std::env::var("NODE_ENV").as_deref() == Ok("production") { ".env.production" } else { ".env" };
+        let file = if std::env::var("NODE_ENV").as_deref() == Ok("production") {
+            ".env.production"
+        } else {
+            ".env"
+        };
         for dir in env_dirs() {
             let path = dir.join(file);
             if path.is_file() {
@@ -59,8 +63,14 @@ impl Config {
                 break;
             }
         }
-        let vars: HashMap<String, String> =
-            ENV_KEYS.iter().filter_map(|key| std::env::var(key).ok().map(|value| (key.to_string(), value))).collect();
+        let vars: HashMap<String, String> = ENV_KEYS
+            .iter()
+            .filter_map(|key| {
+                std::env::var(key)
+                    .ok()
+                    .map(|value| (key.to_string(), value))
+            })
+            .collect();
         Config::from_vars(&vars)
     }
 
@@ -77,7 +87,10 @@ impl Config {
             ("SES_FROM_EMAIL", io::string().emptyok().trim()),
             ("IS_PRODUCTION", io::boolean()),
             ("PORT", io::number().coerce().integer().positive()),
-            ("SESSION_TTL_DAYS", io::number().coerce().integer().positive()),
+            (
+                "SESSION_TTL_DAYS",
+                io::number().coerce().integer().positive(),
+            ),
         ]);
         let mut raw = Map::new();
         for key in [
@@ -96,17 +109,33 @@ impl Config {
             }
         }
         // Dockerfile injects NODE_ENV=production
-        raw.insert("IS_PRODUCTION".into(), Value::Bool(vars.get("NODE_ENV").map(String::as_str) == Some("production")));
+        raw.insert(
+            "IS_PRODUCTION".into(),
+            Value::Bool(vars.get("NODE_ENV").map(String::as_str) == Some("production")),
+        );
         raw.insert(
             "SESSION_TTL_DAYS".into(),
-            vars.get("SESSION_TTL_DAYS").map(|v| Value::String(v.clone())).unwrap_or_else(|| Value::from(90)),
+            vars.get("SESSION_TTL_DAYS")
+                .map(|v| Value::String(v.clone()))
+                .unwrap_or_else(|| Value::from(90)),
         );
-        let value = schema.validate(&Value::Object(raw)).map_err(|error| format!("Invalid server environment: {error}"))?;
-        let text = |key: &str| value.get(key).and_then(Value::as_str).unwrap_or_default().to_string();
+        let value = schema
+            .validate(&Value::Object(raw))
+            .map_err(|error| format!("Invalid server environment: {error}"))?;
+        let text = |key: &str| {
+            value
+                .get(key)
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+                .to_string()
+        };
         let number = |key: &str| value.get(key).and_then(Value::as_f64).unwrap_or(0.0);
         let port = number("PORT");
         if port > f64::from(u16::MAX) {
-            return Err(format!("Invalid server environment: [PORT]: Value must be less than or equal to {}.", u16::MAX));
+            return Err(format!(
+                "Invalid server environment: [PORT]: Value must be less than or equal to {}.",
+                u16::MAX
+            ));
         }
         Ok(Config {
             app_name: text("APP_NAME"),
@@ -121,10 +150,16 @@ impl Config {
                 .map(str::to_string)
                 .or_else(|| vars.get("AWS_REGION").cloned()),
             ses_from_email: text("SES_FROM_EMAIL"),
-            is_production: value.get("IS_PRODUCTION").and_then(Value::as_bool).unwrap_or(false),
+            is_production: value
+                .get("IS_PRODUCTION")
+                .and_then(Value::as_bool)
+                .unwrap_or(false),
             port: port as u16,
             session_ttl_days: number("SESSION_TTL_DAYS") as i64,
-            gameday_import_scheduler_disabled: is_truthy_flag(vars.get("GAMEDAY_IMPORT_SCHEDULER_DISABLED").map(String::as_str)),
+            gameday_import_scheduler_disabled: is_truthy_flag(
+                vars.get("GAMEDAY_IMPORT_SCHEDULER_DISABLED")
+                    .map(String::as_str),
+            ),
         })
     }
 
@@ -151,7 +186,12 @@ impl Config {
 /// How `gameday/scheduler.ts` reads `GAMEDAY_IMPORT_SCHEDULER_DISABLED`:
 /// `1`, `true`, `yes` or `on` (any case, trimmed) disable the scheduler.
 pub fn is_truthy_flag(value: Option<&str>) -> bool {
-    value.is_some_and(|v| matches!(crate::js::trim(v).to_lowercase().as_str(), "1" | "true" | "yes" | "on"))
+    value.is_some_and(|v| {
+        matches!(
+            crate::js::trim(v).to_lowercase().as_str(),
+            "1" | "true" | "yes" | "on"
+        )
+    })
 }
 
 fn env_dirs() -> Vec<PathBuf> {
@@ -171,7 +211,10 @@ mod tests {
     use super::*;
 
     fn vars(pairs: &[(&str, &str)]) -> HashMap<String, String> {
-        pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect()
     }
 
     fn base() -> Vec<(&'static str, &'static str)> {
@@ -207,7 +250,10 @@ mod tests {
         );
         let mut pairs = base();
         pairs.push(("PORT", "0"));
-        let pairs: Vec<_> = pairs.into_iter().filter(|(k, v)| *k != "PORT" || *v == "0").collect();
+        let pairs: Vec<_> = pairs
+            .into_iter()
+            .filter(|(k, v)| *k != "PORT" || *v == "0")
+            .collect();
         assert_eq!(
             Config::from_vars(&vars(&pairs)).unwrap_err(),
             "Invalid server environment: [PORT]: Value must be greater than or equal to 1."

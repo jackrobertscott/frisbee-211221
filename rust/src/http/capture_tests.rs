@@ -3,8 +3,8 @@
 
 use super::*;
 use crate::shared::errors::{bad_request_error, not_found_error};
-use axum::extract::Request;
 use axum::Router;
+use axum::extract::Request;
 use serde_json::json;
 use std::sync::Arc;
 
@@ -16,7 +16,10 @@ async fn serve(handler: Handler, is_production: bool) -> String {
         let handler = handler.clone();
         let tarpit = tarpit.clone();
         async move {
-            let req = RequestInfo { method: request.method().to_string(), url: request.uri().to_string() };
+            let req = RequestInfo {
+                method: request.method().to_string(),
+                url: request.uri().to_string(),
+            };
             handle(handler(), &req, is_production, &tarpit)
         }
     });
@@ -46,7 +49,10 @@ mod capture_handle {
         let capture = log::capture();
         let url = serve(Arc::new(|| Ok(Reply::Json(json!({"ok": true})))), false).await;
         let (_, text) = get(&url, "/pass-object").await;
-        assert_eq!(serde_json::from_str::<Value>(&text).unwrap(), json!({"ok": true}));
+        assert_eq!(
+            serde_json::from_str::<Value>(&text).unwrap(),
+            json!({"ok": true})
+        );
         let url = serve(Arc::new(|| Ok(Reply::Json(json!([1, 2])))), false).await;
         let (_, text) = get(&url, "/pass-array").await;
         assert_eq!(serde_json::from_str::<Value>(&text).unwrap(), json!([1, 2]));
@@ -88,13 +94,25 @@ mod capture_handle {
         assert_eq!(body["message"], "Bad   thing\n happened");
         assert_eq!(body["details"], json!({"field": "x"}));
         assert_eq!(body["url"], "/bad");
-        assert_eq!(error_lines(&capture, "/bad")[0], "[error] | 400 | Bad Request | GET | /bad | Bad thing happened");
+        assert_eq!(
+            error_lines(&capture, "/bad")[0],
+            "[error] | 400 | Bad Request | GET | /bad | Bad thing happened"
+        );
     }
 
     #[tokio::test]
     async fn does_not_log_not_found_errors() {
         let capture = log::capture();
-        let url = serve(Arc::new(|| Err(not_found_error("Missing.", ErrorOptions::code("thing.missing")))), false).await;
+        let url = serve(
+            Arc::new(|| {
+                Err(not_found_error(
+                    "Missing.",
+                    ErrorOptions::code("thing.missing"),
+                ))
+            }),
+            false,
+        )
+        .await;
         let (status, _) = get(&url, "/not-found-quiet").await;
         assert_eq!(status, 404);
         assert!(error_lines(&capture, "/not-found-quiet").is_empty());
@@ -137,7 +155,10 @@ mod capture_handle {
         let (status, text) = get(&url, "/wp-admin").await;
         assert_eq!(status, 418);
         assert_eq!(text, " Go away.");
-        assert_eq!(error_lines(&capture, "/wp-admin")[0], "[error] | 400 | Bad Request | GET | /wp-admin | Suspicious.");
+        assert_eq!(
+            error_lines(&capture, "/wp-admin")[0],
+            "[error] | 400 | Bad Request | GET | /wp-admin | Suspicious."
+        );
     }
 
     #[tokio::test]
@@ -164,14 +185,20 @@ mod capture_handle {
     async fn ignores_an_incomplete_tarpit_plan() {
         let url = serve(
             Arc::new(|| {
-                Err(bad_request_error("Half plan.", ErrorOptions::default().with_tarpit(json!({"body": "x", "holdMs": 5}))))
+                Err(bad_request_error(
+                    "Half plan.",
+                    ErrorOptions::default().with_tarpit(json!({"body": "x", "holdMs": 5})),
+                ))
             }),
             false,
         )
         .await;
         let (status, text) = get(&url, "/half-plan").await;
         assert_eq!(status, 400);
-        assert_eq!(serde_json::from_str::<Value>(&text).unwrap()["message"], "Half plan.");
+        assert_eq!(
+            serde_json::from_str::<Value>(&text).unwrap()["message"],
+            "Half plan."
+        );
     }
 }
 
@@ -180,14 +207,33 @@ mod capture_format_log_line {
 
     #[test]
     fn falls_back_to_placeholders_without_a_request() {
-        let pretty = PrettyLine { status_code: 500, status: String::new(), message: "  ".into(), url: None };
-        assert_eq!(format_log_line(&pretty, None), "[error] | 500 | Unknown | UNKNOWN | /");
+        let pretty = PrettyLine {
+            status_code: 500,
+            status: String::new(),
+            message: "  ".into(),
+            url: None,
+        };
+        assert_eq!(
+            format_log_line(&pretty, None),
+            "[error] | 500 | Unknown | UNKNOWN | /"
+        );
     }
 
     #[test]
     fn uses_the_request_method_and_url_when_the_error_has_no_url() {
-        let req = RequestInfo { method: "POST".into(), url: "/from-request".into() };
-        let pretty = PrettyLine { status_code: 409, status: "Conflict".into(), message: "Taken".into(), url: None };
-        assert_eq!(format_log_line(&pretty, Some(&req)), "[error] | 409 | Conflict | POST | /from-request | Taken");
+        let req = RequestInfo {
+            method: "POST".into(),
+            url: "/from-request".into(),
+        };
+        let pretty = PrettyLine {
+            status_code: 409,
+            status: "Conflict".into(),
+            message: "Taken".into(),
+            url: None,
+        };
+        assert_eq!(
+            format_log_line(&pretty, Some(&req)),
+            "[error] | 409 | Conflict | POST | /from-request | Taken"
+        );
     }
 }

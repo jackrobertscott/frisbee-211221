@@ -7,10 +7,10 @@
 
 use crate::db::{Db, Patch};
 use crate::js;
-use crate::shared::errors::{too_many_requests_error, AppError, AppResult, ErrorOptions};
+use crate::shared::errors::{AppError, AppResult, ErrorOptions, too_many_requests_error};
 use crate::shared::schemas::{AttemptKind, AttemptScope, AuthAttemptLimit};
 use crate::tables::AUTH_ATTEMPT_LIMIT;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use std::sync::atomic::{AtomicI64, Ordering};
 
 const WINDOW_MS: i64 = 15 * 60 * 1000;
@@ -83,8 +83,18 @@ fn get_states(kind: AttemptKind, email: &str, ip: &str) -> [State; 2] {
 
 /// The attempt pipeline: reset an expired window, add the attempt unless
 /// already blocked, then start a block once the scope's limit is reached.
-fn next_record(state: &State, before: Option<&Map<String, Value>>, max_attempts: i64, now: i64) -> Map<String, Value> {
-    let number = |key: &str| before.and_then(|b| b.get(key)).and_then(Value::as_f64).map(|v| v as i64);
+fn next_record(
+    state: &State,
+    before: Option<&Map<String, Value>>,
+    max_attempts: i64,
+    now: i64,
+) -> Map<String, Value> {
+    let number = |key: &str| {
+        before
+            .and_then(|b| b.get(key))
+            .and_then(Value::as_f64)
+            .map(|v| v as i64)
+    };
     let now_iso = js::date::to_iso_string(now);
     let mut attempts = number("attempts").unwrap_or(0);
     let mut blocked_until = number("blockedUntil").unwrap_or(0);
@@ -121,7 +131,13 @@ fn next_record(state: &State, before: Option<&Map<String, Value>>, max_attempts:
 }
 
 /// Records an attempt and reports whether any scope was already blocked.
-async fn record_attempt(db: &Db, kind: AttemptKind, email: &str, ip: &str, now: i64) -> AppResult<bool> {
+async fn record_attempt(
+    db: &Db,
+    kind: AttemptKind,
+    email: &str,
+    ip: &str,
+    now: i64,
+) -> AppResult<bool> {
     let config = limit(kind);
     let mut blocked = false;
     for state in get_states(kind, email, ip) {
@@ -161,7 +177,9 @@ async fn prune(db: &Db, now: i64) -> AppResult<()> {
     AUTH_ATTEMPT_LIMIT
         .delete_many(
             db,
-            AuthAttemptLimit::BLOCKED_UNTIL.lte(now).and_also(AuthAttemptLimit::LAST_SEEN_AT.lt(cutoff)),
+            AuthAttemptLimit::BLOCKED_UNTIL
+                .lte(now)
+                .and_also(AuthAttemptLimit::LAST_SEEN_AT.lt(cutoff)),
         )
         .await?;
     Ok(())
@@ -174,7 +192,10 @@ async fn prune_maybe(db: &Db, now: i64) -> AppResult<()> {
     if now - last < STATE_RETENTION_MS {
         return Ok(());
     }
-    if LAST_PRUNED_AT.compare_exchange(last, now, Ordering::SeqCst, Ordering::SeqCst).is_err() {
+    if LAST_PRUNED_AT
+        .compare_exchange(last, now, Ordering::SeqCst, Ordering::SeqCst)
+        .is_err()
+    {
         return Ok(());
     }
     prune(db, now).await
@@ -200,8 +221,13 @@ pub async fn consume(db: &Db, kind: AttemptKind, email: &str, ip: &str) -> AppRe
 
 /// `authAttemptLimit.reset(kind, email, ip)` (login and verify only).
 pub async fn reset(db: &Db, kind: AttemptKind, email: &str, ip: &str) -> AppResult<()> {
-    let ids: Vec<String> = get_states(kind, email, ip).iter().map(|state| state.id.clone()).collect();
-    AUTH_ATTEMPT_LIMIT.delete_many(db, AuthAttemptLimit::ID.is_in(ids)).await?;
+    let ids: Vec<String> = get_states(kind, email, ip)
+        .iter()
+        .map(|state| state.id.clone())
+        .collect();
+    AUTH_ATTEMPT_LIMIT
+        .delete_many(db, AuthAttemptLimit::ID.is_in(ids))
+        .await?;
     Ok(())
 }
 
@@ -222,16 +248,37 @@ mod tests {
         let (_dir, db) = db();
         // the client scope allows 5 failed logins; the 6th attempt is refused
         for _ in 0..5 {
-            consume(&db, AttemptKind::Login, "a@example.com", "1.1.1.1").await.unwrap();
+            consume(&db, AttemptKind::Login, "a@example.com", "1.1.1.1")
+                .await
+                .unwrap();
         }
-        let error = consume(&db, AttemptKind::Login, " A@example.com ", "1.1.1.1").await.unwrap_err();
-        assert_eq!((error.status_code, error.error_code.as_str()), (429, "auth.login_rate_limited"));
+        let error = consume(&db, AttemptKind::Login, " A@example.com ", "1.1.1.1")
+            .await
+            .unwrap_err();
+        assert_eq!(
+            (error.status_code, error.error_code.as_str()),
+            (429, "auth.login_rate_limited")
+        );
         // another client still has its own allowance, but the account counts every attempt
-        consume(&db, AttemptKind::Login, "a@example.com", "2.2.2.2").await.unwrap();
-        reset(&db, AttemptKind::Login, "a@example.com", "1.1.1.1").await.unwrap();
-        consume(&db, AttemptKind::Login, "a@example.com", "1.1.1.1").await.unwrap();
-        let stored = AUTH_ATTEMPT_LIMIT.get_many(&db, crate::db::Filter::all(), crate::db::Query::new()).await.unwrap();
-        assert!(stored.iter().any(|s| s.id == "login:client:2.2.2.2:a@example.com" && s.ip.as_deref() == Some("2.2.2.2")));
+        consume(&db, AttemptKind::Login, "a@example.com", "2.2.2.2")
+            .await
+            .unwrap();
+        reset(&db, AttemptKind::Login, "a@example.com", "1.1.1.1")
+            .await
+            .unwrap();
+        consume(&db, AttemptKind::Login, "a@example.com", "1.1.1.1")
+            .await
+            .unwrap();
+        let stored = AUTH_ATTEMPT_LIMIT
+            .get_many(&db, crate::db::Filter::all(), crate::db::Query::new())
+            .await
+            .unwrap();
+        assert!(
+            stored
+                .iter()
+                .any(|s| s.id == "login:client:2.2.2.2:a@example.com"
+                    && s.ip.as_deref() == Some("2.2.2.2"))
+        );
         assert!(stored.iter().all(|s| s.email == "a@example.com"));
     }
 
@@ -239,9 +286,13 @@ mod tests {
     async fn delivery_limits_the_account_to_three_codes() {
         let (_dir, db) = db();
         for ip in ["1.1.1.1", "2.2.2.2", "3.3.3.3"] {
-            consume(&db, AttemptKind::Delivery, "d@example.com", ip).await.unwrap();
+            consume(&db, AttemptKind::Delivery, "d@example.com", ip)
+                .await
+                .unwrap();
         }
-        let error = consume(&db, AttemptKind::Delivery, "d@example.com", "4.4.4.4").await.unwrap_err();
+        let error = consume(&db, AttemptKind::Delivery, "d@example.com", "4.4.4.4")
+            .await
+            .unwrap_err();
         assert_eq!(error.error_code, "user.code_delivery_rate_limited");
     }
 
@@ -250,9 +301,15 @@ mod tests {
         let state = get_states(AttemptKind::Verify, "x@example.com", "")[1].clone();
         assert_eq!(state.id, "verify:client:unknown:x@example.com");
         let first = next_record(&state, None, 5, 1_000);
-        assert_eq!((first["attempts"].clone(), first["windowStartedAt"].clone()), (json!(1), json!(1_000)));
+        assert_eq!(
+            (first["attempts"].clone(), first["windowStartedAt"].clone()),
+            (json!(1), json!(1_000))
+        );
         let later = next_record(&state, Some(&first), 5, 1_000 + WINDOW_MS);
-        assert_eq!((later["attempts"].clone(), later["windowStartedAt"].clone()), (json!(1), json!(1_000 + WINDOW_MS)));
+        assert_eq!(
+            (later["attempts"].clone(), later["windowStartedAt"].clone()),
+            (json!(1), json!(1_000 + WINDOW_MS))
+        );
         let mut blocked = first.clone();
         blocked.insert("blockedUntil".into(), json!(5_000));
         let during = next_record(&state, Some(&blocked), 5, 2_000);

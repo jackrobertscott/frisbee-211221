@@ -8,20 +8,22 @@
 
 use super::{default_id, default_now};
 use crate::columns;
-use crate::db::filter::ChildCol;
-use crate::db::schema::{ChildDef, Collation, ColumnDef, ColumnKind, Direction::*, IndexDef, TableDef};
 use crate::db::Record;
-use crate::shared::schemas::{io_user, GenderMatching, User, UserEmail};
+use crate::db::filter::ChildCol;
+use crate::db::schema::{
+    ChildDef, Collation, ColumnDef, ColumnKind, Direction::*, IndexDef, TableDef,
+};
+use crate::shared::schemas::{GenderMatching, User, UserEmail, io_user};
 
 /// `EMAIL_COLLATION`: case-insensitive email matching.
 pub const EMAIL_COLLATION: Collation = Collation::CaseInsensitive;
 
 columns!(UserEmail {
-    VALUE: String = "value" / "value" (Text),
-    VERIFIED: bool = "verified" / "verified" (Bool),
-    CODE: String = "code" / "code" (Text),
-    CREATED_ON: String = "createdOn" / "created_on" (Text),
-    PRIMARY: bool = "primary" / "is_primary" (Bool),
+    VALUE: String = "value" / "value"(Text),
+    VERIFIED: bool = "verified" / "verified"(Bool),
+    CODE: String = "code" / "code"(Text),
+    CREATED_ON: String = "createdOn" / "created_on"(Text),
+    PRIMARY: bool = "primary" / "is_primary"(Bool),
 });
 
 pub static EMAILS: ChildDef = ChildDef {
@@ -91,11 +93,19 @@ pub static TABLE: TableDef = TableDef {
         IndexDef::new(&[("emails.value", Asc)]).collation(EMAIL_COLLATION),
         IndexDef::new(&[("firstName", Asc), ("lastName", Asc)]),
         IndexDef::new(&[("lastName", Asc), ("firstName", Asc)]),
-        IndexDef::new(&[("genderMatching", Asc), ("lastName", Asc), ("firstName", Asc)]),
+        IndexDef::new(&[
+            ("genderMatching", Asc),
+            ("lastName", Asc),
+            ("firstName", Asc),
+        ]),
         IndexDef::new(&[("createdOn", Desc)]),
     ],
     schema: io_user,
-    defaults: &[("id", default_id), ("createdOn", default_now), ("updatedOn", default_now)],
+    defaults: &[
+        ("id", default_id),
+        ("createdOn", default_now),
+        ("updatedOn", default_now),
+    ],
 };
 
 impl Record for User {
@@ -114,7 +124,10 @@ pub mod legacy {
 
     /// How many times each user was picked in a male or female MVP slot:
     /// `user id -> (male picks, female picks)`.
-    pub fn mvp_slot_picks(conn: &Connection, user_ids: &[String]) -> AppResult<HashMap<String, (i64, i64)>> {
+    pub fn mvp_slot_picks(
+        conn: &Connection,
+        user_ids: &[String],
+    ) -> AppResult<HashMap<String, (i64, i64)>> {
         if user_ids.is_empty() {
             return Ok(HashMap::new());
         }
@@ -127,12 +140,18 @@ pub mod legacy {
                 UNION ALL SELECT "mvp_female2", 'female' FROM "report" WHERE "mvp_female2" IN (SELECT value FROM json_each(?1))
             ) GROUP BY user_id"#;
         let mut statement = conn.prepare(sql)?;
-        let rows = statement.query_map([ids], |row| Ok((row.get::<_, String>(0)?, (row.get(1)?, row.get(2)?))))?;
+        let rows = statement.query_map([ids], |row| {
+            Ok((row.get::<_, String>(0)?, (row.get(1)?, row.get(2)?)))
+        })?;
         Ok(rows.collect::<Result<HashMap<_, _>, _>>()?)
     }
 
     /// Sets `genderMatching` and removes the legacy `gender` field.
-    pub fn set_gender_matching_clearing_legacy(conn: &Connection, user_id: &str, gender_matching: GenderMatching) -> AppResult<()> {
+    pub fn set_gender_matching_clearing_legacy(
+        conn: &Connection,
+        user_id: &str,
+        gender_matching: GenderMatching,
+    ) -> AppResult<()> {
         conn.execute(
             r#"UPDATE "user" SET "gender_matching" = ?1, "gender" = NULL WHERE "id" = ?2"#,
             (gender_matching.as_str(), user_id),
@@ -143,7 +162,10 @@ pub mod legacy {
     /// Stores a user the way they looked before gender matching existed
     /// (`gender` set, `genderMatching` missing). For tests and imports.
     pub fn set_legacy_gender(conn: &Connection, user_id: &str, gender: &str) -> AppResult<()> {
-        conn.execute(r#"UPDATE "user" SET "gender" = ?1, "gender_matching" = NULL WHERE "id" = ?2"#, (gender, user_id))?;
+        conn.execute(
+            r#"UPDATE "user" SET "gender" = ?1, "gender_matching" = NULL WHERE "id" = ?2"#,
+            (gender, user_id),
+        )?;
         Ok(())
     }
 }

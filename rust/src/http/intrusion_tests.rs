@@ -20,7 +20,12 @@ fn fresh_ip() -> String {
 }
 
 fn clean(pathname: &str) -> InspectOptions<'_> {
-    InspectOptions { pathname, known_route: true, origin_allowed: true, origin: None }
+    InspectOptions {
+        pathname,
+        known_route: true,
+        origin_allowed: true,
+        origin: None,
+    }
 }
 
 fn tarpit_of(error: &AppError) -> Option<serde_json::Value> {
@@ -57,35 +62,65 @@ mod get_client_ip_tests {
 
     #[test]
     fn uses_the_socket_address_when_not_behind_a_trusted_proxy() {
-        assert_eq!(get_client_ip(&make_req(Some("8.8.8.8"), &["1.2.3.4"])), "8.8.8.8");
+        assert_eq!(
+            get_client_ip(&make_req(Some("8.8.8.8"), &["1.2.3.4"])),
+            "8.8.8.8"
+        );
         assert_eq!(get_client_ip(&make_req(Some(" 8.8.8.8 "), &[])), "8.8.8.8");
-        assert_eq!(get_client_ip(&make_req(Some("::ffff:8.8.8.8"), &[])), "8.8.8.8");
+        assert_eq!(
+            get_client_ip(&make_req(Some("::ffff:8.8.8.8"), &[])),
+            "8.8.8.8"
+        );
         assert_eq!(get_client_ip(&make_req(None, &["1.2.3.4"])), "unknown");
         assert_eq!(get_client_ip(&make_req(Some(""), &[])), "unknown");
     }
 
     #[test]
     fn walks_forwarded_hops_from_the_right_past_trusted_proxies() {
-        assert_eq!(get_client_ip(&make_req(Some("10.0.0.1"), &["spoofed, 1.2.3.4, 10.0.0.2"])), "1.2.3.4");
-        assert_eq!(get_client_ip(&make_req(Some("10.0.0.1"), &["1.2.3.4"])), "1.2.3.4");
-        assert_eq!(get_client_ip(&make_req(Some("::ffff:10.0.0.1"), &[" 5.6.7.8 , ,"])), "5.6.7.8");
-        assert_eq!(get_client_ip(&make_req(Some("10.0.0.1"), &["::ffff:1.2.3.4"])), "1.2.3.4");
+        assert_eq!(
+            get_client_ip(&make_req(Some("10.0.0.1"), &["spoofed, 1.2.3.4, 10.0.0.2"])),
+            "1.2.3.4"
+        );
+        assert_eq!(
+            get_client_ip(&make_req(Some("10.0.0.1"), &["1.2.3.4"])),
+            "1.2.3.4"
+        );
+        assert_eq!(
+            get_client_ip(&make_req(Some("::ffff:10.0.0.1"), &[" 5.6.7.8 , ,"])),
+            "5.6.7.8"
+        );
+        assert_eq!(
+            get_client_ip(&make_req(Some("10.0.0.1"), &["::ffff:1.2.3.4"])),
+            "1.2.3.4"
+        );
     }
 
     #[test]
     fn returns_the_leftmost_hop_when_every_hop_is_trusted() {
-        assert_eq!(get_client_ip(&make_req(Some("10.0.0.1"), &["192.168.1.5, 172.16.0.1"])), "192.168.1.5");
+        assert_eq!(
+            get_client_ip(&make_req(Some("10.0.0.1"), &["192.168.1.5, 172.16.0.1"])),
+            "192.168.1.5"
+        );
     }
 
     #[test]
     fn falls_back_to_the_proxy_address_without_a_forwarded_header() {
         assert_eq!(get_client_ip(&make_req(Some("10.0.0.1"), &[])), "10.0.0.1");
-        assert_eq!(get_client_ip(&make_req(Some("10.0.0.1"), &[""])), "10.0.0.1");
+        assert_eq!(
+            get_client_ip(&make_req(Some("10.0.0.1"), &[""])),
+            "10.0.0.1"
+        );
     }
 
     #[test]
     fn only_uses_the_first_forwarded_header_value() {
-        assert_eq!(get_client_ip(&make_req(Some("10.0.0.1"), &["1.1.1.1, 2.2.2.2", "3.3.3.3"])), "2.2.2.2");
+        assert_eq!(
+            get_client_ip(&make_req(
+                Some("10.0.0.1"),
+                &["1.1.1.1, 2.2.2.2", "3.3.3.3"]
+            )),
+            "2.2.2.2"
+        );
     }
 
     #[test]
@@ -103,7 +138,11 @@ mod get_client_ip_tests {
             "fd00::1",
             "fc00::1",
         ] {
-            assert_eq!(get_client_ip(&make_req(Some(proxy), &["9.9.9.9"])), "9.9.9.9", "{proxy}");
+            assert_eq!(
+                get_client_ip(&make_req(Some(proxy), &["9.9.9.9"])),
+                "9.9.9.9",
+                "{proxy}"
+            );
         }
         for proxy in [
             "100.63.0.1",
@@ -116,7 +155,11 @@ mod get_client_ip_tests {
             "10.0.0",
             "10.0.0.256",
         ] {
-            assert_eq!(get_client_ip(&make_req(Some(proxy), &["9.9.9.9"])), proxy, "{proxy}");
+            assert_eq!(
+                get_client_ip(&make_req(Some(proxy), &["9.9.9.9"])),
+                proxy,
+                "{proxy}"
+            );
         }
     }
 }
@@ -140,7 +183,12 @@ mod inspect {
     fn allows_unknown_routes_from_an_allowed_origin() {
         let intrusion = Intrusion::new();
         let req = make_req(Some(&fresh_ip()), &[]);
-        let options = InspectOptions { pathname: "/not/a/route", known_route: false, origin_allowed: true, origin: None };
+        let options = InspectOptions {
+            pathname: "/not/a/route",
+            known_route: false,
+            origin_allowed: true,
+            origin: None,
+        };
         assert!(intrusion.inspect(&req, &options).is_none());
     }
 
@@ -161,12 +209,16 @@ mod inspect {
             "/default.aspx",
             "/login.jsp",
         ] {
-            let error = intrusion.inspect(&make_req(Some(&fresh_ip()), &[]), &clean(pathname)).expect(pathname);
+            let error = intrusion
+                .inspect(&make_req(Some(&fresh_ip()), &[]), &clean(pathname))
+                .expect(pathname);
             assert_eq!(error.status_code, 404, "{pathname}");
             assert_eq!(error.error_code, "intrusion.exploit_probe", "{pathname}");
             assert_eq!(
                 tarpit_of(&error),
-                Some(json!({"body": "Not found.", "dripIntervalMs": 5000, "holdMs": 25000, "statusCode": 404}))
+                Some(
+                    json!({"body": "Not found.", "dripIntervalMs": 5000, "holdMs": 25000, "statusCode": 404})
+                )
             );
         }
     }
@@ -175,7 +227,12 @@ mod inspect {
     fn does_not_flag_lookalike_paths() {
         let intrusion = Intrusion::new();
         for pathname in ["/.gitignore", "/api/git", "/php/info", "/wp-admins"] {
-            assert!(intrusion.inspect(&make_req(Some(&fresh_ip()), &[]), &clean(pathname)).is_none(), "{pathname}");
+            assert!(
+                intrusion
+                    .inspect(&make_req(Some(&fresh_ip()), &[]), &clean(pathname))
+                    .is_none(),
+                "{pathname}"
+            );
         }
     }
 
@@ -183,42 +240,75 @@ mod inspect {
     fn blocks_an_ip_immediately_after_an_exploit_probe() {
         let intrusion = Intrusion::new();
         let req = make_req(Some(&fresh_ip()), &[]);
-        assert_eq!(intrusion.inspect(&req, &clean("/.git/config")).unwrap().error_code, "intrusion.exploit_probe");
+        assert_eq!(
+            intrusion
+                .inspect(&req, &clean("/.git/config"))
+                .unwrap()
+                .error_code,
+            "intrusion.exploit_probe"
+        );
         let blocked = intrusion.inspect(&req, &clean("/api/user")).unwrap();
         assert_eq!(blocked.status_code, 404);
         assert_eq!(blocked.error_code, "intrusion.blocked");
         let tarpit = tarpit_of(&blocked).unwrap();
-        assert_eq!((tarpit["dripIntervalMs"].clone(), tarpit["holdMs"].clone(), tarpit["statusCode"].clone()), (json!(4000), json!(45000), json!(404)));
+        assert_eq!(
+            (
+                tarpit["dripIntervalMs"].clone(),
+                tarpit["holdMs"].clone(),
+                tarpit["statusCode"].clone()
+            ),
+            (json!(4000), json!(45000), json!(404))
+        );
     }
 
     #[test]
     fn flags_unknown_routes_from_forbidden_origins_as_suspicious_and_blocks() {
         let intrusion = Intrusion::new();
         let req = make_req(Some(&fresh_ip()), &[]);
-        let options =
-            InspectOptions { pathname: "/random", known_route: false, origin_allowed: false, origin: Some("https://evil.com") };
+        let options = InspectOptions {
+            pathname: "/random",
+            known_route: false,
+            origin_allowed: false,
+            origin: Some("https://evil.com"),
+        };
         let error = intrusion.inspect(&req, &options).unwrap();
         assert_eq!(error.status_code, 404);
         assert_eq!(error.error_code, "intrusion.suspicious_request");
         let tarpit = tarpit_of(&error).unwrap();
-        assert_eq!((tarpit["dripIntervalMs"].clone(), tarpit["holdMs"].clone()), (json!(6000), json!(12000)));
-        assert_eq!(intrusion.inspect(&req, &clean("/")).unwrap().error_code, "intrusion.blocked");
+        assert_eq!(
+            (tarpit["dripIntervalMs"].clone(), tarpit["holdMs"].clone()),
+            (json!(6000), json!(12000))
+        );
+        assert_eq!(
+            intrusion.inspect(&req, &clean("/")).unwrap().error_code,
+            "intrusion.blocked"
+        );
     }
 
     #[test]
     fn forbids_known_routes_from_forbidden_origins_and_blocks_on_the_third_strike() {
         let intrusion = Intrusion::new();
         let req = make_req(Some(&fresh_ip()), &[]);
-        let options =
-            InspectOptions { pathname: "/api/user", known_route: true, origin_allowed: false, origin: Some("https://evil.com") };
+        let options = InspectOptions {
+            pathname: "/api/user",
+            known_route: true,
+            origin_allowed: false,
+            origin: Some("https://evil.com"),
+        };
         for _ in 0..3 {
             let error = intrusion.inspect(&req, &options).unwrap();
             assert_eq!(error.status_code, 403);
             assert_eq!(error.error_code, "intrusion.origin_forbidden");
-            assert_eq!(error.message, "Forbidden origin \"https://evil.com\" attempted \"/api/user\"");
+            assert_eq!(
+                error.message,
+                "Forbidden origin \"https://evil.com\" attempted \"/api/user\""
+            );
             assert!(error.tarpit.is_none());
         }
-        assert_eq!(intrusion.inspect(&req, &options).unwrap().error_code, "intrusion.blocked");
+        assert_eq!(
+            intrusion.inspect(&req, &options).unwrap().error_code,
+            "intrusion.blocked"
+        );
     }
 
     #[test]
@@ -228,10 +318,17 @@ mod inspect {
         let other = fresh_ip();
         intrusion.inspect(&make_req(Some("10.0.0.1"), &[&client]), &clean("/.env.php"));
         assert_eq!(
-            intrusion.inspect(&make_req(Some("10.0.0.2"), &[&client]), &clean("/")).unwrap().error_code,
+            intrusion
+                .inspect(&make_req(Some("10.0.0.2"), &[&client]), &clean("/"))
+                .unwrap()
+                .error_code,
             "intrusion.blocked"
         );
-        assert!(intrusion.inspect(&make_req(Some("10.0.0.1"), &[&other]), &clean("/")).is_none());
+        assert!(
+            intrusion
+                .inspect(&make_req(Some("10.0.0.1"), &[&other]), &clean("/"))
+                .is_none()
+        );
     }
 
     #[test]
@@ -243,19 +340,33 @@ mod inspect {
 
         intrusion.inspect_at(&req, &clean("/.git/config"), start);
         assert_eq!(
-            intrusion.inspect_at(&req, &clean("/"), start + 15 * minute - 1).unwrap().error_code,
+            intrusion
+                .inspect_at(&req, &clean("/"), start + 15 * minute - 1)
+                .unwrap()
+                .error_code,
             "intrusion.blocked"
         );
-        assert!(intrusion.inspect_at(&req, &clean("/"), start + 15 * minute).is_none());
+        assert!(
+            intrusion
+                .inspect_at(&req, &clean("/"), start + 15 * minute)
+                .is_none()
+        );
 
         // second block lasts 60 minutes
         let second = start + 15 * minute;
         intrusion.inspect_at(&req, &clean("/.git/config"), second);
         assert_eq!(
-            intrusion.inspect_at(&req, &clean("/"), second + 60 * minute - 1).unwrap().error_code,
+            intrusion
+                .inspect_at(&req, &clean("/"), second + 60 * minute - 1)
+                .unwrap()
+                .error_code,
             "intrusion.blocked"
         );
-        assert!(intrusion.inspect_at(&req, &clean("/"), second + 60 * minute).is_none());
+        assert!(
+            intrusion
+                .inspect_at(&req, &clean("/"), second + 60 * minute)
+                .is_none()
+        );
     }
 
     #[test]
@@ -267,7 +378,9 @@ mod inspect {
         let lines = capture.matching(log::Level::Warn, &format!("[intrusion] {ip} "));
         assert_eq!(lines.len(), 1);
         assert!(
-            lines[0].starts_with(&format!("[intrusion] {ip} exploit probe on \"/.git/config\" blocked-until=")),
+            lines[0].starts_with(&format!(
+                "[intrusion] {ip} exploit probe on \"/.git/config\" blocked-until="
+            )),
             "{}",
             lines[0]
         );

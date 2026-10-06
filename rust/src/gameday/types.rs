@@ -48,11 +48,19 @@ pub struct GamedayExportOutput {
     pub members: Vec<GamedayExportMember>,
 }
 
-fn read_required_string(record: &Map<String, Value>, key: &str, trim: bool) -> Result<String, String> {
+fn read_required_string(
+    record: &Map<String, Value>,
+    key: &str,
+    trim: bool,
+) -> Result<String, String> {
     let Some(Value::String(value)) = record.get(key) else {
         return Err(format!("{key} is required."));
     };
-    let normalized = if trim { crate::js::trim(value).to_string() } else { value.clone() };
+    let normalized = if trim {
+        crate::js::trim(value).to_string()
+    } else {
+        value.clone()
+    };
     if normalized.is_empty() {
         return Err(format!("{key} is required."));
     }
@@ -86,7 +94,10 @@ fn read_optional_number(record: &Map<String, Value>, key: &str) -> Result<Option
     }
 }
 
-fn read_optional_string_array(record: &Map<String, Value>, key: &str) -> Result<Option<Vec<String>>, String> {
+fn read_optional_string_array(
+    record: &Map<String, Value>,
+    key: &str,
+) -> Result<Option<Vec<String>>, String> {
     match record.get(key) {
         None => Ok(None),
         Some(Value::Array(items)) if items.iter().all(Value::is_string) => Ok(Some(
@@ -128,14 +139,20 @@ pub fn parse_gameday_export_input(value: &Value) -> Result<GamedayExportInput, S
 }
 
 fn is_gameday_export_member(value: &Value) -> bool {
-    let Value::Object(map) = value else { return false };
-    ["teamName", "firstName", "lastName", "email", "gender"].iter().all(|key| map.get(*key).is_some_and(Value::is_string))
+    let Value::Object(map) = value else {
+        return false;
+    };
+    ["teamName", "firstName", "lastName", "email", "gender"]
+        .iter()
+        .all(|key| map.get(*key).is_some_and(Value::is_string))
 }
 
 /// `isGamedayExportOutput(value)`.
 pub fn is_gameday_export_output(value: &Value) -> bool {
     match value.get("members") {
-        Some(Value::Array(members)) if value.is_object() => members.iter().all(is_gameday_export_member),
+        Some(Value::Array(members)) if value.is_object() => {
+            members.iter().all(is_gameday_export_member)
+        }
         _ => false,
     }
 }
@@ -231,27 +248,65 @@ mod tests {
 
         #[test]
         fn rejects_missing_or_blank_required_strings() {
-            assert_eq!(error(with(json!({"startingUrl": "__undefined__"}))), "startingUrl is required.");
-            assert_eq!(error(with(json!({"username": "  "}))), "username is required.");
-            assert_eq!(error(with(json!({"password": ""}))), "password is required.");
-            assert_eq!(error(with(json!({"competition": 1}))), "competition is required.");
+            assert_eq!(
+                error(with(json!({"startingUrl": "__undefined__"}))),
+                "startingUrl is required."
+            );
+            assert_eq!(
+                error(with(json!({"username": "  "}))),
+                "username is required."
+            );
+            assert_eq!(
+                error(with(json!({"password": ""}))),
+                "password is required."
+            );
+            assert_eq!(
+                error(with(json!({"competition": 1}))),
+                "competition is required."
+            );
         }
 
         #[test]
         fn accepts_a_whitespace_only_password() {
-            assert_eq!(parse_gameday_export_input(&with(json!({"password": "   "}))).unwrap().password, "   ");
+            assert_eq!(
+                parse_gameday_export_input(&with(json!({"password": "   "})))
+                    .unwrap()
+                    .password,
+                "   "
+            );
         }
 
         #[test]
         fn rejects_wrongly_typed_optional_fields() {
-            assert_eq!(error(with(json!({"headless": "true"}))), "headless must be a boolean.");
-            assert_eq!(error(with(json!({"reportId": 1}))), "reportId must be a string.");
-            assert_eq!(error(with(json!({"browserChannel": null}))), "browserChannel must be a string.");
-            assert_eq!(error(with(json!({"timeoutMs": "5"}))), "timeoutMs must be a finite number.");
+            assert_eq!(
+                error(with(json!({"headless": "true"}))),
+                "headless must be a boolean."
+            );
+            assert_eq!(
+                error(with(json!({"reportId": 1}))),
+                "reportId must be a string."
+            );
+            assert_eq!(
+                error(with(json!({"browserChannel": null}))),
+                "browserChannel must be a string."
+            );
+            assert_eq!(
+                error(with(json!({"timeoutMs": "5"}))),
+                "timeoutMs must be a finite number."
+            );
             // NaN cannot be written in JSON; null is the closest non-number
-            assert_eq!(error(with(json!({"timeoutMs": null}))), "timeoutMs must be a finite number.");
-            assert_eq!(error(with(json!({"fields": "a"}))), "fields must be an array of strings.");
-            assert_eq!(error(with(json!({"headers": ["a", 1]}))), "headers must be an array of strings.");
+            assert_eq!(
+                error(with(json!({"timeoutMs": null}))),
+                "timeoutMs must be a finite number."
+            );
+            assert_eq!(
+                error(with(json!({"fields": "a"}))),
+                "fields must be an array of strings."
+            );
+            assert_eq!(
+                error(with(json!({"headers": ["a", 1]}))),
+                "headers must be an array of strings."
+            );
         }
     }
 
@@ -275,8 +330,12 @@ mod tests {
         #[test]
         fn accepts_valid_outputs() {
             assert!(is_gameday_export_output(&json!({"members": []})));
-            assert!(is_gameday_export_output(&json!({"members": [member()], "extra": 1})));
-            assert!(is_gameday_export_output(&json!({"members": [member_with("gender", json!(""))]})));
+            assert!(is_gameday_export_output(
+                &json!({"members": [member()], "extra": 1})
+            ));
+            assert!(is_gameday_export_output(
+                &json!({"members": [member_with("gender", json!(""))]})
+            ));
         }
 
         #[test]
@@ -285,8 +344,12 @@ mod tests {
             assert!(!is_gameday_export_output(&json!({})));
             assert!(!is_gameday_export_output(&json!({"members": {}})));
             assert!(!is_gameday_export_output(&json!({"members": [null]})));
-            assert!(!is_gameday_export_output(&json!({"members": [member_with("email", Value::Null)]})));
-            assert!(!is_gameday_export_output(&json!({"members": [member(), member_with("teamName", json!(1))]})));
+            assert!(!is_gameday_export_output(
+                &json!({"members": [member_with("email", Value::Null)]})
+            ));
+            assert!(!is_gameday_export_output(
+                &json!({"members": [member(), member_with("teamName", json!(1))]})
+            ));
         }
     }
 }

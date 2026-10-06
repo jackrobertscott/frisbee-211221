@@ -1,6 +1,6 @@
 //! Port of `shared/src/schemas/ioUser.ts`.
 
-use super::user_gender_matching::{io_user_gender_matching, GenderMatching};
+use super::user_gender_matching::{GenderMatching, io_user_gender_matching};
 use crate::io_schema;
 use crate::shared::torva::io;
 use serde::{Deserialize, Serialize};

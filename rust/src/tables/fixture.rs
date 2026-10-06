@@ -2,9 +2,9 @@
 
 use super::{default_id, default_now};
 use crate::columns;
-use crate::db::schema::{Direction::*, IndexDef, TableDef};
 use crate::db::Record;
-use crate::shared::schemas::{io_fixture, Fixture, FixtureGame};
+use crate::db::schema::{Direction::*, IndexDef, TableDef};
+use crate::shared::schemas::{Fixture, FixtureGame, io_fixture};
 
 columns!(Fixture {
     ID: String = "id" / "id" (Text),
@@ -40,7 +40,11 @@ pub static TABLE: TableDef = TableDef {
         IndexDef::new(&[("createdOn", Asc)]),
     ],
     schema: io_fixture,
-    defaults: &[("id", default_id), ("createdOn", default_now), ("updatedOn", default_now)],
+    defaults: &[
+        ("id", default_id),
+        ("createdOn", default_now),
+        ("updatedOn", default_now),
+    ],
 };
 
 impl Record for Fixture {

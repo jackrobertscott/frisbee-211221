@@ -83,7 +83,7 @@ pub async fn bind(port: u16) -> std::io::Result<TcpListener> {
 /// `bootstrap()`: config, database, startup tasks, scheduler, then listen.
 pub async fn bootstrap() -> Result<(), String> {
     let config = Arc::new(Config::load()?);
-    let db = Db::open(&config.sqlite_path).map_err(|error| error.message)?;
+    let db = Db::open(&config.sqlite_path).map_err(|error| error.message.clone())?;
     crate::startup::run_startup_tasks(&crate::startup::startup_tasks(&db), config.is_production)
         .await
         .map_err(|error| error.to_string())?;
@@ -93,7 +93,9 @@ pub async fn bootstrap() -> Result<(), String> {
     let listener = bind(config.port).await.map_err(|error| error.to_string())?;
     let env_name = if config.is_production { "PROD" } else { "DEV" };
     log::log(format!("Started: {env_name} MASTER {}", config.port));
-    serve(listener, state, shutdown_signal(), DRAIN_TIMEOUT).await.map_err(|error| error.to_string())
+    serve(listener, state, shutdown_signal(), DRAIN_TIMEOUT)
+        .await
+        .map_err(|error| error.to_string())
 }
 
 #[cfg(test)]
@@ -112,13 +114,28 @@ mod tests {
         })
     }
 
-    async fn start(app: &TestApp, drain_timeout: Duration) -> (String, tokio::sync::oneshot::Sender<()>, tokio::task::JoinHandle<()>) {
+    async fn start(
+        app: &TestApp,
+        drain_timeout: Duration,
+    ) -> (
+        String,
+        tokio::sync::oneshot::Sender<()>,
+        tokio::task::JoinHandle<()>,
+    ) {
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
         let url = format!("http://{}", listener.local_addr().unwrap());
         let (tx, rx) = tokio::sync::oneshot::channel::<()>();
         let state = app.state.clone();
         let handle = tokio::spawn(async move {
-            let _ = serve(listener, state, async move { let _ = rx.await; }, drain_timeout).await;
+            let _ = serve(
+                listener,
+                state,
+                async move {
+                    let _ = rx.await;
+                },
+                drain_timeout,
+            )
+            .await;
         });
         (url, tx, handle)
     }
@@ -144,7 +161,10 @@ mod tests {
         let response = request.await.unwrap().unwrap();
         assert_eq!(response.status().as_u16(), 200);
         assert_eq!(response.text().await.unwrap(), r#"{"done":true}"#);
-        tokio::time::timeout(Duration::from_secs(2), handle).await.unwrap().unwrap();
+        tokio::time::timeout(Duration::from_secs(2), handle)
+            .await
+            .unwrap()
+            .unwrap();
     }
 
     #[tokio::test]
@@ -154,7 +174,10 @@ mod tests {
         let _request = tokio::spawn(post(&url).send());
         tokio::time::sleep(Duration::from_millis(50)).await;
         let _ = shutdown.send(());
-        tokio::time::timeout(Duration::from_secs(2), handle).await.unwrap().unwrap();
+        tokio::time::timeout(Duration::from_secs(2), handle)
+            .await
+            .unwrap()
+            .unwrap();
     }
 
     #[tokio::test]
@@ -163,7 +186,10 @@ mod tests {
         let (url, shutdown, handle) = start(&app, Duration::from_secs(5)).await;
         assert_eq!(post(&url).send().await.unwrap().status().as_u16(), 200);
         let _ = shutdown.send(());
-        tokio::time::timeout(Duration::from_secs(2), handle).await.unwrap().unwrap();
+        tokio::time::timeout(Duration::from_secs(2), handle)
+            .await
+            .unwrap()
+            .unwrap();
         assert!(post(&url).send().await.is_err());
     }
 }

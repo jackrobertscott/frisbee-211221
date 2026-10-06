@@ -2,25 +2,25 @@
 
 use super::{default_false, default_id, default_now};
 use crate::columns;
-use crate::db::schema::{Direction::*, IndexDef, TableDef};
 use crate::db::Record;
-use crate::shared::schemas::{io_gameday_import_config, GamedayImportConfig};
+use crate::db::schema::{Direction::*, IndexDef, TableDef};
+use crate::shared::schemas::{GamedayImportConfig, io_gameday_import_config};
 
 columns!(GamedayImportConfig {
-    ID: String = "id" / "id" (Text),
-    CREATED_ON: String = "createdOn" / "created_on" (Text),
-    UPDATED_ON: String = "updatedOn" / "updated_on" (Text),
-    SEASON_ID: String = "seasonId" / "season_id" (Text),
-    USERNAME: String = "username" / "username" (Text),
-    PASSWORD_ENCRYPTED: String = "passwordEncrypted" / "password_encrypted" (Text),
-    ASSOCIATION: String = "association" / "association" (Text),
-    COMPETITION: String = "competition" / "competition" (Text),
-    SCHEDULE_ENABLED: bool = "scheduleEnabled" / "schedule_enabled" (Bool),
-    SCHEDULE_START_ON: String = "scheduleStartOn" / "schedule_start_on" (Text),
-    SCHEDULE_END_ON: String = "scheduleEndOn" / "schedule_end_on" (Text),
-    LAST_SCHEDULED_RUN_KEY: String = "lastScheduledRunKey" / "last_scheduled_run_key" (Text),
-    SCHEDULE_LOCKED_UNTIL: String = "scheduleLockedUntil" / "schedule_locked_until" (Text),
-    SCHEDULE_LOCK_TOKEN: String = "scheduleLockToken" / "schedule_lock_token" (Text),
+    ID: String = "id" / "id"(Text),
+    CREATED_ON: String = "createdOn" / "created_on"(Text),
+    UPDATED_ON: String = "updatedOn" / "updated_on"(Text),
+    SEASON_ID: String = "seasonId" / "season_id"(Text),
+    USERNAME: String = "username" / "username"(Text),
+    PASSWORD_ENCRYPTED: String = "passwordEncrypted" / "password_encrypted"(Text),
+    ASSOCIATION: String = "association" / "association"(Text),
+    COMPETITION: String = "competition" / "competition"(Text),
+    SCHEDULE_ENABLED: bool = "scheduleEnabled" / "schedule_enabled"(Bool),
+    SCHEDULE_START_ON: String = "scheduleStartOn" / "schedule_start_on"(Text),
+    SCHEDULE_END_ON: String = "scheduleEndOn" / "schedule_end_on"(Text),
+    LAST_SCHEDULED_RUN_KEY: String = "lastScheduledRunKey" / "last_scheduled_run_key"(Text),
+    SCHEDULE_LOCKED_UNTIL: String = "scheduleLockedUntil" / "schedule_locked_until"(Text),
+    SCHEDULE_LOCK_TOKEN: String = "scheduleLockToken" / "schedule_lock_token"(Text),
 });
 
 pub static TABLE: TableDef = TableDef {

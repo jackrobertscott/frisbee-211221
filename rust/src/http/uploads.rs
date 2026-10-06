@@ -4,7 +4,8 @@
 
 use super::headers::header;
 use crate::shared::errors::{
-    bad_request_error, payload_too_large_error, too_many_requests_error, AppError, AppResult, ErrorOptions,
+    AppError, AppResult, ErrorOptions, bad_request_error, payload_too_large_error,
+    too_many_requests_error,
 };
 use axum::body::Body;
 use axum::http::HeaderMap;
@@ -37,7 +38,9 @@ pub struct UploadOptions {
 
 impl Default for UploadOptions {
     fn default() -> Self {
-        UploadOptions { temp_dir: std::env::temp_dir() }
+        UploadOptions {
+            temp_dir: std::env::temp_dir(),
+        }
     }
 }
 
@@ -55,21 +58,34 @@ fn aborted() -> AppError {
 }
 
 fn files_limit() -> AppError {
-    too_many_requests_error("Too many files were uploaded.", ErrorOptions::code("upload.files_limit"))
+    too_many_requests_error(
+        "Too many files were uploaded.",
+        ErrorOptions::code("upload.files_limit"),
+    )
 }
 
 fn fields_limit() -> AppError {
-    too_many_requests_error("Too many fields were uploaded.", ErrorOptions::code("upload.fields_limit"))
+    too_many_requests_error(
+        "Too many fields were uploaded.",
+        ErrorOptions::code("upload.fields_limit"),
+    )
 }
 
 fn size_limit() -> AppError {
-    payload_too_large_error("Upload exceeded size limit.", ErrorOptions::code("upload.size_limit"))
+    payload_too_large_error(
+        "Upload exceeded size limit.",
+        ErrorOptions::code("upload.size_limit"),
+    )
 }
 
 /// busboy's `basename`: the part after the last `/` or `\`, never `.`/`..`.
 fn basename(path: &str) -> String {
     let tail = path.rsplit(['/', '\\']).next().unwrap_or(path);
-    if tail == "." || tail == ".." { String::new() } else { tail.to_string() }
+    if tail == "." || tail == ".." {
+        String::new()
+    } else {
+        tail.to_string()
+    }
 }
 
 /// Node's `path.extname(filename)`.
@@ -87,12 +103,13 @@ fn percent_decode(value: &str) -> Vec<u8> {
     let mut out = Vec::with_capacity(bytes.len());
     let mut index = 0;
     while index < bytes.len() {
-        if bytes[index] == b'%' && index + 2 < bytes.len() {
-            if let (Some(high), Some(low)) = (hex(bytes[index + 1]), hex(bytes[index + 2])) {
-                out.push(high * 16 + low);
-                index += 3;
-                continue;
-            }
+        if bytes[index] == b'%'
+            && index + 2 < bytes.len()
+            && let (Some(high), Some(low)) = (hex(bytes[index + 1]), hex(bytes[index + 2]))
+        {
+            out.push(high * 16 + low);
+            index += 3;
+            continue;
         }
         out.push(bytes[index]);
         index += 1;
@@ -118,7 +135,7 @@ fn parse_disposition(value: &str) -> Option<(String, IndexMap<String, String>)> 
     let mut params = IndexMap::new();
     let mut remaining = rest.as_str();
     while !remaining.is_empty() {
-        let trimmed = remaining.trim_start_matches(|c: char| c == ' ' || c == '\t' || c == ';');
+        let trimmed = remaining.trim_start_matches([' ', '\t', ';']);
         if trimmed.is_empty() {
             break;
         }
@@ -182,14 +199,22 @@ async fn cleanup(filepaths: &[PathBuf]) {
 
 /// `blob.digestRequest(req)`: the uploaded files (written to temp files) and
 /// the form fields. On any failure every temp file is removed.
-pub async fn digest_request(headers: &HeaderMap, body: Body, options: &UploadOptions) -> AppResult<(Vec<UploadedFile>, UploadFields)> {
+pub async fn digest_request(
+    headers: &HeaderMap,
+    body: Body,
+    options: &UploadOptions,
+) -> AppResult<(Vec<UploadedFile>, UploadFields)> {
     let content_type = header(headers, "content-type").ok_or_else(unsupported)?;
     let lower = content_type.to_ascii_lowercase();
     if lower.starts_with("application/x-www-form-urlencoded") {
         return digest_urlencoded(headers, body).await;
     }
     let boundary = multer::parse_boundary(&content_type).map_err(|_| unsupported())?;
-    let mut collected = Collected { files: Vec::new(), fields: IndexMap::new(), filepaths: Vec::new() };
+    let mut collected = Collected {
+        files: Vec::new(),
+        fields: IndexMap::new(),
+        filepaths: Vec::new(),
+    };
     match digest_multipart(body, boundary, options, &mut collected).await {
         Ok(()) => Ok((collected.files, collected.fields)),
         Err(error) => {
@@ -206,15 +231,26 @@ fn map_multer_error(error: multer::Error) -> AppError {
     }
 }
 
-async fn digest_multipart(body: Body, boundary: String, options: &UploadOptions, collected: &mut Collected) -> AppResult<()> {
-    let stream = body.into_data_stream().map(|chunk| chunk.map_err(std::io::Error::other));
+async fn digest_multipart(
+    body: Body,
+    boundary: String,
+    options: &UploadOptions,
+    collected: &mut Collected,
+) -> AppResult<()> {
+    let stream = body
+        .into_data_stream()
+        .map(|chunk| chunk.map_err(std::io::Error::other));
     let mut multipart = multer::Multipart::new(stream, boundary);
     let mut file_count = 0;
     let mut field_count = 0;
     while let Some(mut field) = multipart.next_field().await.map_err(map_multer_error)? {
         let headers = field.headers().clone();
-        let Some(disposition) = header(&headers, "content-disposition") else { continue };
-        let Some((kind, params)) = parse_disposition(&disposition) else { continue };
+        let Some(disposition) = header(&headers, "content-disposition") else {
+            continue;
+        };
+        let Some((kind, params)) = parse_disposition(&disposition) else {
+            continue;
+        };
         if kind != "form-data" {
             continue;
         }
@@ -226,8 +262,15 @@ async fn digest_multipart(body: Body, boundary: String, options: &UploadOptions,
             .map(|f| basename(f));
         let part_type = header(&headers, "content-type")
             .and_then(|value| {
-                let media = value.split(';').next().unwrap_or("").trim().to_ascii_lowercase();
-                media.split_once('/').map(|(t, s)| format!("{}/{}", t.trim(), s.trim()))
+                let media = value
+                    .split(';')
+                    .next()
+                    .unwrap_or("")
+                    .trim()
+                    .to_ascii_lowercase();
+                media
+                    .split_once('/')
+                    .map(|(t, s)| format!("{}/{}", t.trim(), s.trim()))
             })
             .unwrap_or_else(|| "text/plain".into());
         let encoding = header(&headers, "content-transfer-encoding")
@@ -244,10 +287,21 @@ async fn digest_multipart(body: Body, boundary: String, options: &UploadOptions,
                 continue;
             };
             let extension = extname(&filename).to_lowercase();
-            let suffix = if extension.is_empty() { ".bin".to_string() } else { extension.clone() };
-            let filepath = options.temp_dir.join(format!("upload-{}{suffix}", crate::utils::random::generate_id()));
+            let suffix = if extension.is_empty() {
+                ".bin".to_string()
+            } else {
+                extension.clone()
+            };
+            let filepath = options.temp_dir.join(format!(
+                "upload-{}{suffix}",
+                crate::utils::random::generate_id()
+            ));
             collected.filepaths.push(filepath.clone());
-            let mut output = tokio::fs::OpenOptions::new().write(true).create_new(true).open(&filepath).await?;
+            let mut output = tokio::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(&filepath)
+                .await?;
             let mut size: u64 = 0;
             while let Some(chunk) = field.chunk().await.map_err(map_multer_error)? {
                 size += chunk.len() as u64;
@@ -276,14 +330,22 @@ async fn digest_multipart(body: Body, boundary: String, options: &UploadOptions,
                 let room = MAX_FIELD_BYTES.saturating_sub(bytes.len());
                 bytes.extend_from_slice(&chunk[..chunk.len().min(room)]);
             }
-            collected.fields.insert(name.unwrap_or_else(|| "undefined".into()), String::from_utf8_lossy(&bytes).into_owned());
+            collected.fields.insert(
+                name.unwrap_or_else(|| "undefined".into()),
+                String::from_utf8_lossy(&bytes).into_owned(),
+            );
         }
     }
     Ok(())
 }
 
-async fn digest_urlencoded(headers: &HeaderMap, body: Body) -> AppResult<(Vec<UploadedFile>, UploadFields)> {
-    let bytes = super::body::read_limited(headers, body, usize::MAX).await.map_err(|_| aborted())?;
+async fn digest_urlencoded(
+    headers: &HeaderMap,
+    body: Body,
+) -> AppResult<(Vec<UploadedFile>, UploadFields)> {
+    let bytes = super::body::read_limited(headers, body, usize::MAX)
+        .await
+        .map_err(|_| aborted())?;
     let mut fields = IndexMap::new();
     for (index, (key, value)) in url::form_urlencoded::parse(&bytes).enumerate() {
         if index == MAX_UPLOAD_FIELDS {

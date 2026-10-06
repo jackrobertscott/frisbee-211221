@@ -2,11 +2,11 @@
 //! CORS, error capture, request screening, then the endpoint.
 
 use super::capture::{self, Reply, RequestInfo};
-use super::intrusion::{get_pathname, ClientInfo};
+use super::intrusion::{ClientInfo, get_pathname};
 use super::{cors, headers, prerequest};
 use crate::app::AppState;
 use crate::http::endpoint::Ctx;
-use crate::shared::errors::{not_found_error, AppResult, ErrorOptions};
+use crate::shared::errors::{AppResult, ErrorOptions, not_found_error};
 use axum::body::Body;
 use axum::extract::ConnectInfo;
 use axum::http::{HeaderMap, Method, Response};
@@ -25,12 +25,20 @@ pub struct Request {
 impl Request {
     pub fn from_http(request: axum::extract::Request, remote: Option<SocketAddr>) -> Request {
         let (parts, body) = request.into_parts();
-        let remote = remote.or_else(|| parts.extensions.get::<ConnectInfo<SocketAddr>>().map(|info| info.0));
+        let remote = remote.or_else(|| {
+            parts
+                .extensions
+                .get::<ConnectInfo<SocketAddr>>()
+                .map(|info| info.0)
+        });
         let forwarded_for = headers::header(&parts.headers, "x-forwarded-for");
         Request {
             method: parts.method,
             url: parts.uri.to_string(),
-            client: ClientInfo::new(remote.map(|addr| addr.ip().to_string()).as_deref(), forwarded_for.as_deref()),
+            client: ClientInfo::new(
+                remote.map(|addr| addr.ip().to_string()).as_deref(),
+                forwarded_for.as_deref(),
+            ),
             headers: parts.headers,
             body,
         }
@@ -61,17 +69,26 @@ pub async fn handle(state: &AppState, request: Request) -> AppResult<Reply> {
 /// `cors()(capture.handle(prerequest(handler)))` for one request.
 pub async fn respond(state: AppState, request: Request) -> Response<Body> {
     let request_origin = headers::header(&request.headers, "origin");
-    let info = RequestInfo { method: request.method.to_string(), url: request.url.clone() };
+    let info = RequestInfo {
+        method: request.method.to_string(),
+        url: request.url.clone(),
+    };
     let result = prerequest::handle(&state, request).await;
     let mut response = capture::handle(result, &info, state.config.is_production, &state.tarpit);
-    cors::attach(response.headers_mut(), request_origin.as_deref(), &state.origin);
+    cors::attach(
+        response.headers_mut(),
+        request_origin.as_deref(),
+        &state.origin,
+    );
     response
 }
 
 /// The axum router: one fallback handler runs the whole pipeline.
 pub fn router(state: AppState) -> axum::Router {
-    axum::Router::new().fallback(move |ConnectInfo(remote): ConnectInfo<SocketAddr>, request: axum::extract::Request| {
-        let state = state.clone();
-        async move { respond(state, Request::from_http(request, Some(remote))).await }
-    })
+    axum::Router::new().fallback(
+        move |ConnectInfo(remote): ConnectInfo<SocketAddr>, request: axum::extract::Request| {
+            let state = state.clone();
+            async move { respond(state, Request::from_http(request, Some(remote))).await }
+        },
+    )
 }

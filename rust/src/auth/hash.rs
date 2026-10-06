@@ -2,7 +2,7 @@
 //! compatible with `bcryptjs` `$2a$`/`$2b$` hashes) and HMAC digests of
 //! security codes.
 
-use crate::shared::errors::{bad_request_error, AppResult, ErrorOptions};
+use crate::shared::errors::{AppResult, ErrorOptions, bad_request_error};
 use crate::utils::random::random_string;
 use hmac::{Hmac, KeyInit, Mac};
 use sha2::Sha256;
@@ -53,7 +53,8 @@ pub fn compare(password: &str, hash: &str) -> bool {
 /// missing accounts are not revealed. Always false.
 pub fn compare_dummy(password: &str) -> bool {
     static DUMMY: OnceLock<String> = OnceLock::new();
-    let dummy = DUMMY.get_or_init(|| bcrypt::hash(random_string(24), BCRYPT_COST).unwrap_or_default());
+    let dummy =
+        DUMMY.get_or_init(|| bcrypt::hash(random_string(24), BCRYPT_COST).unwrap_or_default());
     let truncated: String = {
         let units: Vec<u16> = password.encode_utf16().take(PASSWORD_MAX_LENGTH).collect();
         String::from_utf16_lossy(&units)
@@ -70,16 +71,21 @@ pub async fn encrypt_async(password: String) -> AppResult<String> {
 }
 
 pub async fn compare_async(password: String, hash: String) -> bool {
-    tokio::task::spawn_blocking(move || compare(&password, &hash)).await.unwrap_or(false)
+    tokio::task::spawn_blocking(move || compare(&password, &hash))
+        .await
+        .unwrap_or(false)
 }
 
 pub async fn compare_dummy_async(password: String) -> bool {
-    tokio::task::spawn_blocking(move || compare_dummy(&password)).await.unwrap_or(false)
+    tokio::task::spawn_blocking(move || compare_dummy(&password))
+        .await
+        .unwrap_or(false)
 }
 
 /// `hash.digest(value)`: HMAC-SHA256 keyed by `JWT_SECRET`, hex encoded.
 pub fn digest(secret: &str, value: &str) -> String {
-    let mut mac = <Hmac<Sha256> as KeyInit>::new_from_slice(secret.as_bytes()).unwrap_or_else(|_| unreachable!());
+    let mut mac = <Hmac<Sha256> as KeyInit>::new_from_slice(secret.as_bytes())
+        .unwrap_or_else(|_| unreachable!());
     mac.update(value.as_bytes());
     hex::encode(mac.finalize().into_bytes())
 }
@@ -96,13 +102,31 @@ mod tests {
 
     #[test]
     fn verifies_bcryptjs_hashes() {
-        assert!(compare("hunter22", "$2b$04$ixDxg985t97Gc4f4jikvCejip9nyEltERaJ3G9CLQCuQ/w1fooaC2"));
-        assert!(compare("hunter22", "$2a$04$IioJ9l7oYbY/MYzYRRgZSO2JmUgk4v.DBLkFjlZNAm3vi6AfWVySq"));
-        assert!(!compare("hunter23", "$2b$04$ixDxg985t97Gc4f4jikvCejip9nyEltERaJ3G9CLQCuQ/w1fooaC2"));
+        assert!(compare(
+            "hunter22",
+            "$2b$04$ixDxg985t97Gc4f4jikvCejip9nyEltERaJ3G9CLQCuQ/w1fooaC2"
+        ));
+        assert!(compare(
+            "hunter22",
+            "$2a$04$IioJ9l7oYbY/MYzYRRgZSO2JmUgk4v.DBLkFjlZNAm3vi6AfWVySq"
+        ));
+        assert!(!compare(
+            "hunter23",
+            "$2b$04$ixDxg985t97Gc4f4jikvCejip9nyEltERaJ3G9CLQCuQ/w1fooaC2"
+        ));
         // bcrypt ignores bytes past 72, as bcryptjs does
-        assert!(compare(&"x".repeat(80), "$2b$04$ki4P54/c.Ca.pfSL9YptfupoC/DAQxqLLvMaut3yPWgql3vh4v19S"));
-        assert!(compare(&"x".repeat(75), "$2b$04$ki4P54/c.Ca.pfSL9YptfupoC/DAQxqLLvMaut3yPWgql3vh4v19S"));
-        assert!(compare("pässwörd✓", "$2b$04$DjMPkOuwzqmycsIHXLKHEe5Fe8eWfaAjl90OqLKWD3kGmaEN4LtIG"));
+        assert!(compare(
+            &"x".repeat(80),
+            "$2b$04$ki4P54/c.Ca.pfSL9YptfupoC/DAQxqLLvMaut3yPWgql3vh4v19S"
+        ));
+        assert!(compare(
+            &"x".repeat(75),
+            "$2b$04$ki4P54/c.Ca.pfSL9YptfupoC/DAQxqLLvMaut3yPWgql3vh4v19S"
+        ));
+        assert!(compare(
+            "pässwörd✓",
+            "$2b$04$DjMPkOuwzqmycsIHXLKHEe5Fe8eWfaAjl90OqLKWD3kGmaEN4LtIG"
+        ));
         assert!(!compare("x", "not a hash"));
     }
 
@@ -117,15 +141,34 @@ mod tests {
 
     #[test]
     fn validates_new_password_length() {
-        assert_eq!(assert_new_password_valid("abcd").unwrap_err().error_code, "user.password_too_short");
+        assert_eq!(
+            assert_new_password_valid("abcd").unwrap_err().error_code,
+            "user.password_too_short"
+        );
         assert!(assert_new_password_valid("abcde").is_ok());
-        assert_eq!(assert_new_password_valid(&"a".repeat(201)).unwrap_err().error_code, "user.password_too_long");
+        assert_eq!(
+            assert_new_password_valid(&"a".repeat(201))
+                .unwrap_err()
+                .error_code,
+            "user.password_too_long"
+        );
     }
 
     #[test]
     fn digests_like_node_crypto() {
-        assert_eq!(digest("test-secret", "ABCD1234"), "248d878deaf82853b2dd265fe5674cbc9635d68586cd177df197f0290f2c2f84");
-        assert!(equals("test-secret", "ABCD1234", "248d878deaf82853b2dd265fe5674cbc9635d68586cd177df197f0290f2c2f84"));
-        assert!(!equals("test-secret", "ABCD1235", "248d878deaf82853b2dd265fe5674cbc9635d68586cd177df197f0290f2c2f84"));
+        assert_eq!(
+            digest("test-secret", "ABCD1234"),
+            "248d878deaf82853b2dd265fe5674cbc9635d68586cd177df197f0290f2c2f84"
+        );
+        assert!(equals(
+            "test-secret",
+            "ABCD1234",
+            "248d878deaf82853b2dd265fe5674cbc9635d68586cd177df197f0290f2c2f84"
+        ));
+        assert!(!equals(
+            "test-secret",
+            "ABCD1235",
+            "248d878deaf82853b2dd265fe5674cbc9635d68586cd177df197f0290f2c2f84"
+        ));
     }
 }

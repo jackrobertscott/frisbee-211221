@@ -36,10 +36,17 @@ fn latin1(bytes: &[u8]) -> String {
 /// `req.headers[name]` as Node would present it (`None` when absent).
 pub fn header(headers: &HeaderMap, name: &str) -> Option<String> {
     let lower = name.to_ascii_lowercase();
-    let mut values = headers.get_all(lower.as_str()).iter().map(|v| latin1(v.as_bytes()));
+    let mut values = headers
+        .get_all(lower.as_str())
+        .iter()
+        .map(|v| latin1(v.as_bytes()));
     if SINGLE_VALUE.contains(&lower.as_str()) {
         return values.next();
     }
     let all: Vec<String> = values.collect();
-    if all.is_empty() { None } else { Some(all.join(", ")) }
+    if all.is_empty() {
+        None
+    } else {
+        Some(all.join(", "))
+    }
 }

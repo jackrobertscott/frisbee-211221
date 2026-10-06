@@ -2,21 +2,21 @@
 
 use super::{default_id, default_now};
 use crate::columns;
-use crate::db::schema::{Direction::*, IndexDef, TableDef};
 use crate::db::Record;
-use crate::shared::schemas::{io_team, Team};
+use crate::db::schema::{Direction::*, IndexDef, TableDef};
+use crate::shared::schemas::{Team, io_team};
 
 columns!(Team {
-    ID: String = "id" / "id" (Text),
-    CREATED_ON: String = "createdOn" / "created_on" (Text),
-    UPDATED_ON: String = "updatedOn" / "updated_on" (Text),
-    SEASON_ID: String = "seasonId" / "season_id" (Text),
-    IS_MOCK: bool = "isMock" / "is_mock" (Bool),
-    NAME: String = "name" / "name" (Text),
-    COLOR: String = "color" / "color" (Text),
-    DIVISION: f64 = "division" / "division" (Real),
-    PHONE: String = "phone" / "phone" (Text),
-    EMAIL: String = "email" / "email" (Text),
+    ID: String = "id" / "id"(Text),
+    CREATED_ON: String = "createdOn" / "created_on"(Text),
+    UPDATED_ON: String = "updatedOn" / "updated_on"(Text),
+    SEASON_ID: String = "seasonId" / "season_id"(Text),
+    IS_MOCK: bool = "isMock" / "is_mock"(Bool),
+    NAME: String = "name" / "name"(Text),
+    COLOR: String = "color" / "color"(Text),
+    DIVISION: f64 = "division" / "division"(Real),
+    PHONE: String = "phone" / "phone"(Text),
+    EMAIL: String = "email" / "email"(Text),
 });
 
 pub static TABLE: TableDef = TableDef {
@@ -46,7 +46,11 @@ pub static TABLE: TableDef = TableDef {
         IndexDef::new(&[("isMock", Asc)]),
     ],
     schema: io_team,
-    defaults: &[("id", default_id), ("createdOn", default_now), ("updatedOn", default_now)],
+    defaults: &[
+        ("id", default_id),
+        ("createdOn", default_now),
+        ("updatedOn", default_now),
+    ],
 };
 
 impl Record for Team {

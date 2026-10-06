@@ -5,7 +5,8 @@
 use super::tarpit::{Tarpit, TarpitPlan};
 use crate::log;
 use crate::shared::errors::{
-    get_status_text, http_status, internal_error, serialize_error, AppError, ErrorOptions, SerializeOptions,
+    AppError, ErrorOptions, SerializeOptions, get_status_text, http_status, internal_error,
+    serialize_error,
 };
 use axum::body::Body;
 use axum::http::{HeaderValue, Response, StatusCode};
@@ -55,16 +56,30 @@ pub fn should_log_error(error: &AppError) -> bool {
 
 /// `capture.formatLogLine(pretty, req)`.
 pub fn format_log_line(pretty: &PrettyLine, req: Option<&RequestInfo>) -> String {
-    let status = if pretty.status.is_empty() { "Unknown".to_string() } else { pretty.status.clone() };
-    let method = req.map(|r| r.method.clone()).filter(|m| !m.is_empty()).unwrap_or_else(|| "UNKNOWN".into());
+    let status = if pretty.status.is_empty() {
+        "Unknown".to_string()
+    } else {
+        pretty.status.clone()
+    };
+    let method = req
+        .map(|r| r.method.clone())
+        .filter(|m| !m.is_empty())
+        .unwrap_or_else(|| "UNKNOWN".into());
     let url = pretty
         .url
         .clone()
         .filter(|u| !u.is_empty())
         .or_else(|| req.map(|r| r.url.clone()).filter(|u| !u.is_empty()))
         .unwrap_or_else(|| "/".into());
-    let mut parts = vec!["[error]".to_string(), pretty.status_code.to_string(), status, method, url];
-    let message = crate::js::trim(&crate::js::replace_whitespace_runs(&pretty.message, " ")).to_string();
+    let mut parts = vec![
+        "[error]".to_string(),
+        pretty.status_code.to_string(),
+        status,
+        method,
+        url,
+    ];
+    let message =
+        crate::js::trim(&crate::js::replace_whitespace_runs(&pretty.message, " ")).to_string();
     if !message.is_empty() {
         parts.push(message);
     }
@@ -92,9 +107,20 @@ pub fn pretty(error: &AppError, req: &RequestInfo, is_production: bool) -> Value
 
 fn pretty_line(value: &Value) -> PrettyLine {
     PrettyLine {
-        status_code: value.get("statusCode").and_then(Value::as_u64).unwrap_or(500) as u16,
-        status: value.get("status").and_then(Value::as_str).unwrap_or_default().to_string(),
-        message: value.get("message").and_then(Value::as_str).unwrap_or_default().to_string(),
+        status_code: value
+            .get("statusCode")
+            .and_then(Value::as_u64)
+            .unwrap_or(500) as u16,
+        status: value
+            .get("status")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_string(),
+        message: value
+            .get("message")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_string(),
         url: value.get("url").and_then(Value::as_str).map(str::to_string),
     }
 }
@@ -104,9 +130,13 @@ pub fn json_response(status_code: u16, value: &Value) -> Response<Body> {
     let text = crate::js::stringify(value);
     let length = text.len();
     let mut response = Response::new(Body::from(text));
-    *response.status_mut() = StatusCode::from_u16(status_code).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+    *response.status_mut() =
+        StatusCode::from_u16(status_code).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
     let headers = response.headers_mut();
-    headers.insert("content-type", HeaderValue::from_static("application/json; charset=utf-8"));
+    headers.insert(
+        "content-type",
+        HeaderValue::from_static("application/json; charset=utf-8"),
+    );
     headers.insert("content-length", HeaderValue::from(length));
     response
 }
@@ -119,7 +149,12 @@ pub fn empty_response() -> Response<Body> {
 }
 
 /// Logs and renders an error response (`capture.handle`'s catch block).
-pub fn error_response(error: AppError, req: &RequestInfo, is_production: bool, tarpit: &Tarpit) -> Response<Body> {
+pub fn error_response(
+    error: AppError,
+    req: &RequestInfo,
+    is_production: bool,
+    tarpit: &Tarpit,
+) -> Response<Body> {
     if let Some(plan) = TarpitPlan::from_value(error.tarpit.as_ref()) {
         if should_log_error(&error) {
             let pretty = pretty(&error, req, is_production);
@@ -137,7 +172,12 @@ pub fn error_response(error: AppError, req: &RequestInfo, is_production: bool, t
 
 /// `capture.handle(handler)`: renders the handler's result, rejecting
 /// results that are not objects, arrays or null.
-pub fn handle(result: Result<Reply, AppError>, req: &RequestInfo, is_production: bool, tarpit: &Tarpit) -> Response<Body> {
+pub fn handle(
+    result: Result<Reply, AppError>,
+    req: &RequestInfo,
+    is_production: bool,
+    tarpit: &Tarpit,
+) -> Response<Body> {
     let result = result.and_then(|reply| match reply {
         Reply::Json(Value::Null) => Ok(Reply::Empty),
         Reply::Json(value @ (Value::Object(_) | Value::Array(_))) => Ok(Reply::Json(value)),
@@ -148,7 +188,9 @@ pub fn handle(result: Result<Reply, AppError>, req: &RequestInfo, is_production:
                 _ => "boolean",
             };
             Err(internal_error(
-                Some(&format!("Request handler may only return an object or an array but got {kind}.")),
+                Some(&format!(
+                    "Request handler may only return an object or an array but got {kind}."
+                )),
                 ErrorOptions::code("request.invalid_handler_response"),
             ))
         }

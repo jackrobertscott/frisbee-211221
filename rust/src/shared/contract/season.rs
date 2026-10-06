@@ -16,8 +16,9 @@ io_schema! {
         io::array(io_season())
     }
 }
-pub const SEASON_LIST: EndpointDef =
-    EndpointDef::new("SeasonList", "/SeasonList").payload(season_list_payload).result(season_list_result);
+pub const SEASON_LIST: EndpointDef = EndpointDef::new("SeasonList", "/SeasonList")
+    .payload(season_list_payload)
+    .result(season_list_result);
 
 io_schema! {
     pub fn season_create_payload() {
@@ -53,17 +54,25 @@ io_schema! {
         io::object([("canDelete", io::boolean())])
     }
 }
-pub const SEASON_DELETE_STATUS: EndpointDef = EndpointDef::new("SeasonDeleteStatus", "/SeasonDeleteStatus")
-    .access(AuthPoint::SeasonManage)
-    .payload(season_id_payload)
-    .result(season_delete_status_result);
+pub const SEASON_DELETE_STATUS: EndpointDef =
+    EndpointDef::new("SeasonDeleteStatus", "/SeasonDeleteStatus")
+        .access(AuthPoint::SeasonManage)
+        .payload(season_id_payload)
+        .result(season_delete_status_result);
 
 io_schema! {
     pub fn season_delete_payload() {
         io::object([("seasonId", io_season().field("id")), ("password", io::string())])
     }
 }
-pub const SEASON_DELETE: EndpointDef =
-    EndpointDef::new("SeasonDelete", "/SeasonDelete").access(AuthPoint::SeasonManage).payload(season_delete_payload);
+pub const SEASON_DELETE: EndpointDef = EndpointDef::new("SeasonDelete", "/SeasonDelete")
+    .access(AuthPoint::SeasonManage)
+    .payload(season_delete_payload);
 
-pub const DEFS: &[&EndpointDef] = &[&SEASON_LIST, &SEASON_CREATE, &SEASON_UPDATE, &SEASON_DELETE_STATUS, &SEASON_DELETE];
+pub const DEFS: &[&EndpointDef] = &[
+    &SEASON_LIST,
+    &SEASON_CREATE,
+    &SEASON_UPDATE,
+    &SEASON_DELETE_STATUS,
+    &SEASON_DELETE,
+];

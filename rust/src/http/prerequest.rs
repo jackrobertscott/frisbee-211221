@@ -3,10 +3,10 @@
 //! and POST before handing over to the endpoint.
 
 use super::capture::Reply;
-use super::intrusion::{get_pathname, InspectOptions};
+use super::intrusion::{InspectOptions, get_pathname};
 use super::request_handler::{self, Request};
 use crate::app::AppState;
-use crate::shared::errors::{method_not_allowed_error, not_found_error, AppResult, ErrorOptions};
+use crate::shared::errors::{AppResult, ErrorOptions, method_not_allowed_error, not_found_error};
 use axum::http::Method;
 use serde_json::json;
 
@@ -24,7 +24,11 @@ pub async fn handle(state: &AppState, request: Request) -> AppResult<Reply> {
                 "now": crate::js::date::now_iso(),
             })));
         }
-        "/health" => return Ok(Reply::Json(json!({"ok": true, "now": crate::js::date::now_iso()}))),
+        "/health" => {
+            return Ok(Reply::Json(
+                json!({"ok": true, "now": crate::js::date::now_iso()}),
+            ));
+        }
         "/robots.txt" | "/favicon.ico" => return Ok(Reply::Empty),
         _ => {}
     }
@@ -47,7 +51,10 @@ pub async fn handle(state: &AppState, request: Request) -> AppResult<Reply> {
     }
 
     if !known_route {
-        return Err(not_found_error("Not found.", ErrorOptions::code("request.route_not_found")));
+        return Err(not_found_error(
+            "Not found.",
+            ErrorOptions::code("request.route_not_found"),
+        ));
     }
 
     if request.method != Method::POST {

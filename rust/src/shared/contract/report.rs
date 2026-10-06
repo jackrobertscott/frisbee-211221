@@ -103,8 +103,9 @@ io_schema! {
         io::object([("reportId", io_report().field("id"))])
     }
 }
-pub const REPORT_DELETE: EndpointDef =
-    EndpointDef::new("ReportDelete", "/ReportDelete").access(AuthPoint::ReportManage).payload(report_delete_payload);
+pub const REPORT_DELETE: EndpointDef = EndpointDef::new("ReportDelete", "/ReportDelete")
+    .access(AuthPoint::ReportManage)
+    .payload(report_delete_payload);
 
 io_schema! {
     pub fn report_missing_list_payload() {
@@ -130,9 +131,15 @@ io_schema! {
         ]))
     }
 }
-pub const REPORT_MISSING_LIST: EndpointDef = EndpointDef::new("ReportMissingList", "/ReportMissingList")
-    .access(AuthPoint::ReportManage)
-    .payload(report_missing_list_payload)
-    .result(report_missing_list_result);
+pub const REPORT_MISSING_LIST: EndpointDef =
+    EndpointDef::new("ReportMissingList", "/ReportMissingList")
+        .access(AuthPoint::ReportManage)
+        .payload(report_missing_list_payload)
+        .result(report_missing_list_result);
 
-pub const DEFS: &[&EndpointDef] = &[&REPORT_CREATE, &REPORT_UPDATE, &REPORT_DELETE, &REPORT_MISSING_LIST];
+pub const DEFS: &[&EndpointDef] = &[
+    &REPORT_CREATE,
+    &REPORT_UPDATE,
+    &REPORT_DELETE,
+    &REPORT_MISSING_LIST,
+];

@@ -33,8 +33,9 @@ io_schema! {
         io::object([("fixtureId", io_fixture().field("id"))])
     }
 }
-pub const FIXTURE_DELETE: EndpointDef =
-    EndpointDef::new("FixtureDelete", "/FixtureDelete").access(AuthPoint::FixtureManage).payload(fixture_delete_payload);
+pub const FIXTURE_DELETE: EndpointDef = EndpointDef::new("FixtureDelete", "/FixtureDelete")
+    .access(AuthPoint::FixtureManage)
+    .payload(fixture_delete_payload);
 
 io_schema! {
     pub fn fixture_adjust_multiple_payload() {
@@ -52,10 +53,11 @@ io_schema! {
         io::object([("count", io::number())])
     }
 }
-pub const FIXTURE_ADJUST_MULTIPLE: EndpointDef = EndpointDef::new("FixtureAdjustMultiple", "/FixtureAdjustMultiple")
-    .access(AuthPoint::FixtureManage)
-    .payload(fixture_adjust_multiple_payload)
-    .result(count_result);
+pub const FIXTURE_ADJUST_MULTIPLE: EndpointDef =
+    EndpointDef::new("FixtureAdjustMultiple", "/FixtureAdjustMultiple")
+        .access(AuthPoint::FixtureManage)
+        .payload(fixture_adjust_multiple_payload)
+        .result(count_result);
 
 io_schema! {
     pub fn fixture_generate_payload() {
@@ -78,5 +80,10 @@ pub const FIXTURE_GENERATE: EndpointDef = EndpointDef::new("FixtureGenerate", "/
     .access(AuthPoint::FixtureManage)
     .payload(fixture_generate_payload);
 
-pub const DEFS: &[&EndpointDef] =
-    &[&FIXTURE_CREATE, &FIXTURE_UPDATE, &FIXTURE_DELETE, &FIXTURE_ADJUST_MULTIPLE, &FIXTURE_GENERATE];
+pub const DEFS: &[&EndpointDef] = &[
+    &FIXTURE_CREATE,
+    &FIXTURE_UPDATE,
+    &FIXTURE_DELETE,
+    &FIXTURE_ADJUST_MULTIPLE,
+    &FIXTURE_GENERATE,
+];

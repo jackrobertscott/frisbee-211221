@@ -12,7 +12,7 @@ use crate::shared::torva::io;
 use crate::tables::SESSION;
 use axum::http::HeaderMap;
 use serde::Serialize;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use subtle::ConstantTimeEq;
 
 const MAX_TOKEN_LENGTH: usize = 4096;
@@ -39,7 +39,12 @@ struct NewSession<'a> {
 }
 
 /// `gatekeeper.createUserSession(user, userAgent)`.
-pub async fn create_user_session(db: &Db, config: &Config, user: &User, user_agent: Option<&str>) -> AppResult<Session> {
+pub async fn create_user_session(
+    db: &Db,
+    config: &Config,
+    user: &User,
+    user_agent: Option<&str>,
+) -> AppResult<Session> {
     let now = js::date::now_ms();
     let created_on = js::date::to_iso_string(now);
     let expires_on = js::date::to_iso_string(now + config.session_ttl_days * 24 * 60 * 60 * 1000);
@@ -68,13 +73,25 @@ pub async fn create_user_session(db: &Db, config: &Config, user: &User, user_age
 
 /// `gatekeeper.endUserSessions(userId, exceptSessionId)`: ends every active
 /// session of a user, optionally keeping one.
-pub async fn end_user_sessions(db: &Db, user_id: &str, except_session_id: Option<&str>) -> AppResult<()> {
-    let mut filter = Session::USER_ID.eq(user_id).and_also(Session::ENDED.ne(true));
+pub async fn end_user_sessions(
+    db: &Db,
+    user_id: &str,
+    except_session_id: Option<&str>,
+) -> AppResult<()> {
+    let mut filter = Session::USER_ID
+        .eq(user_id)
+        .and_also(Session::ENDED.ne(true));
     if let Some(except) = except_session_id.filter(|id| !id.is_empty()) {
         filter = filter.and_also(Session::ID.ne(except));
     }
     SESSION
-        .update_many(db, filter, Patch::new().set(Session::ENDED, true).set(Session::ENDED_ON, js::date::now_iso()))
+        .update_many(
+            db,
+            filter,
+            Patch::new()
+                .set(Session::ENDED, true)
+                .set(Session::ENDED_ON, js::date::now_iso()),
+        )
         .await?;
     Ok(())
 }
@@ -86,7 +103,10 @@ fn normalize_token(value: Option<String>) -> Option<String> {
     }
     // /^Bearer\s+/i
     let token = match header.get(..6) {
-        Some(prefix) if prefix.eq_ignore_ascii_case("bearer") && header[6..].starts_with(js::is_whitespace) => {
+        Some(prefix)
+            if prefix.eq_ignore_ascii_case("bearer")
+                && header[6..].starts_with(js::is_whitespace) =>
+        {
             header[6..].trim_start_matches(js::is_whitespace)
         }
         _ => header.as_str(),
@@ -102,7 +122,10 @@ pub fn token_from_request(headers: &HeaderMap) -> Option<String> {
 
 /// `gatekeeper.isTokenEqual(first, second)`: timing-safe.
 pub fn is_token_equal(first: Option<&str>, second: Option<&str>) -> bool {
-    match (first.filter(|t| !t.is_empty()), second.filter(|t| !t.is_empty())) {
+    match (
+        first.filter(|t| !t.is_empty()),
+        second.filter(|t| !t.is_empty()),
+    ) {
         (Some(a), Some(b)) => a.len() == b.len() && bool::from(a.as_bytes().ct_eq(b.as_bytes())),
         _ => false,
     }
@@ -110,7 +133,9 @@ pub fn is_token_equal(first: Option<&str>, second: Option<&str>) -> bool {
 
 /// `gatekeeper.isSessionValid(auth, session)`.
 pub fn is_session_valid(auth: Option<&AuthClaims>, session: Option<&Session>, now_ms: i64) -> bool {
-    let (Some(auth), Some(session)) = (auth, session) else { return false };
+    let (Some(auth), Some(session)) = (auth, session) else {
+        return false;
+    };
     let expires_on = js::date::parse(&session.expires_on).unwrap_or(0);
     session.ended != Some(true)
         && expires_on > now_ms
@@ -134,7 +159,12 @@ pub fn digest_request(headers: &HeaderMap, secret: &str) -> Option<AuthClaims> {
     let data = jwt::decode(secret, &token, js::date::now_ms()).ok()?;
     let claims = io_jwt().validate(&data).ok()?;
     let text = |key: &str| claims.get(key).and_then(Value::as_str).map(str::to_string);
-    Some(AuthClaims { session_id: text("sessionId")?, user_id: text("userId")?, created_on: text("createdOn")?, token })
+    Some(AuthClaims {
+        session_id: text("sessionId")?,
+        user_id: text("userId")?,
+        created_on: text("createdOn")?,
+        token,
+    })
 }
 
 #[cfg(test)]
@@ -144,14 +174,23 @@ mod tests {
 
     fn headers(authorization: &str) -> HeaderMap {
         let mut headers = HeaderMap::new();
-        headers.insert("authorization", HeaderValue::from_str(authorization).unwrap());
+        headers.insert(
+            "authorization",
+            HeaderValue::from_str(authorization).unwrap(),
+        );
         headers
     }
 
     #[test]
     fn reads_bearer_and_bare_tokens() {
-        assert_eq!(token_from_request(&headers("Bearer abc")), Some("abc".into()));
-        assert_eq!(token_from_request(&headers("bearer   abc ")), Some("abc".into()));
+        assert_eq!(
+            token_from_request(&headers("Bearer abc")),
+            Some("abc".into())
+        );
+        assert_eq!(
+            token_from_request(&headers("bearer   abc ")),
+            Some("abc".into())
+        );
         assert_eq!(token_from_request(&headers("abc")), Some("abc".into()));
         assert_eq!(token_from_request(&headers("undefined")), None);
         assert_eq!(token_from_request(&headers("Bearer ")), None);
@@ -160,7 +199,12 @@ mod tests {
 
     #[test]
     fn validates_sessions_against_their_claims() {
-        let auth = AuthClaims { session_id: "s".into(), user_id: "u".into(), created_on: String::new(), token: "t".into() };
+        let auth = AuthClaims {
+            session_id: "s".into(),
+            user_id: "u".into(),
+            created_on: String::new(),
+            token: "t".into(),
+        };
         let session = Session {
             id: "s".into(),
             created_on: String::new(),
@@ -174,17 +218,50 @@ mod tests {
         };
         let now = js::date::now_ms();
         assert!(is_session_valid(Some(&auth), Some(&session), now));
-        assert!(!is_session_valid(Some(&auth), Some(&Session { ended: Some(true), ..session.clone() }), now));
-        assert!(!is_session_valid(Some(&auth), Some(&Session { expires_on: "2000-01-01".into(), ..session.clone() }), now));
-        assert!(!is_session_valid(Some(&auth), Some(&Session { expires_on: "nope".into(), ..session.clone() }), now));
-        assert!(!is_session_valid(Some(&auth), Some(&Session { token: "x".into(), ..session.clone() }), now));
+        assert!(!is_session_valid(
+            Some(&auth),
+            Some(&Session {
+                ended: Some(true),
+                ..session.clone()
+            }),
+            now
+        ));
+        assert!(!is_session_valid(
+            Some(&auth),
+            Some(&Session {
+                expires_on: "2000-01-01".into(),
+                ..session.clone()
+            }),
+            now
+        ));
+        assert!(!is_session_valid(
+            Some(&auth),
+            Some(&Session {
+                expires_on: "nope".into(),
+                ..session.clone()
+            }),
+            now
+        ));
+        assert!(!is_session_valid(
+            Some(&auth),
+            Some(&Session {
+                token: "x".into(),
+                ..session.clone()
+            }),
+            now
+        ));
         assert!(!is_session_valid(None, Some(&session), now));
     }
 
     #[test]
     fn digests_valid_tokens_only() {
         let claims = json!({"sessionId": " s1 ", "userId": "u1", "createdOn": "2026-01-01"});
-        let token = jwt::encode("secret", claims.as_object().unwrap(), Some(60), js::date::now_ms());
+        let token = jwt::encode(
+            "secret",
+            claims.as_object().unwrap(),
+            Some(60),
+            js::date::now_ms(),
+        );
         let auth = digest_request(&headers(&format!("Bearer {token}")), "secret").unwrap();
         assert_eq!(auth.session_id, "s1");
         assert_eq!(auth.created_on, "2026-01-01T00:00:00.000Z");

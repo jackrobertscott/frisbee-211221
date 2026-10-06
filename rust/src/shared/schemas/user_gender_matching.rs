@@ -4,7 +4,7 @@
 //! into. It is not the player's gender identity, so only these two values exist.
 
 use crate::io_schema;
-use crate::shared::torva::{io, IoError};
+use crate::shared::torva::{IoError, io};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -117,7 +117,9 @@ fn alias_map() -> &'static HashMap<String, GenderMatching> {
 }
 
 fn has_word(words: &[String], candidates: &[&str]) -> bool {
-    candidates.iter().any(|candidate| words.iter().any(|word| word == candidate))
+    candidates
+        .iter()
+        .any(|candidate| words.iter().any(|word| word == candidate))
 }
 
 /// Values that name neither matching, so a male/female word inside them is not trusted.
@@ -133,7 +135,18 @@ fn has_unmatched_key(key: &str, words: &[String]) -> bool {
         || key.contains("selfdescribe")
         || has_word(
             words,
-            &["nb", "enby", "x", "agender", "bigender", "other", "unspecified", "unknown", "undisclosed", "declined"],
+            &[
+                "nb",
+                "enby",
+                "x",
+                "agender",
+                "bigender",
+                "other",
+                "unspecified",
+                "unknown",
+                "undisclosed",
+                "declined",
+            ],
         )
 }
 
@@ -152,13 +165,22 @@ pub fn normalize_user_gender_matching(value: &str) -> Option<GenderMatching> {
         return None;
     }
     let mut inferred = Vec::new();
-    if has_word(&words, &["female", "f", "woman", "women", "womens", "girl", "girls", "lady", "ladies"]) {
+    if has_word(
+        &words,
+        &[
+            "female", "f", "woman", "women", "womens", "girl", "girls", "lady", "ladies",
+        ],
+    ) {
         inferred.push(GenderMatching::Female);
     }
     if has_word(&words, &["male", "m", "man", "men", "mens", "boy", "boys"]) {
         inferred.push(GenderMatching::Male);
     }
-    if inferred.len() == 1 { inferred.first().copied() } else { None }
+    if inferred.len() == 1 {
+        inferred.first().copied()
+    } else {
+        None
+    }
 }
 
 io_schema! {
@@ -191,14 +213,33 @@ mod tests {
         fn maps_exact_aliases_regardless_of_case_spacing_and_punctuation() {
             expect_all(
                 &[
-                    "male", "Male", " MALE ", "m", "Man", "mens", "MMP", "Male-matching", "Male Matching", "trans man", "FTM",
+                    "male",
+                    "Male",
+                    " MALE ",
+                    "m",
+                    "Man",
+                    "mens",
+                    "MMP",
+                    "Male-matching",
+                    "Male Matching",
+                    "trans man",
+                    "FTM",
                     "female to male",
                 ],
                 Some(GenderMatching::Male),
             );
             expect_all(
                 &[
-                    "female", "F", "Woman", "womxn", "Ladies", "FMP", "female-matching", "Trans Woman", "MTF", "male to female",
+                    "female",
+                    "F",
+                    "Woman",
+                    "womxn",
+                    "Ladies",
+                    "FMP",
+                    "female-matching",
+                    "Trans Woman",
+                    "MTF",
+                    "male to female",
                 ],
                 Some(GenderMatching::Female),
             );
@@ -211,8 +252,14 @@ mod tests {
 
         #[test]
         fn infers_a_single_matching_from_words_in_longer_values() {
-            expect_all(&["Male (he/him)", "mens team", "Boys"], Some(GenderMatching::Male));
-            expect_all(&["Woman, she/her", "female player"], Some(GenderMatching::Female));
+            expect_all(
+                &["Male (he/him)", "mens team", "Boys"],
+                Some(GenderMatching::Male),
+            );
+            expect_all(
+                &["Woman, she/her", "female player"],
+                Some(GenderMatching::Female),
+            );
         }
 
         #[test]
@@ -242,7 +289,18 @@ mod tests {
 
         #[test]
         fn does_not_match_ambiguous_or_unrecognised_values() {
-            expect_all(&["Male/Female", "man or woman", "femme", "W", "Females", "abc", "masc"], None);
+            expect_all(
+                &[
+                    "Male/Female",
+                    "man or woman",
+                    "femme",
+                    "W",
+                    "Females",
+                    "abc",
+                    "masc",
+                ],
+                None,
+            );
         }
     }
 
@@ -264,12 +322,18 @@ mod tests {
 
         #[test]
         fn normalises_valid_values() {
-            assert_eq!(io_user_gender_matching().validate(&json!("Woman")), Ok(json!("female")));
+            assert_eq!(
+                io_user_gender_matching().validate(&json!("Woman")),
+                Ok(json!("female"))
+            );
         }
 
         #[test]
         fn rejects_non_strings_and_unrecognised_values() {
-            assert_eq!(io_user_gender_matching().validate(&json!(1)), Err("Enum value is not a string.".to_string()));
+            assert_eq!(
+                io_user_gender_matching().validate(&json!(1)),
+                Err("Enum value is not a string.".to_string())
+            );
             for value in ["abc", "non-binary", "other"] {
                 assert_eq!(
                     io_user_gender_matching().validate(&json!(value)),

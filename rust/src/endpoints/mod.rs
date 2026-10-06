@@ -41,10 +41,17 @@ mod tests {
     fn registers_each_path_once_and_only_contract_paths() {
         let endpoints = all();
         let paths: HashSet<&str> = endpoints.iter().map(|e| e.def.path).collect();
-        assert_eq!(paths.len(), endpoints.len(), "duplicate endpoint registration");
+        assert_eq!(
+            paths.len(),
+            endpoints.len(),
+            "duplicate endpoint registration"
+        );
         let contract: HashSet<&str> = all_defs().iter().map(|(_, def)| def.path).collect();
         for path in paths {
-            assert!(contract.contains(path), "{path} is not in the shared contract");
+            assert!(
+                contract.contains(path),
+                "{path} is not in the shared contract"
+            );
         }
     }
 }

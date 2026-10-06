@@ -2,31 +2,31 @@
 
 use super::{default_id, default_now};
 use crate::columns;
-use crate::db::schema::{Direction::*, IndexDef, TableDef};
 use crate::db::Record;
-use crate::shared::schemas::{io_report, Report};
+use crate::db::schema::{Direction::*, IndexDef, TableDef};
+use crate::shared::schemas::{Report, io_report};
 
 columns!(Report {
-    ID: String = "id" / "id" (Text),
-    CREATED_ON: String = "createdOn" / "created_on" (Text),
-    UPDATED_ON: String = "updatedOn" / "updated_on" (Text),
-    TEAM_ID: String = "teamId" / "team_id" (Text),
-    TEAM_AGAINST_ID: String = "teamAgainstId" / "team_against_id" (Text),
-    FIXTURE_ID: String = "fixtureId" / "fixture_id" (Text),
-    USER_ID: String = "userId" / "user_id" (Text),
-    SCORE_FOR: f64 = "scoreFor" / "score_for" (Real),
-    SCORE_AGAINST: f64 = "scoreAgainst" / "score_against" (Real),
-    MVP_MALE: String = "mvpMale" / "mvp_male" (Text),
-    MVP_MALE2: String = "mvpMale2" / "mvp_male2" (Text),
-    MVP_FEMALE: String = "mvpFemale" / "mvp_female" (Text),
-    MVP_FEMALE2: String = "mvpFemale2" / "mvp_female2" (Text),
-    SPIRIT: f64 = "spirit" / "spirit" (Real),
-    SPIRIT_COMMENT: String = "spiritComment" / "spirit_comment" (Text),
-    SPIRIT_P1: f64 = "spiritP1" / "spirit_p1" (Real),
-    SPIRIT_P2: f64 = "spiritP2" / "spirit_p2" (Real),
-    SPIRIT_P3: f64 = "spiritP3" / "spirit_p3" (Real),
-    SPIRIT_P4: f64 = "spiritP4" / "spirit_p4" (Real),
-    SPIRIT_P5: f64 = "spiritP5" / "spirit_p5" (Real),
+    ID: String = "id" / "id"(Text),
+    CREATED_ON: String = "createdOn" / "created_on"(Text),
+    UPDATED_ON: String = "updatedOn" / "updated_on"(Text),
+    TEAM_ID: String = "teamId" / "team_id"(Text),
+    TEAM_AGAINST_ID: String = "teamAgainstId" / "team_against_id"(Text),
+    FIXTURE_ID: String = "fixtureId" / "fixture_id"(Text),
+    USER_ID: String = "userId" / "user_id"(Text),
+    SCORE_FOR: f64 = "scoreFor" / "score_for"(Real),
+    SCORE_AGAINST: f64 = "scoreAgainst" / "score_against"(Real),
+    MVP_MALE: String = "mvpMale" / "mvp_male"(Text),
+    MVP_MALE2: String = "mvpMale2" / "mvp_male2"(Text),
+    MVP_FEMALE: String = "mvpFemale" / "mvp_female"(Text),
+    MVP_FEMALE2: String = "mvpFemale2" / "mvp_female2"(Text),
+    SPIRIT: f64 = "spirit" / "spirit"(Real),
+    SPIRIT_COMMENT: String = "spiritComment" / "spirit_comment"(Text),
+    SPIRIT_P1: f64 = "spiritP1" / "spirit_p1"(Real),
+    SPIRIT_P2: f64 = "spiritP2" / "spirit_p2"(Real),
+    SPIRIT_P3: f64 = "spiritP3" / "spirit_p3"(Real),
+    SPIRIT_P4: f64 = "spiritP4" / "spirit_p4"(Real),
+    SPIRIT_P5: f64 = "spiritP5" / "spirit_p5"(Real),
 });
 
 pub static TABLE: TableDef = TableDef {
@@ -69,7 +69,11 @@ pub static TABLE: TableDef = TableDef {
         IndexDef::new(&[("createdOn", Asc)]),
     ],
     schema: io_report,
-    defaults: &[("id", default_id), ("createdOn", default_now), ("updatedOn", default_now)],
+    defaults: &[
+        ("id", default_id),
+        ("createdOn", default_now),
+        ("updatedOn", default_now),
+    ],
 };
 
 impl Record for Report {

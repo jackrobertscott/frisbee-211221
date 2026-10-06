@@ -28,10 +28,11 @@ io_schema! {
         ])
     }
 }
-pub const MEMBER_LIST_OF_TEAM: EndpointDef = EndpointDef::new("MemberListOfTeam", "/MemberListOfTeam")
-    .access(AuthPoint::MemberRead)
-    .payload(member_team_id_payload)
-    .result(member_list_of_team_result);
+pub const MEMBER_LIST_OF_TEAM: EndpointDef =
+    EndpointDef::new("MemberListOfTeam", "/MemberListOfTeam")
+        .access(AuthPoint::MemberRead)
+        .payload(member_team_id_payload)
+        .result(member_list_of_team_result);
 
 io_schema! {
     pub fn member_create_payload() {
@@ -59,32 +60,37 @@ io_schema! {
         io::object([("exists", io::boolean()), ("user", io::optional(io_user_public()))])
     }
 }
-pub const MEMBER_LOOKUP_BY_EMAIL: EndpointDef = EndpointDef::new("MemberLookupByEmail", "/MemberLookupByEmail")
+pub const MEMBER_LOOKUP_BY_EMAIL: EndpointDef =
+    EndpointDef::new("MemberLookupByEmail", "/MemberLookupByEmail")
+        .access(AuthPoint::MemberManage)
+        .payload(member_lookup_by_email_payload)
+        .result(member_lookup_by_email_result);
+
+pub const MEMBER_REMOVE: EndpointDef = EndpointDef::new("MemberRemove", "/MemberRemove")
     .access(AuthPoint::MemberManage)
-    .payload(member_lookup_by_email_payload)
-    .result(member_lookup_by_email_result);
+    .payload(member_id_payload);
 
-pub const MEMBER_REMOVE: EndpointDef =
-    EndpointDef::new("MemberRemove", "/MemberRemove").access(AuthPoint::MemberManage).payload(member_id_payload);
-
-pub const MEMBER_REQUEST_CREATE: EndpointDef = EndpointDef::new("MemberRequestCreate", "/MemberRequestCreate")
-    .access(AuthPoint::TeamJoin)
-    .payload(member_team_id_payload)
-    .result(io_member);
+pub const MEMBER_REQUEST_CREATE: EndpointDef =
+    EndpointDef::new("MemberRequestCreate", "/MemberRequestCreate")
+        .access(AuthPoint::TeamJoin)
+        .payload(member_team_id_payload)
+        .result(io_member);
 
 io_schema! {
     pub fn member_accept_or_decline_payload() {
         io::object([("memberId", io_member().field("id")), ("accept", io::boolean())])
     }
 }
-pub const MEMBER_ACCEPT_OR_DECLINE: EndpointDef = EndpointDef::new("MemberAcceptOrDecline", "/MemberAcceptOrDecline")
-    .access(AuthPoint::MemberManage)
-    .payload(member_accept_or_decline_payload);
+pub const MEMBER_ACCEPT_OR_DECLINE: EndpointDef =
+    EndpointDef::new("MemberAcceptOrDecline", "/MemberAcceptOrDecline")
+        .access(AuthPoint::MemberManage)
+        .payload(member_accept_or_decline_payload);
 
-pub const MEMBER_SET_CAPTAIN: EndpointDef = EndpointDef::new("MemberSetCaptain", "/MemberSetCaptain")
-    .access(AuthPoint::MemberManage)
-    .payload(member_id_payload)
-    .result(io_member);
+pub const MEMBER_SET_CAPTAIN: EndpointDef =
+    EndpointDef::new("MemberSetCaptain", "/MemberSetCaptain")
+        .access(AuthPoint::MemberManage)
+        .payload(member_id_payload)
+        .result(io_member);
 
 pub const DEFS: &[&EndpointDef] = &[
     &MEMBER_LIST_OF_TEAM,

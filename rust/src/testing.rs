@@ -14,7 +14,10 @@ pub struct TestDir(PathBuf);
 
 impl TestDir {
     pub fn new() -> TestDir {
-        let path = std::env::temp_dir().join(format!("frisbee-test-{}", crate::utils::random::generate_id()));
+        let path = std::env::temp_dir().join(format!(
+            "frisbee-test-{}",
+            crate::utils::random::generate_id()
+        ));
         let _ = std::fs::create_dir_all(&path);
         TestDir(path)
     }
@@ -55,13 +58,18 @@ impl TestApp {
         let mut config = Config::for_tests(dir.path().join("test.sqlite"));
         adjust(&mut config);
         let config = Arc::new(config);
-        let db = Db::open(&config.sqlite_path).unwrap_or_else(|error| panic!("open test database: {error}"));
+        let db = Db::open(&config.sqlite_path)
+            .unwrap_or_else(|error| panic!("open test database: {error}"));
         db.call_blocking(crate::db::migrations::run_startup_schema_quiet)
             .unwrap_or_else(|error| panic!("migrate test database: {error}"));
         let transport = Arc::new(CapturingTransport::default());
         let mailer = Mailer::new(config.clone(), transport.clone());
         let state = AppState::new(config, db, mailer, endpoints);
-        TestApp { state, transport, dir }
+        TestApp {
+            state,
+            transport,
+            dir,
+        }
     }
 
     pub fn db(&self) -> &Db {

@@ -30,20 +30,22 @@ io_schema! {
         io::object([("team", io_team()), ("member", io_member())])
     }
 }
-pub const TEAM_CURRENT_CREATE: EndpointDef = EndpointDef::new("TeamCurrentCreate", "/TeamCurrentCreate")
-    .access(AuthPoint::TeamJoin)
-    .payload(team_current_create_payload)
-    .result(team_current_create_result);
+pub const TEAM_CURRENT_CREATE: EndpointDef =
+    EndpointDef::new("TeamCurrentCreate", "/TeamCurrentCreate")
+        .access(AuthPoint::TeamJoin)
+        .payload(team_current_create_payload)
+        .result(team_current_create_result);
 
 io_schema! {
     pub fn team_current_update_payload() {
         io_team().pick(&["name", "color", "phone", "email"]).extend([("teamId", io_team().field("id"))])
     }
 }
-pub const TEAM_CURRENT_UPDATE: EndpointDef = EndpointDef::new("TeamCurrentUpdate", "/TeamCurrentUpdate")
-    .access(AuthPoint::TeamManage)
-    .payload(team_current_update_payload)
-    .result(io_team);
+pub const TEAM_CURRENT_UPDATE: EndpointDef =
+    EndpointDef::new("TeamCurrentUpdate", "/TeamCurrentUpdate")
+        .access(AuthPoint::TeamManage)
+        .payload(team_current_update_payload)
+        .result(io_team);
 
 io_schema! {
     pub fn team_create_payload() {
@@ -70,7 +72,14 @@ io_schema! {
         io::object([("teamId", io_team().field("id"))])
     }
 }
-pub const TEAM_DELETE: EndpointDef =
-    EndpointDef::new("TeamDelete", "/TeamDelete").access(AuthPoint::TeamDirectoryManage).payload(team_delete_payload);
+pub const TEAM_DELETE: EndpointDef = EndpointDef::new("TeamDelete", "/TeamDelete")
+    .access(AuthPoint::TeamDirectoryManage)
+    .payload(team_delete_payload);
 
-pub const DEFS: &[&EndpointDef] = &[&TEAM_CURRENT_CREATE, &TEAM_CURRENT_UPDATE, &TEAM_CREATE, &TEAM_UPDATE, &TEAM_DELETE];
+pub const DEFS: &[&EndpointDef] = &[
+    &TEAM_CURRENT_CREATE,
+    &TEAM_CURRENT_UPDATE,
+    &TEAM_CREATE,
+    &TEAM_UPDATE,
+    &TEAM_DELETE,
+];

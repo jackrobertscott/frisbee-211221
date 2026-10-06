@@ -11,9 +11,9 @@ use crate::db::Db;
 use crate::log;
 use crate::shared::errors::AppResult;
 use crate::shared::schemas::{
-    normalize_user_gender_matching, GenderMatching, User, FALLBACK_USER_GENDER_MATCHING,
+    FALLBACK_USER_GENDER_MATCHING, GenderMatching, User, normalize_user_gender_matching,
 };
-use crate::tables::{user as user_table, USER};
+use crate::tables::{USER, user as user_table};
 use serde_json::{Map, Value};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -34,13 +34,20 @@ fn pick_majority_slot(picks: Option<&MvpSlotPicks>) -> Option<GenderMatching> {
     if picks.male_picks == picks.female_picks {
         return None;
     }
-    Some(if picks.male_picks > picks.female_picks { GenderMatching::Male } else { GenderMatching::Female })
+    Some(if picks.male_picks > picks.female_picks {
+        GenderMatching::Male
+    } else {
+        GenderMatching::Female
+    })
 }
 
 /// `runUserGenderMatchingMigration()`.
 pub async fn run_user_gender_matching_migration(db: &Db) -> AppResult<()> {
     let pending: Vec<Map<String, Value>> = USER
-        .scan_stored(db, User::GENDER_MATCHING.not_in([GenderMatching::Male, GenderMatching::Female]))
+        .scan_stored(
+            db,
+            User::GENDER_MATCHING.not_in([GenderMatching::Male, GenderMatching::Female]),
+        )
         .await?
         .into_iter()
         .filter(|record| record.get("id").is_some_and(Value::is_string))
@@ -49,7 +56,10 @@ pub async fn run_user_gender_matching_migration(db: &Db) -> AppResult<()> {
         return Ok(());
     }
 
-    log::log(format!("Backfilling gender matching for {} users...", pending.len()));
+    log::log(format!(
+        "Backfilling gender matching for {} users...",
+        pending.len()
+    ));
 
     let unmatched_ids: Vec<String> = pending
         .iter()
@@ -57,24 +67,39 @@ pub async fn run_user_gender_matching_migration(db: &Db) -> AppResult<()> {
         .filter_map(|record| record.get("id").and_then(Value::as_str).map(str::to_string))
         .collect();
     let ids = unmatched_ids.clone();
-    let picks_by_user_id = db.call(move |c| user_table::mvp_slot_picks(c, &ids)).await?;
+    let picks_by_user_id = db
+        .call(move |c| user_table::mvp_slot_picks(c, &ids))
+        .await?;
 
     let mut male = 0;
     let mut female = 0;
     let mut from_votes = 0;
     for record in &pending {
-        let id = record.get("id").and_then(Value::as_str).unwrap_or_default().to_string();
+        let id = record
+            .get("id")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_string();
         let stored = read_stored_gender_matching(record);
         let voted = if stored.is_some() {
             None
         } else {
-            pick_majority_slot(picks_by_user_id.get(&id).map(|(male, female)| MvpSlotPicks { male_picks: *male, female_picks: *female }).as_ref())
+            pick_majority_slot(
+                picks_by_user_id
+                    .get(&id)
+                    .map(|(male, female)| MvpSlotPicks {
+                        male_picks: *male,
+                        female_picks: *female,
+                    })
+                    .as_ref(),
+            )
         };
         if voted.is_some() {
             from_votes += 1;
         }
         let gender_matching = stored.or(voted).unwrap_or(FALLBACK_USER_GENDER_MATCHING);
-        db.call(move |c| user_table::set_gender_matching_clearing_legacy(c, &id, gender_matching)).await?;
+        db.call(move |c| user_table::set_gender_matching_clearing_legacy(c, &id, gender_matching))
+            .await?;
         match gender_matching {
             GenderMatching::Male => male += 1,
             GenderMatching::Female => female += 1,

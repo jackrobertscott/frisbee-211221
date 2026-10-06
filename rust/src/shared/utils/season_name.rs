@@ -6,8 +6,8 @@
 //! the `season_name` collation registered on every connection.
 
 use std::cmp::Ordering;
-use unicode_normalization::char::is_combining_mark;
 use unicode_normalization::UnicodeNormalization;
+use unicode_normalization::char::is_combining_mark;
 
 /// `seasonNameCollation`: the Mongo collation the TS server declared.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -17,8 +17,11 @@ pub struct SeasonNameCollation {
     pub strength: u8,
 }
 
-pub const SEASON_NAME_COLLATION: SeasonNameCollation =
-    SeasonNameCollation { locale: "en", numeric_ordering: true, strength: 1 };
+pub const SEASON_NAME_COLLATION: SeasonNameCollation = SeasonNameCollation {
+    locale: "en",
+    numeric_ordering: true,
+    strength: 1,
+};
 
 /// The SQLite collation name implementing [`compare_season_names`].
 pub const SEASON_NAME_SQL_COLLATION: &str = "season_name";
@@ -47,7 +50,11 @@ impl Element {
 }
 
 fn elements(value: &str) -> Vec<Element> {
-    let folded: String = value.nfkd().filter(|c| !is_combining_mark(*c)).collect::<String>().to_lowercase();
+    let folded: String = value
+        .nfkd()
+        .filter(|c| !is_combining_mark(*c))
+        .collect::<String>()
+        .to_lowercase();
     let mut out = Vec::new();
     let mut chars = folded.chars().peekable();
     while let Some(c) = chars.next() {
@@ -58,7 +65,11 @@ fn elements(value: &str) -> Vec<Element> {
                 chars.next();
             }
             let trimmed = digits.trim_start_matches('0');
-            out.push(Element::Number(if trimmed.is_empty() { "0".into() } else { trimmed.into() }));
+            out.push(Element::Number(if trimmed.is_empty() {
+                "0".into()
+            } else {
+                trimmed.into()
+            }));
         } else if crate::js::is_whitespace(c) {
             out.push(Element::Space);
         } else if c.is_ascii_punctuation() && !"$+<=>^`|~".contains(c) {
@@ -116,11 +127,16 @@ pub fn compare_season_names(left: &str, right: &str) -> Ordering {
 
 /// `compareSeasonNames` for arbitrary JSON values: `null`/missing count as
 /// empty strings and everything else is stringified like `String(value)`.
-pub fn compare_season_name_values(left: Option<&serde_json::Value>, right: Option<&serde_json::Value>) -> Ordering {
+pub fn compare_season_name_values(
+    left: Option<&serde_json::Value>,
+    right: Option<&serde_json::Value>,
+) -> Ordering {
     let text = |value: Option<&serde_json::Value>| match value {
         None | Some(serde_json::Value::Null) => String::new(),
         Some(serde_json::Value::String(s)) => s.clone(),
-        Some(serde_json::Value::Number(n)) => crate::js::number_to_string(n.as_f64().unwrap_or(f64::NAN)),
+        Some(serde_json::Value::Number(n)) => {
+            crate::js::number_to_string(n.as_f64().unwrap_or(f64::NAN))
+        }
         Some(other) => other.to_string(),
     };
     compare_season_names(&text(left), &text(right))
@@ -149,22 +165,41 @@ mod tests {
 
         #[test]
         fn orders_alphabetically() {
-            assert_eq!(compare_season_names("Autumn 2024", "Winter 2023"), Ordering::Less);
-            assert_eq!(compare_season_names("2025 Winter", "2024 Winter"), Ordering::Greater);
+            assert_eq!(
+                compare_season_names("Autumn 2024", "Winter 2023"),
+                Ordering::Less
+            );
+            assert_eq!(
+                compare_season_names("2025 Winter", "2024 Winter"),
+                Ordering::Greater
+            );
         }
 
         #[test]
         fn treats_null_and_undefined_as_empty_strings_and_stringifies_others() {
-            assert_eq!(compare_season_name_values(None, Some(&json!(""))), Ordering::Equal);
-            assert_eq!(compare_season_name_values(Some(&json!(null)), Some(&json!("a"))), Ordering::Less);
-            assert_eq!(compare_season_name_values(Some(&json!(10)), Some(&json!(9))), Ordering::Greater);
+            assert_eq!(
+                compare_season_name_values(None, Some(&json!(""))),
+                Ordering::Equal
+            );
+            assert_eq!(
+                compare_season_name_values(Some(&json!(null)), Some(&json!("a"))),
+                Ordering::Less
+            );
+            assert_eq!(
+                compare_season_name_values(Some(&json!(10)), Some(&json!(9))),
+                Ordering::Greater
+            );
         }
 
         #[test]
         fn exposes_matching_mongo_collation_options() {
             assert_eq!(
                 SEASON_NAME_COLLATION,
-                SeasonNameCollation { locale: "en", numeric_ordering: true, strength: 1 }
+                SeasonNameCollation {
+                    locale: "en",
+                    numeric_ordering: true,
+                    strength: 1
+                }
             );
         }
     }

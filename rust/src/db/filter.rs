@@ -26,13 +26,32 @@ pub enum Filter {
     All,
     And(Vec<Filter>),
     Or(Vec<Filter>),
-    Cmp { column: &'static ColumnDef, op: Op, value: SqlValue, collation: Option<Collation> },
-    In { column: &'static ColumnDef, values: Vec<SqlValue>, negate: bool, collation: Option<Collation> },
-    Exists { column: &'static ColumnDef, exists: bool },
+    Cmp {
+        column: &'static ColumnDef,
+        op: Op,
+        value: SqlValue,
+        collation: Option<Collation>,
+    },
+    In {
+        column: &'static ColumnDef,
+        values: Vec<SqlValue>,
+        negate: bool,
+        collation: Option<Collation>,
+    },
+    Exists {
+        column: &'static ColumnDef,
+        exists: bool,
+    },
     /// `regex.from(needle)`: a case-insensitive substring match.
-    ContainsCi { column: &'static ColumnDef, needle: String },
+    ContainsCi {
+        column: &'static ColumnDef,
+        needle: String,
+    },
     /// Some element of a child-table array matches (`{'emails.value': ...}`).
-    Any { child: &'static ChildDef, filter: Box<Filter> },
+    Any {
+        child: &'static ChildDef,
+        filter: Box<Filter>,
+    },
 }
 
 impl Filter {
@@ -63,31 +82,60 @@ impl Filter {
     /// Equality conditions at the top level (`{id, kind}`), used to seed upserts.
     pub fn equalities(&self) -> Vec<(&'static ColumnDef, SqlValue)> {
         match self {
-            Filter::Cmp { column, op: Op::Eq, value, collation: None } => vec![(*column, value.clone())],
+            Filter::Cmp {
+                column,
+                op: Op::Eq,
+                value,
+                collation: None,
+            } => vec![(*column, value.clone())],
             Filter::And(list) => list.iter().flat_map(Filter::equalities).collect(),
             _ => Vec::new(),
         }
     }
 
     /// Renders the filter as SQL against table alias `alias`, pushing bound values.
-    pub fn to_sql(&self, alias: &str, parent: Option<(&str, &str)>, params: &mut Vec<SqlValue>) -> String {
+    pub fn to_sql(
+        &self,
+        alias: &str,
+        parent: Option<(&str, &str)>,
+        params: &mut Vec<SqlValue>,
+    ) -> String {
         match self {
             Filter::All => "1".into(),
             Filter::And(list) => {
                 if list.is_empty() {
                     return "1".into();
                 }
-                format!("({})", list.iter().map(|f| f.to_sql(alias, parent, params)).collect::<Vec<_>>().join(" AND "))
+                format!(
+                    "({})",
+                    list.iter()
+                        .map(|f| f.to_sql(alias, parent, params))
+                        .collect::<Vec<_>>()
+                        .join(" AND ")
+                )
             }
             Filter::Or(list) => {
                 if list.is_empty() {
                     return "0".into();
                 }
-                format!("({})", list.iter().map(|f| f.to_sql(alias, parent, params)).collect::<Vec<_>>().join(" OR "))
+                format!(
+                    "({})",
+                    list.iter()
+                        .map(|f| f.to_sql(alias, parent, params))
+                        .collect::<Vec<_>>()
+                        .join(" OR ")
+                )
             }
-            Filter::Cmp { column, op, value, collation } => {
+            Filter::Cmp {
+                column,
+                op,
+                value,
+                collation,
+            } => {
                 let col = format!("{alias}.\"{}\"", column.sql);
-                let collate = collation.map(|c| format!(" COLLATE {}", c.sql_name())).unwrap_or_default();
+                let collate = collation
+                    .map(|c| format!(" COLLATE {}", c.sql_name()))
+                    .unwrap_or_default();
                 params.push(value.clone());
                 match op {
                     Op::Eq => format!("{col} = ?{collate}"),
@@ -98,9 +146,16 @@ impl Filter {
                     Op::Lte => format!("{col} <= ?{collate}"),
                 }
             }
-            Filter::In { column, values, negate, collation } => {
+            Filter::In {
+                column,
+                values,
+                negate,
+                collation,
+            } => {
                 let col = format!("{alias}.\"{}\"", column.sql);
-                let collate = collation.map(|c| format!(" COLLATE {}", c.sql_name())).unwrap_or_default();
+                let collate = collation
+                    .map(|c| format!(" COLLATE {}", c.sql_name()))
+                    .unwrap_or_default();
                 if values.is_empty() {
                     return if *negate { "1".into() } else { "0".into() };
                 }
@@ -114,7 +169,11 @@ impl Filter {
             }
             Filter::Exists { column, exists } => {
                 let col = format!("{alias}.\"{}\"", column.sql);
-                if *exists { format!("{col} IS NOT NULL") } else { format!("{col} IS NULL") }
+                if *exists {
+                    format!("{col} IS NOT NULL")
+                } else {
+                    format!("{col} IS NULL")
+                }
             }
             Filter::ContainsCi { column, needle } => {
                 params.push(SqlValue::Text(needle.clone()));
@@ -135,7 +194,12 @@ impl Filter {
 
 impl<V: ColumnValue> Col<V> {
     fn cmp(self, op: Op, value: V) -> Filter {
-        Filter::Cmp { column: self.def, op, value: value.to_sql(), collation: None }
+        Filter::Cmp {
+            column: self.def,
+            op,
+            value: value.to_sql(),
+            collation: None,
+        }
     }
     /// `{field: value}`
     pub fn eq(self, value: impl Into<V>) -> Filter {
@@ -184,36 +248,61 @@ impl<V: ColumnValue> Col<V> {
 impl<V> Col<V> {
     /// `{field: {$exists: true}}`
     pub fn exists(self) -> Filter {
-        Filter::Exists { column: self.def, exists: true }
+        Filter::Exists {
+            column: self.def,
+            exists: true,
+        }
     }
     /// `{field: {$exists: false}}`
     pub fn missing(self) -> Filter {
-        Filter::Exists { column: self.def, exists: false }
+        Filter::Exists {
+            column: self.def,
+            exists: false,
+        }
     }
     /// Ascending sort on this column.
     pub fn asc(self) -> SortKey {
-        SortKey { column: self.def, descending: false, collation: None }
+        SortKey {
+            column: self.def,
+            descending: false,
+            collation: None,
+        }
     }
     /// Descending sort on this column.
     pub fn desc(self) -> SortKey {
-        SortKey { column: self.def, descending: true, collation: None }
+        SortKey {
+            column: self.def,
+            descending: true,
+            collation: None,
+        }
     }
 }
 
 impl Col<String> {
     /// `{field: regex.from(needle)}`: contains `needle`, ignoring case.
     pub fn contains_ci(self, needle: impl Into<String>) -> Filter {
-        Filter::ContainsCi { column: self.def, needle: needle.into() }
+        Filter::ContainsCi {
+            column: self.def,
+            needle: needle.into(),
+        }
     }
     /// Equality under the case-insensitive collation (Mongo strength 2).
     pub fn eq_ci(self, value: impl Into<String>) -> Filter {
-        Filter::Cmp { column: self.def, op: Op::Eq, value: SqlValue::Text(value.into()), collation: Some(Collation::CaseInsensitive) }
+        Filter::Cmp {
+            column: self.def,
+            op: Op::Eq,
+            value: SqlValue::Text(value.into()),
+            collation: Some(Collation::CaseInsensitive),
+        }
     }
     /// `$in` under the case-insensitive collation.
     pub fn in_ci<I: Into<String>>(self, values: impl IntoIterator<Item = I>) -> Filter {
         Filter::In {
             column: self.def,
-            values: values.into_iter().map(|v| SqlValue::Text(v.into())).collect(),
+            values: values
+                .into_iter()
+                .map(|v| SqlValue::Text(v.into()))
+                .collect(),
             negate: false,
             collation: Some(Collation::CaseInsensitive),
         }
@@ -231,7 +320,10 @@ impl ChildCol {
     }
     /// Some element matches `filter` (built from the child's columns).
     pub fn any(&self, filter: Filter) -> Filter {
-        Filter::Any { child: self.child, filter: Box::new(filter) }
+        Filter::Any {
+            child: self.child,
+            filter: Box::new(filter),
+        }
     }
 }
 
@@ -251,8 +343,15 @@ impl SortKey {
     }
 
     pub fn to_sql(&self, alias: &str) -> String {
-        let collate = self.collation.map(|c| format!(" COLLATE {}", c.sql_name())).unwrap_or_default();
-        format!("{alias}.\"{}\"{collate} {}", self.column.sql, if self.descending { "DESC" } else { "ASC" })
+        let collate = self
+            .collation
+            .map(|c| format!(" COLLATE {}", c.sql_name()))
+            .unwrap_or_default();
+        format!(
+            "{alias}.\"{}\"{collate} {}",
+            self.column.sql,
+            if self.descending { "DESC" } else { "ASC" }
+        )
     }
 }
 
@@ -287,12 +386,22 @@ impl Query {
     /// sort key; insertion order (`_seq`) is used only when nothing is sorted.
     pub fn to_sql(&self, alias: &str) -> Result<String, String> {
         if let Some(key) = self.sort.iter().find(|key| key.column.field == "id") {
-            return Err(format!("Sorting by \"{}\" is not allowed.", key.column.field));
+            return Err(format!(
+                "Sorting by \"{}\" is not allowed.",
+                key.column.field
+            ));
         }
         let order = if self.sort.is_empty() {
             format!(" ORDER BY {alias}.\"_seq\" ASC")
         } else {
-            format!(" ORDER BY {}", self.sort.iter().map(|key| key.to_sql(alias)).collect::<Vec<_>>().join(", "))
+            format!(
+                " ORDER BY {}",
+                self.sort
+                    .iter()
+                    .map(|key| key.to_sql(alias))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
         };
         // Mongo treats a limit of 0 as "no limit" and ignores a skip of 0
         let limit = self.limit.filter(|l| *l > 0);

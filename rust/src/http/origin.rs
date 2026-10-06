@@ -8,7 +8,9 @@ pub fn normalize(value: Option<&str>) -> Option<String> {
     if crate::js::trim(value).is_empty() {
         return None;
     }
-    Url::parse(value).ok().map(|url| url.origin().ascii_serialization())
+    Url::parse(value)
+        .ok()
+        .map(|url| url.origin().ascii_serialization())
 }
 
 /// The allowed origin, derived from `URL_CLIENT`.
@@ -20,12 +22,17 @@ pub struct Origin {
 
 impl Origin {
     pub fn new(url_client: &str) -> Self {
-        Origin { url_client: url_client.to_string(), allowed_origin: normalize(Some(url_client)) }
+        Origin {
+            url_client: url_client.to_string(),
+            allowed_origin: normalize(Some(url_client)),
+        }
     }
 
     /// `origin.allowed()`.
     pub fn allowed(&self) -> String {
-        self.allowed_origin.clone().unwrap_or_else(|| self.url_client.clone())
+        self.allowed_origin
+            .clone()
+            .unwrap_or_else(|| self.url_client.clone())
     }
 
     /// `origin.isAllowed(value)`.

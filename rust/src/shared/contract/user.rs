@@ -4,10 +4,18 @@ use crate::io_schema;
 use crate::shared::auth_access::AuthPoint;
 use crate::shared::schemas::{io_user, io_user_email, io_user_safe};
 use crate::shared::torva::io;
-use crate::shared::utils::endpoint_def::{io_list_limit, io_list_skip, io_sort_direction, EndpointDef};
+use crate::shared::utils::endpoint_def::{
+    EndpointDef, io_list_limit, io_list_skip, io_sort_direction,
+};
 use serde::{Deserialize, Serialize};
 
-pub const USER_LIST_SORT_KEYS: [&str; 5] = ["firstName", "lastName", "email", "genderMatching", "createdOn"];
+pub const USER_LIST_SORT_KEYS: [&str; 5] = [
+    "firstName",
+    "lastName",
+    "email",
+    "genderMatching",
+    "createdOn",
+];
 
 /// `TUserListSortKey`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -30,30 +38,33 @@ io_schema! {
         ])
     }
 }
-pub const USER_CURRENT_UPDATE: EndpointDef = EndpointDef::new("UserCurrentUpdate", "/UserCurrentUpdate")
-    .access(AuthPoint::UserSelf)
-    .payload(user_profile_update_payload)
-    .result(io_user_safe);
+pub const USER_CURRENT_UPDATE: EndpointDef =
+    EndpointDef::new("UserCurrentUpdate", "/UserCurrentUpdate")
+        .access(AuthPoint::UserSelf)
+        .payload(user_profile_update_payload)
+        .result(io_user_safe);
 
 io_schema! {
     pub fn user_email_payload() {
         io::object([("email", io_user_email().field("value"))])
     }
 }
-pub const USER_CURRENT_EMAIL_ADD: EndpointDef = EndpointDef::new("UserCurrentEmailAdd", "/UserCurrentEmailAdd")
-    .access(AuthPoint::UserSelf)
-    .payload(user_email_payload)
-    .result(io_user_safe);
+pub const USER_CURRENT_EMAIL_ADD: EndpointDef =
+    EndpointDef::new("UserCurrentEmailAdd", "/UserCurrentEmailAdd")
+        .access(AuthPoint::UserSelf)
+        .payload(user_email_payload)
+        .result(io_user_safe);
 
 io_schema! {
     pub fn user_current_email_verify_payload() {
         io::object([("email", io_user_email().field("value")), ("code", io_user_email().field("code"))])
     }
 }
-pub const USER_CURRENT_EMAIL_VERIFY: EndpointDef = EndpointDef::new("UserCurrentEmailVerify", "/UserCurrentEmailVerify")
-    .access(AuthPoint::UserSelf)
-    .payload(user_current_email_verify_payload)
-    .result(io_user_safe);
+pub const USER_CURRENT_EMAIL_VERIFY: EndpointDef =
+    EndpointDef::new("UserCurrentEmailVerify", "/UserCurrentEmailVerify")
+        .access(AuthPoint::UserSelf)
+        .payload(user_current_email_verify_payload)
+        .result(io_user_safe);
 
 pub const USER_CURRENT_EMAIL_CODE_RESEND: EndpointDef =
     EndpointDef::new("UserCurrentEmailCodeResend", "/UserCurrentEmailCodeResend")
@@ -67,10 +78,11 @@ pub const USER_CURRENT_EMAIL_PRIMARY_SET: EndpointDef =
         .payload(user_email_payload)
         .result(io_user_safe);
 
-pub const USER_CURRENT_EMAIL_REMOVE: EndpointDef = EndpointDef::new("UserCurrentEmailRemove", "/UserCurrentEmailRemove")
-    .access(AuthPoint::UserSelf)
-    .payload(user_email_payload)
-    .result(io_user_safe);
+pub const USER_CURRENT_EMAIL_REMOVE: EndpointDef =
+    EndpointDef::new("UserCurrentEmailRemove", "/UserCurrentEmailRemove")
+        .access(AuthPoint::UserSelf)
+        .payload(user_email_payload)
+        .result(io_user_safe);
 
 io_schema! {
     pub fn user_id_email_payload() {
@@ -82,10 +94,11 @@ pub const USER_EMAIL_ADD: EndpointDef = EndpointDef::new("UserEmailAdd", "/UserE
     .payload(user_id_email_payload)
     .result(io_user_safe);
 
-pub const USER_EMAIL_PRIMARY_SET: EndpointDef = EndpointDef::new("UserEmailPrimarySet", "/UserEmailPrimarySet")
-    .access(AuthPoint::UserManage)
-    .payload(user_id_email_payload)
-    .result(io_user_safe);
+pub const USER_EMAIL_PRIMARY_SET: EndpointDef =
+    EndpointDef::new("UserEmailPrimarySet", "/UserEmailPrimarySet")
+        .access(AuthPoint::UserManage)
+        .payload(user_id_email_payload)
+        .result(io_user_safe);
 
 io_schema! {
     pub fn user_email_verified_set_payload() {
@@ -96,10 +109,11 @@ io_schema! {
         ])
     }
 }
-pub const USER_EMAIL_VERIFIED_SET: EndpointDef = EndpointDef::new("UserEmailVerifiedSet", "/UserEmailVerifiedSet")
-    .access(AuthPoint::UserManage)
-    .payload(user_email_verified_set_payload)
-    .result(io_user_safe);
+pub const USER_EMAIL_VERIFIED_SET: EndpointDef =
+    EndpointDef::new("UserEmailVerifiedSet", "/UserEmailVerifiedSet")
+        .access(AuthPoint::UserManage)
+        .payload(user_email_verified_set_payload)
+        .result(io_user_safe);
 
 pub const USER_EMAIL_REMOVE: EndpointDef = EndpointDef::new("UserEmailRemove", "/UserEmailRemove")
     .access(AuthPoint::UserManage)
@@ -133,8 +147,10 @@ io_schema! {
         io::object([("count", io::number()), ("users", io::array(io_user_safe()))])
     }
 }
-pub const USER_LIST: EndpointDef =
-    EndpointDef::new("UserList", "/UserList").access(AuthPoint::UserManage).payload(user_list_payload).result(user_list_result);
+pub const USER_LIST: EndpointDef = EndpointDef::new("UserList", "/UserList")
+    .access(AuthPoint::UserManage)
+    .payload(user_list_payload)
+    .result(user_list_result);
 
 io_schema! {
     pub fn user_create_payload() {
@@ -147,8 +163,10 @@ io_schema! {
         ])
     }
 }
-pub const USER_CREATE: EndpointDef =
-    EndpointDef::new("UserCreate", "/UserCreate").access(AuthPoint::UserManage).payload(user_create_payload).result(io_user_safe);
+pub const USER_CREATE: EndpointDef = EndpointDef::new("UserCreate", "/UserCreate")
+    .access(AuthPoint::UserManage)
+    .payload(user_create_payload)
+    .result(io_user_safe);
 
 io_schema! {
     pub fn user_update_payload() {
@@ -161,8 +179,10 @@ io_schema! {
         ])
     }
 }
-pub const USER_UPDATE: EndpointDef =
-    EndpointDef::new("UserUpdate", "/UserUpdate").access(AuthPoint::UserManage).payload(user_update_payload).result(io_user_safe);
+pub const USER_UPDATE: EndpointDef = EndpointDef::new("UserUpdate", "/UserUpdate")
+    .access(AuthPoint::UserManage)
+    .payload(user_update_payload)
+    .result(io_user_safe);
 
 io_schema! {
     pub fn user_id_payload() {
@@ -179,18 +199,21 @@ io_schema! {
         io::object([("user1Id", io_user().field("id")), ("user2Id", io_user().field("id"))])
     }
 }
-pub const USER_MERGE: EndpointDef =
-    EndpointDef::new("UserMerge", "/UserMerge").access(AuthPoint::UserManage).payload(user_merge_payload).result(io_user_safe);
+pub const USER_MERGE: EndpointDef = EndpointDef::new("UserMerge", "/UserMerge")
+    .access(AuthPoint::UserManage)
+    .payload(user_merge_payload)
+    .result(io_user_safe);
 
 io_schema! {
     pub fn user_change_password_payload() {
         io::object([("userId", io_user().field("id")), ("newPassword", io::string())])
     }
 }
-pub const USER_CHANGE_PASSWORD: EndpointDef = EndpointDef::new("UserChangePassword", "/UserChangePassword")
-    .access(AuthPoint::UserManage)
-    .payload(user_change_password_payload)
-    .result(io_user_safe);
+pub const USER_CHANGE_PASSWORD: EndpointDef =
+    EndpointDef::new("UserChangePassword", "/UserChangePassword")
+        .access(AuthPoint::UserManage)
+        .payload(user_change_password_payload)
+        .result(io_user_safe);
 
 pub const DEFS: &[&EndpointDef] = &[
     &USER_CURRENT_UPDATE,

@@ -65,7 +65,13 @@ mod tests {
             last_name: "B".into(),
             gender_matching: GenderMatching::Female,
             password: Some("hash".into()),
-            emails: vec![UserEmail { value: "a@b.co".into(), verified: true, code: "x".into(), created_on: "c".into(), primary: true }],
+            emails: vec![UserEmail {
+                value: "a@b.co".into(),
+                verified: true,
+                code: "x".into(),
+                created_on: "c".into(),
+                primary: true,
+            }],
             avatar_url: None,
             bio: None,
             terms_accepted: true,
@@ -73,7 +79,10 @@ mod tests {
         };
         let safe = serde_json::to_value(select_safe_user_fields(&user)).unwrap();
         assert!(safe.get("password").is_none());
-        assert_eq!(safe["emails"], json!([{"value": "a@b.co", "verified": true, "createdOn": "c", "primary": true}]));
+        assert_eq!(
+            safe["emails"],
+            json!([{"value": "a@b.co", "verified": true, "createdOn": "c", "primary": true}])
+        );
         let public = serde_json::to_value(select_public_user_fields(&user)).unwrap();
         assert_eq!(
             public,

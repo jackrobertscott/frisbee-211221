@@ -4,9 +4,13 @@ use super::report::io_report_search_row;
 use super::team::TEAM_LIST_SORT_KEYS;
 use crate::io_schema;
 use crate::shared::auth_access::AuthPoint;
-use crate::shared::schemas::{io_fixture, io_member, io_report, io_season, io_team, io_user_public};
+use crate::shared::schemas::{
+    io_fixture, io_member, io_report, io_season, io_team, io_user_public,
+};
 use crate::shared::torva::io;
-use crate::shared::utils::endpoint_def::{io_list_limit, io_list_skip, io_sort_direction, EndpointDef};
+use crate::shared::utils::endpoint_def::{
+    EndpointDef, io_list_limit, io_list_skip, io_sort_direction,
+};
 use serde::{Deserialize, Serialize};
 
 pub const FEATURE_SPIRIT_SORT_KEYS: [&str; 12] = [
@@ -90,9 +94,10 @@ io_schema! {
         io::object([("teams", io::array(io_team())), ("fixtures", io::array(io_fixture()))])
     }
 }
-pub const FEATURE_COMPETITION_LOAD: EndpointDef = EndpointDef::new("FeatureCompetitionLoad", "/FeatureCompetitionLoad")
-    .payload(feature_season_id_payload)
-    .result(feature_competition_load_result);
+pub const FEATURE_COMPETITION_LOAD: EndpointDef =
+    EndpointDef::new("FeatureCompetitionLoad", "/FeatureCompetitionLoad")
+        .payload(feature_season_id_payload)
+        .result(feature_competition_load_result);
 
 io_schema! {
     pub fn feature_dashboard_teams_load_payload() {
@@ -136,11 +141,13 @@ io_schema! {
         ])
     }
 }
-pub const FEATURE_DASHBOARD_REPORTS_LOAD: EndpointDef =
-    EndpointDef::new("FeatureDashboardReportsLoad", "/FeatureDashboardReportsLoad")
-        .access(AuthPoint::ReportManage)
-        .payload(feature_dashboard_reports_load_payload)
-        .result(feature_dashboard_reports_load_result);
+pub const FEATURE_DASHBOARD_REPORTS_LOAD: EndpointDef = EndpointDef::new(
+    "FeatureDashboardReportsLoad",
+    "/FeatureDashboardReportsLoad",
+)
+.access(AuthPoint::ReportManage)
+.payload(feature_dashboard_reports_load_payload)
+.result(feature_dashboard_reports_load_result);
 
 io_schema! {
     pub fn feature_report_editor_load_payload() {
@@ -160,10 +167,11 @@ io_schema! {
         ])
     }
 }
-pub const FEATURE_REPORT_EDITOR_LOAD: EndpointDef = EndpointDef::new("FeatureReportEditorLoad", "/FeatureReportEditorLoad")
-    .access(AuthPoint::ReportWrite)
-    .payload(feature_report_editor_load_payload)
-    .result(feature_report_editor_load_result);
+pub const FEATURE_REPORT_EDITOR_LOAD: EndpointDef =
+    EndpointDef::new("FeatureReportEditorLoad", "/FeatureReportEditorLoad")
+        .access(AuthPoint::ReportWrite)
+        .payload(feature_report_editor_load_payload)
+        .result(feature_report_editor_load_result);
 
 io_schema! {
     pub fn feature_dashboard_spirit_load_payload() {
@@ -191,10 +199,11 @@ io_schema! {
         io::object([("rows", io::array(io_feature_mvp_row()))])
     }
 }
-pub const FEATURE_DASHBOARD_MVP_LOAD: EndpointDef = EndpointDef::new("FeatureDashboardMvpLoad", "/FeatureDashboardMvpLoad")
-    .access(AuthPoint::ReportManage)
-    .payload(feature_season_id_payload)
-    .result(feature_dashboard_mvp_load_result);
+pub const FEATURE_DASHBOARD_MVP_LOAD: EndpointDef =
+    EndpointDef::new("FeatureDashboardMvpLoad", "/FeatureDashboardMvpLoad")
+        .access(AuthPoint::ReportManage)
+        .payload(feature_season_id_payload)
+        .result(feature_dashboard_mvp_load_result);
 
 io_schema! {
     pub fn feature_fixture_id_payload() {
@@ -206,19 +215,21 @@ io_schema! {
         io::object([("fixture", io_fixture()), ("teams", io::array(io_team())), ("reports", io::array(io_report()))])
     }
 }
-pub const FEATURE_FIXTURE_TALLY_LOAD: EndpointDef = EndpointDef::new("FeatureFixtureTallyLoad", "/FeatureFixtureTallyLoad")
-    .access(AuthPoint::FixtureManage)
-    .payload(feature_fixture_id_payload)
-    .result(feature_fixture_tally_load_result);
+pub const FEATURE_FIXTURE_TALLY_LOAD: EndpointDef =
+    EndpointDef::new("FeatureFixtureTallyLoad", "/FeatureFixtureTallyLoad")
+        .access(AuthPoint::FixtureManage)
+        .payload(feature_fixture_id_payload)
+        .result(feature_fixture_tally_load_result);
 
 io_schema! {
     pub fn feature_fixture_view_load_result() {
         io::object([("fixture", io_fixture()), ("teams", io::array(io_team()))])
     }
 }
-pub const FEATURE_FIXTURE_VIEW_LOAD: EndpointDef = EndpointDef::new("FeatureFixtureViewLoad", "/FeatureFixtureViewLoad")
-    .payload(feature_fixture_id_payload)
-    .result(feature_fixture_view_load_result);
+pub const FEATURE_FIXTURE_VIEW_LOAD: EndpointDef =
+    EndpointDef::new("FeatureFixtureViewLoad", "/FeatureFixtureViewLoad")
+        .payload(feature_fixture_id_payload)
+        .result(feature_fixture_view_load_result);
 
 io_schema! {
     pub fn feature_team_setup_load_payload() {
@@ -230,10 +241,11 @@ io_schema! {
         io::object([("teams", io::array(io_team())), ("pendingTeam", io::optional(io_team()))])
     }
 }
-pub const FEATURE_TEAM_SETUP_LOAD: EndpointDef = EndpointDef::new("FeatureTeamSetupLoad", "/FeatureTeamSetupLoad")
-    .access(AuthPoint::TeamJoin)
-    .payload(feature_team_setup_load_payload)
-    .result(feature_team_setup_load_result);
+pub const FEATURE_TEAM_SETUP_LOAD: EndpointDef =
+    EndpointDef::new("FeatureTeamSetupLoad", "/FeatureTeamSetupLoad")
+        .access(AuthPoint::TeamJoin)
+        .payload(feature_team_setup_load_payload)
+        .result(feature_team_setup_load_result);
 
 io_schema! {
     pub fn feature_dashboard_user_memberships_load_payload() {
@@ -249,11 +261,13 @@ io_schema! {
         ])
     }
 }
-pub const FEATURE_DASHBOARD_USER_MEMBERSHIPS_LOAD: EndpointDef =
-    EndpointDef::new("FeatureDashboardUserMembershipsLoad", "/FeatureDashboardUserMembershipsLoad")
-        .access(AuthPoint::UserManage)
-        .payload(feature_dashboard_user_memberships_load_payload)
-        .result(feature_dashboard_user_memberships_load_result);
+pub const FEATURE_DASHBOARD_USER_MEMBERSHIPS_LOAD: EndpointDef = EndpointDef::new(
+    "FeatureDashboardUserMembershipsLoad",
+    "/FeatureDashboardUserMembershipsLoad",
+)
+.access(AuthPoint::UserManage)
+.payload(feature_dashboard_user_memberships_load_payload)
+.result(feature_dashboard_user_memberships_load_result);
 
 pub const DEFS: &[&EndpointDef] = &[
     &FEATURE_COMPETITION_LOAD,

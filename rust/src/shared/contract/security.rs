@@ -1,7 +1,9 @@
 //! Port of `shared/src/endpoints/SecurityDef.ts`.
 
 use crate::io_schema;
-use crate::shared::schemas::{io_season, io_session, io_team, io_user, io_user_email, io_user_safe};
+use crate::shared::schemas::{
+    io_season, io_session, io_team, io_user, io_user_email, io_user_safe,
+};
 use crate::shared::torva::io;
 use crate::shared::utils::endpoint_def::EndpointDef;
 
@@ -59,8 +61,9 @@ io_schema! {
         ])
     }
 }
-pub const SECURITY_LOGIN: EndpointDef =
-    EndpointDef::new("SecurityLogin", "/SecurityLogin").payload(security_login_payload).result(io_auth_payload);
+pub const SECURITY_LOGIN: EndpointDef = EndpointDef::new("SecurityLogin", "/SecurityLogin")
+    .payload(security_login_payload)
+    .result(io_auth_payload);
 
 io_schema! {
     pub fn security_sign_up_payload() {
@@ -75,8 +78,9 @@ io_schema! {
         ])
     }
 }
-pub const SECURITY_SIGN_UP: EndpointDef =
-    EndpointDef::new("SecuritySignUp", "/SecuritySignUp").payload(security_sign_up_payload).result(io_auth_payload);
+pub const SECURITY_SIGN_UP: EndpointDef = EndpointDef::new("SecuritySignUp", "/SecuritySignUp")
+    .payload(security_sign_up_payload)
+    .result(io_auth_payload);
 
 io_schema! {
     /// A bare email string.
@@ -98,8 +102,9 @@ io_schema! {
         ])
     }
 }
-pub const SECURITY_VERIFY: EndpointDef =
-    EndpointDef::new("SecurityVerify", "/SecurityVerify").payload(security_verify_payload).result(io_auth_payload);
+pub const SECURITY_VERIFY: EndpointDef = EndpointDef::new("SecurityVerify", "/SecurityVerify")
+    .payload(security_verify_payload)
+    .result(io_auth_payload);
 
 pub const SECURITY_LOGOUT: EndpointDef = EndpointDef::new("SecurityLogout", "/SecurityLogout");
 

@@ -3,7 +3,9 @@
 //! `400 Invalid body`).
 
 use super::headers::header;
-use crate::shared::errors::{bad_request_error, internal_error, payload_too_large_error, AppResult, ErrorOptions};
+use crate::shared::errors::{
+    AppResult, ErrorOptions, bad_request_error, internal_error, payload_too_large_error,
+};
 use axum::body::Body;
 use axum::http::HeaderMap;
 use futures_util::StreamExt;
@@ -22,15 +24,27 @@ fn charset(headers: &HeaderMap) -> AppResult<Option<Charset>> {
     let value = header(headers, "content-type").unwrap_or_else(|| "text/plain".into());
     let mut parts = value.split(';');
     let media = crate::js::trim(parts.next().unwrap_or("")).to_string();
-    let valid_token = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_alphanumeric() || b"!#$%&'*+.^_`|~-".contains(&b));
-    let valid_media = media.split_once('/').is_some_and(|(t, s)| valid_token(t) && valid_token(s));
+    let valid_token = |s: &str| {
+        !s.is_empty()
+            && s.bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b"!#$%&'*+.^_`|~-".contains(&b))
+    };
+    let valid_media = media
+        .split_once('/')
+        .is_some_and(|(t, s)| valid_token(t) && valid_token(s));
     if !valid_media {
-        return Err(internal_error(Some("invalid media type"), ErrorOptions::default()));
+        return Err(internal_error(
+            Some("invalid media type"),
+            ErrorOptions::default(),
+        ));
     }
     let mut charset = None;
     for parameter in parts {
         let Some((key, raw)) = parameter.split_once('=') else {
-            return Err(internal_error(Some("invalid parameter format"), ErrorOptions::default()));
+            return Err(internal_error(
+                Some("invalid parameter format"),
+                ErrorOptions::default(),
+            ));
         };
         let key = crate::js::trim(key).to_ascii_lowercase();
         let raw = crate::js::trim(raw).trim_matches('"').to_ascii_lowercase();
@@ -50,15 +64,17 @@ fn charset(headers: &HeaderMap) -> AppResult<Option<Charset>> {
 /// Reads at most `limit` bytes of `body` (`413` beyond it, `400` if the stream fails).
 pub async fn read_limited(headers: &HeaderMap, body: Body, limit: usize) -> AppResult<Vec<u8>> {
     let too_large = || payload_too_large_error("Body exceeded 1mb limit", ErrorOptions::default());
-    if let Some(length) = header(headers, "content-length").and_then(|v| v.trim().parse::<usize>().ok()) {
-        if length > limit {
-            return Err(too_large());
-        }
+    if let Some(length) =
+        header(headers, "content-length").and_then(|v| v.trim().parse::<usize>().ok())
+        && length > limit
+    {
+        return Err(too_large());
     }
     let mut stream = body.into_data_stream();
     let mut bytes = Vec::new();
     while let Some(chunk) = stream.next().await {
-        let chunk = chunk.map_err(|_| bad_request_error("Invalid body", ErrorOptions::default()))?;
+        let chunk =
+            chunk.map_err(|_| bad_request_error("Invalid body", ErrorOptions::default()))?;
         if bytes.len() + chunk.len() > limit {
             return Err(too_large());
         }
@@ -80,5 +96,6 @@ pub async fn read_json(headers: &HeaderMap, body: Body) -> AppResult<Value> {
 
 /// `JSON.parse(text)` with micro's error.
 pub fn parse_json(text: &str) -> AppResult<Value> {
-    serde_json::from_str(text).map_err(|_| bad_request_error("Invalid JSON", ErrorOptions::default()))
+    serde_json::from_str(text)
+        .map_err(|_| bad_request_error("Invalid JSON", ErrorOptions::default()))
 }

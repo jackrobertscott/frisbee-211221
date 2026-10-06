@@ -26,7 +26,9 @@ fn emit(level: Level, line: String) {
     {
         let guard = sinks().lock().unwrap_or_else(|e| e.into_inner());
         for sink in guard.iter() {
-            sink.lock().unwrap_or_else(|e| e.into_inner()).push((level, line.clone()));
+            sink.lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .push((level, line.clone()));
         }
     }
     if quiet() {
@@ -71,7 +73,10 @@ pub fn error(line: impl Into<String>) {
 /// Records every line logged while the returned guard is alive.
 pub fn capture() -> Capture {
     let sink: Sink = Arc::new(Mutex::new(Vec::new()));
-    sinks().lock().unwrap_or_else(|e| e.into_inner()).push(sink.clone());
+    sinks()
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .push(sink.clone());
     Capture { sink }
 }
 
@@ -93,7 +98,10 @@ impl Capture {
 
     /// Captured lines at `level` that contain `needle`.
     pub fn matching(&self, level: Level, needle: &str) -> Vec<String> {
-        self.lines(level).into_iter().filter(|line| line.contains(needle)).collect()
+        self.lines(level)
+            .into_iter()
+            .filter(|line| line.contains(needle))
+            .collect()
     }
 }
 

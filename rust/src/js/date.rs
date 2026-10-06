@@ -81,10 +81,11 @@ fn utc_ms(year: i64, month: u32, day: u32, h: u32, m: u32, s: u32, ms: u32) -> O
 fn local_ms(year: i64, month: u32, day: u32, h: u32, m: u32, s: u32, ms: u32) -> Option<i64> {
     let utc = utc_ms(year, month, day, h, m, s, ms)?;
     let naive: NaiveDateTime = DateTime::<Utc>::from_timestamp_millis(utc)?.naive_utc();
-    let local = Local
-        .from_local_datetime(&naive)
-        .earliest()
-        .or_else(|| Local.from_local_datetime(&(naive + chrono::Duration::hours(1))).earliest())?;
+    let local = Local.from_local_datetime(&naive).earliest().or_else(|| {
+        Local
+            .from_local_datetime(&(naive + chrono::Duration::hours(1)))
+            .earliest()
+    })?;
     Some(local.timestamp_millis())
 }
 
@@ -123,7 +124,10 @@ impl<'a> Cursor<'a> {
 /// shorter forms). Date-only forms are UTC, date-time forms without an offset
 /// are local time.
 fn parse_iso(value: &str) -> Option<i64> {
-    let mut c = Cursor { bytes: value.as_bytes(), index: 0 };
+    let mut c = Cursor {
+        bytes: value.as_bytes(),
+        index: 0,
+    };
     let year: i64 = match c.peek()? {
         b'+' | b'-' => {
             let negative = c.peek() == Some(b'-');
@@ -175,7 +179,11 @@ fn parse_iso(value: &str) -> Option<i64> {
             millis = padded[..3].parse().ok()?;
         }
     }
-    if hour > 24 || minute > 59 || second > 59 || (hour == 24 && (minute > 0 || second > 0 || millis > 0)) {
+    if hour > 24
+        || minute > 59
+        || second > 59
+        || (hour == 24 && (minute > 0 || second > 0 || millis > 0))
+    {
         return None;
     }
     if c.done() {
@@ -248,7 +256,12 @@ fn tokenize(value: &str) -> Option<Vec<Token>> {
             while index < chars.len() && chars[index].is_alphabetic() {
                 index += 1;
             }
-            tokens.push(Token::Word(chars[start..index].iter().collect::<String>().to_lowercase()));
+            tokens.push(Token::Word(
+                chars[start..index]
+                    .iter()
+                    .collect::<String>()
+                    .to_lowercase(),
+            ));
             continue;
         }
         if super::is_whitespace(c) || c == ',' {
@@ -261,7 +274,9 @@ fn tokenize(value: &str) -> Option<Vec<Token>> {
     Some(tokens)
 }
 
-const MONTHS: [&str; 12] = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+const MONTHS: [&str; 12] = [
+    "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec",
+];
 const WEEKDAYS: [&str; 7] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
 /// A best-effort port of V8's legacy date parser fallback, covering the
@@ -297,18 +312,21 @@ fn parse_legacy(value: &str) -> Option<i64> {
                             _ => return None,
                         };
                         index += 2;
-                        if matches!(tokens.get(index), Some(Token::Symbol('.'))) {
-                            if let Some(Token::Number(f)) = tokens.get(index + 1) {
-                                let padded = format!("{f:0<3}");
-                                millis = padded[..3].parse().ok()?;
-                                index += 2;
-                            }
+                        if matches!(tokens.get(index), Some(Token::Symbol('.')))
+                            && let Some(Token::Number(f)) = tokens.get(index + 1)
+                        {
+                            let padded = format!("{f:0<3}");
+                            millis = padded[..3].parse().ok()?;
+                            index += 2;
                         }
                     }
                     time = Some((n, minute, second, millis));
                     continue;
                 }
-                if matches!(tokens.get(index + 1), Some(Token::Symbol('-'))) && text.len() == 4 && numbers.is_empty() {
+                if matches!(tokens.get(index + 1), Some(Token::Symbol('-')))
+                    && text.len() == 4
+                    && numbers.is_empty()
+                {
                     iso_like_date = true;
                 }
                 numbers.push((n, text.len()));
@@ -321,7 +339,10 @@ fn parse_legacy(value: &str) -> Option<i64> {
                     offset = Some(offset.unwrap_or(0));
                 } else if word == "t" && seen_number {
                     // ISO-like separator
-                } else if let Some(m) = MONTHS.iter().position(|m| word.starts_with(m) && word.len() >= 3) {
+                } else if let Some(m) = MONTHS
+                    .iter()
+                    .position(|m| word.starts_with(m) && word.len() >= 3)
+                {
                     month_name = Some(m as u32 + 1);
                 } else if WEEKDAYS.iter().any(|d| word.starts_with(d)) {
                     // weekday names are ignored
@@ -333,7 +354,11 @@ fn parse_legacy(value: &str) -> Option<i64> {
             Token::Symbol(sign @ ('+' | '-')) if time.is_some() || offset.is_some() => {
                 // time zone offset: +hhmm or +hh:mm
                 let sign = if *sign == '-' { -1 } else { 1 };
-                let (hours, minutes) = match (tokens.get(index + 1), tokens.get(index + 2), tokens.get(index + 3)) {
+                let (hours, minutes) = match (
+                    tokens.get(index + 1),
+                    tokens.get(index + 2),
+                    tokens.get(index + 3),
+                ) {
                     (Some(Token::Number(h)), Some(Token::Symbol(':')), Some(Token::Number(m))) => {
                         index += 4;
                         (h.parse::<i64>().ok()?, m.parse::<i64>().ok()?)
@@ -341,7 +366,11 @@ fn parse_legacy(value: &str) -> Option<i64> {
                     (Some(Token::Number(hm)), _, _) => {
                         index += 2;
                         let v: i64 = hm.parse().ok()?;
-                        if hm.len() <= 2 { (v, 0) } else { (v / 100, v % 100) }
+                        if hm.len() <= 2 {
+                            (v, 0)
+                        } else {
+                            (v / 100, v % 100)
+                        }
                     }
                     _ => return None,
                 };
@@ -392,7 +421,9 @@ fn parse_legacy(value: &str) -> Option<i64> {
     }
     let _ = iso_like_date;
     match offset {
-        Some(offset) => Some(utc_ms(year, month, day, hour, minute, second, millis)? - offset * 60_000),
+        Some(offset) => {
+            Some(utc_ms(year, month, day, hour, minute, second, millis)? - offset * 60_000)
+        }
         None => local_ms(year, month, day, hour, minute, second, millis),
     }
 }
@@ -400,7 +431,11 @@ fn parse_legacy(value: &str) -> Option<i64> {
 fn expand_year(value: u32, digits: usize) -> i64 {
     let value = i64::from(value);
     if digits <= 2 {
-        if value < 50 { 2000 + value } else { 1900 + value }
+        if value < 50 {
+            2000 + value
+        } else {
+            1900 + value
+        }
     } else {
         value
     }
@@ -412,22 +447,47 @@ mod tests {
 
     #[test]
     fn parses_iso_strings_like_date_parse() {
-        assert_eq!(normalize("2024-03-05T10:20:30.000Z").as_deref(), Some("2024-03-05T10:20:30.000Z"));
-        assert_eq!(normalize("2024-03-05").as_deref(), Some("2024-03-05T00:00:00.000Z"));
-        assert_eq!(normalize("2024-03-05T10:20:30+10:00").as_deref(), Some("2024-03-05T00:20:30.000Z"));
-        assert_eq!(normalize("2024").as_deref(), Some("2024-01-01T00:00:00.000Z"));
-        assert_eq!(normalize("2024-03-05T10:20:30.1234Z").as_deref(), Some("2024-03-05T10:20:30.123Z"));
-        assert_eq!(normalize("+012024-03-05T00:00:00Z").as_deref(), Some("+012024-03-05T00:00:00.000Z"));
+        assert_eq!(
+            normalize("2024-03-05T10:20:30.000Z").as_deref(),
+            Some("2024-03-05T10:20:30.000Z")
+        );
+        assert_eq!(
+            normalize("2024-03-05").as_deref(),
+            Some("2024-03-05T00:00:00.000Z")
+        );
+        assert_eq!(
+            normalize("2024-03-05T10:20:30+10:00").as_deref(),
+            Some("2024-03-05T00:20:30.000Z")
+        );
+        assert_eq!(
+            normalize("2024").as_deref(),
+            Some("2024-01-01T00:00:00.000Z")
+        );
+        assert_eq!(
+            normalize("2024-03-05T10:20:30.1234Z").as_deref(),
+            Some("2024-03-05T10:20:30.123Z")
+        );
+        assert_eq!(
+            normalize("+012024-03-05T00:00:00Z").as_deref(),
+            Some("+012024-03-05T00:00:00.000Z")
+        );
         assert_eq!(normalize("not a date"), None);
         assert_eq!(normalize("2024-13-01"), None);
     }
 
     #[test]
     fn parses_common_legacy_formats() {
-        assert_eq!(normalize("Tue, 05 Mar 2024 10:20:30 GMT").as_deref(), Some("2024-03-05T10:20:30.000Z"));
-        assert_eq!(normalize("March 5, 2024 10:20 UTC").as_deref(), Some("2024-03-05T10:20:00.000Z"));
         assert_eq!(
-            normalize("Tue Mar 05 2024 10:20:30 GMT+1000 (Australian Eastern Standard Time)").as_deref(),
+            normalize("Tue, 05 Mar 2024 10:20:30 GMT").as_deref(),
+            Some("2024-03-05T10:20:30.000Z")
+        );
+        assert_eq!(
+            normalize("March 5, 2024 10:20 UTC").as_deref(),
+            Some("2024-03-05T10:20:00.000Z")
+        );
+        assert_eq!(
+            normalize("Tue Mar 05 2024 10:20:30 GMT+1000 (Australian Eastern Standard Time)")
+                .as_deref(),
             Some("2024-03-05T00:20:30.000Z")
         );
     }

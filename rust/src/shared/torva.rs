@@ -114,7 +114,9 @@ pub mod io {
         Io::new(Kind::Date)
     }
     pub fn enumeration<S: AsRef<str>>(choices: &[S]) -> Io {
-        Io::new(Kind::Enum(choices.iter().map(|c| c.as_ref().to_string()).collect()))
+        Io::new(Kind::Enum(
+            choices.iter().map(|c| c.as_ref().to_string()).collect(),
+        ))
     }
     pub fn id() -> Io {
         Io::new(Kind::Id)
@@ -130,7 +132,9 @@ pub mod io {
     }
     /// `io.object({...})`, keeping field order.
     pub fn object<K: Into<String>>(fields: impl IntoIterator<Item = (K, Io)>) -> Io {
-        Io::new(Kind::Object(fields.into_iter().map(|(k, v)| (k.into(), v)).collect()))
+        Io::new(Kind::Object(
+            fields.into_iter().map(|(k, v)| (k.into(), v)).collect(),
+        ))
     }
     pub fn optional(of_type: Io) -> Io {
         Io::new(Kind::Optional(of_type))
@@ -228,7 +232,10 @@ impl Io {
     pub fn omit(&self, keys: &[&str]) -> Io {
         let current = self.object_fields();
         Io::new(Kind::Object(
-            current.into_iter().filter(|(key, _)| !keys.contains(&key.as_str())).collect(),
+            current
+                .into_iter()
+                .filter(|(key, _)| !keys.contains(&key.as_str()))
+                .collect(),
         ))
     }
 
@@ -247,44 +254,75 @@ impl Io {
     }
 
     pub fn coerce(&self) -> Io {
-        Io::new(Kind::Number(NumberOptions { coerce: true, ..self.number_options() }))
+        Io::new(Kind::Number(NumberOptions {
+            coerce: true,
+            ..self.number_options()
+        }))
     }
     pub fn integer(&self) -> Io {
-        Io::new(Kind::Number(NumberOptions { integer: true, ..self.number_options() }))
+        Io::new(Kind::Number(NumberOptions {
+            integer: true,
+            ..self.number_options()
+        }))
     }
     pub fn min(&self, value: f64) -> Io {
-        Io::new(Kind::Number(NumberOptions { min: Some(value), ..self.number_options() }))
+        Io::new(Kind::Number(NumberOptions {
+            min: Some(value),
+            ..self.number_options()
+        }))
     }
     pub fn max(&self, value: f64) -> Io {
-        Io::new(Kind::Number(NumberOptions { max: Some(value), ..self.number_options() }))
+        Io::new(Kind::Number(NumberOptions {
+            max: Some(value),
+            ..self.number_options()
+        }))
     }
     pub fn positive(&self) -> Io {
         let options = self.number_options();
         let min = options.min.unwrap_or(1.0).max(1.0);
-        Io::new(Kind::Number(NumberOptions { min: Some(min), ..options }))
+        Io::new(Kind::Number(NumberOptions {
+            min: Some(min),
+            ..options
+        }))
     }
 
     /// `string.regex(pattern)`; the pattern uses Rust `regex` syntax.
     pub fn regex(&self, pattern: Regex) -> Io {
-        Io::new(Kind::String(StringOptions { regex: Some(pattern), ..self.string_options() }))
+        Io::new(Kind::String(StringOptions {
+            regex: Some(pattern),
+            ..self.string_options()
+        }))
     }
     pub fn trim(&self) -> Io {
-        Io::new(Kind::String(StringOptions { trim: true, ..self.string_options() }))
+        Io::new(Kind::String(StringOptions {
+            trim: true,
+            ..self.string_options()
+        }))
     }
     pub fn email(&self) -> Io {
-        Io::new(Kind::String(StringOptions { email: true, ..self.string_options() }))
+        Io::new(Kind::String(StringOptions {
+            email: true,
+            ..self.string_options()
+        }))
     }
     pub fn nowhitespace(&self) -> Io {
-        Io::new(Kind::String(StringOptions { nowhitespace: true, ..self.string_options() }))
+        Io::new(Kind::String(StringOptions {
+            nowhitespace: true,
+            ..self.string_options()
+        }))
     }
     pub fn emptyok(&self) -> Io {
-        Io::new(Kind::String(StringOptions { emptyok: true, ..self.string_options() }))
+        Io::new(Kind::String(StringOptions {
+            emptyok: true,
+            ..self.string_options()
+        }))
     }
 
     /// Validates a defined value. Returns the normalised value, or `Value::Null`
     /// standing in for `undefined` when the schema maps it away (rare).
     pub fn validate(&self, value: &Value) -> Result<Value, String> {
-        self.validate_opt(Some(value)).map(|v| v.unwrap_or(Value::Null))
+        self.validate_opt(Some(value))
+            .map(|v| v.unwrap_or(Value::Null))
     }
 
     /// Validates a possibly-undefined value (`None` = `undefined`).
@@ -330,7 +368,9 @@ impl Io {
                 _ => fail("Date value is not a string."),
             },
             Kind::Enum(choices) => match value {
-                Some(Value::String(text)) if choices.iter().any(|c| c == text) => Ok(Some(Value::String(text.clone()))),
+                Some(Value::String(text)) if choices.iter().any(|c| c == text) => {
+                    Ok(Some(Value::String(text.clone())))
+                }
                 Some(Value::String(_)) => fail("Value is not a valid enum option."),
                 _ => fail("Enum value is not a string."),
             },
@@ -360,7 +400,9 @@ impl Io {
                         Some(Value::Array(_)) => "array",
                         other => js::type_of(other),
                     };
-                    return Err(IoError::message(format!("Expect type \"object\" but got \"{got}\".")));
+                    return Err(IoError::message(format!(
+                        "Expect type \"object\" but got \"{got}\"."
+                    )));
                 };
                 let mut out = Map::new();
                 for (key, of_type) in fields {
@@ -410,7 +452,8 @@ fn validate_color(value: Option<&Value>) -> IoResult {
     let Some(captures) = shared_regex::hsla().captures(normalized) else {
         return Err(IoError::message("Value is not a valid hsla string."));
     };
-    let channel = |index: usize| js::string_to_number(captures.get(index).map_or("", |m| m.as_str()));
+    let channel =
+        |index: usize| js::string_to_number(captures.get(index).map_or("", |m| m.as_str()));
     let (hue, saturation, lightness, alpha) = (channel(1), channel(2), channel(3), channel(4));
     if !hue.is_finite() {
         return Err(IoError::message("Hue must be a finite number."));
@@ -445,21 +488,21 @@ fn validate_number(options: &NumberOptions, value: Option<&Value>) -> IoResult {
     if options.integer && !js::is_integer(number) {
         return Err(IoError::message("Value must be an integer."));
     }
-    if let Some(min) = options.min {
-        if number < min {
-            return Err(IoError::message(format!(
-                "Value must be greater than or equal to {}.",
-                js::number_to_string(min)
-            )));
-        }
+    if let Some(min) = options.min
+        && number < min
+    {
+        return Err(IoError::message(format!(
+            "Value must be greater than or equal to {}.",
+            js::number_to_string(min)
+        )));
     }
-    if let Some(max) = options.max {
-        if number > max {
-            return Err(IoError::message(format!(
-                "Value must be less than or equal to {}.",
-                js::number_to_string(max)
-            )));
-        }
+    if let Some(max) = options.max
+        && number > max
+    {
+        return Err(IoError::message(format!(
+            "Value must be less than or equal to {}.",
+            js::number_to_string(max)
+        )));
     }
     // keep the original JSON number when nothing was coerced
     match value {
@@ -477,7 +520,10 @@ fn validate_string(options: &StringOptions, value: Option<&Value>) -> IoResult {
         normalized = js::trim(&normalized).to_string();
     }
     if options.nowhitespace {
-        normalized = normalized.chars().filter(|c| !js::is_whitespace(*c)).collect();
+        normalized = normalized
+            .chars()
+            .filter(|c| !js::is_whitespace(*c))
+            .collect();
     }
     if normalized.is_empty() {
         if options.emptyok {
@@ -485,10 +531,10 @@ fn validate_string(options: &StringOptions, value: Option<&Value>) -> IoResult {
         }
         return Err(IoError::message("Value can not be empty."));
     }
-    if let Some(pattern) = &options.regex {
-        if !pattern.is_match(&normalized) {
-            return Err(IoError::message("Value does not match regular expression."));
-        }
+    if let Some(pattern) = &options.regex
+        && !pattern.is_match(&normalized)
+    {
+        return Err(IoError::message("Value does not match regular expression."));
     }
     if options.email && !shared_regex::email().is_match(&normalized) {
         return Err(IoError::message("Value is not a valid email."));

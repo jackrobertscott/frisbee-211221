@@ -77,10 +77,14 @@ fn status_user_message(status_code: u16) -> Option<&'static str> {
         FORBIDDEN => "You do not have permission to do that.",
         NOT_FOUND => "We could not find what you were looking for.",
         METHOD_NOT_ALLOWED => "This action is not available from here.",
-        CONFLICT => "That change could not be saved because it conflicts with existing information.",
+        CONFLICT => {
+            "That change could not be saved because it conflicts with existing information."
+        }
         PAYLOAD_TOO_LARGE => "That upload is too large.",
         UNPROCESSABLE_ENTITY => "Please check the information you entered and try again.",
-        TOO_MANY_REQUESTS => "Too many attempts were made. Please wait a little while before trying again.",
+        TOO_MANY_REQUESTS => {
+            "Too many attempts were made. Please wait a little while before trying again."
+        }
         INTERNAL_SERVER_ERROR => INTERNAL_USER_MESSAGE,
         SERVICE_UNAVAILABLE => "This feature is temporarily unavailable. Please try again later.",
         _ => return None,
@@ -105,7 +109,9 @@ pub fn user_message_for_error_code(error_code: &str) -> Option<&'static str> {
 
         "auth.admin_required" => "You need admin access to do that.",
         "auth.invalid_login" => "The email or password is not correct.",
-        "auth.login_rate_limited" => "Too many login attempts were made. Please wait before trying again.",
+        "auth.login_rate_limited" => {
+            "Too many login attempts were made. Please wait before trying again."
+        }
         "auth.sign_in_required" => "Please sign in to continue.",
         "auth.team_required" => "Please join a team before doing that.",
         "auth.team_season_mismatch" => INTERNAL_USER_MESSAGE,
@@ -125,7 +131,9 @@ pub fn user_message_for_error_code(error_code: &str) -> Option<&'static str> {
             "The existing fixtures do not match the expected pattern. Please review the rounds and try again."
         }
         "fixture.slots_insufficient" => "There are not enough time slots for the number of teams.",
-        "fixture.uneven_division" => "Each division needs an even number of teams before fixtures can be created.",
+        "fixture.uneven_division" => {
+            "Each division needs an even number of teams before fixtures can be created."
+        }
 
         "intrusion.blocked" => "This page is not available.",
         "intrusion.exploit_probe" => "This page is not available.",
@@ -143,13 +151,17 @@ pub fn user_message_for_error_code(error_code: &str) -> Option<&'static str> {
         "report.already_submitted" => "A score report has already been submitted for this game.",
         "report.fixture_invalid" => "That fixture does not belong to the selected season.",
         "report.matchup_invalid" => "That opposition team is not listed for your fixture.",
-        "report.spirit_comment_required" => "Please add a spirit comment before submitting the report.",
+        "report.spirit_comment_required" => {
+            "Please add a spirit comment before submitting the report."
+        }
 
         "request.failed" => "We could not complete that action. Please try again in a moment.",
         "request.invalid_handler_response" => INTERNAL_USER_MESSAGE,
         "request.method_not_allowed" => "This action is not available from here.",
         "request.origin_invalid" => "This action is not available from here.",
-        "request.payload_missing" => "The page could not send the information needed. Please refresh and try again.",
+        "request.payload_missing" => {
+            "The page could not send the information needed. Please refresh and try again."
+        }
         "request.route_not_found" => "This page is not available.",
         "request.url_missing" => INTERNAL_USER_MESSAGE,
 
@@ -157,7 +169,9 @@ pub fn user_message_for_error_code(error_code: &str) -> Option<&'static str> {
         "router.routes_missing" => INTERNAL_USER_MESSAGE,
 
         "season.id_missing" => "Please choose a season and try again.",
-        "season.delete_has_reports" => "This season cannot be deleted because it has score reports.",
+        "season.delete_has_reports" => {
+            "This season cannot be deleted because it has score reports."
+        }
         "season.not_found" => "No season is available yet.",
 
         "team.access_forbidden" => "You do not have access to that team.",
@@ -169,15 +183,21 @@ pub fn user_message_for_error_code(error_code: &str) -> Option<&'static str> {
         "upload.file_missing" => "Please choose a file to upload.",
         "upload.files_limit" => "Please upload fewer files.",
         "upload.invalid_file_type" => "Please upload a CSV file.",
-        "upload.invalid_gender_matching" => "One of the uploaded gender matching values was not recognised.",
+        "upload.invalid_gender_matching" => {
+            "One of the uploaded gender matching values was not recognised."
+        }
         "upload.parts_limit" => "The upload was too large to process.",
         "upload.size_limit" => "The uploaded file is too large.",
         "upload.unsupported_content_type" => "The upload was not sent as a file. Please try again.",
 
-        "user.code_delivery_rate_limited" => "Too many codes were requested. Please wait before asking for another one.",
+        "user.code_delivery_rate_limited" => {
+            "Too many codes were requested. Please wait before asking for another one."
+        }
         "user.code_expired" => "That code has expired. A new code has been sent to your email.",
         "user.code_invalid" => "That code is not correct.",
-        "user.code_rate_limited" => "Too many code attempts were made. Please wait before trying again.",
+        "user.code_rate_limited" => {
+            "Too many code attempts were made. Please wait before trying again."
+        }
         "user.email_exists" => "That email is already connected to an account.",
         "user.email_invalid" => "Please enter a valid email address.",
         "user.email_not_found" => "We could not find that email on this account.",
@@ -242,7 +262,9 @@ fn extract_status_code(value: Option<&Value>) -> Option<u16> {
 /// `extractErrorCode`: a string that is not all digits.
 fn extract_error_code(value: Option<&Value>) -> Option<String> {
     match value? {
-        Value::String(text) if !(!text.is_empty() && text.bytes().all(|b| b.is_ascii_digit())) => Some(text.clone()),
+        Value::String(text) if !(!text.is_empty() && text.bytes().all(|b| b.is_ascii_digit())) => {
+            Some(text.clone())
+        }
         _ => None,
     }
 }
@@ -336,8 +358,11 @@ pub fn get_validation_user_message(details: Option<&Value>) -> String {
 fn clean_exposed_message(message: &str) -> Option<String> {
     let strip = |text: &str, prefix: &str| -> Option<String> {
         let head = text.get(..prefix.len())?;
-        head.eq_ignore_ascii_case(prefix)
-            .then(|| text[prefix.len()..].trim_start_matches(js::is_whitespace).to_string())
+        head.eq_ignore_ascii_case(prefix).then(|| {
+            text[prefix.len()..]
+                .trim_start_matches(js::is_whitespace)
+                .to_string()
+        })
     };
     let mut text = strip(message, "failed:").unwrap_or_else(|| message.to_string());
     if let Some(rest) = strip(&text, "an error occurred:") {
@@ -386,7 +411,8 @@ fn build_user_message(
     if status_code >= INTERNAL_SERVER_ERROR || !expose {
         return get_status_user_message(status_code).to_string();
     }
-    clean_exposed_message(message).unwrap_or_else(|| get_status_user_message(status_code).to_string())
+    clean_exposed_message(message)
+        .unwrap_or_else(|| get_status_user_message(status_code).to_string())
 }
 
 /// `AppErrorOptions` minus `message`: everything optional, merged like the TS spreads.
@@ -407,7 +433,10 @@ pub struct ErrorOptions {
 impl ErrorOptions {
     /// Options carrying just an error code, the most common case.
     pub fn code(error_code: impl Into<String>) -> Self {
-        ErrorOptions { error_code: Some(error_code.into()), ..Default::default() }
+        ErrorOptions {
+            error_code: Some(error_code.into()),
+            ..Default::default()
+        }
     }
     pub fn with_user_message(mut self, user_message: impl Into<String>) -> Self {
         self.user_message = Some(user_message.into());
@@ -447,9 +476,9 @@ impl ErrorOptions {
     }
 }
 
-/// The application error. Every failure that reaches the HTTP layer is one of these.
+/// The fields of an [`AppError`].
 #[derive(Clone, Debug, PartialEq)]
-pub struct AppError {
+pub struct AppErrorData {
     pub message: String,
     pub status_code: u16,
     pub error_code: String,
@@ -462,6 +491,25 @@ pub struct AppError {
     pub tarpit: Option<Value>,
 }
 
+/// The application error. Every failure that reaches the HTTP layer is one
+/// of these. Boxed so `Result<T, AppError>` stays small; fields are read
+/// through `Deref` (`error.error_code`).
+#[derive(Clone, Debug, PartialEq)]
+pub struct AppError(Box<AppErrorData>);
+
+impl std::ops::Deref for AppError {
+    type Target = AppErrorData;
+    fn deref(&self) -> &AppErrorData {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for AppError {
+    fn deref_mut(&mut self) -> &mut AppErrorData {
+        &mut self.0
+    }
+}
+
 pub type AppResult<T> = Result<T, AppError>;
 
 impl AppError {
@@ -469,8 +517,12 @@ impl AppError {
     pub fn new(message: impl Into<String>, options: ErrorOptions) -> Self {
         let message = message.into();
         let status_code = options.status_code.unwrap_or(INTERNAL_SERVER_ERROR);
-        let error_code = options.error_code.unwrap_or_else(|| default_error_code(status_code).to_string());
-        let expose = options.expose.unwrap_or_else(|| default_expose_for_status(status_code));
+        let error_code = options
+            .error_code
+            .unwrap_or_else(|| default_error_code(status_code).to_string());
+        let expose = options
+            .expose
+            .unwrap_or_else(|| default_expose_for_status(status_code));
         let user_message = build_user_message(
             &message,
             options.user_message.as_deref(),
@@ -479,7 +531,7 @@ impl AppError {
             expose,
             options.details.as_ref(),
         );
-        AppError {
+        AppError(Box::new(AppErrorData {
             message,
             status_code,
             error_code,
@@ -490,7 +542,7 @@ impl AppError {
             cause: options.cause,
             meta: options.meta,
             tarpit: options.tarpit,
-        }
+        }))
     }
 
     /// The constructor options that would rebuild this error.
@@ -511,7 +563,10 @@ impl AppError {
 
     /// Wraps any Rust error as an internal (500) error, like `toAppError(new Error(...))`.
     pub fn internal_from(error: impl fmt::Display) -> Self {
-        to_app_error(ErrorInput::Error(ErrorLike::new("Error", error.to_string())), ErrorOptions::default())
+        to_app_error(
+            ErrorInput::Error(ErrorLike::new("Error", error.to_string())),
+            ErrorOptions::default(),
+        )
     }
 
     /// The first stack line JavaScript would print.
@@ -529,9 +584,16 @@ impl fmt::Display for AppError {
 impl std::error::Error for AppError {}
 
 /// `createError(options, overrides)`.
-pub fn create_error(message: impl Into<String>, base: ErrorOptions, overrides: ErrorOptions) -> AppError {
+pub fn create_error(
+    message: impl Into<String>,
+    base: ErrorOptions,
+    overrides: ErrorOptions,
+) -> AppError {
     let message = overrides.message.clone().unwrap_or_else(|| message.into());
-    let status_code = overrides.status_code.or(base.status_code).unwrap_or(INTERNAL_SERVER_ERROR);
+    let status_code = overrides
+        .status_code
+        .or(base.status_code)
+        .unwrap_or(INTERNAL_SERVER_ERROR);
     let error_code = overrides
         .error_code
         .clone()
@@ -558,10 +620,20 @@ pub fn create_error(message: impl Into<String>, base: ErrorOptions, overrides: E
     )
 }
 
-fn status_factory(status_code: u16, error_code: &str, message: String, options: ErrorOptions) -> AppError {
+fn status_factory(
+    status_code: u16,
+    error_code: &str,
+    message: String,
+    options: ErrorOptions,
+) -> AppError {
     let base = ErrorOptions {
         status_code: Some(status_code),
-        error_code: Some(options.error_code.clone().unwrap_or_else(|| error_code.to_string())),
+        error_code: Some(
+            options
+                .error_code
+                .clone()
+                .unwrap_or_else(|| error_code.to_string()),
+        ),
         ..options
     };
     create_error(message, base, ErrorOptions::default())
@@ -580,35 +652,73 @@ pub fn not_found_error(message: impl Into<String>, options: ErrorOptions) -> App
     status_factory(NOT_FOUND, "not_found", message.into(), options)
 }
 pub fn method_not_allowed_error(message: impl Into<String>, options: ErrorOptions) -> AppError {
-    status_factory(METHOD_NOT_ALLOWED, "method_not_allowed", message.into(), options)
+    status_factory(
+        METHOD_NOT_ALLOWED,
+        "method_not_allowed",
+        message.into(),
+        options,
+    )
 }
 pub fn conflict_error(message: impl Into<String>, options: ErrorOptions) -> AppError {
     status_factory(CONFLICT, "conflict", message.into(), options)
 }
 pub fn payload_too_large_error(message: impl Into<String>, options: ErrorOptions) -> AppError {
-    status_factory(PAYLOAD_TOO_LARGE, "payload_too_large", message.into(), options)
+    status_factory(
+        PAYLOAD_TOO_LARGE,
+        "payload_too_large",
+        message.into(),
+        options,
+    )
 }
 pub fn validation_error(message: impl Into<String>, options: ErrorOptions) -> AppError {
-    status_factory(UNPROCESSABLE_ENTITY, "validation_error", message.into(), options)
+    status_factory(
+        UNPROCESSABLE_ENTITY,
+        "validation_error",
+        message.into(),
+        options,
+    )
 }
 pub fn too_many_requests_error(message: impl Into<String>, options: ErrorOptions) -> AppError {
-    status_factory(TOO_MANY_REQUESTS, "too_many_requests", message.into(), options)
+    status_factory(
+        TOO_MANY_REQUESTS,
+        "too_many_requests",
+        message.into(),
+        options,
+    )
 }
 pub fn service_unavailable_error(message: impl Into<String>, options: ErrorOptions) -> AppError {
-    status_factory(SERVICE_UNAVAILABLE, "service_unavailable", message.into(), options)
+    status_factory(
+        SERVICE_UNAVAILABLE,
+        "service_unavailable",
+        message.into(),
+        options,
+    )
 }
 
 /// `internalError(message?, options)`: always 500 and never exposed.
 pub fn internal_error(message: Option<&str>, options: ErrorOptions) -> AppError {
-    let message = message.map(str::to_string).unwrap_or_else(|| get_status_text(INTERNAL_SERVER_ERROR).into());
-    let error_code = options.error_code.clone().unwrap_or_else(|| "internal_error".into());
+    let message = message
+        .map(str::to_string)
+        .unwrap_or_else(|| get_status_text(INTERNAL_SERVER_ERROR).into());
+    let error_code = options
+        .error_code
+        .clone()
+        .unwrap_or_else(|| "internal_error".into());
     let base = ErrorOptions {
         status_code: Some(INTERNAL_SERVER_ERROR),
         error_code: Some(error_code),
         expose: Some(false),
         ..options
     };
-    create_error(message, ErrorOptions { status_code: Some(INTERNAL_SERVER_ERROR), expose: Some(false), ..base }, ErrorOptions::default())
+    create_error(
+        message,
+        ErrorOptions {
+            status_code: Some(INTERNAL_SERVER_ERROR),
+            expose: Some(false),
+            ..base
+        },
+        ErrorOptions::default(),
+    )
 }
 
 /// A JavaScript `Error` with arbitrary extra properties, as `toAppError` sees it.
@@ -621,7 +731,11 @@ pub struct ErrorLike {
 
 impl ErrorLike {
     pub fn new(name: impl Into<String>, message: impl Into<String>) -> Self {
-        ErrorLike { name: name.into(), message: message.into(), props: Map::new() }
+        ErrorLike {
+            name: name.into(),
+            message: message.into(),
+            props: Map::new(),
+        }
     }
     pub fn with(mut self, key: &str, value: Value) -> Self {
         self.props.insert(key.into(), value);
@@ -649,8 +763,13 @@ pub fn is_serialized_app_error(value: &Value) -> bool {
     let Value::Object(map) = value else {
         return false;
     };
-    let status = extract_status_code(map.get("statusCode").filter(|v| !v.is_null()).or(map.get("code")));
-    (map.get("type") == Some(&Value::String("app_error".into())) || map.get("name") == Some(&Value::String("AppError".into())))
+    let status = extract_status_code(
+        map.get("statusCode")
+            .filter(|v| !v.is_null())
+            .or(map.get("code")),
+    );
+    (map.get("type") == Some(&Value::String("app_error".into()))
+        || map.get("name") == Some(&Value::String("AppError".into())))
         && map.get("message").is_some_and(Value::is_string)
         && map.get("errorCode").is_some_and(Value::is_string)
         && map.get("expose").is_some_and(Value::is_boolean)
@@ -665,7 +784,11 @@ pub fn to_app_error(error: ErrorInput, fallback: ErrorOptions) -> AppError {
         ErrorInput::Value(Some(value)) if is_serialized_app_error(&value) => {
             let map = value.as_object().cloned().unwrap_or_default();
             let text = |key: &str| map.get(key).and_then(Value::as_str).map(str::to_string);
-            let status_code = extract_status_code(map.get("statusCode").filter(|v| !v.is_null()).or(map.get("code")));
+            let status_code = extract_status_code(
+                map.get("statusCode")
+                    .filter(|v| !v.is_null())
+                    .or(map.get("code")),
+            );
             create_error(
                 text("message").unwrap_or_default(),
                 ErrorOptions {
@@ -683,7 +806,14 @@ pub fn to_app_error(error: ErrorInput, fallback: ErrorOptions) -> AppError {
         }
         ErrorInput::Value(Some(Value::String(message))) => {
             // the string is the message; fallback options fill in everything else
-            create_error(message, ErrorOptions { message: None, ..fallback }, ErrorOptions::default())
+            create_error(
+                message,
+                ErrorOptions {
+                    message: None,
+                    ..fallback
+                },
+                ErrorOptions::default(),
+            )
         }
         ErrorInput::Error(error) => {
             let props = &error.props;
@@ -692,7 +822,9 @@ pub fn to_app_error(error: ErrorInput, fallback: ErrorOptions) -> AppError {
                 .unwrap_or_else(|| {
                     if error.name == "ValidationError" {
                         UNPROCESSABLE_ENTITY
-                    } else if JWT_ERROR_NAMES.contains(&error.name.as_str()) || error.message == "jwt expired" {
+                    } else if JWT_ERROR_NAMES.contains(&error.name.as_str())
+                        || error.message == "jwt expired"
+                    {
                         UNAUTHORIZED
                     } else {
                         fallback.status_code.unwrap_or(INTERNAL_SERVER_ERROR)
@@ -707,7 +839,9 @@ pub fn to_app_error(error: ErrorInput, fallback: ErrorOptions) -> AppError {
                     .filter(|m| !m.is_empty())
                     .unwrap_or_else(|| get_status_text(status_code).to_string())
             };
-            let user_message = extract_user_message(props.get("userMessage").and_then(Value::as_str)).or(fallback.user_message);
+            let user_message =
+                extract_user_message(props.get("userMessage").and_then(Value::as_str))
+                    .or(fallback.user_message);
             let error_code = extract_error_code(props.get("errorCode"))
                 .or_else(|| extract_error_code(props.get("code")))
                 .or(fallback.error_code);
@@ -717,25 +851,60 @@ pub fn to_app_error(error: ErrorInput, fallback: ErrorOptions) -> AppError {
                     user_message,
                     status_code: Some(status_code),
                     error_code,
-                    expose: props.get("expose").and_then(Value::as_bool).or(fallback.expose),
-                    details: props.get("details").filter(|v| !v.is_null()).cloned().or(fallback.details),
-                    retryable: props.get("retryable").and_then(Value::as_bool).or(fallback.retryable),
+                    expose: props
+                        .get("expose")
+                        .and_then(Value::as_bool)
+                        .or(fallback.expose),
+                    details: props
+                        .get("details")
+                        .filter(|v| !v.is_null())
+                        .cloned()
+                        .or(fallback.details),
+                    retryable: props
+                        .get("retryable")
+                        .and_then(Value::as_bool)
+                        .or(fallback.retryable),
                     cause: props
                         .get("cause")
-                        .map(|v| v.as_str().map(str::to_string).unwrap_or_else(|| js::stringify(v)))
+                        .map(|v| {
+                            v.as_str()
+                                .map(str::to_string)
+                                .unwrap_or_else(|| js::stringify(v))
+                        })
                         .or(fallback.cause),
-                    meta: props.get("meta").and_then(Value::as_object).cloned().or(fallback.meta),
-                    tarpit: props.get("tarpit").filter(|v| !v.is_null()).cloned().or(fallback.tarpit),
+                    meta: props
+                        .get("meta")
+                        .and_then(Value::as_object)
+                        .cloned()
+                        .or(fallback.meta),
+                    tarpit: props
+                        .get("tarpit")
+                        .filter(|v| !v.is_null())
+                        .cloned()
+                        .or(fallback.tarpit),
                     message: None,
                 },
                 // the Error's own properties win; fallback options only fill gaps
-                ErrorOptions { status_code: Some(status_code), ..Default::default() },
+                ErrorOptions {
+                    status_code: Some(status_code),
+                    ..Default::default()
+                },
             )
         }
         ErrorInput::Value(_) => {
             let status = fallback.status_code.unwrap_or(INTERNAL_SERVER_ERROR);
-            let message = fallback.message.clone().unwrap_or_else(|| get_status_text(status).to_string());
-            create_error(message, ErrorOptions::default(), ErrorOptions { message: None, ..fallback })
+            let message = fallback
+                .message
+                .clone()
+                .unwrap_or_else(|| get_status_text(status).to_string());
+            create_error(
+                message,
+                ErrorOptions::default(),
+                ErrorOptions {
+                    message: None,
+                    ..fallback
+                },
+            )
         }
     }
 }
@@ -786,8 +955,9 @@ pub struct SerializeOptions {
 pub fn serialize_error(error: ErrorInput, options: SerializeOptions) -> SerializedAppError {
     let app_error = to_app_error(error, ErrorOptions::default());
     let status = get_status_text(app_error.status_code).to_string();
-    let should_redact =
-        options.redact_internal_message && app_error.status_code >= INTERNAL_SERVER_ERROR && !app_error.expose;
+    let should_redact = options.redact_internal_message
+        && app_error.status_code >= INTERNAL_SERVER_ERROR
+        && !app_error.expose;
     SerializedAppError {
         kind: "app_error",
         name: "AppError",
@@ -803,8 +973,16 @@ pub fn serialize_error(error: ErrorInput, options: SerializeOptions) -> Serializ
         error_code: app_error.error_code.clone(),
         expose: app_error.expose,
         retryable: app_error.retryable,
-        details: if options.include_details { app_error.details.clone() } else { None },
-        meta: if options.include_meta { app_error.meta.clone() } else { None },
+        details: if options.include_details {
+            app_error.details.clone()
+        } else {
+            None
+        },
+        meta: if options.include_meta {
+            app_error.meta.clone()
+        } else {
+            None
+        },
         lines: options.include_stack_lines.then(|| app_error.stack_lines()),
     }
 }
@@ -814,17 +992,29 @@ pub fn get_user_error_message(error: ErrorInput, fallback: Option<&str>) -> Stri
     let fallback = fallback.unwrap_or(INTERNAL_USER_MESSAGE);
     let message = to_app_error(
         error,
-        ErrorOptions { message: Some(fallback.into()), user_message: Some(fallback.into()), ..Default::default() },
+        ErrorOptions {
+            message: Some(fallback.into()),
+            user_message: Some(fallback.into()),
+            ..Default::default()
+        },
     )
-    .user_message;
-    if message.is_empty() { fallback.to_string() } else { message }
+    .user_message
+    .clone();
+    if message.is_empty() {
+        fallback.to_string()
+    } else {
+        message
+    }
 }
 
 /// `getErrorStatusCode(error, fallback)`.
 pub fn get_error_status_code(error: ErrorInput, fallback: Option<u16>) -> u16 {
     to_app_error(
         error,
-        ErrorOptions { status_code: Some(fallback.unwrap_or(INTERNAL_SERVER_ERROR)), ..Default::default() },
+        ErrorOptions {
+            status_code: Some(fallback.unwrap_or(INTERNAL_SERVER_ERROR)),
+            ..Default::default()
+        },
     )
     .status_code
 }

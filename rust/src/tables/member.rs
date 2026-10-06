@@ -2,20 +2,20 @@
 
 use super::{default_id, default_now};
 use crate::columns;
-use crate::db::schema::{Direction::*, IndexDef, TableDef};
 use crate::db::Record;
-use crate::shared::schemas::{io_member, Member};
+use crate::db::schema::{Direction::*, IndexDef, TableDef};
+use crate::shared::schemas::{Member, io_member};
 
 columns!(Member {
-    ID: String = "id" / "id" (Text),
-    CREATED_ON: String = "createdOn" / "created_on" (Text),
-    UPDATED_ON: String = "updatedOn" / "updated_on" (Text),
-    USER_ID: String = "userId" / "user_id" (Text),
-    SEASON_ID: String = "seasonId" / "season_id" (Text),
-    TEAM_ID: String = "teamId" / "team_id" (Text),
-    IS_MOCK: bool = "isMock" / "is_mock" (Bool),
-    CAPTAIN: bool = "captain" / "captain" (Bool),
-    PENDING: bool = "pending" / "pending" (Bool),
+    ID: String = "id" / "id"(Text),
+    CREATED_ON: String = "createdOn" / "created_on"(Text),
+    UPDATED_ON: String = "updatedOn" / "updated_on"(Text),
+    USER_ID: String = "userId" / "user_id"(Text),
+    SEASON_ID: String = "seasonId" / "season_id"(Text),
+    TEAM_ID: String = "teamId" / "team_id"(Text),
+    IS_MOCK: bool = "isMock" / "is_mock"(Bool),
+    CAPTAIN: bool = "captain" / "captain"(Bool),
+    PENDING: bool = "pending" / "pending"(Bool),
 });
 
 pub static TABLE: TableDef = TableDef {
@@ -42,7 +42,11 @@ pub static TABLE: TableDef = TableDef {
         IndexDef::new(&[("createdOn", Asc)]),
     ],
     schema: io_member,
-    defaults: &[("id", default_id), ("createdOn", default_now), ("updatedOn", default_now)],
+    defaults: &[
+        ("id", default_id),
+        ("createdOn", default_now),
+        ("updatedOn", default_now),
+    ],
 };
 
 impl Record for Member {

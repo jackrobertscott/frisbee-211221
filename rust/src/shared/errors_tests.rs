@@ -18,7 +18,10 @@ fn opts() -> ErrorOptions {
 }
 
 fn status(code: u16) -> ErrorOptions {
-    ErrorOptions { status_code: Some(code), ..Default::default() }
+    ErrorOptions {
+        status_code: Some(code),
+        ..Default::default()
+    }
 }
 
 fn meta(value: Value) -> Map<String, Value> {
@@ -79,21 +82,36 @@ mod app_error {
     #[test]
     fn maps_known_error_codes_to_user_messages() {
         assert_eq!(
-            AppError::new("x", ErrorOptions::code("auth.invalid_login").with_status_code(401)).user_message,
+            AppError::new(
+                "x",
+                ErrorOptions::code("auth.invalid_login").with_status_code(401)
+            )
+            .user_message,
             "The email or password is not correct."
         );
         assert_eq!(
-            AppError::new("x", ErrorOptions::code("user.code_invalid").with_status_code(400)).user_message,
+            AppError::new(
+                "x",
+                ErrorOptions::code("user.code_invalid").with_status_code(400)
+            )
+            .user_message,
             "That code is not correct."
         );
     }
 
     #[test]
     fn uses_a_cleaned_exposed_message_for_unknown_codes_below_500() {
-        let error = AppError::new("Failed:   Team can not   be saved", ErrorOptions::code("custom.thing").with_status_code(400));
+        let error = AppError::new(
+            "Failed:   Team can not   be saved",
+            ErrorOptions::code("custom.thing").with_status_code(400),
+        );
         assert_eq!(error.user_message, "Team cannot be saved");
         assert_eq!(
-            AppError::new("An error occurred: oops", ErrorOptions::code("custom.thing").with_status_code(400)).user_message,
+            AppError::new(
+                "An error occurred: oops",
+                ErrorOptions::code("custom.thing").with_status_code(400)
+            )
+            .user_message,
             "oops"
         );
     }
@@ -101,15 +119,31 @@ mod app_error {
     #[test]
     fn falls_back_to_the_status_message_for_unexposed_or_empty_messages() {
         assert_eq!(
-            AppError::new("secret", ErrorOptions::code("custom.thing").with_status_code(404).with_expose(false)).user_message,
+            AppError::new(
+                "secret",
+                ErrorOptions::code("custom.thing")
+                    .with_status_code(404)
+                    .with_expose(false)
+            )
+            .user_message,
             "We could not find what you were looking for."
         );
         assert_eq!(
-            AppError::new("failed:", ErrorOptions::code("custom.thing").with_status_code(403)).user_message,
+            AppError::new(
+                "failed:",
+                ErrorOptions::code("custom.thing").with_status_code(403)
+            )
+            .user_message,
             "You do not have permission to do that."
         );
         assert_eq!(
-            AppError::new("x", ErrorOptions::code("custom.thing").with_status_code(418).with_expose(false)).user_message,
+            AppError::new(
+                "x",
+                ErrorOptions::code("custom.thing")
+                    .with_status_code(418)
+                    .with_expose(false)
+            )
+            .user_message,
             INTERNAL
         );
     }
@@ -117,7 +151,13 @@ mod app_error {
     #[test]
     fn never_uses_the_raw_message_for_5xx_errors_even_when_exposed() {
         assert_eq!(
-            AppError::new("db down", ErrorOptions::code("custom.thing").with_status_code(503).with_expose(true)).user_message,
+            AppError::new(
+                "db down",
+                ErrorOptions::code("custom.thing")
+                    .with_status_code(503)
+                    .with_expose(true)
+            )
+            .user_message,
             "This feature is temporarily unavailable. Please try again later."
         );
     }
@@ -147,19 +187,54 @@ mod error_factories {
     #[test]
     fn create_errors_with_fixed_status_and_code() {
         let cases = [
-            (bad_request_error("x", opts()), 400, "bad_request", "Please check the information you entered and try again."),
-            (unauthorized_error("x", opts()), 401, "unauthorized", "Please sign in to continue."),
-            (forbidden_error("x", opts()), 403, "forbidden", "You do not have permission to do that."),
-            (not_found_error("x", opts()), 404, "not_found", "We could not find what you were looking for."),
-            (method_not_allowed_error("x", opts()), 405, "method_not_allowed", "This action is not available from here."),
+            (
+                bad_request_error("x", opts()),
+                400,
+                "bad_request",
+                "Please check the information you entered and try again.",
+            ),
+            (
+                unauthorized_error("x", opts()),
+                401,
+                "unauthorized",
+                "Please sign in to continue.",
+            ),
+            (
+                forbidden_error("x", opts()),
+                403,
+                "forbidden",
+                "You do not have permission to do that.",
+            ),
+            (
+                not_found_error("x", opts()),
+                404,
+                "not_found",
+                "We could not find what you were looking for.",
+            ),
+            (
+                method_not_allowed_error("x", opts()),
+                405,
+                "method_not_allowed",
+                "This action is not available from here.",
+            ),
             (
                 conflict_error("x", opts()),
                 409,
                 "conflict",
                 "That change could not be saved because it conflicts with existing information.",
             ),
-            (payload_too_large_error("x", opts()), 413, "payload_too_large", "That upload is too large."),
-            (validation_error("x", opts()), 422, "validation_error", "Please check the information you entered and try again."),
+            (
+                payload_too_large_error("x", opts()),
+                413,
+                "payload_too_large",
+                "That upload is too large.",
+            ),
+            (
+                validation_error("x", opts()),
+                422,
+                "validation_error",
+                "Please check the information you entered and try again.",
+            ),
             (
                 too_many_requests_error("x", opts()),
                 429,
@@ -208,7 +283,10 @@ mod error_factories {
         let error = internal_error(Some("missing"), ErrorOptions::code("db.record_not_found"));
         assert_eq!(error.status_code, 500);
         assert_eq!(error.error_code, "db.record_not_found");
-        assert_eq!(error.user_message, "We could not find the item you were trying to open.");
+        assert_eq!(
+            error.user_message,
+            "We could not find the item you were trying to open."
+        );
     }
 
     #[test]
@@ -216,7 +294,11 @@ mod error_factories {
         let error = create_error(
             "base",
             ErrorOptions::code("bad_request").with_status_code(400),
-            ErrorOptions { message: Some("override".into()), status_code: Some(404), ..Default::default() },
+            ErrorOptions {
+                message: Some("override".into()),
+                status_code: Some(404),
+                ..Default::default()
+            },
         );
         assert_eq!(error.message, "override");
         assert_eq!(error.status_code, 404);
@@ -255,8 +337,14 @@ mod validation_user_messages {
     fn falls_back_to_the_generic_message_without_a_field() {
         let generic = "Please check the information you entered and try again.";
         assert_eq!(get_validation_user_message(None), generic);
-        assert_eq!(get_validation_user_message(Some(&json!("no field here"))), generic);
-        assert_eq!(get_validation_user_message(Some(&json!({"field": "email"}))), generic);
+        assert_eq!(
+            get_validation_user_message(Some(&json!("no field here"))),
+            generic
+        );
+        assert_eq!(
+            get_validation_user_message(Some(&json!({"field": "email"}))),
+            generic
+        );
     }
 
     #[test]
@@ -281,14 +369,28 @@ mod is_app_error_is_serialized_app_error {
     fn detects_app_error_instances() {
         // Rust's type system distinguishes AppError from other errors; the
         // serialised form is a plain value, not an AppError
-        let serialized = serialize_error(not_found_error("x", opts()).into(), SerializeOptions::default()).to_value();
-        assert!(matches!(ErrorInput::from(not_found_error("x", opts())), ErrorInput::App(_)));
-        assert!(!matches!(ErrorInput::Value(Some(serialized)), ErrorInput::App(_)));
+        let serialized = serialize_error(
+            not_found_error("x", opts()).into(),
+            SerializeOptions::default(),
+        )
+        .to_value();
+        assert!(matches!(
+            ErrorInput::from(not_found_error("x", opts())),
+            ErrorInput::App(_)
+        ));
+        assert!(!matches!(
+            ErrorInput::Value(Some(serialized)),
+            ErrorInput::App(_)
+        ));
     }
 
     #[test]
     fn detects_serialized_errors() {
-        let serialized = serialize_error(not_found_error("x", opts()).into(), SerializeOptions::default()).to_value();
+        let serialized = serialize_error(
+            not_found_error("x", opts()).into(),
+            SerializeOptions::default(),
+        )
+        .to_value();
         assert!(is_serialized_app_error(&serialized));
         assert!(is_serialized_app_error(&json!({
             "name": "AppError", "message": "x", "errorCode": "x", "expose": true, "retryable": false, "code": "404"
@@ -342,17 +444,29 @@ mod to_app_error_tests {
 
     #[test]
     fn reads_status_codes_from_status_code_or_numeric_code() {
-        assert_eq!(to_app_error(error_with("x", json!({"statusCode": 404})), opts()).status_code, 404);
-        assert_eq!(to_app_error(error_with("x", json!({"statusCode": "403"})), opts()).status_code, 403);
+        assert_eq!(
+            to_app_error(error_with("x", json!({"statusCode": 404})), opts()).status_code,
+            404
+        );
+        assert_eq!(
+            to_app_error(error_with("x", json!({"statusCode": "403"})), opts()).status_code,
+            403
+        );
         let from_code = to_app_error(error_with("x", json!({"code": "409"})), opts());
         assert_eq!(from_code.status_code, 409);
         assert_eq!(from_code.error_code, "conflict");
-        assert_eq!(to_app_error(error_with("x", json!({"statusCode": 200})), opts()).status_code, 500);
+        assert_eq!(
+            to_app_error(error_with("x", json!({"statusCode": 200})), opts()).status_code,
+            500
+        );
     }
 
     #[test]
     fn uses_a_string_code_as_the_error_code() {
-        let error = to_app_error(error_with("connect failed", json!({"code": "ECONNREFUSED"})), opts());
+        let error = to_app_error(
+            error_with("connect failed", json!({"code": "ECONNREFUSED"})),
+            opts(),
+        );
         assert_eq!(error.status_code, 500);
         assert_eq!(error.error_code, "ECONNREFUSED");
         assert_eq!(error.user_message, INTERNAL);
@@ -361,7 +475,10 @@ mod to_app_error_tests {
     #[test]
     fn prefers_error_code_over_code() {
         let error = to_app_error(
-            error_with("x", json!({"statusCode": 401, "errorCode": "auth.invalid_login", "code": "E"})),
+            error_with(
+                "x",
+                json!({"statusCode": 401, "errorCode": "auth.invalid_login", "code": "E"}),
+            ),
             opts(),
         );
         assert_eq!(error.error_code, "auth.invalid_login");
@@ -370,7 +487,10 @@ mod to_app_error_tests {
 
     #[test]
     fn maps_validation_error_to_422() {
-        let app_error = to_app_error(ErrorInput::Error(ErrorLike::new("ValidationError", "bad")), opts());
+        let app_error = to_app_error(
+            ErrorInput::Error(ErrorLike::new("ValidationError", "bad")),
+            opts(),
+        );
         assert_eq!(app_error.status_code, 422);
         assert_eq!(app_error.error_code, "validation_error");
     }
@@ -378,12 +498,18 @@ mod to_app_error_tests {
     #[test]
     fn maps_jwt_errors_to_401() {
         for name in ["JsonWebTokenError", "TokenExpiredError", "NotBeforeError"] {
-            let app_error = to_app_error(ErrorInput::Error(ErrorLike::new(name, "jwt problem")), opts());
+            let app_error = to_app_error(
+                ErrorInput::Error(ErrorLike::new(name, "jwt problem")),
+                opts(),
+            );
             assert_eq!(app_error.status_code, 401);
             assert_eq!(app_error.error_code, "unauthorized");
             assert_eq!(app_error.user_message, "Please sign in to continue.");
         }
-        assert_eq!(to_app_error(error_with("jwt expired", json!({})), opts()).status_code, 401);
+        assert_eq!(
+            to_app_error(error_with("jwt expired", json!({})), opts()).status_code,
+            401
+        );
     }
 
     #[test]
@@ -417,7 +543,12 @@ mod to_app_error_tests {
     fn uses_fallback_options_for_errors_where_not_specified() {
         let error = to_app_error(
             error_with("x", json!({"meta": "not a record"})),
-            ErrorOptions { status_code: Some(503), meta: Some(meta(json!({"fallback": true}))), retryable: Some(true), ..Default::default() },
+            ErrorOptions {
+                status_code: Some(503),
+                meta: Some(meta(json!({"fallback": true}))),
+                retryable: Some(true),
+                ..Default::default()
+            },
         );
         assert_eq!(error.status_code, 503);
         assert_eq!(error.error_code, "service_unavailable");
@@ -428,7 +559,10 @@ mod to_app_error_tests {
     #[test]
     fn keeps_the_error_own_properties_over_fallback_options() {
         let error = to_app_error(
-            error_with("own message", json!({"statusCode": 400, "errorCode": "own.code", "userMessage": "Own"})),
+            error_with(
+                "own message",
+                json!({"statusCode": 400, "errorCode": "own.code", "userMessage": "Own"}),
+            ),
             ErrorOptions {
                 message: Some("fallback".into()),
                 error_code: Some("fallback.code".into()),
@@ -444,21 +578,39 @@ mod to_app_error_tests {
 
     #[test]
     fn prefers_the_error_status_code_over_the_fallback() {
-        assert_eq!(to_app_error(error_with("x", json!({"statusCode": 404})), status(503)).status_code, 404);
+        assert_eq!(
+            to_app_error(error_with("x", json!({"statusCode": 404})), status(503)).status_code,
+            404
+        );
     }
 
     #[test]
     fn fills_in_an_empty_error_message() {
-        assert_eq!(to_app_error(error_with("", json!({})), opts()).message, "Internal Server Error");
         assert_eq!(
-            to_app_error(error_with("", json!({})), ErrorOptions { message: Some("fallback".into()), ..Default::default() }).message,
+            to_app_error(error_with("", json!({})), opts()).message,
+            "Internal Server Error"
+        );
+        assert_eq!(
+            to_app_error(
+                error_with("", json!({})),
+                ErrorOptions {
+                    message: Some("fallback".into()),
+                    ..Default::default()
+                }
+            )
+            .message,
             "fallback"
         );
     }
 
     #[test]
     fn handles_unknown_values() {
-        for value in [None, Some(Value::Null), Some(json!(42)), Some(json!({"foo": "bar"}))] {
+        for value in [
+            None,
+            Some(Value::Null),
+            Some(json!(42)),
+            Some(json!({"foo": "bar"})),
+        ] {
             let error = to_app_error(ErrorInput::Value(value), opts());
             assert_eq!(error.status_code, 500);
             assert_eq!(error.message, "Internal Server Error");
@@ -467,7 +619,14 @@ mod to_app_error_tests {
         assert_eq!(with_fallback.status_code, 404);
         assert_eq!(with_fallback.message, "Not Found");
         assert_eq!(
-            to_app_error(ErrorInput::Value(None), ErrorOptions { message: Some("custom".into()), ..Default::default() }).message,
+            to_app_error(
+                ErrorInput::Value(None),
+                ErrorOptions {
+                    message: Some("custom".into()),
+                    ..Default::default()
+                }
+            )
+            .message,
             "custom"
         );
     }
@@ -483,13 +642,20 @@ mod to_app_error_tests {
         );
         let serialized = serialize_error(
             original.into(),
-            SerializeOptions { include_details: true, include_meta: true, ..Default::default() },
+            SerializeOptions {
+                include_details: true,
+                include_meta: true,
+                ..Default::default()
+            },
         );
         let restored = deserialize_error(ErrorInput::Value(Some(serialized.to_value())), opts());
         assert_eq!(restored.message, "nope");
         assert_eq!(restored.status_code, 403);
         assert_eq!(restored.error_code, "team.access_forbidden");
-        assert_eq!(restored.user_message, "You do not have access to that team.");
+        assert_eq!(
+            restored.user_message,
+            "You do not have access to that team."
+        );
         assert!(restored.retryable);
         assert_eq!(restored.details, Some(json!({"x": 1})));
         assert_eq!(restored.meta, Some(meta(json!({"y": 2}))));
@@ -514,7 +680,10 @@ mod serialize_error_tests {
 
     #[test]
     fn serializes_the_public_shape() {
-        let serialized = serialize_error(not_found_error("missing", opts()).into(), SerializeOptions::default());
+        let serialized = serialize_error(
+            not_found_error("missing", opts()).into(),
+            SerializeOptions::default(),
+        );
         assert_eq!(
             serialized.to_value(),
             json!({
@@ -534,48 +703,94 @@ mod serialize_error_tests {
 
     #[test]
     fn redacts_unexposed_5xx_messages_only_when_asked() {
-        let redact = SerializeOptions { redact_internal_message: true, ..Default::default() };
+        let redact = SerializeOptions {
+            redact_internal_message: true,
+            ..Default::default()
+        };
         let error = internal_error(Some("secret database detail"), opts());
-        assert_eq!(serialize_error(error.clone().into(), SerializeOptions::default()).message, "secret database detail");
-        assert_eq!(serialize_error(error.into(), redact).message, "Internal Server Error");
+        assert_eq!(
+            serialize_error(error.clone().into(), SerializeOptions::default()).message,
+            "secret database detail"
+        );
+        assert_eq!(
+            serialize_error(error.into(), redact).message,
+            "Internal Server Error"
+        );
         assert_eq!(
             serialize_error(
-                create_error("visible", ErrorOptions { status_code: Some(500), expose: Some(true), ..Default::default() }, opts()).into(),
+                create_error(
+                    "visible",
+                    ErrorOptions {
+                        status_code: Some(500),
+                        expose: Some(true),
+                        ..Default::default()
+                    },
+                    opts()
+                )
+                .into(),
                 redact
             )
             .message,
             "visible"
         );
-        assert_eq!(serialize_error(bad_request_error("visible", opts()).into(), redact).message, "visible");
-        assert_eq!(serialize_error(service_unavailable_error("down", opts()).into(), redact).message, "Service Unavailable");
+        assert_eq!(
+            serialize_error(bad_request_error("visible", opts()).into(), redact).message,
+            "visible"
+        );
+        assert_eq!(
+            serialize_error(service_unavailable_error("down", opts()).into(), redact).message,
+            "Service Unavailable"
+        );
     }
 
     #[test]
     fn includes_details_meta_and_stack_lines_only_when_asked() {
-        let error = bad_request_error("x", opts().with_details(json!({"a": 1})).with_meta(meta(json!({"b": 2}))));
+        let error = bad_request_error(
+            "x",
+            opts()
+                .with_details(json!({"a": 1}))
+                .with_meta(meta(json!({"b": 2}))),
+        );
         let plain = serialize_error(error.clone().into(), SerializeOptions::default());
         assert_eq!(plain.details, None);
         assert_eq!(plain.meta, None);
         assert_eq!(plain.lines, None);
         let full = serialize_error(
             error.into(),
-            SerializeOptions { include_details: true, include_meta: true, include_stack_lines: true, ..Default::default() },
+            SerializeOptions {
+                include_details: true,
+                include_meta: true,
+                include_stack_lines: true,
+                ..Default::default()
+            },
         );
         assert_eq!(full.details, Some(json!({"a": 1})));
         assert_eq!(full.meta, Some(meta(json!({"b": 2}))));
-        assert_eq!(full.lines.as_ref().and_then(|lines| lines.first()).map(String::as_str), Some("AppError: x"));
+        assert_eq!(
+            full.lines
+                .as_ref()
+                .and_then(|lines| lines.first())
+                .map(String::as_str),
+            Some("AppError: x")
+        );
     }
 
     #[test]
     fn uses_the_internal_status_text_for_unknown_status_codes() {
-        let serialized = serialize_error(AppError::new("x", status(418)).into(), SerializeOptions::default());
+        let serialized = serialize_error(
+            AppError::new("x", status(418)).into(),
+            SerializeOptions::default(),
+        );
         assert_eq!(serialized.status, "Internal Server Error");
         assert_eq!(serialized.status_code, 418);
     }
 
     #[test]
     fn serializes_non_app_errors_via_to_app_error() {
-        let serialized = serialize_error(ErrorInput::Value(Some(json!("plain string"))), SerializeOptions::default());
+        let serialized = serialize_error(
+            ErrorInput::Value(Some(json!("plain string"))),
+            SerializeOptions::default(),
+        );
         assert_eq!(serialized.status_code, 500);
         assert_eq!(serialized.message, "plain string");
     }
@@ -592,7 +807,11 @@ mod get_user_error_message_tests {
         );
         assert_eq!(
             get_user_error_message(
-                validation_error("x", opts().with_details(json!("[startingDate]: Value is not a valid date string."))).into(),
+                validation_error(
+                    "x",
+                    opts().with_details(json!("[startingDate]: Value is not a valid date string."))
+                )
+                .into(),
                 None
             ),
             "Please check starting date and try again."
@@ -601,23 +820,47 @@ mod get_user_error_message_tests {
 
     #[test]
     fn returns_the_user_message_of_serialized_errors() {
-        let serialized = serialize_error(bad_request_error("x", opts().with_user_message("Fix it")).into(), SerializeOptions::default());
-        assert_eq!(get_user_error_message(ErrorInput::Value(Some(serialized.to_value())), None), "Fix it");
+        let serialized = serialize_error(
+            bad_request_error("x", opts().with_user_message("Fix it")).into(),
+            SerializeOptions::default(),
+        );
+        assert_eq!(
+            get_user_error_message(ErrorInput::Value(Some(serialized.to_value())), None),
+            "Fix it"
+        );
     }
 
     #[test]
     fn returns_the_fallback_for_strings_and_plain_errors() {
-        assert_eq!(get_user_error_message(ErrorInput::Value(Some(json!("oops"))), None), INTERNAL);
-        assert_eq!(get_user_error_message(error_with("boom", json!({})), None), INTERNAL);
-        assert_eq!(get_user_error_message(error_with("boom", json!({})), Some("Custom")), "Custom");
-        assert_eq!(get_user_error_message(ErrorInput::Value(None), Some("Custom")), "Custom");
+        assert_eq!(
+            get_user_error_message(ErrorInput::Value(Some(json!("oops"))), None),
+            INTERNAL
+        );
+        assert_eq!(
+            get_user_error_message(error_with("boom", json!({})), None),
+            INTERNAL
+        );
+        assert_eq!(
+            get_user_error_message(error_with("boom", json!({})), Some("Custom")),
+            "Custom"
+        );
+        assert_eq!(
+            get_user_error_message(ErrorInput::Value(None), Some("Custom")),
+            "Custom"
+        );
     }
 
     #[test]
     fn ignores_the_status_code_of_plain_errors_in_favour_of_the_fallback() {
-        assert_eq!(get_user_error_message(error_with("x", json!({"statusCode": 404})), None), INTERNAL);
+        assert_eq!(
+            get_user_error_message(error_with("x", json!({"statusCode": 404})), None),
+            INTERNAL
+        );
         // an Error's own userMessage still beats the fallback
-        assert_eq!(get_user_error_message(error_with("x", json!({"userMessage": "Own"})), None), "Own");
+        assert_eq!(
+            get_user_error_message(error_with("x", json!({"userMessage": "Own"})), None),
+            "Own"
+        );
     }
 }
 
@@ -626,18 +869,39 @@ mod get_error_status_code_has_status_code {
 
     #[test]
     fn reads_status_codes_with_a_fallback() {
-        assert_eq!(get_error_status_code(not_found_error("x", opts()).into(), None), 404);
+        assert_eq!(
+            get_error_status_code(not_found_error("x", opts()).into(), None),
+            404
+        );
         assert_eq!(get_error_status_code(error_with("x", json!({})), None), 500);
-        assert_eq!(get_error_status_code(error_with("x", json!({})), Some(400)), 400);
-        assert_eq!(get_error_status_code(ErrorInput::Value(Some(json!("x"))), Some(400)), 400);
+        assert_eq!(
+            get_error_status_code(error_with("x", json!({})), Some(400)),
+            400
+        );
+        assert_eq!(
+            get_error_status_code(ErrorInput::Value(Some(json!("x"))), Some(400)),
+            400
+        );
     }
 
     #[test]
     fn compares_against_a_single_status_or_a_list() {
-        assert!(has_status_code(not_found_error("x", opts()).into(), &[http_status::NOT_FOUND]));
-        assert!(!has_status_code(not_found_error("x", opts()).into(), &[400]));
-        assert!(has_status_code(not_found_error("x", opts()).into(), &[400, 404]));
+        assert!(has_status_code(
+            not_found_error("x", opts()).into(),
+            &[http_status::NOT_FOUND]
+        ));
+        assert!(!has_status_code(
+            not_found_error("x", opts()).into(),
+            &[400]
+        ));
+        assert!(has_status_code(
+            not_found_error("x", opts()).into(),
+            &[400, 404]
+        ));
         assert!(has_status_code(error_with("x", json!({})), &[500]));
-        assert!(has_status_code(error_with("x", json!({"statusCode": 401})), &[401]));
+        assert!(has_status_code(
+            error_with("x", json!({"statusCode": 401})),
+            &[401]
+        ));
     }
 }

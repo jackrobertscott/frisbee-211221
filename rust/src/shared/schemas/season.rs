@@ -61,7 +61,11 @@ io_schema! {
 #[serde(rename_all = "camelCase")]
 pub struct SeasonFinalResult {
     pub team_id: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", with = "double_option")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "double_option"
+    )]
     pub position: Option<Option<f64>>,
 }
 

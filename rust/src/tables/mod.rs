@@ -16,10 +16,11 @@ pub mod session;
 pub mod team;
 pub mod user;
 
-use crate::db::schema::TableDef;
 use crate::db::Table;
+use crate::db::schema::TableDef;
 use crate::shared::schemas::{
-    AuthAttemptLimit, Fixture, GamedayImportConfig, GamedayImportRun, Member, Report, Season, Session, Team, User,
+    AuthAttemptLimit, Fixture, GamedayImportConfig, GamedayImportRun, Member, Report, Season,
+    Session, Team, User,
 };
 use serde_json::Value;
 

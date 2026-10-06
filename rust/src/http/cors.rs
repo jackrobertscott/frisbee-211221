@@ -5,23 +5,49 @@ use axum::http::{HeaderMap, HeaderName, HeaderValue};
 
 const ALLOWED_AGE: u32 = 60 * 60 * 24; // 24 hours
 const ALLOWED_METHODS: [&str; 2] = ["POST", "OPTIONS"];
-const ALLOWED_HEADERS: [&str; 4] = ["Access-Control-Allow-Origin", "Content-Type", "Authorization", "Accept"];
+const ALLOWED_HEADERS: [&str; 4] = [
+    "Access-Control-Allow-Origin",
+    "Content-Type",
+    "Authorization",
+    "Accept",
+];
 
 /// The CORS headers for a request from `request_origin` (`attachCorsToResponse`).
 pub fn cors_headers(request_origin: Option<&str>, origin: &Origin) -> Vec<(HeaderName, String)> {
     let mut headers = Vec::new();
     let allowed_origin = origin.allowed();
     if let Some(request_origin) = request_origin.filter(|o| origin.is_allowed(Some(o))) {
-        headers.push((HeaderName::from_static("access-control-allow-origin"), request_origin.to_string()));
-        headers.push((HeaderName::from_static("access-control-allow-credentials"), "true".into()));
+        headers.push((
+            HeaderName::from_static("access-control-allow-origin"),
+            request_origin.to_string(),
+        ));
+        headers.push((
+            HeaderName::from_static("access-control-allow-credentials"),
+            "true".into(),
+        ));
     } else if !allowed_origin.is_empty() {
-        headers.push((HeaderName::from_static("access-control-allow-origin"), allowed_origin));
-        headers.push((HeaderName::from_static("access-control-allow-credentials"), "true".into()));
+        headers.push((
+            HeaderName::from_static("access-control-allow-origin"),
+            allowed_origin,
+        ));
+        headers.push((
+            HeaderName::from_static("access-control-allow-credentials"),
+            "true".into(),
+        ));
     }
     headers.push((HeaderName::from_static("vary"), "Origin".into()));
-    headers.push((HeaderName::from_static("access-control-allow-methods"), ALLOWED_METHODS.join(",")));
-    headers.push((HeaderName::from_static("access-control-allow-headers"), ALLOWED_HEADERS.join(",")));
-    headers.push((HeaderName::from_static("access-control-max-age"), ALLOWED_AGE.to_string()));
+    headers.push((
+        HeaderName::from_static("access-control-allow-methods"),
+        ALLOWED_METHODS.join(","),
+    ));
+    headers.push((
+        HeaderName::from_static("access-control-allow-headers"),
+        ALLOWED_HEADERS.join(","),
+    ));
+    headers.push((
+        HeaderName::from_static("access-control-max-age"),
+        ALLOWED_AGE.to_string(),
+    ));
     headers
 }
 
@@ -30,7 +56,9 @@ pub fn attach(target: &mut HeaderMap, request_origin: Option<&str>, origin: &Ori
     for (name, value) in cors_headers(request_origin, origin) {
         if let Ok(value) = HeaderValue::from_str(&value) {
             target.insert(name, value);
-        } else if let Ok(value) = HeaderValue::from_bytes(&value.chars().map(|c| c as u32 as u8).collect::<Vec<_>>()) {
+        } else if let Ok(value) =
+            HeaderValue::from_bytes(&value.chars().map(|c| c as u32 as u8).collect::<Vec<_>>())
+        {
             target.insert(name, value);
         }
     }

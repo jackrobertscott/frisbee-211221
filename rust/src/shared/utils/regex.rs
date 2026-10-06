@@ -67,9 +67,8 @@ pub fn hsla() -> &'static Regex {
     HSLA.get_or_init(|| {
         let s = format!("[{}]*", js::WS_CLASS);
         let num = r"(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)";
-        let pattern = format!(
-            r"^hsla\({s}(-?{num}){s},{s}({num})%{s},{s}({num})%{s},{s}({num}){s}\)$"
-        );
+        let pattern =
+            format!(r"^hsla\({s}(-?{num}){s},{s}({num})%{s},{s}({num})%{s},{s}({num}){s}\)$");
         Regex::new(&pattern).unwrap_or_else(|error| panic!("invalid hsla regex: {error}"))
     })
 }

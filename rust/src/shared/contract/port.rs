@@ -7,7 +7,9 @@ use crate::shared::torva::io;
 use crate::shared::utils::endpoint_def::EndpointDef;
 
 /// Multipart upload: no JSON payload; fields and the file are read from the body.
-pub const PORT_IMPORT: EndpointDef = EndpointDef::new("PortImport", "/PortImport").access(AuthPoint::PortManage).multipart();
+pub const PORT_IMPORT: EndpointDef = EndpointDef::new("PortImport", "/PortImport")
+    .access(AuthPoint::PortManage)
+    .multipart();
 
 io_schema! {
     pub fn port_export_payload() {
@@ -44,10 +46,11 @@ io_schema! {
         ])
     }
 }
-pub const PORT_GAMEDAY_IMPORT_LOAD: EndpointDef = EndpointDef::new("PortGamedayImportLoad", "/PortGamedayImportLoad")
-    .access(AuthPoint::PortManage)
-    .payload(port_season_id_payload)
-    .result(port_gameday_import_load_result);
+pub const PORT_GAMEDAY_IMPORT_LOAD: EndpointDef =
+    EndpointDef::new("PortGamedayImportLoad", "/PortGamedayImportLoad")
+        .access(AuthPoint::PortManage)
+        .payload(port_season_id_payload)
+        .result(port_gameday_import_load_result);
 
 io_schema! {
     pub fn port_gameday_import_save_payload() {
@@ -63,15 +66,17 @@ io_schema! {
         ])
     }
 }
-pub const PORT_GAMEDAY_IMPORT_SAVE: EndpointDef = EndpointDef::new("PortGamedayImportSave", "/PortGamedayImportSave")
-    .access(AuthPoint::PortManage)
-    .payload(port_gameday_import_save_payload)
-    .result(io_gameday_import_config_safe);
+pub const PORT_GAMEDAY_IMPORT_SAVE: EndpointDef =
+    EndpointDef::new("PortGamedayImportSave", "/PortGamedayImportSave")
+        .access(AuthPoint::PortManage)
+        .payload(port_gameday_import_save_payload)
+        .result(io_gameday_import_config_safe);
 
-pub const PORT_GAMEDAY_IMPORT: EndpointDef = EndpointDef::new("PortGamedayImport", "/PortGamedayImport")
-    .access(AuthPoint::PortManage)
-    .payload(port_season_id_payload)
-    .result(io_port_member_import_summary);
+pub const PORT_GAMEDAY_IMPORT: EndpointDef =
+    EndpointDef::new("PortGamedayImport", "/PortGamedayImport")
+        .access(AuthPoint::PortManage)
+        .payload(port_season_id_payload)
+        .result(io_port_member_import_summary);
 
 io_schema! {
     pub fn port_mock_generate_payload() {
@@ -82,12 +87,14 @@ io_schema! {
         ])
     }
 }
-pub const PORT_MOCK_GENERATE: EndpointDef = EndpointDef::new("PortMockGenerate", "/PortMockGenerate")
-    .access(AuthPoint::PortManage)
-    .payload(port_mock_generate_payload);
+pub const PORT_MOCK_GENERATE: EndpointDef =
+    EndpointDef::new("PortMockGenerate", "/PortMockGenerate")
+        .access(AuthPoint::PortManage)
+        .payload(port_mock_generate_payload);
 
 pub const PORT_DELETE_ALL_MOCK_DATA: EndpointDef =
-    EndpointDef::new("PortDeleteAllMockData", "/PortDeleteAllMockData").access(AuthPoint::PortManage);
+    EndpointDef::new("PortDeleteAllMockData", "/PortDeleteAllMockData")
+        .access(AuthPoint::PortManage);
 
 pub const DEFS: &[&EndpointDef] = &[
     &PORT_IMPORT,

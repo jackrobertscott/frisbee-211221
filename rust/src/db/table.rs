@@ -19,14 +19,16 @@
 
 use super::filter::{Filter, Query};
 use super::schema::{
-    json_to_sql, row_to_map, select_list, ChildDef, Col, ColumnDef, ColumnKind, TableDef,
+    ChildDef, Col, ColumnDef, ColumnKind, TableDef, json_to_sql, row_to_map, select_list,
 };
-use super::{savepoint, Db};
-use crate::shared::errors::{not_found_error, to_app_error, AppError, AppResult, ErrorInput, ErrorOptions};
+use super::{Db, savepoint};
+use crate::shared::errors::{
+    AppError, AppResult, ErrorInput, ErrorOptions, not_found_error, to_app_error,
+};
 use rusqlite::types::Value as SqlValue;
-use rusqlite::{params_from_iter, Connection};
-use serde::de::DeserializeOwned;
+use rusqlite::{Connection, params_from_iter};
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 use std::marker::PhantomData;
@@ -89,7 +91,11 @@ impl Patch {
 
     /// Every key of `object` is set (spreading a validated payload).
     pub fn from_object(object: Map<String, Value>) -> Self {
-        object.into_iter().fold(Patch::new(), |patch, (key, value)| patch.set_field(&key, value))
+        object
+            .into_iter()
+            .fold(Patch::new(), |patch, (key, value)| {
+                patch.set_field(&key, value)
+            })
     }
 
     pub fn is_empty(&self) -> bool {
@@ -116,6 +122,9 @@ pub enum ReturnDocument {
     #[default]
     After,
 }
+
+/// Changed columns of one row (`None` clears the field).
+type Changes = Vec<(&'static ColumnDef, Option<Value>)>;
 
 /// A typed table. Declared once per record type in `crate::tables`.
 pub struct Table<T>(PhantomData<fn() -> T>);
@@ -149,13 +158,19 @@ pub struct TableTx<'c, T> {
 pub fn record_not_found(def: &TableDef, message: &str) -> AppError {
     let mut meta = Map::new();
     meta.insert("table".into(), Value::String(def.key.to_string()));
-    not_found_error(message, ErrorOptions::code("db.record_not_found").with_meta(meta))
+    not_found_error(
+        message,
+        ErrorOptions::code("db.record_not_found").with_meta(meta),
+    )
 }
 
 /// A schema validation failure inside a table helper. The TS tables `throw` the
 /// raw error string, which becomes a 500 with that string as its message.
 pub fn invalid_record(error: String) -> AppError {
-    to_app_error(ErrorInput::Value(Some(Value::String(error))), ErrorOptions::default())
+    to_app_error(
+        ErrorInput::Value(Some(Value::String(error))),
+        ErrorOptions::default(),
+    )
 }
 
 fn record_from_map<T: DeserializeOwned>(map: Map<String, Value>) -> AppResult<T> {
@@ -165,7 +180,9 @@ fn record_from_map<T: DeserializeOwned>(map: Map<String, Value>) -> AppResult<T>
 fn to_object(value: Value) -> AppResult<Map<String, Value>> {
     match value {
         Value::Object(map) => Ok(map),
-        other => Err(AppError::internal_from(format!("Expected an object record but got {other}."))),
+        other => Err(AppError::internal_from(format!(
+            "Expected an object record but got {other}."
+        ))),
     }
 }
 
@@ -186,7 +203,10 @@ impl<T: Record> Table<T> {
 
     /// Synchronous helpers on `conn` (inside `db.call` / `db.transaction`).
     pub fn tx<'c>(&self, conn: &'c Connection) -> TableTx<'c, T> {
-        TableTx { conn, _record: PhantomData }
+        TableTx {
+            conn,
+            _record: PhantomData,
+        }
     }
 
     pub async fn count(&self, db: &Db, filter: Filter) -> AppResult<i64> {
@@ -200,9 +220,15 @@ impl<T: Record> Table<T> {
     }
 
     /// `maybeOne` with a sort (the first match in that order).
-    pub async fn maybe_one_sorted(&self, db: &Db, filter: Filter, query: Query) -> AppResult<Option<T>> {
+    pub async fn maybe_one_sorted(
+        &self,
+        db: &Db,
+        filter: Filter,
+        query: Query,
+    ) -> AppResult<Option<T>> {
         let table = *self;
-        db.call(move |c| table.tx(c).maybe_one_sorted(&filter, &query)).await
+        db.call(move |c| table.tx(c).maybe_one_sorted(&filter, &query))
+            .await
     }
 
     pub async fn get_one(&self, db: &Db, filter: Filter) -> AppResult<T> {
@@ -212,7 +238,8 @@ impl<T: Record> Table<T> {
 
     pub async fn get_many(&self, db: &Db, filter: Filter, query: Query) -> AppResult<Vec<T>> {
         let table = *self;
-        db.call(move |c| table.tx(c).get_many(&filter, &query)).await
+        db.call(move |c| table.tx(c).get_many(&filter, &query))
+            .await
     }
 
     pub async fn create_one(&self, db: &Db, value: impl Serialize) -> AppResult<T> {
@@ -223,18 +250,24 @@ impl<T: Record> Table<T> {
 
     pub async fn create_many<V: Serialize>(&self, db: &Db, values: Vec<V>) -> AppResult<usize> {
         let table = *self;
-        let values = values.iter().map(serde_json::to_value).collect::<Result<Vec<_>, _>>()?;
-        db.call(move |c| table.tx(c).create_many_values(values)).await
+        let values = values
+            .iter()
+            .map(serde_json::to_value)
+            .collect::<Result<Vec<_>, _>>()?;
+        db.call(move |c| table.tx(c).create_many_values(values))
+            .await
     }
 
     pub async fn update_one(&self, db: &Db, filter: Filter, patch: Patch) -> AppResult<T> {
         let table = *self;
-        db.call(move |c| table.tx(c).update_one(&filter, &patch)).await
+        db.call(move |c| table.tx(c).update_one(&filter, &patch))
+            .await
     }
 
     pub async fn update_many(&self, db: &Db, filter: Filter, patch: Patch) -> AppResult<usize> {
         let table = *self;
-        db.call(move |c| table.tx(c).update_many(&filter, &patch)).await
+        db.call(move |c| table.tx(c).update_many(&filter, &patch))
+            .await
     }
 
     pub async fn update_bulk(&self, db: &Db, tasks: Vec<(Filter, Patch)>) -> AppResult<()> {
@@ -251,7 +284,12 @@ impl<T: Record> Table<T> {
         returns: ReturnDocument,
     ) -> AppResult<Option<T>> {
         let table = *self;
-        db.call(move |c| table.tx(c).find_one_and_update(&filter, &update, upsert, returns)).await
+        db.call(move |c| {
+            table
+                .tx(c)
+                .find_one_and_update(&filter, &update, upsert, returns)
+        })
+        .await
     }
 
     pub async fn delete_one(&self, db: &Db, filter: Filter) -> AppResult<usize> {
@@ -283,7 +321,12 @@ impl<'c, T: Record> TableTx<'c, T> {
     }
 
     /// `(_seq, stored fields)` rows matching `filter` in `query` order.
-    fn select_maps(&self, filter: &Filter, query: &Query, include_legacy: bool) -> AppResult<Vec<(i64, Map<String, Value>)>> {
+    fn select_maps(
+        &self,
+        filter: &Filter,
+        query: &Query,
+        include_legacy: bool,
+    ) -> AppResult<Vec<(i64, Map<String, Value>)>> {
         let def = self.def();
         let columns = def.plain_columns(include_legacy);
         let mut params = Vec::new();
@@ -296,18 +339,31 @@ impl<'c, T: Record> TableTx<'c, T> {
         );
         let mut statement = self.conn.prepare_cached(&sql)?;
         let rows = statement
-            .query_map(params_from_iter(params.iter()), |row| Ok((row.get::<_, i64>(0)?, row_to_map(row, &columns, 1)?)))?
+            .query_map(params_from_iter(params.iter()), |row| {
+                Ok((row.get::<_, i64>(0)?, row_to_map(row, &columns, 1)?))
+            })?
             .collect::<Result<Vec<_>, _>>()?;
         let mut rows = rows;
         self.attach_children(&mut rows)?;
-        Ok(rows.into_iter().map(|(seq, map)| (seq, self.order_fields(map, include_legacy))).collect())
+        Ok(rows
+            .into_iter()
+            .map(|(seq, map)| (seq, self.order_fields(map, include_legacy)))
+            .collect())
     }
 
     /// Puts fields in schema order (child arrays at their declared position).
-    fn order_fields(&self, mut map: Map<String, Value>, include_legacy: bool) -> Map<String, Value> {
+    fn order_fields(
+        &self,
+        mut map: Map<String, Value>,
+        include_legacy: bool,
+    ) -> Map<String, Value> {
         let def = self.def();
         let mut ordered = Map::new();
-        let legacy: &[&ColumnDef] = if include_legacy { def.legacy_columns } else { &[] };
+        let legacy: &[&ColumnDef] = if include_legacy {
+            def.legacy_columns
+        } else {
+            &[]
+        };
         for column in def.columns.iter().chain(legacy.iter()) {
             if let Some(value) = map.remove(column.field) {
                 ordered.insert(column.field.to_string(), value);
@@ -318,11 +374,17 @@ impl<'c, T: Record> TableTx<'c, T> {
 
     fn attach_children(&self, rows: &mut [(i64, Map<String, Value>)]) -> AppResult<()> {
         for child in self.def().children() {
-            let ids: Vec<String> =
-                rows.iter().filter_map(|(_, map)| map.get("id").and_then(Value::as_str).map(str::to_string)).collect();
+            let ids: Vec<String> = rows
+                .iter()
+                .filter_map(|(_, map)| map.get("id").and_then(Value::as_str).map(str::to_string))
+                .collect();
             let mut by_parent = load_children(self.conn, child, &ids)?;
             for (_, map) in rows.iter_mut() {
-                let id = map.get("id").and_then(Value::as_str).unwrap_or_default().to_string();
+                let id = map
+                    .get("id")
+                    .and_then(Value::as_str)
+                    .unwrap_or_default()
+                    .to_string();
                 let items = by_parent.remove(&id).unwrap_or_default();
                 map.insert(child.field.to_string(), Value::Array(items));
             }
@@ -334,8 +396,14 @@ impl<'c, T: Record> TableTx<'c, T> {
     pub fn count(&self, filter: &Filter) -> AppResult<i64> {
         let mut params = Vec::new();
         let where_sql = filter.to_sql("t", None, &mut params);
-        let sql = format!("SELECT COUNT(*) FROM \"{}\" t WHERE {where_sql}", self.def().sql);
-        Ok(self.conn.prepare_cached(&sql)?.query_row(params_from_iter(params.iter()), |row| row.get(0))?)
+        let sql = format!(
+            "SELECT COUNT(*) FROM \"{}\" t WHERE {where_sql}",
+            self.def().sql
+        );
+        Ok(self
+            .conn
+            .prepare_cached(&sql)?
+            .query_row(params_from_iter(params.iter()), |row| row.get(0))?)
     }
 
     /// `$Table.maybeOne(query)`: the first match in insertion order.
@@ -345,7 +413,10 @@ impl<'c, T: Record> TableTx<'c, T> {
 
     /// `$Table.maybeOne(query, {sort})`.
     pub fn maybe_one_sorted(&self, filter: &Filter, query: &Query) -> AppResult<Option<T>> {
-        let query = Query { limit: Some(1), ..query.clone() };
+        let query = Query {
+            limit: Some(1),
+            ..query.clone()
+        };
         match self.select_maps(filter, &query, false)?.into_iter().next() {
             Some((_, map)) => Ok(Some(record_from_map(map)?)),
             None => Ok(None),
@@ -354,34 +425,55 @@ impl<'c, T: Record> TableTx<'c, T> {
 
     /// `$Table.getOne(query)`: raises `db.record_not_found` (404) when missing.
     pub fn get_one(&self, filter: &Filter) -> AppResult<T> {
-        self.maybe_one(filter)?
-            .ok_or_else(|| record_not_found(self.def(), &format!("Failed to get {}.", self.def().key)))
+        self.maybe_one(filter)?.ok_or_else(|| {
+            record_not_found(self.def(), &format!("Failed to get {}.", self.def().key))
+        })
     }
 
     /// `$Table.getMany(query, {sort, skip, limit})`: sorted in SQL before paging.
     pub fn get_many(&self, filter: &Filter, query: &Query) -> AppResult<Vec<T>> {
-        self.select_maps(filter, query, false)?.into_iter().map(|(_, map)| record_from_map(map)).collect()
+        self.select_maps(filter, query, false)?
+            .into_iter()
+            .map(|(_, map)| record_from_map(map))
+            .collect()
     }
 
     /// `scanStored`: raw stored rows, legacy columns included, no schema applied.
     pub fn scan_stored(&self, filter: &Filter) -> AppResult<Vec<Map<String, Value>>> {
-        Ok(self.select_maps(filter, &Query::new(), true)?.into_iter().map(|(_, map)| map).collect())
+        Ok(self
+            .select_maps(filter, &Query::new(), true)?
+            .into_iter()
+            .map(|(_, map)| map)
+            .collect())
     }
 
     /// Sum of a numeric column over matching rows (`$group` / `$sum`).
     pub fn sum(&self, column: Col<f64>, filter: &Filter) -> AppResult<f64> {
         let mut params = Vec::new();
         let where_sql = filter.to_sql("t", None, &mut params);
-        let sql = format!("SELECT TOTAL(t.\"{}\") FROM \"{}\" t WHERE {where_sql}", column.sql(), self.def().sql);
-        Ok(self.conn.prepare_cached(&sql)?.query_row(params_from_iter(params.iter()), |row| row.get(0))?)
+        let sql = format!(
+            "SELECT TOTAL(t.\"{}\") FROM \"{}\" t WHERE {where_sql}",
+            column.sql(),
+            self.def().sql
+        );
+        Ok(self
+            .conn
+            .prepare_cached(&sql)?
+            .query_row(params_from_iter(params.iter()), |row| row.get(0))?)
     }
 
     fn defaults(&self) -> Map<String, Value> {
-        self.def().defaults.iter().map(|(field, make)| (field.to_string(), make())).collect()
+        self.def()
+            .defaults
+            .iter()
+            .map(|(field, make)| (field.to_string(), make()))
+            .collect()
     }
 
     fn validate(&self, map: Map<String, Value>) -> AppResult<Map<String, Value>> {
-        let validated = (self.def().schema)().validate(&Value::Object(map)).map_err(invalid_record)?;
+        let validated = (self.def().schema)()
+            .validate(&Value::Object(map))
+            .map_err(invalid_record)?;
         to_object(validated)
     }
 
@@ -393,9 +485,16 @@ impl<'c, T: Record> TableTx<'c, T> {
     }
 
     fn read_by_seq(&self, seq: i64) -> AppResult<T> {
-        let sql = format!("SELECT {} FROM \"{}\" t WHERE t.\"_seq\" = ?", select_list("t", &self.def().plain_columns(false)), self.def().sql);
+        let sql = format!(
+            "SELECT {} FROM \"{}\" t WHERE t.\"_seq\" = ?",
+            select_list("t", &self.def().plain_columns(false)),
+            self.def().sql
+        );
         let columns = self.def().plain_columns(false);
-        let map = self.conn.prepare_cached(&sql)?.query_row([seq], |row| row_to_map(row, &columns, 0))?;
+        let map = self
+            .conn
+            .prepare_cached(&sql)?
+            .query_row([seq], |row| row_to_map(row, &columns, 0))?;
         let mut rows = vec![(seq, map)];
         self.attach_children(&mut rows)?;
         let (_, map) = rows.remove(0);
@@ -416,12 +515,18 @@ impl<'c, T: Record> TableTx<'c, T> {
 
     /// `$Table.createMany(values)`: validates every value before writing any.
     pub fn create_many<V: Serialize>(&self, values: &[V]) -> AppResult<usize> {
-        let values = values.iter().map(serde_json::to_value).collect::<Result<Vec<_>, _>>()?;
+        let values = values
+            .iter()
+            .map(serde_json::to_value)
+            .collect::<Result<Vec<_>, _>>()?;
         self.create_many_values(values)
     }
 
     fn create_many_values(&self, values: Vec<Value>) -> AppResult<usize> {
-        let maps = values.into_iter().map(|v| self.prepare_create(v)).collect::<AppResult<Vec<_>>>()?;
+        let maps = values
+            .into_iter()
+            .map(|v| self.prepare_create(v))
+            .collect::<AppResult<Vec<_>>>()?;
         savepoint(self.conn, |c| {
             for map in &maps {
                 insert_map(c, self.def(), map)?;
@@ -437,7 +542,11 @@ impl<'c, T: Record> TableTx<'c, T> {
     }
 
     /// The validated merge of `current` and `patch`, plus the changed columns.
-    fn prepare_update(&self, current: Map<String, Value>, patch: &Patch) -> AppResult<(Map<String, Value>, Vec<(&'static ColumnDef, Option<Value>)>)> {
+    fn prepare_update(
+        &self,
+        current: Map<String, Value>,
+        patch: &Patch,
+    ) -> AppResult<(Map<String, Value>, Changes)> {
         let mut merged = current;
         for (field, value) in patch.entries() {
             match value {
@@ -456,7 +565,9 @@ impl<'c, T: Record> TableTx<'c, T> {
             if field == "id" || field == "_id" {
                 continue;
             }
-            let Some(column) = self.def().column(field) else { continue };
+            let Some(column) = self.def().column(field) else {
+                continue;
+            };
             let next = match value {
                 Some(_) => validated.get(field).cloned(),
                 None => None,
@@ -470,13 +581,19 @@ impl<'c, T: Record> TableTx<'c, T> {
     /// changed fields and returns the validated record. Does not touch
     /// `updatedOn` unless the patch sets it.
     pub fn update_one(&self, filter: &Filter, patch: &Patch) -> AppResult<T> {
-        let Some((seq, current)) = self.select_maps(filter, &Query::new().limit(1), false)?.into_iter().next() else {
+        let Some((seq, current)) = self
+            .select_maps(filter, &Query::new().limit(1), false)?
+            .into_iter()
+            .next()
+        else {
             return Err(record_not_found(self.def(), "Failed to find document."));
         };
         let (validated, changes) = self.prepare_update(current, patch)?;
         if !changes.is_empty() {
             let id = validated_id(&validated);
-            savepoint(self.conn, |c| write_changes(c, self.def(), seq, &id, &changes))?;
+            savepoint(self.conn, |c| {
+                write_changes(c, self.def(), seq, &id, &changes)
+            })?;
         }
         record_from_map(validated)
     }
@@ -493,11 +610,18 @@ impl<'c, T: Record> TableTx<'c, T> {
             if field == "id" || field == "_id" {
                 continue;
             }
-            let Some(column) = def.column(field) else { continue };
+            let Some(column) = def.column(field) else {
+                continue;
+            };
             if matches!(column.kind, ColumnKind::Children(_)) {
-                return Err(AppError::internal_from(format!("update_many cannot write the array field \"{field}\".")));
+                return Err(AppError::internal_from(format!(
+                    "update_many cannot write the array field \"{field}\"."
+                )));
             }
-            let sql_value = value.as_ref().map(|v| json_to_sql(column.kind, v)).unwrap_or(SqlValue::Null);
+            let sql_value = value
+                .as_ref()
+                .map(|v| json_to_sql(column.kind, v))
+                .unwrap_or(SqlValue::Null);
             sets.push(format!("\"{}\" = ?", column.sql));
             set_params.push(sql_value.clone());
             same.push(format!("\"{}\" IS ?", column.sql));
@@ -514,8 +638,15 @@ impl<'c, T: Record> TableTx<'c, T> {
             sets = sets.join(", "),
             same = same.join(" AND "),
         );
-        let params: Vec<SqlValue> = set_params.into_iter().chain(where_params).chain(same_params).collect();
-        Ok(self.conn.prepare_cached(&sql)?.execute(params_from_iter(params.iter()))?)
+        let params: Vec<SqlValue> = set_params
+            .into_iter()
+            .chain(where_params)
+            .chain(same_params)
+            .collect();
+        Ok(self
+            .conn
+            .prepare_cached(&sql)?
+            .execute(params_from_iter(params.iter()))?)
     }
 
     /// `$Table.updateBulk(tasks)`: validates every task first; writes nothing
@@ -523,7 +654,11 @@ impl<'c, T: Record> TableTx<'c, T> {
     pub fn update_bulk(&self, tasks: &[(Filter, Patch)]) -> AppResult<()> {
         let mut planned = Vec::new();
         for (filter, patch) in tasks {
-            let Some((seq, current)) = self.select_maps(filter, &Query::new().limit(1), false)?.into_iter().next() else {
+            let Some((seq, current)) = self
+                .select_maps(filter, &Query::new().limit(1), false)?
+                .into_iter()
+                .next()
+            else {
                 return Err(record_not_found(self.def(), "Failed to find document."));
             };
             let (validated, changes) = self.prepare_update(current, patch)?;
@@ -555,8 +690,14 @@ impl<'c, T: Record> TableTx<'c, T> {
     ) -> AppResult<Option<T>> {
         let def = self.def();
         savepoint(self.conn, |c| {
-            let tx = TableTx::<T> { conn: c, _record: PhantomData };
-            let existing = tx.select_maps(filter, &Query::new().limit(1), false)?.into_iter().next();
+            let tx = TableTx::<T> {
+                conn: c,
+                _record: PhantomData,
+            };
+            let existing = tx
+                .select_maps(filter, &Query::new().limit(1), false)?
+                .into_iter()
+                .next();
             match existing {
                 Some((seq, before)) => {
                     let mut changes = Vec::new();
@@ -566,7 +707,10 @@ impl<'c, T: Record> TableTx<'c, T> {
                         }
                     }
                     for (column, amount) in &update.inc {
-                        let current = before.get(column.field).and_then(Value::as_f64).unwrap_or(0.0);
+                        let current = before
+                            .get(column.field)
+                            .and_then(Value::as_f64)
+                            .unwrap_or(0.0);
                         changes.push((*column, Some(crate::js::number(current + amount))));
                     }
                     let id = validated_id(&before);
@@ -585,7 +729,12 @@ impl<'c, T: Record> TableTx<'c, T> {
                             map.insert(column.field.to_string(), json);
                         }
                     }
-                    for (field, value) in update.set_on_insert.entries().iter().chain(update.set.entries()) {
+                    for (field, value) in update
+                        .set_on_insert
+                        .entries()
+                        .iter()
+                        .chain(update.set.entries())
+                    {
                         match value {
                             Some(value) => map.insert(field.clone(), value.clone()),
                             None => map.remove(field),
@@ -593,7 +742,10 @@ impl<'c, T: Record> TableTx<'c, T> {
                     }
                     for (column, amount) in &update.inc {
                         let current = map.get(column.field).and_then(Value::as_f64).unwrap_or(0.0);
-                        map.insert(column.field.to_string(), crate::js::number(current + amount));
+                        map.insert(
+                            column.field.to_string(),
+                            crate::js::number(current + amount),
+                        );
                     }
                     let seq = insert_map(c, def, &map)?;
                     match returns {
@@ -614,7 +766,10 @@ impl<'c, T: Record> TableTx<'c, T> {
             "DELETE FROM \"{table}\" WHERE \"_seq\" = (SELECT t.\"_seq\" FROM \"{table}\" t WHERE {where_sql} ORDER BY t.\"_seq\" LIMIT 1)",
             table = self.def().sql
         );
-        Ok(self.conn.prepare_cached(&sql)?.execute(params_from_iter(params.iter()))?)
+        Ok(self
+            .conn
+            .prepare_cached(&sql)?
+            .execute(params_from_iter(params.iter()))?)
     }
 
     /// `$Table.deleteMany(query)`.
@@ -625,15 +780,25 @@ impl<'c, T: Record> TableTx<'c, T> {
             "DELETE FROM \"{table}\" WHERE \"_seq\" IN (SELECT t.\"_seq\" FROM \"{table}\" t WHERE {where_sql})",
             table = self.def().sql
         );
-        Ok(self.conn.prepare_cached(&sql)?.execute(params_from_iter(params.iter()))?)
+        Ok(self
+            .conn
+            .prepare_cached(&sql)?
+            .execute(params_from_iter(params.iter()))?)
     }
 }
 
 fn validated_id(map: &Map<String, Value>) -> String {
-    map.get("id").and_then(Value::as_str).unwrap_or_default().to_string()
+    map.get("id")
+        .and_then(Value::as_str)
+        .unwrap_or_default()
+        .to_string()
 }
 
-fn load_children(conn: &Connection, child: &ChildDef, ids: &[String]) -> AppResult<HashMap<String, Vec<Value>>> {
+fn load_children(
+    conn: &Connection,
+    child: &ChildDef,
+    ids: &[String],
+) -> AppResult<HashMap<String, Vec<Value>>> {
     let mut out: HashMap<String, Vec<Value>> = HashMap::new();
     for chunk in ids.chunks(500) {
         if chunk.is_empty() {
@@ -659,13 +824,25 @@ fn load_children(conn: &Connection, child: &ChildDef, ids: &[String]) -> AppResu
     Ok(out)
 }
 
-fn insert_children(conn: &Connection, child: &ChildDef, parent_id: &str, items: Option<&Value>) -> AppResult<()> {
-    conn.prepare_cached(&format!("DELETE FROM \"{}\" WHERE \"{}\" = ?", child.table, child.parent_column))?
-        .execute([parent_id])?;
+fn insert_children(
+    conn: &Connection,
+    child: &ChildDef,
+    parent_id: &str,
+    items: Option<&Value>,
+) -> AppResult<()> {
+    conn.prepare_cached(&format!(
+        "DELETE FROM \"{}\" WHERE \"{}\" = ?",
+        child.table, child.parent_column
+    ))?
+    .execute([parent_id])?;
     let Some(Value::Array(items)) = items else {
         return Ok(());
     };
-    let columns: Vec<String> = child.columns.iter().map(|c| format!("\"{}\"", c.sql)).collect();
+    let columns: Vec<String> = child
+        .columns
+        .iter()
+        .map(|c| format!("\"{}\"", c.sql))
+        .collect();
     let sql = format!(
         "INSERT INTO \"{}\" (\"{}\", \"{}\", {}) VALUES (?, ?, {})",
         child.table,
@@ -676,9 +853,16 @@ fn insert_children(conn: &Connection, child: &ChildDef, parent_id: &str, items: 
     );
     let mut statement = conn.prepare_cached(&sql)?;
     for (position, item) in items.iter().enumerate() {
-        let mut params: Vec<SqlValue> = vec![SqlValue::Text(parent_id.to_string()), SqlValue::Integer(position as i64)];
+        let mut params: Vec<SqlValue> = vec![
+            SqlValue::Text(parent_id.to_string()),
+            SqlValue::Integer(position as i64),
+        ];
         for column in child.columns {
-            params.push(item.get(column.field).map(|v| json_to_sql(column.kind, v)).unwrap_or(SqlValue::Null));
+            params.push(
+                item.get(column.field)
+                    .map(|v| json_to_sql(column.kind, v))
+                    .unwrap_or(SqlValue::Null),
+            );
         }
         statement.execute(params_from_iter(params.iter()))?;
     }
@@ -695,9 +879,16 @@ fn insert_map(conn: &Connection, def: &TableDef, map: &Map<String, Value>) -> Ap
         names.join(", "),
         vec!["?"; names.len()].join(", ")
     );
-    let params: Vec<SqlValue> =
-        columns.iter().map(|c| map.get(c.field).map(|v| json_to_sql(c.kind, v)).unwrap_or(SqlValue::Null)).collect();
-    conn.prepare_cached(&sql)?.execute(params_from_iter(params.iter()))?;
+    let params: Vec<SqlValue> = columns
+        .iter()
+        .map(|c| {
+            map.get(c.field)
+                .map(|v| json_to_sql(c.kind, v))
+                .unwrap_or(SqlValue::Null)
+        })
+        .collect();
+    conn.prepare_cached(&sql)?
+        .execute(params_from_iter(params.iter()))?;
     let seq = conn.last_insert_rowid();
     let id = validated_id(map);
     for child in def.children() {
@@ -721,7 +912,12 @@ fn write_changes(
             ColumnKind::Children(child) => insert_children(conn, child, id, value.as_ref())?,
             kind => {
                 sets.push(format!("\"{}\" = ?", column.sql));
-                params.push(value.as_ref().map(|v| json_to_sql(kind, v)).unwrap_or(SqlValue::Null));
+                params.push(
+                    value
+                        .as_ref()
+                        .map(|v| json_to_sql(kind, v))
+                        .unwrap_or(SqlValue::Null),
+                );
             }
         }
     }
@@ -729,8 +925,13 @@ fn write_changes(
         return Ok(());
     }
     params.push(SqlValue::Integer(seq));
-    let sql = format!("UPDATE \"{}\" SET {} WHERE \"_seq\" = ?", def.sql, sets.join(", "));
-    conn.prepare_cached(&sql)?.execute(params_from_iter(params.iter()))?;
+    let sql = format!(
+        "UPDATE \"{}\" SET {} WHERE \"_seq\" = ?",
+        def.sql,
+        sets.join(", ")
+    );
+    conn.prepare_cached(&sql)?
+        .execute(params_from_iter(params.iter()))?;
     Ok(())
 }
 

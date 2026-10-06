@@ -12,22 +12,22 @@
 use super::body::read_json;
 use super::capture::Reply;
 use super::headers::header;
-use super::intrusion::{get_client_ip, ClientInfo};
+use super::intrusion::{ClientInfo, get_client_ip};
 use crate::app::AppState;
 use crate::config::Config;
 use crate::db::Db;
 use crate::shared::auth_access::AuthPoint;
 use crate::shared::errors::{
-    bad_request_error, forbidden_error, get_validation_user_message, internal_error, validation_error, AppError,
-    AppResult, ErrorOptions,
+    AppError, AppResult, ErrorOptions, bad_request_error, forbidden_error,
+    get_validation_user_message, internal_error, validation_error,
 };
 use crate::shared::schemas::{Session, User};
 use crate::shared::utils::endpoint_def::EndpointDef;
 use crate::utils::is_record::is_record;
 use axum::body::Body;
 use axum::http::{HeaderMap, Method};
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::future::Future;
 use std::pin::Pin;
@@ -55,7 +55,15 @@ impl Ctx {
         client: ClientInfo,
         body: Option<Body>,
     ) -> Ctx {
-        Ctx { state, def, method, url, headers, client, body }
+        Ctx {
+            state,
+            def,
+            method,
+            url,
+            headers,
+            client,
+            body,
+        }
     }
 
     pub fn db(&self) -> &Db {
@@ -94,7 +102,13 @@ impl Ctx {
     /// `requireAccess(req, access)` for the endpoint's declared access point.
     pub async fn require_access(&self) -> AppResult<(User, Session)> {
         let point = self.def.access.ok_or_else(|| {
-            internal_error(Some(&format!("Endpoint {} declares no access point.", self.def.path)), ErrorOptions::default())
+            internal_error(
+                Some(&format!(
+                    "Endpoint {} declares no access point.",
+                    self.def.path
+                )),
+                ErrorOptions::default(),
+            )
         })?;
         crate::auth::require::require_access(self, point).await
     }
@@ -141,7 +155,8 @@ impl Endpoint {
             handler: Arc::new(move |payload: Value, ctx: Ctx| {
                 let handler = handler.clone();
                 Box::pin(async move {
-                    let payload: P = serde_json::from_value(payload).map_err(AppError::internal_from)?;
+                    let payload: P =
+                        serde_json::from_value(payload).map_err(AppError::internal_from)?;
                     json_reply(handler(payload, ctx).await?)
                 })
             }),
@@ -162,7 +177,8 @@ impl Endpoint {
             handler: Arc::new(move |payload: Value, ctx: Ctx| {
                 let handler = handler.clone();
                 Box::pin(async move {
-                    let payload: P = serde_json::from_value(payload).map_err(AppError::internal_from)?;
+                    let payload: P =
+                        serde_json::from_value(payload).map_err(AppError::internal_from)?;
                     handler(payload, ctx).await
                 })
             }),
@@ -179,7 +195,10 @@ impl Endpoint {
     pub async fn call(&self, mut ctx: Ctx, body: Body) -> AppResult<Reply> {
         let request_origin = ctx.header("origin");
         if !self.unsafe_origin && !ctx.state.origin.is_allowed(request_origin.as_deref()) {
-            return Err(forbidden_error("Request origin not valid.", ErrorOptions::code("request.origin_invalid")));
+            return Err(forbidden_error(
+                "Request origin not valid.",
+                ErrorOptions::code("request.origin_invalid"),
+            ));
         }
         let body_value = if self.def.multipart {
             ctx.body = Some(body);
@@ -202,18 +221,24 @@ pub fn extract_payload(schema: &crate::shared::torva::Io, body: &Value) -> AppRe
         _ => None,
     };
     let Some(payload) = payload.filter(|_| is_record(Some(body))) else {
-        return Err(bad_request_error("Body missing payload.", ErrorOptions::code("request.payload_missing")));
+        return Err(bad_request_error(
+            "Body missing payload.",
+            ErrorOptions::code("request.payload_missing"),
+        ));
     };
-    schema.validate_opt(Some(payload)).map(|v| v.unwrap_or(Value::Null)).map_err(|error| {
-        let pretty = pretty_validation_message(&error);
-        let details = Value::String(error);
-        validation_error(
-            pretty,
-            ErrorOptions::default()
-                .with_user_message(get_validation_user_message(Some(&details)))
-                .with_details(details),
-        )
-    })
+    schema
+        .validate_opt(Some(payload))
+        .map(|v| v.unwrap_or(Value::Null))
+        .map_err(|error| {
+            let pretty = pretty_validation_message(&error);
+            let details = Value::String(error);
+            validation_error(
+                pretty,
+                ErrorOptions::default()
+                    .with_user_message(get_validation_user_message(Some(&details)))
+                    .with_details(details),
+            )
+        })
 }
 
 /// `An error occurred: field message` from `[field]: Message`.
@@ -222,7 +247,11 @@ pub fn pretty_validation_message(error: &str) -> String {
         return "The input provided is invalid.".into();
     }
     let mut parts = error.split(':');
-    let first = parts.next().unwrap_or("").replacen('[', "", 1).replacen(']', "", 1);
+    let first = parts
+        .next()
+        .unwrap_or("")
+        .replacen('[', "", 1)
+        .replacen(']', "", 1);
     let rest = crate::js::trim(&parts.collect::<Vec<_>>().join("")).to_lowercase();
     format!("An error occurred: {first} {rest}")
 }
@@ -238,21 +267,36 @@ mod tests {
             pretty_validation_message("[email]: Value is not a valid email."),
             "An error occurred: email value is not a valid email."
         );
-        assert_eq!(pretty_validation_message("[list]: [1]: [id]: X"), "An error occurred: list [1] [id] x");
-        assert_eq!(pretty_validation_message("Value is not a number."), "The input provided is invalid.");
+        assert_eq!(
+            pretty_validation_message("[list]: [1]: [id]: X"),
+            "An error occurred: list [1] [id] x"
+        );
+        assert_eq!(
+            pretty_validation_message("Value is not a number."),
+            "The input provided is invalid."
+        );
     }
 
     #[test]
     fn requires_the_payload_wrapper() {
         let schema = crate::shared::torva::io::object([("a", crate::shared::torva::io::number())]);
         let error = extract_payload(&schema, &json!({})).unwrap_err();
-        assert_eq!((error.status_code, error.error_code.as_str()), (400, "request.payload_missing"));
+        assert_eq!(
+            (error.status_code, error.error_code.as_str()),
+            (400, "request.payload_missing")
+        );
         assert!(extract_payload(&schema, &json!([1])).is_err());
         let invalid = extract_payload(&schema, &json!({"payload": {"a": "x"}})).unwrap_err();
         assert_eq!(invalid.status_code, 422);
-        assert_eq!(invalid.message, "An error occurred: a value is not a number.");
+        assert_eq!(
+            invalid.message,
+            "An error occurred: a value is not a number."
+        );
         assert_eq!(invalid.details, Some(json!("[a]: Value is not a number.")));
         assert_eq!(invalid.user_message, "Please check a and try again.");
-        assert_eq!(extract_payload(&schema, &json!({"payload": {"a": 1}})).unwrap(), json!({"a": 1}));
+        assert_eq!(
+            extract_payload(&schema, &json!({"payload": {"a": 1}})).unwrap(),
+            json!({"a": 1})
+        );
     }
 }

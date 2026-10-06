@@ -17,11 +17,11 @@ pub mod schema;
 pub mod table;
 
 use crate::shared::errors::{AppError, AppResult};
-use crate::shared::utils::season_name::{compare_season_names, SEASON_NAME_SQL_COLLATION};
+use crate::shared::utils::season_name::{SEASON_NAME_SQL_COLLATION, compare_season_names};
 use r2d2::{Pool, PooledConnection};
 use r2d2_sqlite::SqliteConnectionManager;
-use rusqlite::functions::FunctionFlags;
 use rusqlite::Connection;
+use rusqlite::functions::FunctionFlags;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
@@ -125,7 +125,10 @@ impl Db {
     }
 
     /// [`Db::transaction`] for synchronous contexts.
-    pub fn transaction_blocking<R>(&self, work: impl FnOnce(&Connection) -> AppResult<R>) -> AppResult<R> {
+    pub fn transaction_blocking<R>(
+        &self,
+        work: impl FnOnce(&Connection) -> AppResult<R>,
+    ) -> AppResult<R> {
         let mut conn = self.connection()?;
         let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
         let result = work(&tx)?;
@@ -138,7 +141,10 @@ static SAVEPOINT_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 /// Runs `work` atomically on `conn` whether or not a transaction is already
 /// open (a nested `SAVEPOINT`), rolling back its writes on error.
-pub fn savepoint<R>(conn: &Connection, work: impl FnOnce(&Connection) -> AppResult<R>) -> AppResult<R> {
+pub fn savepoint<R>(
+    conn: &Connection,
+    work: impl FnOnce(&Connection) -> AppResult<R>,
+) -> AppResult<R> {
     let name = format!("sp_{}", SAVEPOINT_COUNTER.fetch_add(1, Ordering::Relaxed));
     conn.execute_batch(&format!("SAVEPOINT {name}"))?;
     match work(conn) {
@@ -156,17 +162,19 @@ pub fn savepoint<R>(conn: &Connection, work: impl FnOnce(&Connection) -> AppResu
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::shared::errors::{bad_request_error, ErrorOptions};
+    use crate::shared::errors::{ErrorOptions, bad_request_error};
 
     fn temp_db() -> (tempfile::TempDir, Db) {
         let dir = tempfile::tempdir().unwrap();
         let db = Db::open(dir.path().join("nested/dir/test.sqlite")).unwrap();
-        db.call_blocking(|c| Ok(c.execute_batch("CREATE TABLE item (name TEXT)")?)).unwrap();
+        db.call_blocking(|c| Ok(c.execute_batch("CREATE TABLE item (name TEXT)")?))
+            .unwrap();
         (dir, db)
     }
 
     fn count(db: &Db) -> i64 {
-        db.call_blocking(|c| Ok(c.query_row("SELECT COUNT(*) FROM item", [], |r| r.get(0))?)).unwrap()
+        db.call_blocking(|c| Ok(c.query_row("SELECT COUNT(*) FROM item", [], |r| r.get(0))?))
+            .unwrap()
     }
 
     // mongo.test.ts: connection caching and transaction detection are Mongo
@@ -178,7 +186,11 @@ mod tests {
         db.transaction(|c| {
             c.execute("INSERT INTO item (name) VALUES ('Committed')", [])?;
             // reads in the same transaction see the uncommitted write
-            let seen: i64 = c.query_row("SELECT COUNT(*) FROM item WHERE name = 'Committed'", [], |r| r.get(0))?;
+            let seen: i64 = c.query_row(
+                "SELECT COUNT(*) FROM item WHERE name = 'Committed'",
+                [],
+                |r| r.get(0),
+            )?;
             assert_eq!(seen, 1);
             Ok(())
         })
