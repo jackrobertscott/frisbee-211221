@@ -42,7 +42,7 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/src/endpoints/Season.ts` | src/endpoints/season.rs | Season | done |
 | `server/src/endpoints/Security.ts` | src/endpoints/security.rs | Security | done |
 | `server/src/endpoints/Team.ts` | src/endpoints/team.rs | Team | done |
-| `server/src/endpoints/User.ts` | src/endpoints/user.rs (stub with empty `routes()`) | User | pending |
+| `server/src/endpoints/User.ts` | src/endpoints/user.rs | User | done |
 | `server/src/gameday/credentials.test.ts` | src/gameday/credentials.rs (tests) | Port | pending |
 | `server/src/gameday/credentials.ts` | src/gameday/credentials.rs | Port | pending |
 | `server/src/gameday/exportCli.test.ts` | src/gameday/export_cli.rs (tests), tests/gameday_export_cli.rs (process protocol) | Port | done |
@@ -79,8 +79,8 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/src/queries/spiritTable.ts` | src/queries/spirit_table.rs | Feature | pending |
 | `server/src/queries/teamList.test.ts` | src/queries/team_list.rs (tests) | Feature | pending |
 | `server/src/queries/teamList.ts` | src/queries/team_list.rs | Feature | pending |
-| `server/src/queries/userList.test.ts` | src/queries/user_list.rs (tests) | User | pending |
-| `server/src/queries/userList.ts` | src/queries/user_list.rs | User | pending |
+| `server/src/queries/userList.test.ts` | src/queries/user_list.rs (tests) | User | done (pipeline-shape cases: see notes) |
+| `server/src/queries/userList.ts` | src/queries/user_list.rs | User | done |
 | `server/src/services/authPayload.ts` | src/services/auth_payload.rs | Security | done |
 | `server/src/services/csvImport.test.ts` | src/services/csv_import.rs (tests) | Port | pending |
 | `server/src/services/csvImport.ts` | src/services/csv_import.rs | Port | pending |
@@ -106,8 +106,8 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/src/services/userEmail.test.ts` | src/services/user_email_tests.rs | Foundation | done |
 | `server/src/services/userEmail.ts` | src/services/user_email.rs | Foundation | done |
 | `server/src/services/userFields.ts` | src/services/user_fields.rs | Foundation | done |
-| `server/src/services/userMerge.test.ts` | src/services/user_merge.rs (tests) | User | pending |
-| `server/src/services/userMerge.ts` | src/services/user_merge.rs | User | pending |
+| `server/src/services/userMerge.test.ts` | src/services/user_merge.rs (tests) | User | done |
+| `server/src/services/userMerge.ts` | src/services/user_merge.rs | User | done |
 | `server/src/startup.test.ts` | src/startup.rs (tests) | Foundation | done |
 | `server/src/startup.ts` | src/startup.rs | Foundation | done |
 | `server/src/tables/$AuthAttemptLimit.ts` | src/tables/auth_attempt_limit.rs | Foundation | done |
@@ -141,9 +141,9 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/test/integration/port.test.ts` | tests/port.rs | Port | pending |
 | `server/test/integration/reports.test.ts` | tests/reports.rs | Report | pending |
 | `server/test/integration/seasons.test.ts` | tests/seasons.rs | Season | done |
-| `server/test/integration/security.test.ts` | tests/security.rs | Security | done; 3 cases `#[ignore]`d until User lands (`/UserCurrentUpdate`) |
+| `server/test/integration/security.test.ts` | tests/security.rs | Security | done |
 | `server/test/integration/teams.test.ts` | tests/teams.rs | Team | done; 11 `Feature*` cases `#[ignore]`d until Feature lands |
-| `server/test/integration/users.test.ts` | tests/users.rs | User | pending |
+| `server/test/integration/users.test.ts` | tests/users.rs | User | done |
 | `server/test/setup.ts` | src/config.rs (`Config::for_tests`) | Foundation | done |
 | `shared/src/auth/authAccess.test.ts` | src/shared/auth_access.rs (tests) | Foundation | done |
 | `shared/src/auth/authAccess.ts` | src/shared/auth_access.rs | Foundation | done |
@@ -233,3 +233,18 @@ integration tests in `server/test/integration/x.test.ts` become
   in `tests/gameday_export_cli.rs`. Invalid JSON reports serde_json's
   message (e.g. `expected ident at line 1 column 2`) rather than V8's
   `Unexpected token ...`; the test only checks the prefix, as in TS.
+- `userList.test.ts` › `getUserListPipeline` cases assert on the Mongo
+  pipeline documents (`$sort`, `$skip`, `$limit`, `$addFields`/`$project`
+  of `_sortPrimaryEmail`). The Rust tests assert the equivalent SQL
+  (`ORDER BY` keys and directions, `LIMIT`/`OFFSET` after the sort, a zero
+  skip and missing limit omitted) and run the email sort against a database;
+  the computed sort key never leaves SQL, so there is nothing to project away.
+- `userList.ts` email sort: Mongo's `$trim` also strips NUL, which SQLite's
+  `trim` cannot be given; stored emails are validated and trimmed, so it
+  never matters. `lower()` and `$toLower` both fold ASCII only.
+- `users.test.ts`: the TS suite shares one server and creates its admin and
+  UserList fixtures in `beforeAll`; each Rust test starts its own server and
+  repeats that setup. `it.each('sorts by %s %s')` becomes one test per case.
+- `userMerge.ts` reads both users and their memberships inside the merge
+  transaction (TS reads them just before it), so the plan and the writes see
+  the same data.

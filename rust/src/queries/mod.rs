@@ -6,3 +6,5 @@
 //! and column names from the typed definitions (`team::TABLE.sql`,
 //! `Team::NAME.sql()`), never as raw literals spread through endpoint code;
 //! sort in SQL before `LIMIT`/`OFFSET`; never sort or tie-break on `id`.
+
+pub mod user_list;

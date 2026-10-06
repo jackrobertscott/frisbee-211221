@@ -232,7 +232,6 @@ mod security_endpoints {
     }
 
     #[tokio::test]
-    #[ignore = "pending User domain: /UserCurrentUpdate"]
     async fn verifies_the_email_and_ends_other_sessions_when_the_password_is_reset() {
         let server = TestServer::start().await;
         let actor = sign_up(&server, SignUp::default()).await;
@@ -326,7 +325,6 @@ mod security_endpoints {
     }
 
     #[tokio::test]
-    #[ignore = "pending User domain: /UserCurrentUpdate"]
     async fn ends_the_session_on_logout() {
         let server = TestServer::start().await;
         let actor = sign_up(&server, SignUp::default()).await;
@@ -350,7 +348,6 @@ mod security_endpoints {
     }
 
     #[tokio::test]
-    #[ignore = "pending User domain: /UserCurrentUpdate"]
     async fn distinguishes_missing_and_invalid_tokens() {
         let server = TestServer::start().await;
         let missing = server.post("/UserCurrentUpdate", json!({})).await;
