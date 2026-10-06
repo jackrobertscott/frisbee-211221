@@ -1,4 +1,4 @@
-import {AppError, serializeError} from '@shared/errors'
+import {AppError, createError, serializeError} from '@shared/errors'
 import {vi} from 'vitest'
 
 export type THandler = (payload: unknown, token: string) => unknown
@@ -58,18 +58,29 @@ export const mockServer = (handlers: Record<string, THandler> = {}) => {
   }
 }
 
-/** Error body thrown from a handler to produce a non-2xx response. */
+/**
+ * Error thrown from a handler to produce a non-2xx response, serialised the
+ * same way the server sends an exposed AppError, so `message` is what the
+ * user sees. Use `serverAppError` for other shapes.
+ */
 export const serverError = (
   status: number,
   message: string,
   errorCode = 'test.error',
-) => ({status, statusCode: status, message, errorCode})
+) =>
+  serverAppError(
+    createError({
+      message,
+      userMessage: message,
+      statusCode: status,
+      errorCode,
+      expose: true,
+    }),
+  )
 
 /**
  * Error body exactly as the server serialises an AppError, so the client
- * keeps its message, errorCode, userMessage and retryable flag. (Bodies from
- * `serverError` are not recognised as serialised app errors, so the client
- * falls back to a generic message and the status code's default errorCode.)
+ * keeps its message, errorCode, userMessage and retryable flag.
  */
 export const serverAppError = (error: AppError) => ({
   ...serializeError(error),

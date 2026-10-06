@@ -4,8 +4,6 @@ import userEvent from '@testing-library/user-event'
 import {screen, within} from '@testing-library/react'
 import {ReactElement} from 'react'
 import {renderApp, TRenderAppOptions} from '../../test/render'
-import {serverError} from '../../test/server'
-import '../../test/polyfills-screens-b'
 
 /** Removes toasts left in the global toast store by earlier tests. */
 export const clearToasts = () => {
@@ -47,12 +45,3 @@ export const pickOption = async (
   await user.click(within(listbox).getByRole('option', {name: option}))
 }
 
-/** A failed response shaped like the server's serialized AppError, with a message safe to show users. */
-export const userError = (status: number, message: string, errorCode = 'test.error') => ({
-  ...serverError(status, message, errorCode),
-  type: 'app_error',
-  name: 'AppError',
-  userMessage: message,
-  expose: true,
-  retryable: false,
-})

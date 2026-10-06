@@ -3,8 +3,8 @@ import {TTeam} from '@shared/schemas/ioTeam'
 import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it, vi} from 'vitest'
 import {makeAuth, makeSeason, makeTeam, testId} from '../../test/fixtures'
-import {mockServer} from '../../test/server'
-import {pickOption, pickToday, renderScreen, userError} from '../common/screenTesting'
+import {mockServer, serverError} from '../../test/server'
+import {pickOption, pickToday, renderScreen} from '../common/screenTesting'
 import {FixtureEditDialog} from './FixtureEditDialog'
 
 const NOW = '2026-01-01T00:00:00.000Z'
@@ -181,7 +181,7 @@ describe('FixtureEditDialog', () => {
     const {teams, fixture} = setup()
     mockServer({
       '/FixtureUpdate': () => {
-        throw userError(400, 'Fixture title already used.')
+        throw serverError(400, 'Fixture title already used.')
       },
     })
     const {user, onDone} = renderDialog(fixture, teams)

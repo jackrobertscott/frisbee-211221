@@ -3,8 +3,8 @@ import {Toaster} from '@ui'
 import {beforeEach, describe, expect, it} from 'vitest'
 import {makeSeason, makeSession, makeUser} from '../../test/fixtures'
 import {renderApp} from '../../test/render'
-import {mockServer} from '../../test/server'
-import {setupUser, spyToasts, userError} from '../seasons/screenTestUtils'
+import {mockServer, serverError} from '../../test/server'
+import {setupUser, spyToasts} from '../seasons/screenTestUtils'
 import {AuthScreen} from './AuthScreen'
 
 const SAVED_EMAIL_KEY = 'frisbee.savedEmail'
@@ -98,7 +98,7 @@ describe('AuthScreen login step', () => {
     const user = setupUser()
     mockServer({
       '/SecurityLogin': () => {
-        throw userError(401, 'Email or password is incorrect.')
+        throw serverError(401, 'Email or password is incorrect.')
       },
     })
     const {context} = renderAuth('/auth/login')
@@ -283,7 +283,7 @@ describe('AuthScreen verify step', () => {
     const user = setupUser()
     mockServer({
       '/SecurityVerify': () => {
-        throw userError(400, 'That code is not valid.')
+        throw serverError(400, 'That code is not valid.')
       },
     })
     const {context} = renderAuth('/auth/verify?email=sam%40example.com&status=unverified')

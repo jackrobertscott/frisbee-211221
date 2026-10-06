@@ -4,7 +4,6 @@ import {describe, expect, it} from 'vitest'
 import {makeAuth, makeSeason, makeTeam, testId} from '../test/fixtures'
 import {renderApp} from '../test/render'
 import {mockServer} from '../test/server'
-import '../test/polyfills-screens-b'
 import {App} from './App'
 
 const NOW = '2026-01-01T00:00:00.000Z'

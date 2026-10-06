@@ -3,13 +3,12 @@ import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it} from 'vitest'
 import {makeAuth, makeSeason, makeTeam} from '../../test/fixtures'
 import {renderApp} from '../../test/render'
-import {mockServer} from '../../test/server'
+import {mockServer, serverError} from '../../test/server'
 import {
   chooseOption,
   findDialog,
   setupUser,
   spyToasts,
-  userError,
 } from '../seasons/screenTestUtils'
 import {PasswordSettings, SeasonSettings, TeamSettings} from './OtherSettings'
 
@@ -49,7 +48,7 @@ describe('PasswordSettings', () => {
     const toasts = spyToasts()
     mockServer({
       '/UserCurrentChangePassword': () => {
-        throw userError(400, 'Your old password is incorrect.')
+        throw serverError(400, 'Your old password is incorrect.')
       },
     })
     renderApp(<PasswordSettings />, {auth: makeAuth()})
@@ -178,7 +177,7 @@ describe('SeasonSettings', () => {
     mockServer({
       '/SeasonDeleteStatus': () => ({canDelete: true}),
       '/SeasonDelete': () => {
-        throw userError(400, 'Incorrect password.')
+        throw serverError(400, 'Incorrect password.')
       },
     })
     renderApp(<SeasonSettings />, {auth: admin(), context: {season}})

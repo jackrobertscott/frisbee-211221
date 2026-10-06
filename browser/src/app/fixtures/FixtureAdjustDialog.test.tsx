@@ -2,8 +2,8 @@ import {TFixture} from '@shared/schemas/ioFixture'
 import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it, vi} from 'vitest'
 import {makeAuth, makeSeason, testId} from '../../test/fixtures'
-import {mockServer} from '../../test/server'
-import {pickOption, renderScreen, userError} from '../common/screenTesting'
+import {mockServer, serverError} from '../../test/server'
+import {pickOption, renderScreen} from '../common/screenTesting'
 import {FixtureAdjustDialog} from './FixtureAdjustDialog'
 
 const NOW = '2026-01-01T00:00:00.000Z'
@@ -87,7 +87,7 @@ describe('FixtureAdjustDialog', () => {
   it('shows a server error without closing', async () => {
     mockServer({
       '/FixtureAdjustMultiple': () => {
-        throw userError(400, 'Could not move fixtures.')
+        throw serverError(400, 'Could not move fixtures.')
       },
     })
     const {user, dialog, onDone, onOpenChange} = renderDialog()

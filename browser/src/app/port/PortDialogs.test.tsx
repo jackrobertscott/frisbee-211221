@@ -1,8 +1,8 @@
 import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it, vi} from 'vitest'
 import {makeAuth, makeSeason} from '../../test/fixtures'
-import {mockServer} from '../../test/server'
-import {renderScreen, userError} from '../common/screenTesting'
+import {mockServer, serverError} from '../../test/server'
+import {renderScreen} from '../common/screenTesting'
 import {ExportDialog, ImportCsvDialog, MockDeleteDialog, MockGenerateDialog} from './PortDialogs'
 
 const admin = () => makeAuth({user: {admin: true}})
@@ -52,7 +52,7 @@ describe('ImportCsvDialog', () => {
     const season = makeSeason()
     mockServer({
       '/PortImport': () => {
-        throw userError(400, 'Row 3 is missing an email address.')
+        throw serverError(400, 'Row 3 is missing an email address.')
       },
     })
     const onOpenChange = vi.fn()

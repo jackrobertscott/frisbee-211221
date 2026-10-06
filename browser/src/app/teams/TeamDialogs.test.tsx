@@ -2,9 +2,9 @@ import {TTeam} from '@shared/schemas/ioTeam'
 import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it, vi} from 'vitest'
 import {makeAuth, makeSeason, makeTeam} from '../../test/fixtures'
-import {mockServer} from '../../test/server'
+import {mockServer, serverError} from '../../test/server'
 import {TEAM_COLORS} from '../../utils/colors'
-import {renderScreen, userError} from '../common/screenTesting'
+import {renderScreen} from '../common/screenTesting'
 import {TeamAdminDialog, TeamCurrentCreateDialog} from './TeamDialogs'
 
 const admin = () => makeAuth({user: {admin: true}})
@@ -86,7 +86,7 @@ describe('TeamAdminDialog', () => {
     const team = makeTeam({name: 'Red Rockets'})
     mockServer({
       '/TeamDelete': () => {
-        throw userError(409, 'This team has reports and can’t be deleted.')
+        throw serverError(409, 'This team has reports and can’t be deleted.')
       },
     })
     const {user, dialog, onDeleted} = renderAdmin(team)

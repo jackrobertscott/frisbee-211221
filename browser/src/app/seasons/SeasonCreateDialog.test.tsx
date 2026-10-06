@@ -3,9 +3,9 @@ import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it, vi} from 'vitest'
 import {makeAuth, makeSeason} from '../../test/fixtures'
 import {renderApp} from '../../test/render'
-import {mockServer} from '../../test/server'
+import {mockServer, serverError} from '../../test/server'
 import {SeasonCreateDialog} from './SeasonCreateDialog'
-import {chooseOption, dialog, setupUser, spyToasts, userError} from './screenTestUtils'
+import {chooseOption, dialog, setupUser, spyToasts} from './screenTestUtils'
 
 const admin = () => makeAuth({user: {admin: true}})
 
@@ -86,7 +86,7 @@ describe('SeasonCreateDialog', () => {
     const toasts = spyToasts()
     mockServer({
       '/SeasonCreate': () => {
-        throw userError(400, 'Season name already exists.')
+        throw serverError(400, 'Season name already exists.')
       },
     })
     const {onOpenChange, onCreated} = renderDialog()

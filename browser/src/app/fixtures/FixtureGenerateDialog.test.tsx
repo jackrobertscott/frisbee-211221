@@ -3,8 +3,8 @@ import {TTeam} from '@shared/schemas/ioTeam'
 import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it, vi} from 'vitest'
 import {makeAuth, makeSeason, makeTeam, testId} from '../../test/fixtures'
-import {mockServer} from '../../test/server'
-import {renderScreen, userError} from '../common/screenTesting'
+import {mockServer, serverError} from '../../test/server'
+import {renderScreen} from '../common/screenTesting'
 import {FixtureGenerateDialog} from './FixtureGenerateDialog'
 
 const NOW = '2026-01-01T00:00:00.000Z'
@@ -131,7 +131,7 @@ describe('FixtureGenerateDialog', () => {
   it('shows a server error and stays open', async () => {
     mockServer({
       '/FixtureGenerate': () => {
-        throw userError(400, 'Teams are not balanced.')
+        throw serverError(400, 'Teams are not balanced.')
       },
     })
     const {user, dialog, onDone} = renderDialog(fourTeams(), [fixtureOn(testId(), NOW)])

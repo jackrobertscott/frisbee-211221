@@ -4,9 +4,7 @@ import {screen, within} from '@testing-library/react'
 import userEvent, {type UserEvent} from '@testing-library/user-event'
 import {toast} from '@ui'
 import {vi} from 'vitest'
-import '../../test/polyfills-screens-a'
 import {testId} from '../../test/fixtures'
-import {serverError} from '../../test/server'
 
 export const setupUser = (): UserEvent => userEvent.setup()
 
@@ -37,16 +35,6 @@ export const dialog = (name: string | RegExp) =>
 
 export const findDialog = (name: string | RegExp) =>
   screen.findByRole('dialog', {name})
-
-/** Error body with a user facing message, as the server sends for expected failures. */
-export const userError = (status: number, userMessage: string) => ({
-  ...serverError(status, userMessage),
-  type: 'app_error',
-  name: 'AppError',
-  userMessage,
-  expose: true,
-  retryable: false,
-})
 
 const NOW = '2026-01-01T00:00:00.000Z'
 

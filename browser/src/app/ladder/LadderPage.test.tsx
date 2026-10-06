@@ -3,8 +3,8 @@ import {TSeason} from '@shared/schemas/ioSeason'
 import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it} from 'vitest'
 import {makeAuth, makeSeason, makeTeam, testId} from '../../test/fixtures'
-import {mockServer} from '../../test/server'
-import {renderScreen, userError} from '../common/screenTesting'
+import {mockServer, serverError} from '../../test/server'
+import {renderScreen} from '../common/screenTesting'
 import {LadderPage} from './LadderPage'
 
 const NOW = '2026-01-01T00:00:00.000Z'
@@ -84,7 +84,7 @@ describe('LadderPage', () => {
     let fail = true
     mockServer({
       '/FeatureCompetitionLoad': () => {
-        if (fail) throw userError(500, 'Down')
+        if (fail) throw serverError(500, 'Down')
         return {teams: [], fixtures: []}
       },
     })

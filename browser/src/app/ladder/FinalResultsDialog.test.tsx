@@ -1,8 +1,8 @@
 import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it, vi} from 'vitest'
 import {makeAuth, makeSeason, makeTeam} from '../../test/fixtures'
-import {mockServer} from '../../test/server'
-import {renderScreen, userError} from '../common/screenTesting'
+import {mockServer, serverError} from '../../test/server'
+import {renderScreen} from '../common/screenTesting'
 import {FinalResultsDialog} from './FinalResultsDialog'
 
 describe('FinalResultsDialog', () => {
@@ -55,7 +55,7 @@ describe('FinalResultsDialog', () => {
     const season = makeSeason()
     mockServer({
       '/SeasonUpdate': () => {
-        throw userError(403, 'Only admins can change seasons.')
+        throw serverError(403, 'Only admins can change seasons.')
       },
     })
     const onOpenChange = vi.fn()

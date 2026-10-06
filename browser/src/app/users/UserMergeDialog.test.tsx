@@ -3,12 +3,11 @@ import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it, vi} from 'vitest'
 import {makeAuth, makeUser} from '../../test/fixtures'
 import {renderApp} from '../../test/render'
-import {mockServer, THandler} from '../../test/server'
+import {mockServer, serverError, THandler} from '../../test/server'
 import {
   findDialog,
   setupUser,
   spyToasts,
-  userError,
 } from '../seasons/screenTestUtils'
 import {UserMergeDialog} from './UserMergeDialog'
 
@@ -101,7 +100,7 @@ describe('UserMergeDialog', () => {
     const toasts = spyToasts()
     const {onMerged} = renderMerge({
       '/UserMerge': () => {
-        throw userError(400, 'These users cannot be merged.')
+        throw serverError(400, 'These users cannot be merged.')
       },
     })
     const modal = await findDialog('Merge users')

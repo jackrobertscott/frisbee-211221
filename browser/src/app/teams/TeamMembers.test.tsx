@@ -3,8 +3,8 @@ import {TUserPublic} from '@shared/schemas/ioUser'
 import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it, vi} from 'vitest'
 import {makeAuth, makeTeam, makeUser, testId} from '../../test/fixtures'
-import {mockServer} from '../../test/server'
-import {pickOption, renderScreen, userError} from '../common/screenTesting'
+import {mockServer, serverError} from '../../test/server'
+import {pickOption, renderScreen} from '../common/screenTesting'
 import {TeamMembers} from './TeamMembers'
 
 const NOW = '2026-01-01T00:00:00.000Z'
@@ -117,7 +117,7 @@ describe('TeamMembers', () => {
 
     mockServer({
       '/MemberListOfTeam': () => {
-        throw userError(500, 'Down')
+        throw serverError(500, 'Down')
       },
     })
     renderScreen(<TeamMembers team={team} />, {auth: makeAuth({user: {admin: true}})})

@@ -3,8 +3,8 @@ import {TReport} from '@shared/schemas/ioReport'
 import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it, vi} from 'vitest'
 import {makeAuth, makeTeam, testId} from '../../test/fixtures'
-import {mockServer} from '../../test/server'
-import {renderScreen, userError} from '../common/screenTesting'
+import {mockServer, serverError} from '../../test/server'
+import {renderScreen} from '../common/screenTesting'
 import {reportedScores, TallyDialog} from './TallyDialog'
 
 const NOW = '2026-01-01T00:00:00.000Z'
@@ -136,7 +136,7 @@ describe('TallyDialog', () => {
     mockServer({
       '/FeatureFixtureTallyLoad': () => ({fixture, teams: [red, blue], reports: []}),
       '/FixtureUpdate': () => {
-        throw userError(400, 'Scores must be whole numbers.')
+        throw serverError(400, 'Scores must be whole numbers.')
       },
     })
     const onClose = vi.fn()

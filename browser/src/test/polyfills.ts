@@ -24,5 +24,5 @@ if (typeof window.matchMedia !== 'function')
     dispatchEvent: () => false,
   })
 
-// jsdom's scrollTo only logs "not implemented"; navigate() calls it on every route change.
+// jsdom logs "Not implemented" for scrollTo; navigate() calls it on every route change.
 window.scrollTo = () => {}

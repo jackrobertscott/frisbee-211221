@@ -3,13 +3,12 @@ import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it, vi} from 'vitest'
 import {makeAuth, makeUser} from '../../test/fixtures'
 import {renderApp} from '../../test/render'
-import {mockServer} from '../../test/server'
+import {mockServer, serverError} from '../../test/server'
 import {
   chooseOption,
   dialog,
   setupUser,
   spyToasts,
-  userError,
 } from '../seasons/screenTestUtils'
 import {UserCreateDialog} from './UserCreateDialog'
 
@@ -67,7 +66,7 @@ describe('UserCreateDialog', () => {
     const toasts = spyToasts()
     mockServer({
       '/UserCreate': () => {
-        throw userError(409, 'That email is already in use.')
+        throw serverError(409, 'That email is already in use.')
       },
     })
     const {modal, onCreated, onOpenChange} = renderDialog()

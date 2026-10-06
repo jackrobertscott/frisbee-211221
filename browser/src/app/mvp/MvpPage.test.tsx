@@ -2,8 +2,8 @@ import {screen, waitFor, within} from '@testing-library/react'
 import {beforeEach, describe, expect, it} from 'vitest'
 import {makeAuth, makeSeason, testId} from '../../test/fixtures'
 import {renderApp} from '../../test/render'
-import {mockServer} from '../../test/server'
-import {setupUser, spyToasts, userError} from '../seasons/screenTestUtils'
+import {mockServer, serverError} from '../../test/server'
+import {setupUser, spyToasts} from '../seasons/screenTestUtils'
 import {MvpPage} from './MvpPage'
 
 const admin = () => makeAuth({user: {admin: true}})
@@ -78,7 +78,7 @@ describe('MvpPage', () => {
     const toasts = spyToasts()
     const server = mockServer({
       '/FeatureDashboardMvpLoad': () => {
-        throw userError(500, 'Down')
+        throw serverError(500, 'Down')
       },
     })
     renderApp(<MvpPage />, {auth: admin(), context: {season: makeSeason()}})

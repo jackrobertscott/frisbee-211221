@@ -5,8 +5,8 @@ import {
 import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it} from 'vitest'
 import {makeAuth, makeSeason, testId} from '../../test/fixtures'
-import {mockServer} from '../../test/server'
-import {pickToday, renderScreen, userError} from '../common/screenTesting'
+import {mockServer, serverError} from '../../test/server'
+import {pickToday, renderScreen} from '../common/screenTesting'
 import {PortPage} from './PortPage'
 
 const NOW = '2026-01-01T00:00:00.000Z'
@@ -167,7 +167,7 @@ describe('PortPage', () => {
     const server = mockServer({
       '/PortGamedayImportLoad': () => ({runs: [], config: makeConfig(season.id)}),
       '/PortGamedayImport': () => {
-        throw userError(502, 'GameDay is unavailable.')
+        throw serverError(502, 'GameDay is unavailable.')
       },
     })
     const {user} = renderScreen(<PortPage />, {auth: admin(), context: {season}})

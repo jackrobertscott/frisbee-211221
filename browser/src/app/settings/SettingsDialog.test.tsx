@@ -3,8 +3,8 @@ import {describe, expect, it, vi} from 'vitest'
 import {TAuth} from '../../core/auth/AuthContext'
 import {makeAuth, makeTeam} from '../../test/fixtures'
 import {renderApp} from '../../test/render'
-import {mockServer, THandler} from '../../test/server'
-import {findDialog, makeMember, setupUser, userError} from '../seasons/screenTestUtils'
+import {mockServer, serverError, THandler} from '../../test/server'
+import {findDialog, makeMember, setupUser} from '../seasons/screenTestUtils'
 import {SettingsDialog} from './SettingsDialog'
 
 const memberList = (auth: TAuth, captain: boolean): THandler => () => {
@@ -100,7 +100,7 @@ describe('SettingsDialog', () => {
     const auth = makeAuth({team, user: {admin: true}})
     renderSettings(auth, {
       '/MemberListOfTeam': () => {
-        throw userError(500, 'Roster unavailable.')
+        throw serverError(500, 'Roster unavailable.')
       },
     })
     const modal = await findDialog('Settings')

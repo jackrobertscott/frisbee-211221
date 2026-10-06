@@ -3,13 +3,12 @@ import {screen, waitFor, within} from '@testing-library/react'
 import {beforeEach, describe, expect, it} from 'vitest'
 import {makeAuth, makeSeason} from '../../test/fixtures'
 import {renderApp} from '../../test/render'
-import {mockServer, THandler} from '../../test/server'
+import {mockServer, serverError, THandler} from '../../test/server'
 import {
   chooseOption,
   findDialog,
   setupUser,
   spyToasts,
-  userError,
 } from '../seasons/screenTestUtils'
 import {makeLeague, makeReport} from './reportTestData'
 import {ReportsPage} from './ReportsPage'
@@ -152,7 +151,7 @@ describe('ReportsPage list', () => {
     const {server} = setup({
       handlers: {
         '/FeatureDashboardReportsLoad': () => {
-          throw userError(500, 'Down')
+          throw serverError(500, 'Down')
         },
       },
     })

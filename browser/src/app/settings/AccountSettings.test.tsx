@@ -3,13 +3,12 @@ import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it} from 'vitest'
 import {makeAuth} from '../../test/fixtures'
 import {renderApp} from '../../test/render'
-import {mockServer, THandler} from '../../test/server'
+import {mockServer, serverError, THandler} from '../../test/server'
 import {
   chooseOption,
   findDialog,
   setupUser,
   spyToasts,
-  userError,
 } from '../seasons/screenTestUtils'
 import {AccountSettings} from './AccountSettings'
 
@@ -119,7 +118,7 @@ describe('AccountSettings emails', () => {
     const toasts = spyToasts()
     renderAccount(threeEmails, {
       '/UserCurrentEmailVerify': () => {
-        throw userError(400, 'That code is not valid.')
+        throw serverError(400, 'That code is not valid.')
       },
     })
     expect(screen.getByText('Unverified')).toBeInTheDocument()

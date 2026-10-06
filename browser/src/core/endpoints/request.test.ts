@@ -1,7 +1,7 @@
 import {AppError, isAppError, unauthorizedError} from '@shared/errors'
 import {afterEach, describe, expect, it, vi} from 'vitest'
 import {config} from '../../config'
-import {mockServer, serverAppError, serverError} from '../../test/server'
+import {mockServer, serverAppError} from '../../test/server'
 import {request} from './request'
 
 /** Awaits a promise that must reject and returns its AppError. */
@@ -107,11 +107,12 @@ describe('request.send', () => {
   })
 
   it('keeps only the status of JSON errors that are not serialised app errors', async () => {
-    mockServer({
-      '/Thing': () => {
-        throw serverError(400, 'Title taken.', 'fixture.title_taken')
-      },
-    })
+    stubFetch(
+      new Response(
+        JSON.stringify({message: 'Title taken.', errorCode: 'fixture.title_taken'}),
+        {status: 400, headers: {'Content-Type': 'application/json'}},
+      ),
+    )
     const error = await rejection(request.send('/Thing'))
     expect(error.statusCode).toBe(400)
     expect(error.errorCode).toBe('bad_request')

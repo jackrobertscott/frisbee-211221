@@ -2,8 +2,8 @@ import {TFeatureSpiritRow} from '@shared/endpoints/FeatureDef'
 import {screen, waitFor, within} from '@testing-library/react'
 import {describe, expect, it, vi} from 'vitest'
 import {makeAuth, makeSeason, makeTeam} from '../../test/fixtures'
-import {mockServer} from '../../test/server'
-import {renderScreen, userError} from '../common/screenTesting'
+import {mockServer, serverError} from '../../test/server'
+import {renderScreen} from '../common/screenTesting'
 import {SpiritPage} from './SpiritPage'
 
 type TSpiritPayload = {seasonId: string; sortBy?: string; sortDirection?: string}
@@ -80,7 +80,7 @@ describe('SpiritPage', () => {
     let fail = true
     mockServer({
       '/FeatureDashboardSpiritLoad': () => {
-        if (fail) throw userError(500, 'Down')
+        if (fail) throw serverError(500, 'Down')
         return {rows: [row('Red Rockets')]}
       },
     })

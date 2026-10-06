@@ -5,13 +5,12 @@ import {describe, expect, it, vi} from 'vitest'
 import {TAuth} from '../../core/auth/AuthContext'
 import {makeAuth, makeSeason} from '../../test/fixtures'
 import {renderApp} from '../../test/render'
-import {mockServer, THandler} from '../../test/server'
+import {mockServer, serverError, THandler} from '../../test/server'
 import {
   chooseOption,
   findDialog,
   setupUser,
   spyToasts,
-  userError,
 } from '../seasons/screenTestUtils'
 import {ReportDialog} from './ReportDialog'
 import {makeLeague, makeReport} from './reportTestData'
@@ -211,7 +210,7 @@ describe('ReportDialog (player report)', () => {
     const {onSubmitted} = setup({
       handlers: {
         '/ReportCreate': () => {
-          throw userError(409, 'Your team already reported this game.')
+          throw serverError(409, 'Your team already reported this game.')
         },
       },
     })

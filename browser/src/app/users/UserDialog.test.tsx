@@ -4,14 +4,13 @@ import {useState} from 'react'
 import {describe, expect, it, vi} from 'vitest'
 import {makeAuth, makeSeason, makeTeam, makeUser} from '../../test/fixtures'
 import {renderApp} from '../../test/render'
-import {mockServer, THandler} from '../../test/server'
+import {mockServer, serverError, THandler} from '../../test/server'
 import {
   chooseOption,
   findDialog,
   makeMember,
   setupUser,
   spyToasts,
-  userError,
 } from '../seasons/screenTestUtils'
 import {UserDialog} from './UserDialog'
 
@@ -163,7 +162,7 @@ describe('UserDialog emails', () => {
     const toasts = spyToasts()
     renderDialog(twoEmails(), {
       '/UserEmailAdd': () => {
-        throw userError(409, 'Email already in use.')
+        throw serverError(409, 'Email already in use.')
       },
     })
     const modal = await findDialog(/Kim Lee/)
@@ -349,7 +348,7 @@ describe('UserDialog teams', () => {
     spyToasts()
     renderDialog(twoEmails(), {
       '/FeatureDashboardUserMembershipsLoad': () => {
-        throw userError(500, 'Boom')
+        throw serverError(500, 'Boom')
       },
     })
     const modal = await findDialog(/Kim Lee/)
