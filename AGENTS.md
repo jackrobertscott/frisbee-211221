@@ -18,6 +18,7 @@
 - Do check screens at phone and desktop widths; the app is used mostly on mobile.
 - Do fix UI issues minimally within the existing components and layouts; keep tables as tables.
 - Do show one loading state until a form or dialog has all its initial data, rather than revealing fields as each request lands.
+- Do render stacked card-style radio options as one connected list (shared edges, only the selected option outlined), not separate tiles.
 - Do decide wrapping per table column: keep short atomic values (dates, times, places, divisions, names, numbers) on one line, and let long free text (team names, comments) wrap or truncate only where that keeps the table fitting.
 
 ## Don't
