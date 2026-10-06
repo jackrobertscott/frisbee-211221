@@ -12,8 +12,7 @@ use crate::shared::contract::security::{
     SECURITY_STATUS, SECURITY_VERIFY,
 };
 use crate::shared::errors::{
-    AppResult, ErrorOptions, bad_request_error, conflict_error, not_found_error,
-    unauthorized_error,
+    AppResult, ErrorOptions, bad_request_error, conflict_error, not_found_error, unauthorized_error,
 };
 use crate::shared::schemas::{AttemptKind, GenderMatching, Season, Session, User};
 use crate::tables::{SEASON, SESSION, USER};
@@ -136,7 +135,9 @@ async fn current(payload: CurrentPayload, ctx: Ctx) -> AppResult<CurrentResult> 
         ));
     };
     let auth = match signed_in {
-        Some((user, session)) => Some(build_auth_payload(db, user, session, Some(&season.id)).await?),
+        Some((user, session)) => {
+            Some(build_auth_payload(db, user, session, Some(&season.id)).await?)
+        }
         None => None,
     };
     Ok(CurrentResult { season, auth })
@@ -207,15 +208,14 @@ async fn sign_up(payload: SignUpPayload, ctx: Ctx) -> AppResult<AuthPayload> {
         ));
     }
     attempt_limit::consume(db, AttemptKind::Delivery, &payload.email, &ctx.client_ip()).await?;
-    let code =
-        user_email::code_send(&ctx.state, &payload.email, &payload.first_name, "Verify Email")
-            .await?;
-    let email = user_email::create(
-        &ctx.config().jwt_secret,
+    let code = user_email::code_send(
+        &ctx.state,
         &payload.email,
-        true,
-        Some(&code),
-    )?;
+        &payload.first_name,
+        "Verify Email",
+    )
+    .await?;
+    let email = user_email::create(&ctx.config().jwt_secret, &payload.email, true, Some(&code))?;
     let user: User = USER
         .create_one(
             db,
@@ -260,8 +260,15 @@ async fn verify(payload: VerifyPayload, ctx: Ctx) -> AppResult<AuthPayload> {
     } else {
         "Verify Email"
     };
-    user_email::assert_code_valid(&ctx.state, &user, &email, &payload.code, &ip, expired_subject)
-        .await?;
+    user_email::assert_code_valid(
+        &ctx.state,
+        &user,
+        &email,
+        &payload.code,
+        &ip,
+        expired_subject,
+    )
+    .await?;
     let password_changed = !js::trim(&payload.new_password).is_empty() || !has_password;
     if password_changed {
         hash::assert_new_password_valid(&payload.new_password)?;
@@ -293,9 +300,9 @@ async fn logout(ctx: Ctx) -> AppResult<()> {
     let session = SESSION
         .maybe_one(ctx.db(), Session::ID.eq(&auth.session_id))
         .await?;
-    let Some(session) = session
-        .filter(|session| sessions::is_session_valid(Some(&auth), Some(session), js::date::now_ms()))
-    else {
+    let Some(session) = session.filter(|session| {
+        sessions::is_session_valid(Some(&auth), Some(session), js::date::now_ms())
+    }) else {
         return Ok(());
     };
     SESSION

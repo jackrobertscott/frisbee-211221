@@ -91,8 +91,14 @@ async fn list_of_team(team_id: String, ctx: Ctx) -> AppResult<ListOfTeamResult> 
 
 async fn lookup_by_email(payload: LookupPayload, ctx: Ctx) -> AppResult<LookupResult> {
     let (current, _) = ctx.require_access().await?;
-    require_captain_or_admin(ctx.db(), &current, &payload.team_id, ADD_MEMBERS_MESSAGE, None)
-        .await?;
+    require_captain_or_admin(
+        ctx.db(),
+        &current,
+        &payload.team_id,
+        ADD_MEMBERS_MESSAGE,
+        None,
+    )
+    .await?;
     let user = user_email::maybe_user(ctx.db(), &payload.email).await?;
     Ok(LookupResult {
         exists: user.is_some(),
@@ -265,7 +271,9 @@ async fn request_create(team_id: String, ctx: Ctx) -> AppResult<Member> {
 async fn accept_or_decline(payload: AcceptOrDeclinePayload, ctx: Ctx) -> AppResult<()> {
     let (user, _) = ctx.require_access().await?;
     let db = ctx.db();
-    let member = MEMBER.get_one(db, Member::ID.eq(&payload.member_id)).await?;
+    let member = MEMBER
+        .get_one(db, Member::ID.eq(&payload.member_id))
+        .await?;
     require_captain_or_admin(
         db,
         &user,

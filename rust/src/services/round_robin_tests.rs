@@ -108,7 +108,11 @@ mod get_round_robin_pairings_tests {
 
     fn covers_every_pairing_exactly_once_per_cycle(count: usize) {
         let teams = teams_of(count);
-        let rounds_per_cycle = if count.is_multiple_of(2) { count - 1 } else { count };
+        let rounds_per_cycle = if count.is_multiple_of(2) {
+            count - 1
+        } else {
+            count
+        };
         let games_per_round = count / 2;
         for cycle in 0..3 {
             let mut seen: HashMap<String, usize> = HashMap::new();

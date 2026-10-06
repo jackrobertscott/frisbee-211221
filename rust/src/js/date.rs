@@ -568,7 +568,10 @@ mod tests {
             normalize("+275760-09-13T00:00:00.000Z").as_deref(),
             Some("+275760-09-13T00:00:00.000Z")
         );
-        assert_eq!(parse("+275760-09-13T00:00:00.000Z"), Some(8_640_000_000_000_000));
+        assert_eq!(
+            parse("+275760-09-13T00:00:00.000Z"),
+            Some(8_640_000_000_000_000)
+        );
         assert_eq!(normalize("+275760-09-13T00:00:00.001Z"), None);
         assert_eq!(
             normalize("-271821-04-20T00:00:00.000Z").as_deref(),
@@ -584,7 +587,10 @@ mod tests {
             normalize("0000-02-29T12:00:00Z").as_deref(),
             Some("0000-02-29T12:00:00.000Z")
         );
-        assert_eq!(normalize("2100-02-29").as_deref(), Some("2100-03-01T00:00:00.000Z"));
+        assert_eq!(
+            normalize("2100-02-29").as_deref(),
+            Some("2100-03-01T00:00:00.000Z")
+        );
         // every day for a few centuries round-trips through both conversions
         for days in (-200_000..200_000).step_by(7) {
             let (y, m, d) = civil_from_days(days);

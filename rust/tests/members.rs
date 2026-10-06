@@ -133,7 +133,10 @@ mod member_list_of_team {
     async fn enforces_sign_in_team_membership_and_team_access() {
         let server = TestServer::start().await;
         let Setup {
-            admin, season, team, ..
+            admin,
+            season,
+            team,
+            ..
         } = setup_team(&server, true).await;
         let anonymous = server.post("/MemberListOfTeam", team["id"].clone()).await;
         assert_eq!(anonymous.status, 401);
@@ -323,11 +326,14 @@ mod member_create {
             }),
         );
         assert_match(
-            &json!(user
-                .emails
-                .iter()
-                .map(|e| json!({"value": e.value, "primary": e.primary, "verified": e.verified}))
-                .collect::<Vec<_>>()),
+            &json!(
+                user.emails
+                    .iter()
+                    .map(
+                        |e| json!({"value": e.value, "primary": e.primary, "verified": e.verified})
+                    )
+                    .collect::<Vec<_>>()
+            ),
             &json!([{"value": email, "primary": true, "verified": false}]),
         );
     }
@@ -519,7 +525,10 @@ mod member_request_create {
     async fn creates_a_pending_membership_and_rejects_duplicates() {
         let server = TestServer::start().await;
         let Setup {
-            admin, season, team, ..
+            admin,
+            season,
+            team,
+            ..
         } = setup_team(&server, true).await;
         let anonymous = server
             .post("/MemberRequestCreate", team["id"].clone())
@@ -770,7 +779,11 @@ mod member_remove {
         set_created_on(&server, &newer.id, 4).await;
 
         let response = server
-            .post_as("/MemberRemove", captain_member["id"].clone(), &captain.token)
+            .post_as(
+                "/MemberRemove",
+                captain_member["id"].clone(),
+                &captain.token,
+            )
             .await;
         assert_eq!(response.status, 204);
         assert!(maybe_member(&server, &id(&captain_member)).await.is_none());
@@ -793,7 +806,11 @@ mod member_remove {
         } = setup_team(&server, true).await;
         let (_, pending) = pending_player(&server, &id(&team)).await;
         let response = server
-            .post_as("/MemberRemove", captain_member["id"].clone(), &captain.token)
+            .post_as(
+                "/MemberRemove",
+                captain_member["id"].clone(),
+                &captain.token,
+            )
             .await;
         assert_eq!(response.status, 204);
         assert_eq!(
@@ -884,7 +901,10 @@ mod member_remove {
     async fn ignores_missing_members_and_blocks_other_teams_and_pending_requesters() {
         let server = TestServer::start().await;
         let Setup {
-            admin, season, team, ..
+            admin,
+            season,
+            team,
+            ..
         } = setup_team(&server, true).await;
         let missing = server
             .post_as("/MemberRemove", json!(generate_id()), &admin.token)

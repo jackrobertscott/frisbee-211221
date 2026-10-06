@@ -518,17 +518,27 @@ mod team_create_team_update_and_team_delete {
                 .is_none()
         );
         assert_eq!(
-            MEMBER.count(db, Member::TEAM_ID.eq(id(&team))).await.unwrap(),
+            MEMBER
+                .count(db, Member::TEAM_ID.eq(id(&team)))
+                .await
+                .unwrap(),
             0
         );
         assert_eq!(
-            MEMBER.count(db, Member::TEAM_ID.eq(id(&keep))).await.unwrap(),
+            MEMBER
+                .count(db, Member::TEAM_ID.eq(id(&keep)))
+                .await
+                .unwrap(),
             1
         );
 
         // deleting a missing team silently succeeds
         let missing = server
-            .post_as("/TeamDelete", json!({"teamId": generate_id()}), &admin.token)
+            .post_as(
+                "/TeamDelete",
+                json!({"teamId": generate_id()}),
+                &admin.token,
+            )
             .await;
         assert_eq!(missing.status, 204);
     }
@@ -546,7 +556,8 @@ mod feature_dashboard_teams_load {
     /// echo     -        0100   a@x.com    day 4
     async fn seed_teams(server: &TestServer, admin: &Actor) -> Value {
         let season = create_season(server, admin, json!({"name": "Dashboard"})).await;
-        let day = |n: i64| frisbee::js::date::to_iso_string(1_767_225_600_000 + (n - 1) * 86_400_000);
+        let day =
+            |n: i64| frisbee::js::date::to_iso_string(1_767_225_600_000 + (n - 1) * 86_400_000);
         let teams = [
             json!({"name": "Alpha", "division": 2, "phone": "0300", "email": "c@x.com", "createdOn": day(3)}),
             json!({"name": "Bravo", "division": 1, "phone": "0100", "email": "a@x.com", "createdOn": day(1)}),
@@ -634,7 +645,9 @@ mod feature_dashboard_teams_load {
         }
         // direction defaults to ascending
         assert_eq!(
-            names(&load(&server, json!({"seasonId": season["id"], "sortBy": "name"})).await["teams"]),
+            names(
+                &load(&server, json!({"seasonId": season["id"], "sortBy": "name"})).await["teams"]
+            ),
             ["Alpha", "Bravo", "Charlie", "Delta", "echo"]
         );
     }
@@ -658,7 +671,11 @@ mod feature_dashboard_teams_load {
         let server = TestServer::start().await;
         let admin = admin(&server).await;
         let season = seed_teams(&server, &admin).await;
-        let page = load(&server, json!({"seasonId": season["id"], "skip": 1, "limit": 2})).await;
+        let page = load(
+            &server,
+            json!({"seasonId": season["id"], "skip": 1, "limit": 2}),
+        )
+        .await;
         assert_eq!(page["count"], 5);
         assert_eq!(names(&page["teams"]), ["Delta", "Alpha"]);
         let last = load(
@@ -828,12 +845,20 @@ mod feature_competition_load {
         let b = create_team(&server, &admin, &id(&season), "B Team", json!({})).await;
         create_team(&server, &admin, &id(&season), "C Team", json!({})).await;
         let db = server.db();
-        TEAM.update_one(db, Team::ID.eq(id(&a)), Patch::new().set(Team::DIVISION, 2.0))
-            .await
-            .unwrap();
-        TEAM.update_one(db, Team::ID.eq(id(&b)), Patch::new().set(Team::DIVISION, 1.0))
-            .await
-            .unwrap();
+        TEAM.update_one(
+            db,
+            Team::ID.eq(id(&a)),
+            Patch::new().set(Team::DIVISION, 2.0),
+        )
+        .await
+        .unwrap();
+        TEAM.update_one(
+            db,
+            Team::ID.eq(id(&b)),
+            Patch::new().set(Team::DIVISION, 1.0),
+        )
+        .await
+        .unwrap();
         let fixture = |title: &str, date: &str| {
             json!({
                 "seasonId": season["id"],
@@ -868,7 +893,10 @@ mod feature_competition_load {
         assert_eq!(fixture_ids, [earlier.id.as_str(), later.id.as_str()]);
 
         let missing = server
-            .post("/FeatureCompetitionLoad", json!({"seasonId": generate_id()}))
+            .post(
+                "/FeatureCompetitionLoad",
+                json!({"seasonId": generate_id()}),
+            )
             .await;
         assert_eq!(missing.status, 404);
     }

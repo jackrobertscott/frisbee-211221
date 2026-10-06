@@ -196,7 +196,6 @@ mod tests {
         assert_eq!(locale_compare("resume", "résumé"), Ordering::Less);
     }
 
-
     #[test]
     fn orders_letters_alphabetically_ignoring_case_first() {
         assert_eq!(locale_compare("a", "B"), Ordering::Less);

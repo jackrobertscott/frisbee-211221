@@ -155,7 +155,10 @@ mod tests {
     async fn reads_a_body_declared_too_large_before_answering_413() {
         let (body, read) = counted_body(20);
         let mut headers = HeaderMap::new();
-        headers.insert("content-length", (20 * 64 * 1024).to_string().parse().unwrap());
+        headers.insert(
+            "content-length",
+            (20 * 64 * 1024).to_string().parse().unwrap(),
+        );
         let error = read_limited(&headers, body, JSON_BODY_LIMIT)
             .await
             .unwrap_err();
@@ -171,6 +174,9 @@ mod tests {
             .unwrap_err();
         assert_eq!(error.status_code, 413);
         let drained = read.load(Ordering::SeqCst);
-        assert!(drained < 1000 && drained * 64 * 1024 > DRAIN_LIMIT, "{drained}");
+        assert!(
+            drained < 1000 && drained * 64 * 1024 > DRAIN_LIMIT,
+            "{drained}"
+        );
     }
 }

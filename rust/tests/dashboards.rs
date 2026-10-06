@@ -1222,7 +1222,10 @@ mod fixture_and_report_editor_loaders {
             sorted(ids(&options[0]["users"])),
             sorted(vec![bravo1.user_id.clone(), bravo2.user_id.clone()])
         );
-        assert_eq!(ids(&options[1]["users"]), std::slice::from_ref(&delta1.user_id));
+        assert_eq!(
+            ids(&options[1]["users"]),
+            std::slice::from_ref(&delta1.user_id)
+        );
         // only public user fields are exposed
         let mut keys: Vec<&String> = options[0]["users"][0].as_object().unwrap().keys().collect();
         keys.sort();

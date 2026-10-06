@@ -2,9 +2,7 @@
 
 mod common;
 
-use common::actors::{
-    Actor, NewMember, SignUp, add_member, create_season, create_team, sign_up,
-};
+use common::actors::{Actor, NewMember, SignUp, add_member, create_season, create_team, sign_up};
 use common::{TestServer, assert_match};
 use frisbee::db::Filter;
 use frisbee::shared::schemas::{Fixture, Member, Season, Team, User};
@@ -154,9 +152,7 @@ mod season_list {
             )
             .await;
         }
-        let response = server
-            .post("/SeasonList", json!({"search": prefix}))
-            .await;
+        let response = server.post("/SeasonList", json!({"search": prefix})).await;
         assert_eq!(response.status, 200);
         // numeric ordering: "10" sorts above "9" and "2" (not lexicographic)
         assert_eq!(
@@ -502,7 +498,9 @@ mod season_delete {
         assert!(season_exists(&server, &season_id).await);
         let db = server.db();
         assert_eq!(
-            TEAM.count(db, Team::SEASON_ID.eq(&season_id)).await.unwrap(),
+            TEAM.count(db, Team::SEASON_ID.eq(&season_id))
+                .await
+                .unwrap(),
             1
         );
         assert_eq!(
@@ -565,7 +563,9 @@ mod season_delete {
         assert_eq!(response.status, 204);
         assert!(!season_exists(&server, &season_id).await);
         assert_eq!(
-            TEAM.count(db, Team::SEASON_ID.eq(&season_id)).await.unwrap(),
+            TEAM.count(db, Team::SEASON_ID.eq(&season_id))
+                .await
+                .unwrap(),
             0
         );
         assert_eq!(

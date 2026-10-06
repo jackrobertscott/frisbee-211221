@@ -317,9 +317,7 @@ mod security_endpoints {
         assert_eq!(chosen.body["auth"]["user"]["admin"], true);
 
         // an invalid token is ignored rather than rejected
-        let bogus = server
-            .post_as("/SecurityCurrent", json!({}), "bogus")
-            .await;
+        let bogus = server.post_as("/SecurityCurrent", json!({}), "bogus").await;
         assert_eq!(bogus.status, 200);
         assert!(bogus.body.get("auth").is_none());
     }
@@ -353,9 +351,7 @@ mod security_endpoints {
         let missing = server.post("/UserCurrentUpdate", json!({})).await;
         assert_eq!(missing.status, 401);
         assert_eq!(missing.body["errorCode"], "auth.token_missing");
-        let invalid = server
-            .post_as("/UserCurrentUpdate", json!({}), "abc")
-            .await;
+        let invalid = server.post_as("/UserCurrentUpdate", json!({}), "abc").await;
         assert_eq!(invalid.status, 401);
         assert_eq!(invalid.body["errorCode"], Value::from("auth.token_invalid"));
     }
