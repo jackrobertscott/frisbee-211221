@@ -164,6 +164,8 @@ mod tests {
                 json!({"value": value, "verified": false, "code": "c", "createdOn": "2026-01-01T00:00:00.000Z", "primary": primary})
             })
             .collect();
+        // distinct createdOn values, so createdOn sorts have no ties
+        tokio::time::sleep(std::time::Duration::from_millis(2)).await;
         USER.create_one(
             app.db(),
             json!({
