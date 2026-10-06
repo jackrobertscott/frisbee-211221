@@ -14,6 +14,7 @@ use crate::shared::schemas::{
     FALLBACK_USER_GENDER_MATCHING, GenderMatching, User, normalize_user_gender_matching,
 };
 use crate::tables::{USER, user as user_table};
+use rusqlite::Connection;
 use serde_json::{Map, Value};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -43,12 +44,15 @@ fn pick_majority_slot(picks: Option<&MvpSlotPicks>) -> Option<GenderMatching> {
 
 /// `runUserGenderMatchingMigration()`.
 pub async fn run_user_gender_matching_migration(db: &Db) -> AppResult<()> {
+    db.call(run_user_gender_matching_migration_on).await
+}
+
+/// [`run_user_gender_matching_migration`] on one connection, so it can run
+/// inside a caller's transaction (the Mongo import runs it this way).
+pub fn run_user_gender_matching_migration_on(conn: &Connection) -> AppResult<()> {
     let pending: Vec<Map<String, Value>> = USER
-        .scan_stored(
-            db,
-            User::GENDER_MATCHING.not_in([GenderMatching::Male, GenderMatching::Female]),
-        )
-        .await?
+        .tx(conn)
+        .scan_stored(&User::GENDER_MATCHING.not_in([GenderMatching::Male, GenderMatching::Female]))?
         .into_iter()
         .filter(|record| record.get("id").is_some_and(Value::is_string))
         .collect();
@@ -66,10 +70,7 @@ pub async fn run_user_gender_matching_migration(db: &Db) -> AppResult<()> {
         .filter(|record| read_stored_gender_matching(record).is_none())
         .filter_map(|record| record.get("id").and_then(Value::as_str).map(str::to_string))
         .collect();
-    let ids = unmatched_ids.clone();
-    let picks_by_user_id = db
-        .call(move |c| user_table::mvp_slot_picks(c, &ids))
-        .await?;
+    let picks_by_user_id = user_table::mvp_slot_picks(conn, &unmatched_ids)?;
 
     let mut male = 0;
     let mut female = 0;
@@ -98,8 +99,7 @@ pub async fn run_user_gender_matching_migration(db: &Db) -> AppResult<()> {
             from_votes += 1;
         }
         let gender_matching = stored.or(voted).unwrap_or(FALLBACK_USER_GENDER_MATCHING);
-        db.call(move |c| user_table::set_gender_matching_clearing_legacy(c, &id, gender_matching))
-            .await?;
+        user_table::set_gender_matching_clearing_legacy(conn, &id, gender_matching)?;
         match gender_matching {
             GenderMatching::Male => male += 1,
             GenderMatching::Female => female += 1,

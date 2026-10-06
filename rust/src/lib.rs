@@ -12,6 +12,7 @@ pub mod gameday;
 pub mod http;
 pub mod js;
 pub mod log;
+pub mod migrate;
 pub mod migrations;
 pub mod queries;
 pub mod server;

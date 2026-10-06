@@ -272,3 +272,33 @@ pub fn run_startup_schema_quiet(conn: &Connection) -> AppResult<()> {
     }
     sync_indexes_into(conn, &crate::tables::all_tables(), &mut Vec::new())
 }
+
+/// Whether the database holds no data: no tables at all, or only this
+/// server's tables, all empty. Used by the Mongo import to refuse
+/// overwriting data.
+pub fn database_is_empty(conn: &Connection) -> AppResult<bool> {
+    let mut statement = conn.prepare(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'",
+    )?;
+    let tables = statement
+        .query_map([], |row| row.get::<_, String>(0))?
+        .collect::<Result<Vec<_>, _>>()?;
+    let known: Vec<&str> = crate::tables::all_tables()
+        .iter()
+        .flat_map(|table| std::iter::once(table.sql).chain(table.children().map(|c| c.table)))
+        .collect();
+    for table in &tables {
+        if !known.contains(&table.as_str()) {
+            return Ok(false);
+        }
+        let rows: i64 = conn.query_row(
+            &format!("SELECT EXISTS (SELECT 1 FROM \"{table}\")"),
+            [],
+            |row| row.get(0),
+        )?;
+        if rows != 0 {
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}

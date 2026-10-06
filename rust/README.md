@@ -75,9 +75,72 @@ VITE_URL_SERVER=http://localhost:5000
 
 `URL_CLIENT` on the server must match the browser's origin (e.g.
 `http://localhost:3000`), as with the TS server. Moving a deployment over:
-import the Mongo data with the `migrate-mongo` binary (see `PORTING.md`),
+import the Mongo data with the `migrate-mongo` binary (see below),
 keep `JWT_SECRET` so existing sessions and security codes stay valid, and
 replace `MONGODB_URI`/`MONGODB_DB` with `SQLITE_PATH` (on a persistent volume).
+
+## Migrating from MongoDB
+
+`migrate-mongo` loads a `mongodump` of the TS server's database into a new
+SQLite file, exactly as the Rust server would have written it. Stop the TS
+server (or accept that writes after the dump are lost), then dump the
+database. Any of these formats works:
+
+```sh
+# a dump directory (plain or gzipped)
+mongodump --uri "$MONGODB_URI" --db "$MONGODB_DB" --out dump
+mongodump --uri "$MONGODB_URI" --db "$MONGODB_DB" --gzip --out dump
+# a single archive file (plain or gzipped)
+mongodump --uri "$MONGODB_URI" --db "$MONGODB_DB" --archive=frisbee.archive.gz --gzip
+```
+
+Then import it into the file the server will use as `SQLITE_PATH`:
+
+```sh
+cd rust
+cargo run --release --bin migrate-mongo -- \
+  --dump ../dump --sqlite data/frisbee.sqlite --report migrate-report.json
+# or: --dump frisbee.archive.gz
+```
+
+| Option | Meaning |
+| --- | --- |
+| `--dump <path>` | A dump root (`dump/`), a database directory (`dump/<db>/`) or an archive file. |
+| `--sqlite <path>` | The SQLite database to create (parent directories are created). |
+| `--db <name>` | The database to import when the dump holds several (`admin`, `config` and `local` are ignored when choosing automatically). |
+| `--force` | Replace the data of a SQLite database that already holds records. Without it the import refuses. |
+| `--strict` | Import nothing if any document fails schema validation. |
+| `--report <file>` | Write every warning and note, with the dumped values, as JSON. |
+
+The tool applies the server's schema migrations and indexes, then imports
+every collection in one transaction (any fatal error leaves the database as
+it was; a file the run created is removed) and runs the startup backfills
+(`genderMatching` for legacy users). It prints a table per collection (read,
+imported, invalid, normalised, warnings) followed by the warnings, and exits
+non-zero on fatal errors (unreadable dump, duplicate ids, existing data
+without `--force`, `--strict` failures).
+
+How documents are mapped:
+
+- `_id` is dropped; records keep their own `id` (a document without `id`
+  uses its `_id` hex, with a warning). Rows keep the dump's (natural) order.
+- BSON dates become `toISOString()` strings, ObjectIds hex strings, and
+  Int32/Int64/Double/Decimal128 plain numbers (`3.0` is `3`). Other BSON
+  types are kept as extended JSON with a warning. A top-level `null` is
+  stored as missing (SQLite cannot tell them apart), noted in the report.
+- Each field is validated against its schema. Valid fields are stored
+  normalised, as `createOne` would. Invalid or missing required fields are
+  stored as dumped and reported: the TS server returned such records
+  unvalidated, but the Rust server reads records through their types, so
+  requests that load them fail until they are fixed (fix them in Mongo and
+  import again with `--force`).
+- Fields outside the schema (and nested keys the schema strips) have no
+  column and are dropped, each reported with its value; the legacy
+  `user.gender` is kept for the backfill. After every collection the stored
+  rows are read back and compared with the dump, so nothing is lost silently.
+- Unknown collections are skipped with a warning.
+
+Keep `JWT_SECRET`: sessions created by the TS server keep working.
 
 ## Known differences from the TS server
 
