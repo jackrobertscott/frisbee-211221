@@ -3,6 +3,10 @@
 
 #![forbid(unsafe_code)]
 
+pub mod config;
+pub mod db;
 pub mod js;
 pub mod log;
 pub mod shared;
+pub mod tables;
+pub mod utils;
