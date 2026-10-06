@@ -548,4 +548,28 @@ mod db_table {
             )
         );
     }
+
+    #[tokio::test]
+    async fn selects_with_a_custom_sql_tail() {
+        let (_dir, db) = widget_db();
+        let values: Vec<Value> = ["b", "A", "c"]
+            .iter()
+            .map(|name| json!({"name": name, "colour": "tail"}))
+            .collect();
+        WIDGET.create_many(&db, values).await.unwrap();
+        let widgets = db
+            .call(|c| {
+                let mut params = Vec::new();
+                let filter = Widget::COLOUR.eq("tail").to_sql("t", &mut params);
+                params.push(rusqlite::types::Value::Integer(2));
+                let tail = format!(
+                    "WHERE {filter} ORDER BY lower(t.\"{}\") DESC LIMIT ?",
+                    Widget::NAME.sql()
+                );
+                WIDGET.tx(c).select_where(&tail, &params)
+            })
+            .await
+            .unwrap();
+        assert_eq!(names(&widgets), ["c", "b"]);
+    }
 }

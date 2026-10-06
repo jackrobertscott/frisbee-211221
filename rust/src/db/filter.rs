@@ -94,12 +94,7 @@ impl Filter {
     }
 
     /// Renders the filter as SQL against table alias `alias`, pushing bound values.
-    pub fn to_sql(
-        &self,
-        alias: &str,
-        parent: Option<(&str, &str)>,
-        params: &mut Vec<SqlValue>,
-    ) -> String {
+    pub fn to_sql(&self, alias: &str, params: &mut Vec<SqlValue>) -> String {
         match self {
             Filter::All => "1".into(),
             Filter::And(list) => {
@@ -109,7 +104,7 @@ impl Filter {
                 format!(
                     "({})",
                     list.iter()
-                        .map(|f| f.to_sql(alias, parent, params))
+                        .map(|f| f.to_sql(alias, params))
                         .collect::<Vec<_>>()
                         .join(" AND ")
                 )
@@ -121,7 +116,7 @@ impl Filter {
                 format!(
                     "({})",
                     list.iter()
-                        .map(|f| f.to_sql(alias, parent, params))
+                        .map(|f| f.to_sql(alias, params))
                         .collect::<Vec<_>>()
                         .join(" OR ")
                 )
@@ -181,8 +176,7 @@ impl Filter {
             }
             Filter::Any { child, filter } => {
                 let child_alias = format!("{alias}_{}", child.field);
-                let inner = filter.to_sql(&child_alias, Some((alias, child.parent_column)), params);
-                let _ = parent;
+                let inner = filter.to_sql(&child_alias, params);
                 format!(
                     "EXISTS (SELECT 1 FROM \"{}\" {child_alias} WHERE {child_alias}.\"{}\" = {alias}.\"id\" AND {inner})",
                     child.table, child.parent_column

@@ -330,7 +330,7 @@ impl<'c, T: Record> TableTx<'c, T> {
         let def = self.def();
         let columns = def.plain_columns(include_legacy);
         let mut params = Vec::new();
-        let where_sql = filter.to_sql("t", None, &mut params);
+        let where_sql = filter.to_sql("t", &mut params);
         let order = query.to_sql("t").map_err(AppError::internal_from)?;
         let sql = format!(
             "SELECT t.\"_seq\", {} FROM \"{}\" t WHERE {where_sql}{order}",
@@ -392,10 +392,34 @@ impl<'c, T: Record> TableTx<'c, T> {
         Ok(())
     }
 
+    /// Records selected by a custom SQL tail against alias `t` (the table),
+    /// e.g. `WHERE ... ORDER BY ... LIMIT ? OFFSET ?`. For query modules that
+    /// need joins or computed sort keys; build the `WHERE` part with
+    /// [`Filter::to_sql`] where possible. Never order by `id`.
+    pub fn select_where(&self, tail_sql: &str, params: &[SqlValue]) -> AppResult<Vec<T>> {
+        let def = self.def();
+        let columns = def.plain_columns(false);
+        let sql = format!(
+            "SELECT t.\"_seq\", {} FROM \"{}\" t {tail_sql}",
+            select_list("t", &columns),
+            def.sql
+        );
+        let mut statement = self.conn.prepare(&sql)?;
+        let mut rows = statement
+            .query_map(params_from_iter(params.iter()), |row| {
+                Ok((row.get::<_, i64>(0)?, row_to_map(row, &columns, 1)?))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+        self.attach_children(&mut rows)?;
+        rows.into_iter()
+            .map(|(_, map)| record_from_map(self.order_fields(map, false)))
+            .collect()
+    }
+
     /// `$Table.count(query)`.
     pub fn count(&self, filter: &Filter) -> AppResult<i64> {
         let mut params = Vec::new();
-        let where_sql = filter.to_sql("t", None, &mut params);
+        let where_sql = filter.to_sql("t", &mut params);
         let sql = format!(
             "SELECT COUNT(*) FROM \"{}\" t WHERE {where_sql}",
             self.def().sql
@@ -450,7 +474,7 @@ impl<'c, T: Record> TableTx<'c, T> {
     /// Sum of a numeric column over matching rows (`$group` / `$sum`).
     pub fn sum(&self, column: Col<f64>, filter: &Filter) -> AppResult<f64> {
         let mut params = Vec::new();
-        let where_sql = filter.to_sql("t", None, &mut params);
+        let where_sql = filter.to_sql("t", &mut params);
         let sql = format!(
             "SELECT TOTAL(t.\"{}\") FROM \"{}\" t WHERE {where_sql}",
             column.sql(),
@@ -631,7 +655,7 @@ impl<'c, T: Record> TableTx<'c, T> {
             return Ok(0);
         }
         let mut where_params = Vec::new();
-        let where_sql = filter.to_sql("t", None, &mut where_params);
+        let where_sql = filter.to_sql("t", &mut where_params);
         let sql = format!(
             "UPDATE \"{table}\" SET {sets} WHERE \"_seq\" IN (SELECT t.\"_seq\" FROM \"{table}\" t WHERE {where_sql}) AND NOT ({same})",
             table = def.sql,
@@ -761,7 +785,7 @@ impl<'c, T: Record> TableTx<'c, T> {
     /// `$Table.deleteOne(query)`: deletes the first match in insertion order.
     pub fn delete_one(&self, filter: &Filter) -> AppResult<usize> {
         let mut params = Vec::new();
-        let where_sql = filter.to_sql("t", None, &mut params);
+        let where_sql = filter.to_sql("t", &mut params);
         let sql = format!(
             "DELETE FROM \"{table}\" WHERE \"_seq\" = (SELECT t.\"_seq\" FROM \"{table}\" t WHERE {where_sql} ORDER BY t.\"_seq\" LIMIT 1)",
             table = self.def().sql
@@ -775,7 +799,7 @@ impl<'c, T: Record> TableTx<'c, T> {
     /// `$Table.deleteMany(query)`.
     pub fn delete_many(&self, filter: &Filter) -> AppResult<usize> {
         let mut params = Vec::new();
-        let where_sql = filter.to_sql("t", None, &mut params);
+        let where_sql = filter.to_sql("t", &mut params);
         let sql = format!(
             "DELETE FROM \"{table}\" WHERE \"_seq\" IN (SELECT t.\"_seq\" FROM \"{table}\" t WHERE {where_sql})",
             table = self.def().sql
