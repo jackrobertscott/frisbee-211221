@@ -27,7 +27,7 @@
 
 /* Card variant */
 .ui-radio-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-3); }
-.ui-radio-cards.ui-choice-group--vertical { grid-template-columns: 1fr; }
+.ui-radio-cards.ui-choice-group--vertical { grid-template-columns: 1fr; gap: 0; }
 .ui-radio-card {
   position: relative;
   display: flex;
@@ -47,6 +47,14 @@
   box-shadow: var(--shadow-xs), 0 0 0 1px var(--primary);
 }
 .ui-radio-card:has(.ui-radio:focus-visible) { box-shadow: var(--focus-ring); }
+/* Vertical cards join into one list: shared edges, outer corners rounded, raised item draws its full border. */
+.ui-choice-group--vertical > .ui-radio-card { border-radius: 0; box-shadow: none; }
+.ui-choice-group--vertical > .ui-radio-card:not(:first-child) { margin-top: -1px; }
+.ui-choice-group--vertical > .ui-radio-card:first-child { border-top-left-radius: var(--radius-lg); border-top-right-radius: var(--radius-lg); }
+.ui-choice-group--vertical > .ui-radio-card:last-child { border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg); }
+.ui-choice-group--vertical > .ui-radio-card:hover { z-index: 1; }
+.ui-choice-group--vertical > .ui-radio-card[data-state='checked'] { z-index: 2; box-shadow: 0 0 0 1px var(--primary); }
+.ui-choice-group--vertical > .ui-radio-card:has(.ui-radio:focus-visible) { z-index: 3; box-shadow: var(--focus-ring); }
 .ui-radio-card .ui-radio { margin-left: auto; margin-top: 2px; }
 .ui-radio-card .ui-radio:focus-visible { box-shadow: none; }
 .ui-radio-card[data-disabled] { opacity: 0.55; cursor: not-allowed; }
