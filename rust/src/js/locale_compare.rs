@@ -195,4 +195,29 @@ mod tests {
         assert_eq!(locale_compare("a", "A"), Ordering::Less);
         assert_eq!(locale_compare("resume", "résumé"), Ordering::Less);
     }
+
+
+    #[test]
+    fn orders_letters_alphabetically_ignoring_case_first() {
+        assert_eq!(locale_compare("a", "B"), Ordering::Less);
+        assert_eq!(locale_compare("B", "a"), Ordering::Greater);
+        assert_eq!(locale_compare("a", "A"), Ordering::Less);
+        assert_eq!(locale_compare("Alpha", "alpha"), Ordering::Greater);
+        assert_eq!(locale_compare("echo", "Delta"), Ordering::Greater);
+    }
+
+    #[test]
+    fn orders_punctuation_before_digits_before_letters() {
+        assert_eq!(locale_compare("a::b", "a0"), Ordering::Less);
+        assert_eq!(locale_compare("1", "a"), Ordering::Less);
+        assert_eq!(locale_compare(" ", "_"), Ordering::Less);
+        assert_eq!(locale_compare("ab", "abc"), Ordering::Less);
+    }
+
+    #[test]
+    fn treats_accents_as_secondary() {
+        assert_eq!(locale_compare("e", "é"), Ordering::Less);
+        assert_eq!(locale_compare("é", "f"), Ordering::Less);
+        assert_eq!(locale_compare("same", "same"), Ordering::Equal);
+    }
 }

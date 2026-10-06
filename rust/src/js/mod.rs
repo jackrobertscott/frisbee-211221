@@ -8,6 +8,8 @@
 pub mod date;
 pub mod locale_compare;
 
+pub use locale_compare::locale_compare;
+
 use serde_json::{Number, Value};
 
 /// Characters JavaScript treats as whitespace in `trim()` and the regex `\s`

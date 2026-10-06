@@ -5,7 +5,8 @@ use super::team::TEAM_LIST_SORT_KEYS;
 use crate::io_schema;
 use crate::shared::auth_access::AuthPoint;
 use crate::shared::schemas::{
-    io_fixture, io_member, io_report, io_season, io_team, io_user_public,
+    GenderMatching, Team, UserPublic, io_fixture, io_member, io_report, io_season, io_team,
+    io_user_public,
 };
 use crate::shared::torva::io;
 use crate::shared::utils::endpoint_def::{
@@ -52,6 +53,13 @@ io_schema! {
     }
 }
 
+/// `TFeatureAgainstOption`.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct FeatureAgainstOption {
+    pub team: Team,
+    pub users: Vec<UserPublic>,
+}
+
 io_schema! {
     pub fn io_feature_spirit_row() {
         io::object([
@@ -70,6 +78,23 @@ io_schema! {
     }
 }
 
+/// `TFeatureSpiritRow`.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FeatureSpiritRow {
+    pub team: Team,
+    pub received_spirit: f64,
+    pub received_reports: f64,
+    pub received_average: f64,
+    pub adjusted_received_average: f64,
+    pub allocated_spirit: f64,
+    pub allocated_reports: f64,
+    pub allocated_average: f64,
+    pub adjusted_allocated_average: f64,
+    pub average_difference: f64,
+    pub adjusted_difference: f64,
+}
+
 io_schema! {
     pub fn io_feature_mvp_row() {
         io::object([
@@ -82,6 +107,22 @@ io_schema! {
             ("genderMatching", io_user_public().field("genderMatching")),
         ])
     }
+}
+
+/// `TFeatureMvpRow`.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FeatureMvpRow {
+    pub user_id: String,
+    pub user_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub team_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub team_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub division: Option<f64>,
+    pub votes: f64,
+    pub gender_matching: GenderMatching,
 }
 
 io_schema! {

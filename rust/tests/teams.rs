@@ -1,5 +1,4 @@
-//! Port of `server/test/integration/teams.test.ts`. The `Feature*` cases
-//! exercise Feature-domain endpoints and wait on that domain.
+//! Port of `server/test/integration/teams.test.ts`.
 
 mod common;
 
@@ -570,7 +569,6 @@ mod feature_dashboard_teams_load {
     }
 
     #[tokio::test]
-    #[ignore = "pending Feature domain: /FeatureDashboardTeamsLoad"]
     async fn is_public_and_defaults_to_division_ascending_with_missing_divisions_last() {
         let server = TestServer::start().await;
         let admin = admin(&server).await;
@@ -586,7 +584,6 @@ mod feature_dashboard_teams_load {
     }
 
     #[tokio::test]
-    #[ignore = "pending Feature domain: /FeatureDashboardTeamsLoad"]
     async fn sorts_by_every_key_and_direction() {
         let server = TestServer::start().await;
         let admin = admin(&server).await;
@@ -643,7 +640,6 @@ mod feature_dashboard_teams_load {
     }
 
     #[tokio::test]
-    #[ignore = "pending Feature domain: /FeatureDashboardTeamsLoad"]
     async fn searches_names_case_insensitively_and_counts_matches() {
         let server = TestServer::start().await;
         let admin = admin(&server).await;
@@ -658,7 +654,6 @@ mod feature_dashboard_teams_load {
     }
 
     #[tokio::test]
-    #[ignore = "pending Feature domain: /FeatureDashboardTeamsLoad"]
     async fn pages_with_skip_and_limit_after_sorting_while_count_stays_total() {
         let server = TestServer::start().await;
         let admin = admin(&server).await;
@@ -688,7 +683,6 @@ mod feature_dashboard_teams_load {
     }
 
     #[tokio::test]
-    #[ignore = "pending Feature domain: /FeatureDashboardTeamsLoad"]
     async fn only_returns_teams_of_the_requested_season() {
         let server = TestServer::start().await;
         let admin = admin(&server).await;
@@ -706,7 +700,6 @@ mod feature_dashboard_teams_load {
     }
 
     #[tokio::test]
-    #[ignore = "pending Feature domain: /FeatureDashboardTeamsLoad"]
     async fn validates_paging_and_season() {
         let server = TestServer::start().await;
         let admin = admin(&server).await;
@@ -746,7 +739,6 @@ mod feature_team_setup_load {
     use super::*;
 
     #[tokio::test]
-    #[ignore = "pending Feature domain: /FeatureTeamSetupLoad"]
     async fn requires_a_signed_in_user() {
         let server = TestServer::start().await;
         let response = server
@@ -756,7 +748,6 @@ mod feature_team_setup_load {
     }
 
     #[tokio::test]
-    #[ignore = "pending Feature domain: /FeatureTeamSetupLoad"]
     async fn lists_teams_by_name_and_returns_the_pending_team() {
         let server = TestServer::start().await;
         let admin = admin(&server).await;
@@ -795,7 +786,6 @@ mod feature_team_setup_load {
     }
 
     #[tokio::test]
-    #[ignore = "pending Feature domain: /FeatureTeamSetupLoad"]
     async fn also_returns_the_team_of_a_confirmed_membership() {
         let server = TestServer::start().await;
         let admin = admin(&server).await;
@@ -812,7 +802,6 @@ mod feature_team_setup_load {
     }
 
     #[tokio::test]
-    #[ignore = "pending Feature domain: /FeatureTeamSetupLoad"]
     async fn returns_404_for_a_missing_season() {
         let server = TestServer::start().await;
         let player = sign_up(&server, SignUp::default()).await;
@@ -831,7 +820,6 @@ mod feature_competition_load {
     use super::*;
 
     #[tokio::test]
-    #[ignore = "pending Feature domain: /FeatureCompetitionLoad"]
     async fn is_public_and_returns_teams_by_division_and_fixtures_by_date() {
         let server = TestServer::start().await;
         let admin = admin(&server).await;
