@@ -37,24 +37,24 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/src/endpoints/Fixture.ts` | src/endpoints/fixture.rs (stub with empty `routes()`) | Fixture | pending |
 | `server/src/endpoints/index.ts` | src/endpoints/mod.rs (`all`) | Foundation | done |
 | `server/src/endpoints/Member.ts` | src/endpoints/member.rs | Member | done |
-| `server/src/endpoints/Port.ts` | src/endpoints/port.rs (stub with empty `routes()`) | Port | pending |
+| `server/src/endpoints/Port.ts` | src/endpoints/port.rs | Port | done |
 | `server/src/endpoints/Report.ts` | src/endpoints/report.rs (stub with empty `routes()`) | Report | pending |
 | `server/src/endpoints/Season.ts` | src/endpoints/season.rs | Season | done |
 | `server/src/endpoints/Security.ts` | src/endpoints/security.rs | Security | done |
 | `server/src/endpoints/Team.ts` | src/endpoints/team.rs | Team | done |
 | `server/src/endpoints/User.ts` | src/endpoints/user.rs | User | done |
-| `server/src/gameday/credentials.test.ts` | src/gameday/credentials.rs (tests) | Port | pending |
-| `server/src/gameday/credentials.ts` | src/gameday/credentials.rs | Port | pending |
+| `server/src/gameday/credentials.test.ts` | src/gameday/credentials.rs (tests) | Port | done (+ a TS-encrypted fixture) |
+| `server/src/gameday/credentials.ts` | src/gameday/credentials.rs | Port | done |
 | `server/src/gameday/exportCli.test.ts` | src/gameday/export_cli.rs (tests), tests/gameday_export_cli.rs (process protocol) | Port | done |
 | `server/src/gameday/exportCli.ts` | src/bin/gameday-export.rs (+ src/gameday/export_cli.rs) | Port | done |
 | `server/src/gameday/exporter.test.ts` | src/gameday/exporter_tests.rs (+ ignored real-Chrome smoke test tests/gameday_export_smoke.rs) | Port | done |
 | `server/src/gameday/exporter.ts` | src/gameday/exporter.rs (+ src/gameday/browser.rs, the CDP layer replacing playwright-core) | Port | done |
-| `server/src/gameday/importMembers.test.ts` | src/gameday/import_members.rs (tests) | Port | pending |
-| `server/src/gameday/importMembers.ts` | src/gameday/import_members.rs | Port | pending |
-| `server/src/gameday/runExportProcess.test.ts` | src/gameday/run_export_process.rs (tests) | Port | pending |
-| `server/src/gameday/runExportProcess.ts` | src/gameday/run_export_process.rs | Port | pending |
-| `server/src/gameday/scheduler.test.ts` | src/gameday/scheduler.rs (tests) | Port | pending |
-| `server/src/gameday/scheduler.ts` | src/gameday/scheduler.rs (hook stub exists) | Port | pending |
+| `server/src/gameday/importMembers.test.ts` | src/gameday/import_members_tests.rs | Port | done |
+| `server/src/gameday/importMembers.ts` | src/gameday/import_members.rs | Port | done |
+| `server/src/gameday/runExportProcess.test.ts` | src/gameday/run_export_process_tests.rs | Port | done (fake CLI scripts, see notes) |
+| `server/src/gameday/runExportProcess.ts` | src/gameday/run_export_process.rs (+ `GamedayExporter`, src/gameday/mock_exporter.rs) | Port | done |
+| `server/src/gameday/scheduler.test.ts` | src/gameday/scheduler_tests.rs | Port | done |
+| `server/src/gameday/scheduler.ts` | src/gameday/scheduler.rs | Port | done |
 | `server/src/gameday/types.test.ts` | src/gameday/types.rs (tests) | Foundation | done |
 | `server/src/gameday/types.ts` | src/gameday/types.rs | Foundation | done |
 | `server/src/http/capture.test.ts` | src/http/capture_tests.rs | Foundation | done |
@@ -82,19 +82,19 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/src/queries/userList.test.ts` | src/queries/user_list.rs (tests) | User | done (pipeline-shape cases: see notes) |
 | `server/src/queries/userList.ts` | src/queries/user_list.rs | User | done |
 | `server/src/services/authPayload.ts` | src/services/auth_payload.rs | Security | done |
-| `server/src/services/csvImport.test.ts` | src/services/csv_import.rs (tests) | Port | pending |
-| `server/src/services/csvImport.ts` | src/services/csv_import.rs | Port | pending |
-| `server/src/services/exportArchive.test.ts` | src/services/export_archive.rs (tests) | Port | pending |
-| `server/src/services/exportArchive.ts` | src/services/export_archive.rs | Port | pending |
+| `server/src/services/csvImport.test.ts` | src/services/csv_import.rs (tests) | Port | done |
+| `server/src/services/csvImport.ts` | src/services/csv_import.rs | Port | done |
+| `server/src/services/exportArchive.test.ts` | src/services/export_archive_tests.rs | Port | done |
+| `server/src/services/exportArchive.ts` | src/services/export_archive.rs (+ src/js/locale_compare.rs) | Port | done |
 | `server/src/services/fixtureSchedule.test.ts` | src/services/fixture_schedule.rs (tests) | Fixture | pending |
 | `server/src/services/fixtureSchedule.ts` | src/services/fixture_schedule.rs | Fixture | pending |
-| `server/src/services/gamedayImportConfig.test.ts` | src/services/gameday_import_config.rs (tests) | Port | pending |
-| `server/src/services/gamedayImportConfig.ts` | src/services/gameday_import_config.rs | Port | pending |
-| `server/src/services/memberImport.ts` | src/services/member_import.rs | Port | pending |
+| `server/src/services/gamedayImportConfig.test.ts` | src/services/gameday_import_config.rs (tests) | Port | done |
+| `server/src/services/gamedayImportConfig.ts` | src/services/gameday_import_config.rs | Port | done |
+| `server/src/services/memberImport.ts` | src/services/member_import.rs | Port | done |
 | `server/src/services/missingReports.test.ts` | src/services/missing_reports.rs (tests) | Report | pending |
 | `server/src/services/missingReports.ts` | src/services/missing_reports.rs | Report | pending |
-| `server/src/services/mockData.test.ts` | src/services/mock_data.rs (tests) | Port | pending |
-| `server/src/services/mockData.ts` | src/services/mock_data.rs | Port | pending |
+| `server/src/services/mockData.test.ts` | src/services/mock_data.rs (tests) | Port | done |
+| `server/src/services/mockData.ts` | src/services/mock_data.rs | Port | done |
 | `server/src/services/reportMvps.test.ts` | src/services/report_mvps.rs (tests) | Report | pending |
 | `server/src/services/reportMvps.ts` | src/services/report_mvps.rs | Report | pending |
 | `server/src/services/roundRobin.test.ts` | src/services/round_robin.rs (tests) | Fixture | pending |
@@ -134,11 +134,11 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/test/harness.ts` | tests/common/mod.rs | Foundation | done |
 | `server/test/integration/dashboards.test.ts` | tests/dashboards.rs | Feature | pending |
 | `server/test/integration/fixtures.test.ts` | tests/fixtures.rs | Fixture | pending |
-| `server/test/integration/gamedayImport.test.ts` | tests/gameday_import.rs | Port | pending |
+| `server/test/integration/gamedayImport.test.ts` | tests/gameday_import.rs | Port | done |
 | `server/test/integration/http.test.ts` | tests/http.rs | Foundation | done |
 | `server/test/integration/members.test.ts` | tests/members.rs | Member | done |
 | `server/test/integration/migrations.test.ts` | tests/migrations.rs | Foundation | done |
-| `server/test/integration/port.test.ts` | tests/port.rs | Port | pending |
+| `server/test/integration/port.test.ts` | tests/port.rs | Port | done |
 | `server/test/integration/reports.test.ts` | tests/reports.rs | Report | pending |
 | `server/test/integration/seasons.test.ts` | tests/seasons.rs | Season | done |
 | `server/test/integration/security.test.ts` | tests/security.rs | Security | done |
@@ -248,3 +248,21 @@ integration tests in `server/test/integration/x.test.ts` become
 - `userMerge.ts` reads both users and their memberships inside the merge
   transaction (TS reads them just before it), so the plan and the writes see
   the same data.
+- `gameday/runExportProcess.test.ts`: the TS tests replaced `spawn` with a
+  fake child. The Rust tests run fake exporter shell scripts through
+  `run_gameday_export_command` instead (real pipes, exit codes and SIGTERM).
+  "runs the CLI with tsx" becomes a resolution test: the exporter is the
+  `gameday-export` binary next to the server (or `GAMEDAY_EXPORT_BIN`). The
+  timeout fallbacks (`''`, `nope`, `-1`, the scraper timeout) are checked on
+  `read_process_timeout_ms` rather than with fake timers.
+- `gameday/importMembers.test.ts`, `gamedayImport.test.ts`: the mocked
+  `runGamedayExportProcess` is a `MockExporter` swapped into the app state
+  (`AppState::set_gameday_exporter`). "records non-Error failures as text"
+  rejects with the error a thrown string becomes (`toAppError('plain failure')`).
+- `gameday/scheduler.test.ts`: `runGamedayImportWithHistory` is mocked by
+  passing the scheduler an `ImportRunner`; the `setInterval` spy becomes the
+  scheduler's own interval (one hour in the test) and the manual
+  `nextCheck()` call is `check_due_gameday_imports()`.
+- `port.test.ts`, `gamedayImport.test.ts`: the TS suites share one server;
+  each Rust test starts its own with its own data.
+- `services/exportArchive.test.ts`: the TS `beforeAll` seed runs per test.

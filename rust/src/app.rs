@@ -3,13 +3,14 @@
 
 use crate::config::Config;
 use crate::db::Db;
+use crate::gameday::run_export_process::{GamedayExporter, ProcessExporter};
 use crate::http::endpoint::Endpoint;
 use crate::http::intrusion::Intrusion;
 use crate::http::origin::Origin;
 use crate::http::tarpit::Tarpit;
 use crate::utils::mail::Mailer;
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 
 /// A security code that was logged instead of emailed (development only).
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -60,6 +61,8 @@ pub struct AppInner {
     pub intrusion: Intrusion,
     pub tarpit: Tarpit,
     pub endpoints: HashMap<&'static str, Endpoint>,
+    /// Runs GameDay exports (the `gameday-export` process; tests swap it).
+    gameday_exporter: RwLock<Arc<dyn GamedayExporter>>,
 }
 
 /// Cheap to clone; handed to every handler through [`crate::http::endpoint::Ctx`].
@@ -90,7 +93,24 @@ impl AppState {
             intrusion: Intrusion::new(),
             tarpit: Tarpit::new(),
             endpoints,
+            gameday_exporter: RwLock::new(Arc::new(ProcessExporter)),
         }))
+    }
+
+    /// The GameDay exporter in use.
+    pub fn gameday_exporter(&self) -> Arc<dyn GamedayExporter> {
+        self.gameday_exporter
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
+    }
+
+    /// Replaces the GameDay exporter (for tests).
+    pub fn set_gameday_exporter(&self, exporter: Arc<dyn GamedayExporter>) {
+        *self
+            .gameday_exporter
+            .write()
+            .unwrap_or_else(|e| e.into_inner()) = exporter;
     }
 
     pub fn has_endpoint(&self, path: &str) -> bool {

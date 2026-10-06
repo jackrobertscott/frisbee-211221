@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+aes-gcm = "0.11.1"
 axum = "0.8.9"
 base64 = "0.22"
 bcrypt = "0.19.3"
@@ -32,9 +33,13 @@ tempfile = "3.27.0"
 tokio = { version = "1.53.2", features = ["full"] }
 unicode-normalization = "0.1.25"
 url = "2.5.8"
+zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
 
 [target.'cfg(unix)'.dependencies]
 rustix = { version = "1", features = ["process"] }
 
 [dev-dependencies]
 tokio = { version = "1.53.2", features = ["test-util", "full"] }
+
+[target."cfg(unix)".dependencies]
+nix = { version = "0.31.3", features = ["signal"] }

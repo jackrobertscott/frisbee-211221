@@ -13,7 +13,8 @@ src/
   bin/gameday-export.rs   the GameDay exporter process (see below)
   lib.rs
   js/                     JavaScript semantics: trim, Number(), String(n),
-                          JSON.stringify numbers, Date.parse/toISOString
+                          JSON.stringify numbers, Date.parse/toISOString,
+                          localeCompare
   log.rs                  console.log/warn/error, plus capture for tests
   config.rs               config.ts (SQLITE_PATH replaces MONGODB_*)
   shared/                 shared/src
@@ -35,10 +36,12 @@ src/
     endpoint.rs           Endpoint (createEndpoint) and Ctx (the request)
   auth/                   jwt, hash, sessions, attempt limits, require_*
   endpoints/              one module per domain: pub fn routes() -> Vec<Endpoint>
-  services/               services/*.ts (user_email, user_fields so far)
+  services/               services/*.ts, one module per TS service
   queries/                queries/*.ts (joins, aggregates, computed sorts)
   gameday/                gameday/*.ts: types, exporter (+ browser, the CDP
-                          wrapper), export_cli; scheduler hook
+                          wrapper), export_cli, credentials, the exporter process
+                          (GamedayExporter, swappable in AppState for
+                          tests), member import with run history, scheduler
   migrations/             data backfills run at startup
   migrate/                the Mongo import: dump reading, BSON conversion
   startup.rs              startup tasks with production retry

@@ -1,11 +1,15 @@
 //! Port of `server/src/gameday`. `types` is shared by the GameDay exporter
 //! (`gameday-export` binary) and the import service. `exporter` (with the CDP
 //! wrapper in `browser`) and `export_cli` back the `gameday-export` binary;
-//! the remaining modules (`runExportProcess`, `importMembers`, `scheduler`,
-//! `credentials`) are added by the Port domain.
+//! `run_export_process` spawns that binary for `import_members`, which the
+//! `scheduler` and the Port endpoints drive.
 
 pub mod browser;
+pub mod credentials;
 pub mod export_cli;
 pub mod exporter;
+pub mod import_members;
+pub mod mock_exporter;
+pub mod run_export_process;
 pub mod scheduler;
 pub mod types;

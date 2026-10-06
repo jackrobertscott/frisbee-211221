@@ -6,6 +6,7 @@
 //! approximated with Rust's own (slightly different) definitions.
 
 pub mod date;
+pub mod locale_compare;
 
 use serde_json::{Number, Value};
 
