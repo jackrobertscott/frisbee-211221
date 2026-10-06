@@ -560,6 +560,15 @@ mod create_export_archive_tests {
     }
 
     #[test]
+    fn formats_dates_like_en_au_and_keeps_other_text() {
+        assert_eq!(human_readable_date(None), "");
+        assert_eq!(human_readable_date(Some("")), "");
+        assert_eq!(human_readable_date(Some("not a date")), "not a date");
+        let date = regex::Regex::new(r"^\d\d/\d\d/\d{4}$").unwrap();
+        assert!(date.is_match(&human_readable_date(Some("2024-03-02T12:00:00.000Z"))));
+    }
+
+    #[test]
     fn converts_headings_to_upper_snake_case() {
         assert_eq!(csv_heading("team1Score"), "TEAM1_SCORE");
         assert_eq!(csv_heading("mvpMale2Email"), "MVP_MALE2_EMAIL");

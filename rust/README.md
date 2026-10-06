@@ -32,6 +32,8 @@ database file (parent directories are created automatically).
 | `SESSION_TTL_DAYS` | Session lifetime (default 90). |
 | `NODE_ENV` | `production` enables production mode and loads `.env.production` instead of `.env`. |
 | `GAMEDAY_IMPORT_SCHEDULER_DISABLED` | `1`, `true`, `yes` or `on` disables the GameDay import scheduler. |
+| `GAMEDAY_EXPORT_BIN` | Path of the GameDay exporter binary (default: `gameday-export` next to `frisbee-server`). |
+| `GAMEDAY_PROCESS_TIMEOUT_MS` | How long a GameDay export may run (default 10 minutes; falls back to `GAMEDAY_TIMEOUT_MS`). |
 
 Outside production, security codes are not emailed; they are logged as
 `[security-code] <subject> <email> <code> (email delivery skipped in development)`,
@@ -93,8 +95,10 @@ None of these change what the browser sees in normal use:
   startup task `SQLite schema sync`) and the server always logs `MASTER`:
   Node's cluster workers and load-based scaling are replaced by one
   multi-threaded process (graceful draining on shutdown is kept).
-- The season-name and email collations are reimplemented (numeric,
-  case/accent-insensitive; Unicode lowercase) instead of using ICU.
+- The season-name and email collations, and the `localeCompare` ordering
+  of the export files, are reimplemented (numeric, case/accent-insensitive;
+  Unicode lowercase; ICU root order for Latin text and ASCII punctuation)
+  instead of using ICU.
 - `Date.parse` fallbacks for non-ISO strings are a best-effort port of V8's
   legacy parser; ISO strings behave identically.
 - Production email needs explicit `SES_ACCESS_KEY_ID`/`SES_SECRET_ACCESS_KEY`
