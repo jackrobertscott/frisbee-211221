@@ -36,10 +36,9 @@ url = "2.5.8"
 zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
 
 [target.'cfg(unix)'.dependencies]
+nix = { version = "0.31.3", features = ["signal"] }
 rustix = { version = "1", features = ["process"] }
 
 [dev-dependencies]
 tokio = { version = "1.53.2", features = ["test-util", "full"] }
 
-[target."cfg(unix)".dependencies]
-nix = { version = "0.31.3", features = ["signal"] }
