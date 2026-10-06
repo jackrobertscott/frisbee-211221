@@ -109,6 +109,63 @@ data on Railway, copy a dump into the volume and run
 service shell (`railway ssh`), then redeploy; it refuses to replace a
 database that already holds records unless given `--force`.
 
+## Parity checks against the TS server
+
+`parity/` holds two TypeScript scripts that prove the swap is seamless. They
+need the TS server's and the browser's dependencies installed (`npm install`
+in `server/` and `browser/`), `mongod` (`MONGOD_PATH`, default
+`/opt/homebrew/bin/mongod`), the `sqlite3` CLI, Google Chrome (`CHROME_PATH`,
+default the macOS app) and a release build of this server.
+
+```sh
+cd rust
+cargo build --release
+cd parity
+ln -s ../../server/node_modules node_modules   # or: npm install
+npm run parity    # differential run against both servers
+npm run ui        # browser run against the Rust server
+```
+
+**`parity.ts`** starts the TS server (tsx, on a throwaway `mongod`) and this
+server (on a fresh SQLite file) with the same environment, then sends every
+request of a scripted season (`scenario.ts`) to both: every endpoint in
+`shared/src/endpoints/*Def.ts` (the run fails if one is never called), each
+sort key and direction, search and paging, CSV import and zip exports, and
+the pipeline's error cases (validation, 401/403/404/405/409/413/429, origins,
+OPTIONS, unknown routes, bad bodies, intrusion probes and blocks). Ids and
+session tokens are paired as they first appear and translated in later
+requests; "now" timestamps may differ by up to two minutes. Status codes,
+CORS and download headers, and JSON bodies (including which keys are present)
+must match, and every Rust body must pass the endpoint's `result` schema. It
+prints each difference and exits non-zero on any. Options: `PARITY_TZ`
+(default `Australia/Sydney`, a zone with daylight saving), `PARITY_VERBOSE=1|2`,
+`PARITY_KEEP=1` (keep the work dir with logs and databases), `RUST_SERVER_BIN`.
+
+What the harness tolerates, and why:
+
+- `lines` in development error bodies (see below): present on both, not compared.
+- Lists the TS server reads without a sort where MongoDB answers in index
+  order over random ids (`MemberListOfTeam` members and users,
+  `FeatureDashboardUserMembershipsLoad`): no other server can reproduce that
+  order, so they are compared as sets.
+- Generated fixtures and mock data are random on both servers: pairings and
+  generated names are compared by shape, then the scenario gives both servers
+  the same games.
+- Tarpit responses drip spaces on a timer; the number that arrives varies
+  between runs on either server, so only the leading space and final text are
+  compared. Export file names carry the export time.
+
+**`ui.ts`** builds the browser with `VITE_URL_SERVER` pointing at this server,
+serves it with `vite preview` and drives Chrome through sign up with the
+emailed (logged) code, log in, season/team/member/fixture setup, a player
+joining a team and becoming captain, the captain's report, every admin
+dashboard, sorting, user management and both exports, at 390px and at
+desktop width. Console errors, page errors, failed requests and unexpected
+HTTP errors fail the run; requests the app itself cancels (`ERR_ABORTED`)
+are listed but allowed. `UI_SERVER=ts` runs the same flows against the TS
+server as a baseline; `UI_HEADED=1` shows the browser; screenshots are kept
+in the work dir.
+
 ## Point the browser at it
 
 The browser reads the server URL from `VITE_URL_SERVER`. Run the Rust server
@@ -214,5 +271,10 @@ None of these change what the browser sees in normal use:
   60000ms exceeded.`) without its call logs, and the report download's
   HTTP client starts from the browser's cookies when the report job starts
   (Playwright shares one live cookie store).
+- A JSON body over the 1mb limit is read and discarded (up to 16mb) before
+  the `413` is sent, as Node does, so the client receives the response; past
+  16mb the connection is closed instead (Node reads any amount).
+- A search string long enough to break V8's regular expression limit (about
+  a megabyte) is a `500` on TS; here it simply searches.
 - Production email needs explicit `SES_ACCESS_KEY_ID`/`SES_SECRET_ACCESS_KEY`
   (the AWS SDK's other credential sources are not consulted).

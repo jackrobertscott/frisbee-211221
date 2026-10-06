@@ -3,7 +3,7 @@
 //! Stored dates are ISO strings produced by `new Date(...).toISOString()`, so
 //! the Rust server must parse and print them exactly the same way.
 
-use chrono::{DateTime, Datelike, Local, NaiveDate, NaiveDateTime, TimeZone, Timelike, Utc};
+use chrono::{DateTime, Local, NaiveDateTime, TimeZone, Utc};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// The largest absolute time value a JavaScript `Date` can hold.
@@ -23,12 +23,15 @@ pub fn now_iso() -> String {
 }
 
 /// `new Date(ms).toISOString()`; `None` when the value is out of range.
+/// Computed with plain calendar arithmetic, since a JavaScript `Date` reaches
+/// years (±275760) beyond what `chrono` can represent.
 pub fn try_to_iso_string(ms: i64) -> Option<String> {
     if (ms as f64).abs() > MAX_TIME_MS {
         return None;
     }
-    let dt = DateTime::<Utc>::from_timestamp_millis(ms)?;
-    let year = dt.year();
+    let days = ms.div_euclid(MS_PER_DAY);
+    let time = ms.rem_euclid(MS_PER_DAY);
+    let (year, month, day) = civil_from_days(days);
     let year_text = if (0..=9999).contains(&year) {
         format!("{year:04}")
     } else if year < 0 {
@@ -37,14 +40,40 @@ pub fn try_to_iso_string(ms: i64) -> Option<String> {
         format!("+{year:06}")
     };
     Some(format!(
-        "{year_text}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z",
-        dt.month(),
-        dt.day(),
-        dt.hour(),
-        dt.minute(),
-        dt.second(),
-        dt.timestamp_subsec_millis()
+        "{year_text}-{month:02}-{day:02}T{:02}:{:02}:{:02}.{:03}Z",
+        time / 3_600_000,
+        time / 60_000 % 60,
+        time / 1000 % 60,
+        time % 1000
     ))
+}
+
+const MS_PER_DAY: i64 = 86_400_000;
+
+/// Days since 1970-01-01 of a proleptic Gregorian date (Howard Hinnant's
+/// `days_from_civil`).
+fn days_from_civil(year: i64, month: u32, day: u32) -> i64 {
+    let y = if month <= 2 { year - 1 } else { year };
+    let era = y.div_euclid(400);
+    let yoe = y.rem_euclid(400);
+    let m = i64::from(month);
+    let doy = (153 * (if m > 2 { m - 3 } else { m + 9 }) + 2) / 5 + i64::from(day) - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    era * 146_097 + doe - 719_468
+}
+
+/// The inverse of [`days_from_civil`].
+fn civil_from_days(days: i64) -> (i64, u32, u32) {
+    let z = days + 719_468;
+    let era = z.div_euclid(146_097);
+    let doe = z.rem_euclid(146_097);
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let day = (doy - (153 * mp + 2) / 5 + 1) as u32;
+    let month = if mp < 10 { mp + 3 } else { mp - 9 } as u32;
+    let year = yoe + era * 400 + i64::from(month <= 2);
+    (year, month, day)
 }
 
 /// `new Date(ms).toISOString()` for in-range values (clamped otherwise).
@@ -67,15 +96,21 @@ pub fn normalize(value: &str) -> Option<String> {
     parse(value).and_then(try_to_iso_string)
 }
 
+/// `MakeDate(MakeDay(year, month, day), MakeTime(...))`. Both parsers accept
+/// any day from 1 to 31 and, like V8, roll days past the end of the month
+/// over into the next (`2028-02-30` is 1 March); `24:00` is the next midnight.
 fn utc_ms(year: i64, month: u32, day: u32, h: u32, m: u32, s: u32, ms: u32) -> Option<i64> {
-    let date = NaiveDate::from_ymd_opt(i32::try_from(year).ok()?, month, day)?;
-    let (date, h) = if h == 24 {
-        (date.succ_opt()?, 0)
-    } else {
-        (date, h)
-    };
-    let time = date.and_hms_milli_opt(h, m, s, ms)?;
-    Some(time.and_utc().timestamp_millis())
+    if !(1..=12).contains(&month) || day == 0 || year.abs() > 1_000_000 {
+        return None;
+    }
+    let days = days_from_civil(year, month, 1) + i64::from(day) - 1;
+    Some(
+        days * MS_PER_DAY
+            + i64::from(h) * 3_600_000
+            + i64::from(m) * 60_000
+            + i64::from(s) * 1000
+            + i64::from(ms),
+    )
 }
 
 fn local_ms(year: i64, month: u32, day: u32, h: u32, m: u32, s: u32, ms: u32) -> Option<i64> {
@@ -476,6 +511,41 @@ mod tests {
     }
 
     #[test]
+    fn rolls_days_past_the_end_of_the_month_over_like_v8() {
+        assert_eq!(
+            normalize("2028-02-30").as_deref(),
+            Some("2028-03-01T00:00:00.000Z")
+        );
+        assert_eq!(
+            normalize("2027-02-29").as_deref(),
+            Some("2027-03-01T00:00:00.000Z")
+        );
+        assert_eq!(
+            normalize("2028-02-31T10:00Z").as_deref(),
+            Some("2028-03-02T10:00:00.000Z")
+        );
+        assert_eq!(
+            normalize("2028-04-31T23:59:59.999+10:00").as_deref(),
+            Some("2028-05-01T13:59:59.999Z")
+        );
+        assert_eq!(
+            normalize("2028/02/30 10:00 GMT").as_deref(),
+            Some("2028-03-01T10:00:00.000Z")
+        );
+        assert_eq!(
+            normalize("Feb 31, 2028 GMT").as_deref(),
+            Some("2028-03-02T00:00:00.000Z")
+        );
+        assert_eq!(normalize("2028-02-32"), None);
+        assert_eq!(
+            normalize("2028-01-01T24:00Z").as_deref(),
+            Some("2028-01-02T00:00:00.000Z")
+        );
+        assert_eq!(normalize("2028/02/32 GMT"), None);
+        assert_eq!(normalize("Feb 0 2028 GMT"), None);
+    }
+
+    #[test]
     fn parses_common_legacy_formats() {
         assert_eq!(
             normalize("Tue, 05 Mar 2024 10:20:30 GMT").as_deref(),
@@ -490,6 +560,36 @@ mod tests {
                 .as_deref(),
             Some("2024-03-05T00:20:30.000Z")
         );
+    }
+
+    #[test]
+    fn handles_the_whole_javascript_date_range() {
+        assert_eq!(
+            normalize("+275760-09-13T00:00:00.000Z").as_deref(),
+            Some("+275760-09-13T00:00:00.000Z")
+        );
+        assert_eq!(parse("+275760-09-13T00:00:00.000Z"), Some(8_640_000_000_000_000));
+        assert_eq!(normalize("+275760-09-13T00:00:00.001Z"), None);
+        assert_eq!(
+            normalize("-271821-04-20T00:00:00.000Z").as_deref(),
+            Some("-271821-04-20T00:00:00.000Z")
+        );
+        assert_eq!(normalize("-271821-04-19T23:59:59.999Z"), None);
+        assert_eq!(to_iso_string(-1), "1969-12-31T23:59:59.999Z");
+        assert_eq!(
+            normalize("-000001-03-01T00:00:00Z").as_deref(),
+            Some("-000001-03-01T00:00:00.000Z")
+        );
+        assert_eq!(
+            normalize("0000-02-29T12:00:00Z").as_deref(),
+            Some("0000-02-29T12:00:00.000Z")
+        );
+        assert_eq!(normalize("2100-02-29").as_deref(), Some("2100-03-01T00:00:00.000Z"));
+        // every day for a few centuries round-trips through both conversions
+        for days in (-200_000..200_000).step_by(7) {
+            let (y, m, d) = civil_from_days(days);
+            assert_eq!(days_from_civil(y, m, d), days);
+        }
     }
 
     #[test]
