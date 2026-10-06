@@ -15,8 +15,17 @@ export default defineConfig({
     port: 3000,
   },
   test: {
-    include: ['src/**/*.test.ts'],
-    environment: 'node',
+    include: ['src/**/*.test.{ts,tsx}'],
+    environment: 'jsdom',
+    setupFiles: ['src/test/setup.ts'],
+    env: {
+      VITE_URL_SERVER: 'http://server.test',
+      VITE_URL_CLIENT: 'http://client.test',
+    },
+    coverage: {
+      include: ['src/**'],
+      exclude: ['src/ui/**', 'src/test/**', 'src/**/*.test.{ts,tsx}', 'src/main.tsx'],
+    },
   },
   build: {
     rolldownOptions: {

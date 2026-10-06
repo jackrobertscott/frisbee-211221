@@ -9,6 +9,10 @@ export default defineConfig({
     },
   },
   test: {
+    coverage: {
+      include: ['src/**'],
+      exclude: ['src/**/*.test.ts'],
+    },
     include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
     globalSetup: ['test/globalSetup.ts'],
     setupFiles: ['test/setup.ts'],
