@@ -33,12 +33,12 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/src/db/syncIndexes.ts` | src/db/migrations.rs | Foundation | done |
 | `server/src/db/table.test.ts` | src/db/table_tests.rs | Foundation | done |
 | `server/src/db/table.ts` | src/db/table.rs, src/db/filter.rs, src/db/schema.rs | Foundation | done |
-| `server/src/endpoints/Feature.ts` | src/endpoints/feature.rs (stub with empty `routes()`) | Feature | pending |
-| `server/src/endpoints/Fixture.ts` | src/endpoints/fixture.rs (stub with empty `routes()`) | Fixture | pending |
+| `server/src/endpoints/Feature.ts` | src/endpoints/feature.rs | Feature | done |
+| `server/src/endpoints/Fixture.ts` | src/endpoints/fixture.rs | Fixture | done |
 | `server/src/endpoints/index.ts` | src/endpoints/mod.rs (`all`) | Foundation | done |
 | `server/src/endpoints/Member.ts` | src/endpoints/member.rs | Member | done |
 | `server/src/endpoints/Port.ts` | src/endpoints/port.rs (stub with empty `routes()`) | Port | pending |
-| `server/src/endpoints/Report.ts` | src/endpoints/report.rs (stub with empty `routes()`) | Report | pending |
+| `server/src/endpoints/Report.ts` | src/endpoints/report.rs | Report | done |
 | `server/src/endpoints/Season.ts` | src/endpoints/season.rs | Season | done |
 | `server/src/endpoints/Security.ts` | src/endpoints/security.rs | Security | done |
 | `server/src/endpoints/Team.ts` | src/endpoints/team.rs | Team | done |
@@ -72,13 +72,13 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/src/http/uploads.ts` | src/http/uploads.rs | Foundation | done |
 | `server/src/index.ts` | src/server.rs (`bootstrap`), src/bin/frisbee-server.rs | Foundation | done |
 | `server/src/migrations/userGenderMatching.ts` | src/migrations/user_gender_matching.rs (+ src/tables/user.rs `legacy`) | Foundation | done |
-| `server/src/queries/mvpLeaderboard.test.ts` | src/queries/mvp_leaderboard.rs (tests) | Feature | pending |
-| `server/src/queries/mvpLeaderboard.ts` | src/queries/mvp_leaderboard.rs | Feature | pending |
-| `server/src/queries/reportSearch.test.ts` | src/queries/report_search.rs (tests) | Feature | pending |
-| `server/src/queries/reportSearch.ts` | src/queries/report_search.rs | Feature | pending |
-| `server/src/queries/spiritTable.ts` | src/queries/spirit_table.rs | Feature | pending |
-| `server/src/queries/teamList.test.ts` | src/queries/team_list.rs (tests) | Feature | pending |
-| `server/src/queries/teamList.ts` | src/queries/team_list.rs | Feature | pending |
+| `server/src/queries/mvpLeaderboard.test.ts` | src/queries/mvp_leaderboard.rs (tests) | Feature | done (pipeline shape: see notes) |
+| `server/src/queries/mvpLeaderboard.ts` | src/queries/mvp_leaderboard.rs | Feature | done |
+| `server/src/queries/reportSearch.test.ts` | src/queries/report_search.rs (tests) | Feature | done (pipeline shape: see notes) |
+| `server/src/queries/reportSearch.ts` | src/queries/report_search.rs | Feature | done |
+| `server/src/queries/spiritTable.ts` | src/queries/spirit_table.rs | Feature | done |
+| `server/src/queries/teamList.test.ts` | src/queries/team_list.rs (tests) | Feature | done (pipeline shape: see notes) |
+| `server/src/queries/teamList.ts` | src/queries/team_list.rs | Feature | done |
 | `server/src/queries/userList.test.ts` | src/queries/user_list.rs (tests) | User | pending |
 | `server/src/queries/userList.ts` | src/queries/user_list.rs | User | pending |
 | `server/src/services/authPayload.ts` | src/services/auth_payload.rs | Security | done |
@@ -86,22 +86,22 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/src/services/csvImport.ts` | src/services/csv_import.rs | Port | pending |
 | `server/src/services/exportArchive.test.ts` | src/services/export_archive.rs (tests) | Port | pending |
 | `server/src/services/exportArchive.ts` | src/services/export_archive.rs | Port | pending |
-| `server/src/services/fixtureSchedule.test.ts` | src/services/fixture_schedule.rs (tests) | Fixture | pending |
-| `server/src/services/fixtureSchedule.ts` | src/services/fixture_schedule.rs | Fixture | pending |
+| `server/src/services/fixtureSchedule.test.ts` | src/services/fixture_schedule_tests.rs | Fixture | done |
+| `server/src/services/fixtureSchedule.ts` | src/services/fixture_schedule.rs | Fixture | done |
 | `server/src/services/gamedayImportConfig.test.ts` | src/services/gameday_import_config.rs (tests) | Port | pending |
 | `server/src/services/gamedayImportConfig.ts` | src/services/gameday_import_config.rs | Port | pending |
 | `server/src/services/memberImport.ts` | src/services/member_import.rs | Port | pending |
-| `server/src/services/missingReports.test.ts` | src/services/missing_reports.rs (tests) | Report | pending |
-| `server/src/services/missingReports.ts` | src/services/missing_reports.rs | Report | pending |
+| `server/src/services/missingReports.test.ts` | src/services/missing_reports.rs (tests) | Report | done |
+| `server/src/services/missingReports.ts` | src/services/missing_reports.rs | Report | done |
 | `server/src/services/mockData.test.ts` | src/services/mock_data.rs (tests) | Port | pending |
 | `server/src/services/mockData.ts` | src/services/mock_data.rs | Port | pending |
-| `server/src/services/reportMvps.test.ts` | src/services/report_mvps.rs (tests) | Report | pending |
-| `server/src/services/reportMvps.ts` | src/services/report_mvps.rs | Report | pending |
-| `server/src/services/roundRobin.test.ts` | src/services/round_robin.rs (tests) | Fixture | pending |
-| `server/src/services/roundRobin.ts` | src/services/round_robin.rs | Fixture | pending |
+| `server/src/services/reportMvps.test.ts` | src/services/report_mvps.rs (tests) | Report | done |
+| `server/src/services/reportMvps.ts` | src/services/report_mvps.rs | Report | done |
+| `server/src/services/roundRobin.test.ts` | src/services/round_robin_tests.rs | Fixture | done |
+| `server/src/services/roundRobin.ts` | src/services/round_robin.rs | Fixture | done |
 | `server/src/services/seasonDeletion.ts` | src/services/season_deletion.rs | Season | done |
-| `server/src/services/spiritStats.test.ts` | src/services/spirit_stats.rs (tests) | Feature | pending |
-| `server/src/services/spiritStats.ts` | src/services/spirit_stats.rs | Feature | pending |
+| `server/src/services/spiritStats.test.ts` | src/services/spirit_stats.rs (tests) | Feature | done |
+| `server/src/services/spiritStats.ts` | src/services/spirit_stats.rs | Feature | done |
 | `server/src/services/teamCaptaincy.ts` | src/services/team_captaincy.rs | Member | done |
 | `server/src/services/userEmail.test.ts` | src/services/user_email_tests.rs | Foundation | done |
 | `server/src/services/userEmail.ts` | src/services/user_email.rs | Foundation | done |
@@ -132,23 +132,23 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/test/database.ts` | src/testing.rs (`TestApp`, `TestDir`) | Foundation | done |
 | `server/test/globalSetup.ts` | — (no shared server needed: each test opens its own SQLite file) | Foundation | N/A |
 | `server/test/harness.ts` | tests/common/mod.rs | Foundation | done |
-| `server/test/integration/dashboards.test.ts` | tests/dashboards.rs | Feature | pending |
-| `server/test/integration/fixtures.test.ts` | tests/fixtures.rs | Fixture | pending |
+| `server/test/integration/dashboards.test.ts` | tests/dashboards.rs | Feature | done |
+| `server/test/integration/fixtures.test.ts` | tests/fixtures.rs | Fixture | done |
 | `server/test/integration/gamedayImport.test.ts` | tests/gameday_import.rs | Port | pending |
 | `server/test/integration/http.test.ts` | tests/http.rs | Foundation | done |
 | `server/test/integration/members.test.ts` | tests/members.rs | Member | done |
 | `server/test/integration/migrations.test.ts` | tests/migrations.rs | Foundation | done |
 | `server/test/integration/port.test.ts` | tests/port.rs | Port | pending |
-| `server/test/integration/reports.test.ts` | tests/reports.rs | Report | pending |
+| `server/test/integration/reports.test.ts` | tests/reports.rs | Report | done |
 | `server/test/integration/seasons.test.ts` | tests/seasons.rs | Season | done |
 | `server/test/integration/security.test.ts` | tests/security.rs | Security | done; 3 cases `#[ignore]`d until User lands (`/UserCurrentUpdate`) |
-| `server/test/integration/teams.test.ts` | tests/teams.rs | Team | done; 11 `Feature*` cases `#[ignore]`d until Feature lands |
+| `server/test/integration/teams.test.ts` | tests/teams.rs | Team | done |
 | `server/test/integration/users.test.ts` | tests/users.rs | User | pending |
 | `server/test/setup.ts` | src/config.rs (`Config::for_tests`) | Foundation | done |
 | `shared/src/auth/authAccess.test.ts` | src/shared/auth_access.rs (tests) | Foundation | done |
 | `shared/src/auth/authAccess.ts` | src/shared/auth_access.rs | Foundation | done |
 | `shared/src/endpoints/endpointDefs.test.ts` | src/shared/contract/contract_tests.rs | Foundation | done |
-| `shared/src/endpoints/FeatureDef.ts` | src/shared/contract/feature.rs (definitions + payload/result schemas) | Foundation | done (payload structs: domain) |
+| `shared/src/endpoints/FeatureDef.ts` | src/shared/contract/feature.rs (definitions + payload/result schemas; `FeatureAgainstOption`, `FeatureSpiritRow`, `FeatureMvpRow`) | Foundation | done |
 | `shared/src/endpoints/FixtureDef.ts` | src/shared/contract/fixture.rs (definitions + payload/result schemas) | Foundation | done (payload structs: domain) |
 | `shared/src/endpoints/MemberDef.ts` | src/shared/contract/member.rs (definitions + payload/result schemas) | Foundation | done (payload structs: domain) |
 | `shared/src/endpoints/PortDef.ts` | src/shared/contract/port.rs (definitions + payload/result schemas) | Foundation | done (payload structs: domain) |
@@ -218,3 +218,32 @@ integration tests in `server/test/integration/x.test.ts` become
 - `security.test.ts` › "returns the current season and auth...": waits 5 ms
   between the two season creations so their `createdOn` differ (the Rust
   server can create both within one millisecond; ties are not broken by `id`).
+- `queries/teamList.test.ts`, `queries/reportSearch.test.ts`,
+  `queries/mvpLeaderboard.test.ts`: the TS cases assert on Mongo pipeline
+  stages. The Rust tests assert the same rules on the generated SQL (`ORDER
+  BY` keys and `LIMIT`/`OFFSET` placement, the vote slots and points per
+  season) and run each query against a test database (division/name
+  ordering, search before paging, hidden MVP slots).
+- `services/roundRobin.test.ts` › "recovers an order reproducing N observed
+  rounds for 4 teams": the TS loop generates the 3-round case twice
+  (`count - 1 == 3`); it is one Rust test.
+- `services/fixtureSchedule.test.ts` › `shuffleInPlace` "returns the same
+  array": checked as the same buffer (`as_ptr`) after shuffling in place.
+
+## Notes for the Fixture, Report and Feature domains
+
+- `String.prototype.localeCompare` (spirit table team-name sorts, round-robin
+  canonical order) is `js::locale_compare`, an approximation of ICU root
+  collation (base letters, then accents, then lowercase-before-uppercase;
+  punctuation < digits < letters).
+- The spirit dashboard (`FeatureDashboardSpiritLoad`) is not paginated and its
+  adjusted averages need every report, so, as in TS, rows are built and
+  sorted in Rust (`services::spirit_stats`). The per-team totals and the
+  report list come from SQL (`queries::spirit_table`).
+- MVP leaderboard ties on the player's team use the first vote in stored
+  report order (`_seq`), the SQLite counterpart of Mongo's `$first` over
+  natural order.
+- Fixture date arithmetic (`shiftFixtureDate`, weekly rounds) uses the
+  server's local time zone like the TS `Date` setters; a local time skipped
+  by a DST change moves forward by an hour.
+
