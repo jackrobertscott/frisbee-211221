@@ -90,6 +90,8 @@ async function login(h: Harness, actor: TActor, seasonId?: string) {
 export async function runScenario(h: Harness) {
   // members come back in index order (by random user id) on TS
   const memberList = h.unordered(['members', 'users'])
+  // memberships by user id index, teams and seasons by id
+  const membershipList = h.unordered(['members', 'seasons', 'teams'])
   await pipelineCases(h)
 
   // ---------------------------------------------------------------- accounts
@@ -404,9 +406,9 @@ export async function runScenario(h: Harness) {
   await h.call('member remove: not captain', '/MemberRemove', alphaMembers[2].id, {as: pete})
   await h.call('member create re-add', '/MemberCreate', {teamId: alpha.id, email: 'andy.archer@example.com'}, {as: admin, expect: 200})
   await h.call('member list alpha after re-add', '/MemberListOfTeam', alpha.id, {as: admin, normalize: memberList})
-  await h.call('memberships load', '/FeatureDashboardUserMembershipsLoad', {userId: ravi.userId}, {as: admin})
-  await h.call('memberships load: missing', '/FeatureDashboardUserMembershipsLoad', {userId: MISSING_ID}, {as: admin})
-  await h.call('memberships load: not admin', '/FeatureDashboardUserMembershipsLoad', {userId: ravi.userId}, {as: cora})
+  await h.call('memberships load', '/FeatureDashboardUserMembershipsLoad', {userId: ravi.userId}, {as: admin, normalize: membershipList})
+  await h.call('memberships load: missing', '/FeatureDashboardUserMembershipsLoad', {userId: MISSING_ID}, {as: admin, normalize: membershipList})
+  await h.call('memberships load: not admin', '/FeatureDashboardUserMembershipsLoad', {userId: ravi.userId}, {as: cora, normalize: membershipList})
 
   // ----------------------------------------------------------------- fixtures
   const slots = [
@@ -1006,6 +1008,7 @@ async function usersSection(
   h: Harness,
   {admin, cora, pete, quinn, ravi, season}: {admin: TActor; cora: TActor; pete: TActor; quinn: TActor; ravi: TActor; season: TBody},
 ) {
+  const membershipList = h.unordered(['members', 'seasons', 'teams'])
   for (const sortBy of [undefined, ...USER_LIST_SORT_KEYS])
     for (const sortDirection of [undefined, 'asc', 'desc'] as const)
       await h.call(`user list ${sortBy} ${sortDirection}`, '/UserList', {sortBy, sortDirection}, {as: admin})
@@ -1066,7 +1069,7 @@ async function usersSection(
   await h.call('user merge: same user', '/UserMerge', {user1Id: ravi.userId, user2Id: ravi.userId}, {as: admin})
   await h.call('user merge: missing user', '/UserMerge', {user1Id: ravi.userId, user2Id: MISSING_ID}, {as: admin})
   await h.call('user merge: both on teams', '/UserMerge', {user1Id: pete.userId, user2Id: cora.userId}, {as: admin})
-  await h.call('memberships after merge', '/FeatureDashboardUserMembershipsLoad', {userId: ravi.userId}, {as: admin})
+  await h.call('memberships after merge', '/FeatureDashboardUserMembershipsLoad', {userId: ravi.userId}, {as: admin, normalize: membershipList})
   await h.call('user list after merge', '/UserList', {search: 'ravi'}, {as: admin})
   await h.call('user change password ends sessions', '/UserChangePassword', {userId: pete.userId, newPassword: 'pete-new-password'}, {as: admin})
   await h.call('pete session ended', '/SecurityCurrent', {}, {as: pete})
@@ -1137,6 +1140,8 @@ async function portSection(
   })
   await h.call('teams after import', '/FeatureDashboardTeamsLoad', {seasonId: season10.id})
   await h.call('users after import', '/UserList', {search: 'owl'}, {as: admin})
+  const ravi = body(await h.call('ravi after import', '/UserList', {search: 'ravi.runner'}, {as: admin})).users[0]
+  await h.call('memberships in two seasons', '/FeatureDashboardUserMembershipsLoad', {userId: ravi.id}, {as: admin, normalize: h.unordered(['members', 'seasons', 'teams'])})
 
   await h.call('port export csv', '/PortExport', {fileType: 'csv'}, {as: admin})
   await h.call('port export json', '/PortExport', {fileType: 'json'}, {as: admin})

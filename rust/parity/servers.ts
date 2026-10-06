@@ -132,8 +132,8 @@ export interface IServer {
 
 export type TStartOptions = {
   workDir: string
-  /** Inherit server output on the console as well (debugging). */
-  verbose?: boolean
+  /** The browser origin the server accepts (default CLIENT_ORIGIN). */
+  urlClient?: string
 }
 
 export function makeWorkDir(prefix: string): string {
@@ -162,6 +162,7 @@ export async function startTsServer(options: TStartOptions): Promise<IServer> {
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     ...SHARED_ENV,
+    ...(options.urlClient ? {URL_CLIENT: options.urlClient} : {}),
     MONGODB_URI: mongoUri,
     MONGODB_DB: dbName,
     PORT: String(port),
@@ -212,6 +213,7 @@ export async function startRustServer(options: TStartOptions): Promise<IServer> 
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     ...SHARED_ENV,
+    ...(options.urlClient ? {URL_CLIENT: options.urlClient} : {}),
     SQLITE_PATH: sqlitePath,
     PORT: String(port),
     FRISBEE_ENV_DIR: options.workDir,
