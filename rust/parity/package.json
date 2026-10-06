@@ -1,0 +1,21 @@
+{
+  "name": "frisbee-parity",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "parity": "tsx --tsconfig tsconfig.json parity.ts",
+    "ui": "tsx --tsconfig tsconfig.json ui.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.17",
+    "mongodb": "^7.2.0",
+    "playwright-core": "^1.56.1"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.8",
+    "@types/node": "^24.12.2",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
+  }
+}

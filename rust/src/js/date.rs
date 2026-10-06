@@ -67,8 +67,12 @@ pub fn normalize(value: &str) -> Option<String> {
     parse(value).and_then(try_to_iso_string)
 }
 
+/// `MakeDate(MakeDay(year, month, day), MakeTime(...))`. Both parsers accept
+/// any day from 1 to 31 and, like V8, roll days past the end of the month
+/// over into the next (`2028-02-30` is 1 March).
 fn utc_ms(year: i64, month: u32, day: u32, h: u32, m: u32, s: u32, ms: u32) -> Option<i64> {
-    let date = NaiveDate::from_ymd_opt(i32::try_from(year).ok()?, month, day)?;
+    let first = NaiveDate::from_ymd_opt(i32::try_from(year).ok()?, month, 1)?;
+    let date = first.checked_add_days(chrono::Days::new(u64::from(day.checked_sub(1)?)))?;
     let (date, h) = if h == 24 {
         (date.succ_opt()?, 0)
     } else {
@@ -473,6 +477,37 @@ mod tests {
         );
         assert_eq!(normalize("not a date"), None);
         assert_eq!(normalize("2024-13-01"), None);
+    }
+
+    #[test]
+    fn rolls_days_past_the_end_of_the_month_over_like_v8() {
+        assert_eq!(
+            normalize("2028-02-30").as_deref(),
+            Some("2028-03-01T00:00:00.000Z")
+        );
+        assert_eq!(
+            normalize("2027-02-29").as_deref(),
+            Some("2027-03-01T00:00:00.000Z")
+        );
+        assert_eq!(
+            normalize("2028-02-31T10:00Z").as_deref(),
+            Some("2028-03-02T10:00:00.000Z")
+        );
+        assert_eq!(
+            normalize("2028-04-31T23:59:59.999+10:00").as_deref(),
+            Some("2028-05-01T13:59:59.999Z")
+        );
+        assert_eq!(
+            normalize("2028/02/30 10:00 GMT").as_deref(),
+            Some("2028-03-01T10:00:00.000Z")
+        );
+        assert_eq!(
+            normalize("Feb 31, 2028 GMT").as_deref(),
+            Some("2028-03-02T00:00:00.000Z")
+        );
+        assert_eq!(normalize("2028-02-32"), None);
+        assert_eq!(normalize("2028/02/32 GMT"), None);
+        assert_eq!(normalize("Feb 0 2028 GMT"), None);
     }
 
     #[test]
