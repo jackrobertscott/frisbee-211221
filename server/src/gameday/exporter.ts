@@ -3,7 +3,6 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import {
   chromium,
-  type APIRequestContext,
   type Browser,
   type BrowserContext,
   type LaunchOptions,
@@ -30,7 +29,7 @@ interface TGamedayFieldDefinition {
   matches: (label: string) => boolean
 }
 
-interface TGamedayAvailableField {
+export interface TGamedayAvailableField {
   id: string
   label: string
   selected: boolean
@@ -42,7 +41,7 @@ interface TGamedayResolvedField {
   sourceLabel: string
 }
 
-interface TGamedayResolvedOptions {
+export interface TGamedayResolvedOptions {
   startingUrl: string
   username: string
   password: string
@@ -61,7 +60,7 @@ interface TGamedayResolvedOptions {
   normalizeHeaders: boolean
 }
 
-interface TGamedayReportRequest {
+export interface TGamedayReportRequest {
   action: string
   body: string
   client: string
@@ -69,7 +68,7 @@ interface TGamedayReportRequest {
   jobId: string
 }
 
-interface TGamedayCompetitionListItem {
+export interface TGamedayCompetitionListItem {
   title: string
   selectLink: string
   seasonName: string
@@ -78,6 +77,26 @@ interface TGamedayCompetitionListItem {
   abbreviation: string
   status: string
   id: string
+}
+
+interface TGamedayReportResponse {
+  ok(): boolean
+  status(): number
+  text(): Promise<string>
+  body(): Promise<Buffer>
+  headers(): Record<string, string>
+}
+
+/** The parts of Playwright's APIRequestContext the report download uses. */
+export interface TGamedayReportRequestContext {
+  get(
+    url: string,
+    options: {params: Record<string, string>; timeout: number},
+  ): Promise<TGamedayReportResponse>
+  post(
+    url: string,
+    options: {headers: Record<string, string>; data: string; timeout: number},
+  ): Promise<unknown>
 }
 
 interface TGamedayCompetitionSeasonFilterResult {
@@ -186,7 +205,7 @@ export const exportGamedayMembers = async (
   }
 }
 
-const resolveOptions = (
+export const resolveOptions = (
   input: TGamedayExportInput,
 ): TGamedayResolvedOptions => {
   const debug = input.debug ?? parseBool(process.env.GAMEDAY_DEBUG, false)
@@ -288,7 +307,7 @@ const resolveUrl = (href: string, baseUrl: string) => {
   return new URL(href, baseUrl).href
 }
 
-const launchBrowser = async ({
+export const launchBrowser = async ({
   headless,
   browserChannel,
   browserExecutablePath,
@@ -785,7 +804,7 @@ const readCompetitionListItems = async (page: Page) => {
   return dedupeCompetitionListItems(readCompetitionGridDataItems(pageContent))
 }
 
-const readCompetitionGridDataItems = (pageContent: string) => {
+export const readCompetitionGridDataItems = (pageContent: string) => {
   const rawGridData = readJavaScriptArrayAssignment(
     pageContent,
     /var\s+griddata\s*=\s*/,
@@ -866,7 +885,7 @@ const readCompetitionRecordString = (
   return ''
 }
 
-const dedupeCompetitionListItems = (items: TGamedayCompetitionListItem[]) => {
+export const dedupeCompetitionListItems = (items: TGamedayCompetitionListItem[]) => {
   const dedupedItems: TGamedayCompetitionListItem[] = []
   const seenKeys = new Set<string>()
   for (const item of items) {
@@ -878,7 +897,7 @@ const dedupeCompetitionListItems = (items: TGamedayCompetitionListItem[]) => {
   return dedupedItems
 }
 
-const findCompetitionListItem = (
+export const findCompetitionListItem = (
   items: TGamedayCompetitionListItem[],
   competition: string,
 ) => {
@@ -896,7 +915,7 @@ const findCompetitionListItem = (
   return items.find(matchesExactly) ?? items.find(matchesPartially)
 }
 
-const formatCompetitionListForError = (items: TGamedayCompetitionListItem[]) => {
+export const formatCompetitionListForError = (items: TGamedayCompetitionListItem[]) => {
   if (items.length === 0) return ''
   const preview = items
     .slice(0, 20)
@@ -909,7 +928,7 @@ const formatCompetitionListForError = (items: TGamedayCompetitionListItem[]) => 
   return ` Available competitions: ${preview}${suffix}.`
 }
 
-const decodeHtmlEntities = (value: string) => {
+export const decodeHtmlEntities = (value: string) => {
   return value
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
@@ -970,7 +989,7 @@ const collectAvailableFields = async (page: Page) => {
   return fields
 }
 
-const resolveFields = (
+export const resolveFields = (
   availableFields: TGamedayAvailableField[],
   options: TGamedayResolvedOptions,
 ): TGamedayResolvedField[] => {
@@ -1161,8 +1180,8 @@ const buildReportRequest = async (
   return {...request, jobId}
 }
 
-const runReportAndDownload = async (
-  requestContext: APIRequestContext,
+export const runReportAndDownload = async (
+  requestContext: TGamedayReportRequestContext,
   request: TGamedayReportRequest,
   timeoutMs: number,
 ) => {
@@ -1238,7 +1257,7 @@ const parseReportStatus = (statusText: string, statusCode: number) => {
 }
 
 const downloadCompletedReport = async (
-  requestContext: APIRequestContext,
+  requestContext: TGamedayReportRequestContext,
   request: TGamedayReportRequest,
   timeoutMs: number,
 ) => {
@@ -1270,7 +1289,7 @@ const downloadCompletedReport = async (
   return body
 }
 
-const parseMemberRows = (csvBuffer: Buffer): TGamedayExportMember[] => {
+export const parseMemberRows = (csvBuffer: Buffer): TGamedayExportMember[] => {
   const nonEmptyRows = parseCSVRows(csvBuffer.toString('utf8')).filter((row) =>
     row.some((token) => token.trim().length > 0),
   )
