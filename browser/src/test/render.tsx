@@ -20,6 +20,28 @@ export interface TRenderAppOptions extends Omit<RenderOptions, 'wrapper'> {
 }
 
 /**
+ * Static auth context for `auth` (signed out when omitted). Methods are
+ * vitest spies so tests can assert on them.
+ */
+export const makeAuthContext = (
+  auth?: TAuth,
+  patch: Partial<TAuthContext> = {},
+): TAuthContext => ({
+  loaded: true,
+  season: makeSeason(),
+  current: auth,
+  login: vi.fn(),
+  logout: vi.fn(),
+  invalidate: vi.fn(),
+  userSet: vi.fn(),
+  teamSet: vi.fn(),
+  seasonSet: vi.fn(),
+  isAdmin: () => !!auth?.user.admin,
+  can: (point) => canAccess(auth, point),
+  ...patch,
+})
+
+/**
  * Renders UI inside a static auth context and a router fixed to `path`.
  * Wrapped in the app shell unless `shell: false`.
  * Context methods are vitest spies so tests can assert on them.
@@ -28,20 +50,7 @@ export const renderApp = (ui: ReactElement, options: TRenderAppOptions = {}) => 
   const {auth, context: patch, path = '/', shell = true, ...rest} = options
   const location: Location = createMemoryHistory({initialEntries: [path]})
     .location
-  const context: TAuthContext = {
-    loaded: true,
-    season: makeSeason(),
-    current: auth,
-    login: vi.fn(),
-    logout: vi.fn(),
-    invalidate: vi.fn(),
-    userSet: vi.fn(),
-    teamSet: vi.fn(),
-    seasonSet: vi.fn(),
-    isAdmin: () => !!auth?.user.admin,
-    can: (point) => canAccess(auth, point),
-    ...patch,
-  }
+  const context = makeAuthContext(auth, patch)
   const Wrapper = ({children}: {children: ReactNode}) => (
     <AuthContext.Provider value={context}>
       <RouterProvider location={location}>

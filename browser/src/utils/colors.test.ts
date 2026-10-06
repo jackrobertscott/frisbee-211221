@@ -1,3 +1,4 @@
+import {ioTeam} from '@shared/schemas/ioTeam'
 import {describe, expect, it} from 'vitest'
 import {TEAM_COLORS} from './colors'
 import {hsla} from './hsla'
@@ -29,5 +30,17 @@ describe('TEAM_COLORS', () => {
     const serverHsla =
       /^hsla\(\s*(-?\d+(?:\.\d+)?)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*,\s*(\d*(?:\.\d+)?)\s*\)$/
     for (const color of TEAM_COLORS) expect(color).toMatch(serverHsla)
+  })
+
+  it('passes the shared team colour validator unchanged', () => {
+    for (const color of TEAM_COLORS)
+      expect(ioTeam.shape.color.validate(color)).toEqual({
+        ok: true,
+        value: color,
+      })
+  })
+
+  it('has no duplicates', () => {
+    expect(new Set(TEAM_COLORS).size).toBe(TEAM_COLORS.length)
   })
 })

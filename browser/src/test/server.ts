@@ -1,3 +1,4 @@
+import {AppError, serializeError} from '@shared/errors'
 import {vi} from 'vitest'
 
 export type THandler = (payload: unknown, token: string) => unknown
@@ -63,6 +64,17 @@ export const serverError = (
   message: string,
   errorCode = 'test.error',
 ) => ({status, statusCode: status, message, errorCode})
+
+/**
+ * Error body exactly as the server serialises an AppError, so the client
+ * keeps its message, errorCode, userMessage and retryable flag. (Bodies from
+ * `serverError` are not recognised as serialised app errors, so the client
+ * falls back to a generic message and the status code's default errorCode.)
+ */
+export const serverAppError = (error: AppError) => ({
+  ...serializeError(error),
+  status: error.statusCode,
+})
 
 const isStatusError = (value: unknown): value is {status: number} =>
   typeof value === 'object' &&
