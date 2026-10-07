@@ -73,6 +73,7 @@ body { background: var(--bg-app); }
 /* Toolbar ----------------------------------------------------------------- */
 .fr-toolbar { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
 .fr-toolbar__search { flex: 1; min-width: 200px; max-width: 420px; }
+.fr-show-sm { display: none; }
 .fr-toolbar__actions { margin-left: auto; display: flex; gap: var(--sp-2); flex-wrap: wrap; }
 
 /* Team chip --------------------------------------------------------------- */
@@ -235,7 +236,13 @@ body { background: var(--bg-app); }
   .fr-nav[data-more] .fr-nav__tabs .ui-tablist { --_fade-r: 32px; }
   .fr-main { padding: var(--sp-4) var(--sp-3) var(--sp-6); }
   .fr-grid-2 { grid-template-columns: 1fr; }
-  .fr-toolbar__search { max-width: none; }
+  .fr-show-sm { display: inline; }
+  /* Phones: page actions share one row in equal columns. */
+  .fr-actions { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+  /* The search's large grow factor keeps the actions at their natural width beside it; once they wrap onto their own row they fill it, buttons sharing it equally. */
+  .fr-toolbar__search { max-width: none; flex-grow: 1000; }
+  .fr-toolbar__actions { flex: 1 0 auto; }
+  .fr-toolbar__actions > * { flex: 1; }
   .fr-games__head { display: none; }
   .fr-games__row { grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr) 28px; padding-bottom: var(--sp-3); border-bottom: 1px solid var(--border-subtle); }
   .fr-games__row > :nth-child(6) { grid-column: 4; grid-row: 1; }

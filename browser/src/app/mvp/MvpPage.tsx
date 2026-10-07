@@ -41,7 +41,7 @@ export function MvpPage() {
     <div className="fr-page">
       {season.useOfficialScoring && (
         <Alert tone="info" icon={<Info />}>
-          MVP 1st place = <b>5 points</b> · MVP 2nd place = <b>3 points</b>
+          MVP 1st place = <b>5&nbsp;points</b> · MVP 2nd place = <b>3&nbsp;points</b>
         </Alert>
       )}
       <div className="fr-grid-2 fr-grid-2--wide">

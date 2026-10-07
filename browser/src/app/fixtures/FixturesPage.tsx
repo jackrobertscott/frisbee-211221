@@ -84,22 +84,26 @@ export function FixturesPage() {
             leading={<WandSparkles />}
             onClick={() => generatingSet(true)}
             disabled={!competition.data}
+            aria-label="Magic generate"
           >
-            Magic generate
+            <span className="fr-hide-sm">Magic generate</span>
+            <span className="fr-show-sm">Generate</span>
           </Button>
           <Button
             leading={<CalendarClock />}
             onClick={() => adjustingSet(true)}
             disabled={!fixtures.length}
+            aria-label="Adjust fixtures"
           >
-            Adjust fixtures
+            Adjust<span className="fr-hide-sm"> fixtures</span>
           </Button>
           <Button
             leading={<Plus />}
             onClick={() => editingSet('new')}
             disabled={!competition.data}
+            aria-label="Add fixture"
           >
-            Add fixture
+            Add<span className="fr-hide-sm"> fixture</span>
           </Button>
         </div>
       )}
