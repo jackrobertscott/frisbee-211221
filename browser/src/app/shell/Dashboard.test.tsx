@@ -23,7 +23,6 @@ describe('Dashboard', () => {
     const pushState = vi.spyOn(window.history, 'pushState')
     const {user} = renderScreen(<Dashboard />, {path: '/fixtures', context: {season}})
     expect(tabNames()).toEqual(['Ladder', 'Fixtures', 'Teams'])
-    expect(screen.getByRole('tab', {name: 'Fixtures'})).toHaveAttribute('aria-selected', 'true')
     expect(await screen.findByText('No fixtures yet')).toBeInTheDocument()
     expect(server.payloads('/SeasonList')).toEqual([{}])
     // One season and not an admin: no season switcher.
@@ -146,7 +145,7 @@ describe('Dashboard', () => {
 })
 
 describe('Dashboard navigation for team members', () => {
-  it('opens the report and settings dialogs and navigates via the section menu', async () => {
+  it('opens the report and settings dialogs and navigates via the section tabs', async () => {
     const season = makeSeason()
     const team = makeTeam({seasonId: season.id, name: 'Red Rockets'})
     mockServer({
@@ -172,10 +171,9 @@ describe('Dashboard navigation for team members', () => {
     await user.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 
-    // The compact section menu used on phones.
-    await user.click(screen.getByRole('button', {name: 'Ladder'}))
-    const menu = await screen.findByRole('menu')
-    await user.click(within(menu).getByRole('menuitem', {name: 'Fixtures'}))
+    // Sections are tabs at every width; there is no popup section menu.
+    expect(screen.queryByRole('button', {name: 'Ladder'})).not.toBeInTheDocument()
+    await user.click(screen.getByRole('tab', {name: 'Fixtures'}))
     expect(window.location.pathname).toBe('/fixtures')
   })
 })

@@ -24,17 +24,23 @@ import {
 import {
   CalendarPlus,
   ChevronDown,
-  ExternalLink,
   LogIn,
   LogOut,
   Megaphone,
-  Menu as MenuIcon,
   Moon,
   Settings,
   Sun,
   Users,
 } from 'lucide-react'
-import {lazy, type ReactNode, Suspense, useEffect, useState} from 'react'
+import {
+  lazy,
+  type ReactNode,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 import {config} from '../../config'
 import {useAuth} from '../../core/auth/useAuth'
 import {useColorMode} from '../../core/colorMode'
@@ -83,7 +89,6 @@ interface TPage {
 
 export function Dashboard() {
   const auth = useAuth()
-  const shell = useShell()
   const pages: TPage[] = [
     {path: '/ladder', label: 'Ladder', render: () => <LadderPage />},
     {path: '/fixtures', label: 'Fixtures', render: () => <FixturesPage />},
@@ -111,80 +116,7 @@ export function Dashboard() {
         routes={pages}
         render={(children, context) => (
           <>
-            <nav className="fr-nav" aria-label="Sections">
-              <Tabs
-                value={context.current.path}
-                onValueChange={(path) => navigate(path)}
-                className="fr-nav__tabs"
-              >
-                <TabList aria-label="Sections">
-                  {pages.map((p) => (
-                    <Tab key={p.path} value={p.path}>
-                      {p.label}
-                    </Tab>
-                  ))}
-                </TabList>
-              </Tabs>
-              {config.leagueKey === 'marlow' && (
-                <Link
-                  href={MARLOW_SHOP_URL}
-                  external
-                  subtle
-                  className="fr-nav__shop"
-                >
-                  Shop
-                </Link>
-              )}
-              <Menu
-                className="fr-nav__menu"
-                trigger={
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    leading={<MenuIcon />}
-                    trailing={<ChevronDown />}
-                    className="fr-nav__menu-trigger"
-                  >
-                    {context.current.label}
-                  </Button>
-                }
-              >
-                {pages.map((p) => (
-                  <MenuItem key={p.path} onSelect={() => navigate(p.path)}>
-                    {p.label}
-                  </MenuItem>
-                ))}
-                {config.leagueKey === 'marlow' && (
-                  <>
-                    <MenuSeparator />
-                    <MenuItem
-                      icon={<ExternalLink />}
-                      onSelect={() => openExternal(MARLOW_SHOP_URL)}
-                    >
-                      Shop
-                    </MenuItem>
-                  </>
-                )}
-              </Menu>
-              <Button
-                variant="primary"
-                size="sm"
-                leading={<Megaphone />}
-                onClick={shell.reportScore}
-                className="fr-nav__report"
-              >
-                Report score
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                leading={<Megaphone />}
-                onClick={shell.reportScore}
-                className="fr-mobile-only fr-nav__report-sm"
-              >
-                Report
-              </Button>
-            </nav>
+            <SectionNav pages={pages} current={context.current.path} />
             <main className="fr-main" key={context.current.path}>
               <Suspense fallback={<Loading />}>{children}</Suspense>
             </main>
@@ -197,13 +129,81 @@ export function Dashboard() {
   )
 }
 
-const openExternal = (href: string) => {
-  const a = document.createElement('a')
-  a.href = href
-  a.target = '_blank'
-  a.rel = 'noopener noreferrer'
-  a.click()
-  a.remove()
+/**
+ * Section tabs at every width. On phones the strip scrolls sideways and stays
+ * in the page flow: no popup or fixed layer to mis-hit, every section is one
+ * tap away.
+ */
+function SectionNav({pages, current}: {pages: TPage[]; current: string}) {
+  const shell = useShell()
+  const ref = useRef<HTMLElement>(null)
+  const [edges, edgesSet] = useState({less: false, more: false})
+
+  // Keep the active tab in view and flag which edges have tabs scrolled off them.
+  useLayoutEffect(() => {
+    const list = ref.current?.querySelector<HTMLElement>('[role=tablist]')
+    if (!list) return
+    const tab = list.querySelector<HTMLElement>('[role=tab][aria-selected=true]')
+    if (tab) {
+      const pad = 24
+      const left = tab.offsetLeft - pad
+      const right = tab.offsetLeft + tab.offsetWidth + pad - list.clientWidth
+      if (left < list.scrollLeft) list.scrollLeft = left
+      else if (right > list.scrollLeft) list.scrollLeft = right
+    }
+    const sync = () =>
+      edgesSet({
+        less: list.scrollLeft > 1,
+        more: list.scrollLeft + list.clientWidth < list.scrollWidth - 1,
+      })
+    sync()
+    list.addEventListener('scroll', sync, {passive: true})
+    const ro = new ResizeObserver(sync)
+    ro.observe(list)
+    return () => {
+      list.removeEventListener('scroll', sync)
+      ro.disconnect()
+    }
+  }, [current, pages.length])
+
+  return (
+    <nav
+      ref={ref}
+      className="fr-nav"
+      aria-label="Sections"
+      data-less={edges.less || undefined}
+      data-more={edges.more || undefined}
+    >
+      <Tabs
+        value={current}
+        onValueChange={(path) => navigate(path)}
+        className="fr-nav__tabs"
+      >
+        <TabList aria-label="Sections">
+          {pages.map((p) => (
+            <Tab key={p.path} value={p.path}>
+              {p.label}
+            </Tab>
+          ))}
+        </TabList>
+      </Tabs>
+      {config.leagueKey === 'marlow' && (
+        <Link href={MARLOW_SHOP_URL} external subtle className="fr-nav__shop">
+          Shop
+        </Link>
+      )}
+      <Button
+        variant="primary"
+        size="sm"
+        leading={<Megaphone />}
+        onClick={shell.reportScore}
+        aria-label="Report score"
+        className="fr-nav__report"
+      >
+        Report<span className="fr-hide-sm"> score</span>
+      </Button>
+    </nav>
+  )
 }
 
 function Header() {
