@@ -82,7 +82,7 @@ describe('MvpPage', () => {
       },
     })
     renderApp(<MvpPage />, {auth: admin(), context: {season: makeSeason()}})
-    expect(screen.getByRole('status', {name: 'Loading MVP points'})).toBeInTheDocument()
+    expect(screen.getAllByRole('table', {busy: true})).not.toHaveLength(0)
     expect(await screen.findByText('Couldn’t load this')).toBeInTheDocument()
     expect(toasts.error).toHaveBeenCalled()
     server.on('/FeatureDashboardMvpLoad', () => ({rows: []}))

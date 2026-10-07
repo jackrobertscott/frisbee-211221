@@ -94,7 +94,8 @@ body { background: var(--bg-app); }
 /* Disclosure row ---------------------------------------------------------- */
 .fr-row { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-xs); overflow: hidden; }
 .fr-row__head { display: flex; align-items: center; gap: var(--sp-1); padding-right: var(--sp-2); }
-.fr-row__toggle {
+.fr-row__toggle,
+.fr-row__placeholder {
   flex: 1;
   min-width: 0;
   display: flex;

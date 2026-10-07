@@ -76,7 +76,7 @@ beforeEach(() => {
 describe('ReportsPage list', () => {
   it('loads the season’s reports and shows each column', async () => {
     const {server, season} = setup()
-    expect(screen.getByRole('status', {name: 'Loading reports'})).toBeInTheDocument()
+    expect(screen.getByRole('table', {name: 'Score reports', busy: true})).toBeInTheDocument()
     const table = await screen.findByRole('table', {name: 'Score reports'})
     const [, row] = within(table).getAllByRole('row')
     expect(within(row).getByText('Round 1')).toBeInTheDocument()

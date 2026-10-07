@@ -1,3 +1,4 @@
+import {Skeleton, Stack} from '@ui'
 import {ChevronDown} from 'lucide-react'
 import {type ReactNode} from 'react'
 
@@ -34,5 +35,29 @@ export function FixtureRow({
       </div>
       {open && <div className="fr-row__body">{children}</div>}
     </section>
+  )
+}
+
+/** Placeholder rows shaped like `FixtureRow`, shown while the rounds load. */
+export function FixtureRowSkeletons({
+  label,
+  count = 4,
+}: {
+  label: string
+  count?: number
+}) {
+  return (
+    <Stack gap={2} role="status" aria-label={label}>
+      {Array.from({length: count}, (_, i) => (
+        <section key={i} className="fr-row" aria-hidden>
+          <div className="fr-row__head">
+            <div className="fr-row__placeholder">
+              <Skeleton width={i % 2 ? 96 : 120} />
+              <Skeleton width={72} className="fr-row__meta" />
+            </div>
+          </div>
+        </section>
+      ))}
+    </Stack>
   )
 }

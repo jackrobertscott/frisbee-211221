@@ -1,7 +1,7 @@
 import {authPoint} from '@shared/auth/authAccess'
 import {TFeatureMvpRow} from '@shared/endpoints/FeatureDef'
 import {getSeasonMvpSlots} from '@shared/utils/seasonGenderDivision'
-import {Alert, Card, CardHeader, DataTable, Text} from '@ui'
+import {Alert, Card, CardHeader, DataTable, Skeleton, Text} from '@ui'
 import {Award, Info} from 'lucide-react'
 import {useEffect} from 'react'
 import {useAuth} from '../../core/auth/useAuth'
@@ -34,8 +34,8 @@ export function MvpPage() {
   )
 
   if (!season) return null
-  if (!data)
-    return <Loading label="Loading MVP points" failed={failed} onRetry={reload} />
+  if (!data && failed) return <Loading failed onRetry={reload} />
+  const rows = data?.rows ?? []
 
   return (
     <div className="fr-page">
@@ -48,13 +48,15 @@ export function MvpPage() {
         {slots.male && (
           <MvpCard
             title="Male MVP points"
-            rows={data.rows.filter((r) => r.genderMatching === 'male')}
+            rows={rows.filter((r) => r.genderMatching === 'male')}
+            loading={!data}
           />
         )}
         {slots.female && (
           <MvpCard
             title="Female MVP points"
-            rows={data.rows.filter((r) => r.genderMatching === 'female')}
+            rows={rows.filter((r) => r.genderMatching === 'female')}
+            loading={!data}
           />
         )}
       </div>
@@ -62,13 +64,27 @@ export function MvpPage() {
   )
 }
 
-function MvpCard({title, rows}: {title: string; rows: TFeatureMvpRow[]}) {
+function MvpCard({
+  title,
+  rows,
+  loading,
+}: {
+  title: string
+  rows: TFeatureMvpRow[]
+  loading: boolean
+}) {
   return (
     <Card>
       <CardHeader
         icon={<Award />}
         title={title}
-        description={`${rows.length} player${rows.length === 1 ? '' : 's'} with votes`}
+        description={
+          loading ? (
+            <Skeleton width={110} />
+          ) : (
+            `${rows.length} player${rows.length === 1 ? '' : 's'} with votes`
+          )
+        }
         divider
       />
       <DataTable<TFeatureMvpRow>
@@ -77,6 +93,7 @@ function MvpCard({title, rows}: {title: string; rows: TFeatureMvpRow[]}) {
         density="compact"
         rowKey={(r) => r.userId}
         rows={rows}
+        loading={loading}
         empty={
           <Text size="sm" tone="tertiary">
             No votes yet.

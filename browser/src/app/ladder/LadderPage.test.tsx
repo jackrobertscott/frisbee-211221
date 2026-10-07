@@ -38,7 +38,7 @@ describe('LadderPage', () => {
       '/FeatureCompetitionLoad': () => ({teams, fixtures: [fixture, empty]}),
     })
     const {user} = renderScreen(<LadderPage />, {context: {season}})
-    expect(screen.getAllByRole('status', {name: 'Loading'}).length).toBeGreaterThan(0)
+    expect(screen.getByRole('status', {name: 'Loading the ladder'})).toBeInTheDocument()
     expect(await screen.findByText('Division 1')).toBeInTheDocument()
     expect(server.payloads('/FeatureCompetitionLoad')).toEqual([{seasonId: season.id}])
     expect(screen.getByText('Division 2')).toBeInTheDocument()

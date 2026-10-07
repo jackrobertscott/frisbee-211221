@@ -31,7 +31,7 @@ import {FixtureEditDialog} from './FixtureEditDialog'
 import {FixtureGames, fixtureLayout} from './FixtureGames'
 import {FixtureGenerateDialog} from './FixtureGenerateDialog'
 import './fixtures.css'
-import {FixtureRow} from '../common/FixtureRow'
+import {FixtureRow, FixtureRowSkeletons} from '../common/FixtureRow'
 import {Loading} from '../common/Loading'
 import {fmtDate} from '../common/format'
 import {useShell} from '../shell/ShellProvider'
@@ -105,11 +105,11 @@ export function FixturesPage() {
       )}
 
       {!competition.data ? (
-        <Loading
-          label="Loading fixtures"
-          failed={competition.failed}
-          onRetry={competition.reload}
-        />
+        competition.failed ? (
+          <Loading failed onRetry={competition.reload} />
+        ) : (
+          <FixtureRowSkeletons label="Loading fixtures" count={5} />
+        )
       ) : fixtures.length === 0 ? (
         <EmptyState
           bordered

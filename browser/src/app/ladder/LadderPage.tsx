@@ -9,11 +9,12 @@ import {
   CardHeader,
   DataTable,
   EmptyState,
+  Skeleton,
   Stack,
   Text,
 } from '@ui'
 import {Flag, ListOrdered, Medal, Pencil, Trophy} from 'lucide-react'
-import {useMemo, useState} from 'react'
+import {type ReactNode, useMemo, useState} from 'react'
 import {useAuth} from '../../core/auth/useAuth'
 import {useEndpoint} from '../../core/endpoints/useEndpoint'
 import {useLoad} from '../../core/hooks/useLoad'
@@ -30,8 +31,7 @@ import {FinalResultsDialog} from './FinalResultsDialog'
 import {TallyDialog} from './TallyDialog'
 import './ladder.css'
 import {MissingReportsButton} from '../reports/MissingReports'
-import {FixtureRow} from '../common/FixtureRow'
-import {Loading} from '../common/Loading'
+import {FixtureRow, FixtureRowSkeletons} from '../common/FixtureRow'
 import {TeamName} from '../common/TeamName'
 import {fmtDate} from '../common/format'
 import {useShell} from '../shell/ShellProvider'
@@ -80,7 +80,20 @@ export function LadderPage() {
     return (
       <div className="fr-page">
         {competition.loading ? (
-          <Loading />
+          <>
+            <LadderCard
+              title={<Skeleton width={90} />}
+              teams={[]}
+              tally={{}}
+              loading
+            />
+            <Stack gap={2}>
+              <Text as="h2" size="sm" weight="semibold" className="fr-subhead">
+                Results by round
+              </Text>
+              <FixtureRowSkeletons label="Loading the ladder" />
+            </Stack>
+          </>
         ) : (
           <EmptyState
             bordered
@@ -291,11 +304,13 @@ function LadderCard({
   teams,
   tally,
   myTeamId,
+  loading = false,
 }: {
-  title: string
+  title: ReactNode
   teams: TTeam[]
   tally: TTally
   myTeamId?: string
+  loading?: boolean
 }) {
   const rows = [...teams].sort(byLadder(tally))
   const n = (pick: (t: TTallyChart) => number) => (team: TTeam) => {
@@ -307,7 +322,13 @@ function LadderCard({
       <CardHeader
         icon={<Flag />}
         title={title}
-        description={`${teams.length} teams · win 4, draw 2, loss 0`}
+        description={
+          loading ? (
+            <Skeleton width={180} />
+          ) : (
+            `${teams.length} teams · win 4, draw 2, loss 0`
+          )
+        }
         divider
       />
       <DataTable<TTeam>
@@ -315,6 +336,7 @@ function LadderCard({
         density="compact"
         rowKey={(t) => t.id}
         rows={rows}
+        loading={loading}
         defaultSort={null}
         columns={[
           {

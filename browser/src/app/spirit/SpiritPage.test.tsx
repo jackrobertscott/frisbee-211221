@@ -40,7 +40,7 @@ describe('SpiritPage', () => {
       auth: makeAuth({user: {admin: true}}),
       context: {season},
     })
-    expect(screen.getByRole('status', {name: 'Loading spirit scores'})).toBeInTheDocument()
+    expect(screen.getByRole('table', {name: 'Team spirit scores', busy: true})).toBeInTheDocument()
     const table = await screen.findByRole('table', {name: 'Team spirit scores'})
     expect(within(table).getByText('Red Rockets')).toBeInTheDocument()
     expect(screen.getByText('Official scoring · five categories, 0–20 per game')).toBeInTheDocument()

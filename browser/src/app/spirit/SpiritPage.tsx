@@ -80,10 +80,7 @@ export function SpiritPage() {
   }
 
   if (!season) return null
-  if (!data)
-    return (
-      <Loading label="Loading spirit scores" failed={failed} onRetry={reload} />
-    )
+  if (!data && failed) return <Loading failed onRetry={reload} />
 
   return (
     <div className="fr-page">
@@ -103,7 +100,7 @@ export function SpiritPage() {
           bordered={false}
           density="compact"
           rowKey={(r) => r.team.id}
-          rows={data.rows}
+          rows={data?.rows ?? []}
           loading={loading}
           sort={{key: sortBy, direction: sortDirection}}
           onSortChange={onSortChange}

@@ -68,8 +68,7 @@ export function ReportsPage() {
     : undefined
 
   if (!season) return null
-  if (!data)
-    return <Loading label="Loading reports" failed={failed} onRetry={reload} />
+  if (!data && failed) return <Loading failed onRetry={reload} />
 
   return (
     <div className="fr-page">
@@ -87,7 +86,7 @@ export function ReportsPage() {
       <DataTable<TReportSearchRow>
         aria-label="Score reports"
         rowKey={(r) => r.report.id}
-        rows={data.reports}
+        rows={data?.reports ?? []}
         loading={loading}
         onRowClick={(r) => currentIdSet(r.report.id)}
         empty={
@@ -190,15 +189,15 @@ export function ReportsPage() {
           },
         ]}
       />
-      {paging.pager(data.count)}
+      {data && paging.pager(data.count)}
 
       <ReportFormDialog
         open={creating}
         onOpenChange={creatingSet}
         variant="dashboard"
         title="New report"
-        initialFixtures={data.fixtures}
-        initialTeams={data.teams}
+        initialFixtures={data?.fixtures}
+        initialTeams={data?.teams}
         loading={$create.loading}
         onSubmit={(form) => {
           const payload = createReportCreatePayload(form, season)
@@ -222,8 +221,8 @@ export function ReportsPage() {
         variant="dashboard"
         title="Edit report"
         initialData={current?.report}
-        initialFixtures={data.fixtures}
-        initialTeams={data.teams}
+        initialFixtures={data?.fixtures}
+        initialTeams={data?.teams}
         submitter={current?.submitterName}
         loading={$update.loading}
         onDelete={() => deletingSet(true)}
