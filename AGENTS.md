@@ -87,6 +87,12 @@ memory.
 - Never use native controls (select, checkbox, date input, ...). Use the
   `@ui` equivalent.
 
+### Screen edges
+
+- The page draws edge to edge (`viewport-fit=cover`). Anything that touches
+  a screen edge (header, nav, page, footer, dialogs, toasts, popovers) adds
+  the matching safe-area inset so it clears the notch and home indicator.
+
 ### Changing existing screens
 
 - Fix UI issues minimally, inside the existing components and layout. Don't

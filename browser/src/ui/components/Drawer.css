@@ -15,19 +15,20 @@
 .ui-drawer[data-size='lg'] { --_w: 640px; }
 .ui-drawer[data-side='right'],
 .ui-drawer[data-side='left'] {
-  top: var(--sp-2);
-  bottom: var(--sp-2);
-  width: min(var(--_w), calc(100vw - var(--sp-4)));
+  top: calc(var(--sp-2) + env(safe-area-inset-top, 0px));
+  bottom: calc(var(--sp-2) + env(safe-area-inset-bottom, 0px));
+  width: min(var(--_w), calc(100vw - var(--sp-4) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
 }
-.ui-drawer[data-side='right'] { right: var(--sp-2); animation: ui-drawer-right var(--dur-slow) var(--ease); }
-.ui-drawer[data-side='left'] { left: var(--sp-2); animation: ui-drawer-left var(--dur-slow) var(--ease); }
+.ui-drawer[data-side='right'] { right: calc(var(--sp-2) + env(safe-area-inset-right, 0px)); animation: ui-drawer-right var(--dur-slow) var(--ease); }
+.ui-drawer[data-side='left'] { left: calc(var(--sp-2) + env(safe-area-inset-left, 0px)); animation: ui-drawer-left var(--dur-slow) var(--ease); }
 .ui-drawer[data-side='bottom'] {
   left: 0;
   right: 0;
   bottom: 0;
-  max-height: 85dvh;
+  max-height: calc(85dvh - env(safe-area-inset-top, 0px));
+  padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
   border-top: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   animation: ui-drawer-bottom var(--dur-slow) var(--ease);

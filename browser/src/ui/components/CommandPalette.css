@@ -4,7 +4,11 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 12vh var(--sp-4) var(--sp-4);
+  padding:
+    calc(12vh + env(safe-area-inset-top, 0px))
+    calc(var(--sp-4) + env(safe-area-inset-right, 0px))
+    calc(var(--sp-4) + env(safe-area-inset-bottom, 0px))
+    calc(var(--sp-4) + env(safe-area-inset-left, 0px));
 }
 .ui-cmdk {
   width: 100%;

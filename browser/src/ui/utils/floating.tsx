@@ -25,6 +25,28 @@ export type Anchor = Element | VirtualAnchor | null | undefined;
 
 const PAD = 8;
 
+type Insets = { top: number; right: number; bottom: number; left: number };
+
+let probe: HTMLElement | null = null;
+/** The device's safe-area insets (notch, rounded corners, home indicator); zero elsewhere. */
+function safeInsets(): Insets {
+  if (!probe) {
+    probe = document.createElement('div');
+    probe.setAttribute('aria-hidden', 'true');
+    probe.style.cssText =
+      'position:fixed;top:0;left:0;width:0;height:0;visibility:hidden;pointer-events:none;' +
+      'padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)';
+    document.body.appendChild(probe);
+  }
+  const cs = getComputedStyle(probe);
+  return {
+    top: parseFloat(cs.paddingTop) || 0,
+    right: parseFloat(cs.paddingRight) || 0,
+    bottom: parseFloat(cs.paddingBottom) || 0,
+    left: parseFloat(cs.paddingLeft) || 0,
+  };
+}
+
 function parse(p: Placement): [Side, Align] {
   const [s, a] = p.split('-') as [Side, Align | undefined];
   return [s, a ?? 'center'];
@@ -69,25 +91,31 @@ export function useFloating(opts: {
     const h = el.offsetHeight;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    // The usable area: the viewport less the safe-area insets and a small margin.
+    const safe = safeInsets();
+    const minX = PAD + safe.left;
+    const maxX = vw - PAD - safe.right;
+    const minY = PAD + safe.top;
+    const maxY = vh - PAD - safe.bottom;
     let [side, align] = parse(placement);
     let { x, y } = compute(a, w, h, side, align, offset);
     // Flip on the main axis if it overflows and the other side has more room.
     const overflows =
-      (side === 'bottom' && y + h > vh - PAD) ||
-      (side === 'top' && y < PAD) ||
-      (side === 'right' && x + w > vw - PAD) ||
-      (side === 'left' && x < PAD);
+      (side === 'bottom' && y + h > maxY) ||
+      (side === 'top' && y < minY) ||
+      (side === 'right' && x + w > maxX) ||
+      (side === 'left' && x < minX);
     if (overflows) {
-      const room = { bottom: vh - a.bottom, top: a.top, right: vw - a.right, left: a.left };
+      const room = { bottom: maxY - a.bottom, top: a.top - minY, right: maxX - a.right, left: a.left - minX };
       if (room[opposite[side]] > room[side]) {
         side = opposite[side];
         ({ x, y } = compute(a, w, h, side, align, offset));
       }
     }
     // Shift on the cross axis to stay inside the viewport.
-    x = Math.max(PAD, Math.min(x, vw - w - PAD));
-    y = Math.max(PAD, Math.min(y, vh - h - PAD));
-    const maxH = side === 'bottom' ? vh - y - PAD : side === 'top' ? a.top - offset - PAD : vh - PAD * 2;
+    x = Math.max(minX, Math.min(x, maxX - w));
+    y = Math.max(minY, Math.min(y, maxY - h));
+    const maxH = side === 'bottom' ? maxY - y : side === 'top' ? a.top - offset - minY : maxY - minY;
     setState({
       side,
       style: {
