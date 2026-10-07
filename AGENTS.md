@@ -1,11 +1,10 @@
 # Agent guide
 
-How to work in this repository. Read [README.md](README.md) for the package
-layout and commands, [SCOPE.md](SCOPE.md) for what the app does, and
-[rust/README.md](rust/README.md) for the server.
+See [README.md](README.md), [SCOPE.md](SCOPE.md) and
+[rust/README.md](rust/README.md).
 
-**The server is `rust/`.** The TypeScript `server/` is deprecated: the app
-runs on the Rust server. Make backend changes in `rust/` only.
+**The server is `rust/`.** The TypeScript `server/` is deprecated. Make
+backend changes in `rust/` only.
 
 When the user states a preference for this codebase, add it to the section
 below that it belongs to, written as a plain statement of how things work
@@ -30,9 +29,8 @@ and desktop widths. Most people use the app on their phone.
 branch. When the work is done, merge it back, then remove the worktree and
 delete the branch.
 
-**Commit as you go.** Commit after each milestone instead of building up a
-large uncommitted diff. Commit messages are short lowercase word groups, e.g.
-`fix report sort order`.
+**Commit as you go.** Commit after each milestone. Commit messages are short
+lowercase word groups, e.g. `fix report sort order`.
 
 **Publishing.** The remote is `origin`; the publishing branches are `stage`
 and `master`. When asked to publish:
@@ -41,20 +39,6 @@ and `master`. When asked to publish:
 2. Merge `stage` into `master`.
 3. Push both `stage` and `master` to `origin`.
 4. Check out `stage` again.
-
-## Project landmarks
-
-| Path | What to know |
-| --- | --- |
-| `shared/` | Endpoint contracts and validation used by both server and browser. |
-| `rust/` | The server: Rust on SQLite. Its README covers running it, migrating a `mongodump`, and the parity harness in `rust/parity/`. |
-| `server/` | Deprecated TypeScript/MongoDB server, replaced by `rust/`. |
-| `browser/src/app` | Screens. |
-| `browser/src/core` | Non-visual browser plumbing: auth, router, endpoint hooks. |
-| `browser/src/ui` | The `@ui` component library, vendored from `src/lib` in the `uilib-261005` repository. |
-
-**The `@ui` folder is a copy.** Never edit `browser/src/ui` for app-specific
-needs. Change `uilib-261005` and copy it across again.
 
 ## Domain rules
 
@@ -72,22 +56,10 @@ guards). `as any` is never acceptable.
 ## Database access
 
 All database access goes through the typed table helpers in
-`rust/src/tables`, with filters and sorts built from typed columns:
-
-```rust
-REPORT
-    .get_many(
-        db,
-        Report::FIXTURE_ID.eq(&fixture.id),
-        Query::new().sort([Report::CREATED_ON.desc()]),
-    )
-    .await?;
-```
-
-SQL is written only in `rust/src/db`, `rust/src/tables` and, for joins and
-aggregates, `rust/src/queries`. Even there, table and column names come from
-the typed definitions (`report::TABLE.sql`, `Report::TEAM_ID.sql()`), never
-string literals.
+`rust/src/tables` (`REPORT.get_many(...)`). SQL is written only in
+`rust/src/db`, `rust/src/tables` and `rust/src/queries`, and even there table
+and column names come from the typed definitions (`report::TABLE.sql`,
+`Report::TEAM_ID.sql()`), never string literals.
 
 ## Sorting, filtering and pagination
 
@@ -98,11 +70,8 @@ endpoint contract and implemented in the server handler, never only in
 browser state. When changing how a list is ordered, update the endpoint
 payload and backend first, then wire up the frontend controls.
 
-**Sort in the database.** Apply the sort in the query, before `skip` and
-`limit` (`Query::new().sort([...]).skip(...).limit(...)`, or `ORDER BY`
-before `LIMIT`/`OFFSET` in `rust/src/queries`). Fetching a page unsorted and
-reordering it in code is wrong, as is sorting returned rows in memory when the
-database could have done it.
+**Sort in the database**, before skip and limit. Never sort returned rows in
+memory.
 
 **Sort by real fields.** Use meaningful domain fields (name, date, division,
 ...). `id` is never a sort field, not even as a tie-breaker.
@@ -112,18 +81,20 @@ database could have done it.
 ### Building blocks
 
 - Build everything from `@ui` components and `lucide-react` icons.
+- `browser/src/ui` is a copy of `src/lib` in the `uilib-261005` repository.
+  Never edit it for app-specific needs; change `uilib-261005` and copy it
+  across again.
 - Never use native controls (select, checkbox, date input, ...). Use the
   `@ui` equivalent.
 
 ### Changing existing screens
 
-- Fix UI issues minimally, inside the existing components and layout.
-- Don't redesign screens or swap component types (tables into card lists,
+- Fix UI issues minimally, inside the existing components and layout. Don't
+  redesign screens or swap component types (tables into card lists,
   frozen or pinned table columns, ...) unless the user asks.
 
 ### Tables
 
-- Tables stay tables.
 - Decide wrapping per column, not with a blanket rule:
   - short atomic values (dates, times, places, divisions, names, numbers)
     stay on one line;
@@ -144,6 +115,5 @@ database could have done it.
 ### Text
 
 - Database IDs never appear in the UI: not in fields, tables, tooltips or
-  messages. Use them only for keys and requests.
-- Button labels have no ellipsis (`...` or `…`), e.g. "Merge" not "Merge…",
-  unless the user asks for one.
+  messages.
+- Button labels have no ellipsis: "Merge", not "Merge…".
