@@ -46,7 +46,8 @@ body { background: var(--bg-app); }
   border-bottom: 1px solid var(--border-subtle);
 }
 .fr-nav__tabs { flex: 1; min-width: 0; }
-.fr-nav__tabs .ui-tablist { border-bottom: 0; }
+.fr-nav__tabs .ui-tablist { border-bottom: 0; overflow-y: hidden; }
+.fr-nav__tabs .ui-tablist[data-variant] .ui-tablist__indicator { bottom: 0; }
 .fr-nav__report { margin-bottom: var(--sp-2); flex-shrink: 0; }
 
 /* Page -------------------------------------------------------------------- */
@@ -300,7 +301,7 @@ body { background: var(--bg-app); }
 .fr-brand { color: inherit; text-decoration: none; border-radius: var(--radius-md); user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .fr-brand:focus, .fr-brand:focus-visible { outline: none; box-shadow: none; }
 .fr-brand img { pointer-events: none; -webkit-user-drag: none; }
-.fr-nav__shop { align-self: center; margin-bottom: var(--sp-2); font-size: var(--fs-sm); white-space: nowrap; }
+.fr-nav__shop { align-self: stretch; font-size: var(--fs-sm); white-space: nowrap; }
 .fr-header .fr-header__season { width: auto; max-width: 220px; min-width: 0; flex-shrink: 1; }
 .fr-header__season-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fr-auth__brand { color: inherit; text-decoration: none; align-self: center; border-radius: var(--radius-md); }
