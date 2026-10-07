@@ -20,3 +20,6 @@
 .fr-ladder-tally-game[data-mismatch] { background: var(--warning-subtle); }
 .fr-ladder-tally-flag { display: inline-flex; color: var(--warning-text); }
 .fr-ladder-tally-flag svg { width: 14px; height: 14px; }
+
+.fr-ladder-results .ui-table { table-layout: fixed; }
+.fr-ladder-home .fr-team { flex-direction: row-reverse; }

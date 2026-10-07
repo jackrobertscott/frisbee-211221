@@ -418,7 +418,7 @@ function ResultsTable({
     return (
       <>
         <span className="fr-ladder-full">
-          <TeamName team={t} />
+          <TeamName team={t} wrap />
         </span>
         <span className="fr-ladder-short">
           <TeamName team={t} short />
@@ -428,13 +428,22 @@ function ResultsTable({
   }
   return (
     <DataTable<TGame>
+      className="fr-ladder-results"
       bordered={false}
       density="compact"
       rowKey={(g) => g.id}
       rows={fixture.games}
       aria-label={`${fixture.title} results`}
       columns={[
-        {key: 'team1', header: 'Team 1', render: (g) => team(g.team1Id)},
+        {
+          key: 'team1',
+          header: 'Team 1',
+          align: 'right',
+          width: '50%',
+          render: (g) => (
+            <span className="fr-ladder-home">{team(g.team1Id)}</span>
+          ),
+        },
         {
           key: 'score',
           header: 'Score',
@@ -442,7 +451,12 @@ function ResultsTable({
           width: 90,
           render: (g) => <Score a={g.team1Score} b={g.team2Score} />,
         },
-        {key: 'team2', header: 'Team 2', render: (g) => team(g.team2Id)},
+        {
+          key: 'team2',
+          header: 'Team 2',
+          width: '50%',
+          render: (g) => team(g.team2Id),
+        },
       ]}
     />
   )
