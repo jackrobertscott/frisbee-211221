@@ -54,7 +54,9 @@ describe('LadderPage', () => {
     expect(screen.getByRole('img', {name: 'Occurrences of each points total scored'})).toBeInTheDocument()
     // Results by round expand on demand.
     await user.click(screen.getByRole('button', {name: /^Round 1/}))
-    expect(screen.getAllByText('13').length).toBeGreaterThan(0)
+    const results = screen.getByRole('table', {name: 'Round 1 results'})
+    expect(within(results).getAllByRole('columnheader', {name: 'Score'})).toHaveLength(1)
+    expect(within(results).getAllByRole('row')[1]).toHaveTextContent(/Blue Bolts.*13–7.*Red Rockets/)
     await user.click(screen.getByRole('button', {name: /^Round 2/}))
     expect(screen.getByText('No games in this round.')).toBeInTheDocument()
     // Visitors don't get admin actions.

@@ -73,14 +73,15 @@ describe('FixturesPage', () => {
     expect(screen.queryByRole('button', {name: 'Edit Round 2'})).not.toBeInTheDocument()
   })
 
-  it('expands a past round to show its scores', async () => {
+  it('expands a past round to show its games without scores', async () => {
     const {season, teams, past, future} = setup()
     mockServer({'/FeatureCompetitionLoad': competition(teams, [past, future])})
     const {user} = renderScreen(<FixturesPage />, {context: {season}})
     await user.click(await screen.findByRole('button', {name: /^Round 1/}))
     const table = screen.getByRole('table', {name: 'Round 1 games'})
-    expect(within(table).getByRole('columnheader', {name: 'Score'})).toBeInTheDocument()
-    expect(within(table).getByText('13')).toBeInTheDocument()
+    expect(within(table).getByText('Red Rockets')).toBeInTheDocument()
+    expect(within(table).queryByRole('columnheader', {name: 'Score'})).not.toBeInTheDocument()
+    expect(within(table).queryByText('13')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', {name: /^Round 1/}))
     expect(screen.queryByRole('table', {name: 'Round 1 games'})).not.toBeInTheDocument()
   })

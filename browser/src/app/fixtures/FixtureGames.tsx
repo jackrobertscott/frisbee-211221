@@ -45,25 +45,6 @@ export function FixtureGames({
       header: 'Team 1',
       render: (g) => <TeamName team={teamById(g.team1Id)} muted={muted(g)} wrap />,
     },
-    ...(layout.showScore
-      ? [
-          {
-            key: 'score',
-            header: 'Score',
-            align: 'center' as const,
-            width: 90,
-            render: (g: TFixtureGame) =>
-              typeof g.team1Score === 'number' &&
-              typeof g.team2Score === 'number' ? (
-                <Score a={g.team1Score} b={g.team2Score} />
-              ) : (
-                <Text as="span" size="sm" tone="tertiary">
-                  –
-                </Text>
-              ),
-          },
-        ]
-      : []),
     {
       key: 'team2',
       header: 'Team 2',
@@ -84,11 +65,7 @@ export function FixtureGames({
   )
 }
 
-const hasScore = (g: TFixtureGame) =>
-  typeof g.team1Score === 'number' && typeof g.team2Score === 'number'
-
 export type TFixtureLayout = {
-  showScore: boolean
   timeWidth: string
   placeWidth: string
 }
@@ -102,18 +79,7 @@ const slotWidth = (header: string, values: string[]) => {
 export const fixtureLayout = (fixtures: TFixture[]): TFixtureLayout => {
   const games = fixtures.flatMap((f) => f.games)
   return {
-    showScore: games.some(hasScore),
     timeWidth: slotWidth('Time', games.map((g) => g.time)),
     placeWidth: slotWidth('Place', games.map((g) => g.place)),
   }
-}
-
-function Score({a, b}: {a: number; b: number}) {
-  return (
-    <span className="fr-score">
-      <b data-win={a > b || undefined}>{a}</b>
-      <span>–</span>
-      <b data-win={b > a || undefined}>{b}</b>
-    </span>
-  )
 }

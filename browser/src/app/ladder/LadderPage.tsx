@@ -32,6 +32,7 @@ import {TallyDialog} from './TallyDialog'
 import './ladder.css'
 import {MissingReportsButton} from '../reports/MissingReports'
 import {FixtureRow, FixtureRowSkeletons} from '../common/FixtureRow'
+import {Score} from '../common/Score'
 import {TeamName} from '../common/TeamName'
 import {fmtDate} from '../common/format'
 import {useShell} from '../shell/ShellProvider'
@@ -431,23 +432,17 @@ function ResultsTable({
       density="compact"
       rowKey={(g) => g.id}
       rows={fixture.games}
+      aria-label={`${fixture.title} results`}
       columns={[
         {key: 'team1', header: 'Team 1', render: (g) => team(g.team1Id)},
         {
-          key: 'team1Score',
+          key: 'score',
           header: 'Score',
-          align: 'right',
-          width: 72,
-          render: (g) => <Num value={g.team1Score} />,
+          align: 'center',
+          width: 90,
+          render: (g) => <Score a={g.team1Score} b={g.team2Score} />,
         },
         {key: 'team2', header: 'Team 2', render: (g) => team(g.team2Id)},
-        {
-          key: 'team2Score',
-          header: 'Score',
-          align: 'right',
-          width: 72,
-          render: (g) => <Num value={g.team2Score} />,
-        },
       ]}
     />
   )
