@@ -71,10 +71,23 @@ guards). `as any` is never acceptable.
 
 ## Database access
 
-All database access outside the DB/table definition layer goes through the
-typed table helpers, such as `$Report.getMany(...)` and
-`$Report.aggregate(...)`. Calling `mongo.collection('...')` or naming a
-collection by string anywhere else is not allowed.
+All database access goes through the typed table helpers in
+`rust/src/tables`, with filters and sorts built from typed columns:
+
+```rust
+REPORT
+    .get_many(
+        db,
+        Report::FIXTURE_ID.eq(&fixture.id),
+        Query::new().sort([Report::CREATED_ON.desc()]),
+    )
+    .await?;
+```
+
+SQL is written only in `rust/src/db`, `rust/src/tables` and, for joins and
+aggregates, `rust/src/queries`. Even there, table and column names come from
+the typed definitions (`report::TABLE.sql`, `Report::TEAM_ID.sql()`), never
+string literals.
 
 ## Sorting, filtering and pagination
 
@@ -86,9 +99,10 @@ browser state. When changing how a list is ordered, update the endpoint
 payload and backend first, then wire up the frontend controls.
 
 **Sort in the database.** Apply the sort in the query, before `skip` and
-`limit`, using typed table queries. Fetching a page unsorted and reordering it
-in code is wrong, as is sorting returned rows in memory when the database
-could have done it.
+`limit` (`Query::new().sort([...]).skip(...).limit(...)`, or `ORDER BY`
+before `LIMIT`/`OFFSET` in `rust/src/queries`). Fetching a page unsorted and
+reordering it in code is wrong, as is sorting returned rows in memory when the
+database could have done it.
 
 **Sort by real fields.** Use meaningful domain fields (name, date, division,
 ...). `id` is never a sort field, not even as a tie-breaker.
