@@ -9,18 +9,18 @@ League management for ultimate frisbee competitions.
 | --- | --- |
 | [SCOPE.md](SCOPE.md) | What the app does, screen by screen. |
 | [AGENTS.md](AGENTS.md) | How to work in this repo: workflow, checks and coding rules. |
-| [rust/README.md](rust/README.md) | The Rust/SQLite server that is replacing `server/`. |
+| [rust/README.md](rust/README.md) | The Rust/SQLite server. |
 
 ## Packages
 
 | Package | Purpose |
 | --- | --- |
 | `shared/` | Endpoint contracts (`src/endpoints/*Def.ts`), validation schemas (`src/schemas`, built on the `src/torva` validator), errors and pure domain rules used by both sides. |
-| `server/` | Node HTTP API (micro + MongoDB). |
+| `rust/` | HTTP API (Rust + SQLite). |
 | `browser/` | React + Vite web app. |
-| `rust/` | Rust + SQLite rewrite of `server/`, a drop-in replacement awaiting confirmation. |
+| `server/` | Deprecated Node/MongoDB API, replaced by `rust/`. |
 
-### Server layout (`server/src`)
+### Deprecated TS server layout (`server/src`)
 
 - `endpoints/` thin HTTP handlers, one module per shared `*Def.ts` contract.
 - `services/` domain logic the handlers delegate to.
@@ -43,7 +43,7 @@ League management for ultimate frisbee competitions.
 Each package installs and runs on its own:
 
 ```sh
-npm --prefix server run dev      # API on PORT from server/.env
+(cd rust && cargo run --release --bin frisbee-server)   # API, see rust/README.md
 npm --prefix browser run dev     # web app on :3000
 ```
 
@@ -51,13 +51,11 @@ npm --prefix browser run dev     # web app on :3000
 
 ```sh
 npm --prefix shared run typecheck && npm --prefix shared test
-npm --prefix server run typecheck && npm --prefix server test
 npm --prefix browser run typecheck && npm --prefix browser test
+(cd rust && cargo test && cargo clippy --all-targets -- -D warnings)
 ```
-
-Server tests include HTTP integration tests (`server/test/integration`) that run the real request pipeline against an in-memory MongoDB (downloaded on first run by `mongodb-memory-server`).
 
 ## Deployment
 
-- Server: Docker image (see `Dockerfile`), health check at `/health`.
+- Server: Docker image (see `rust/Dockerfile` and `rust/README.md`), health check at `/health`.
 - Browser: Vercel.

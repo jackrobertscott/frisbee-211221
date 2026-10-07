@@ -2,7 +2,10 @@
 
 How to work in this repository. Read [README.md](README.md) for the package
 layout and commands, [SCOPE.md](SCOPE.md) for what the app does, and
-[rust/README.md](rust/README.md) for the Rust server.
+[rust/README.md](rust/README.md) for the server.
+
+**The server is `rust/`.** The TypeScript `server/` is deprecated: the app
+runs on the Rust server. Make backend changes in `rust/` only.
 
 When the user states a preference for this codebase, add it to the section
 below that it belongs to, written as a plain statement of how things work
@@ -14,8 +17,8 @@ Every change must pass these, run from the repo root:
 
 ```sh
 npm --prefix shared run typecheck && npm --prefix shared test
-npm --prefix server run typecheck && npm --prefix server test
 npm --prefix browser run typecheck && npm --prefix browser test
+(cd rust && cargo test && cargo clippy --all-targets -- -D warnings)
 ```
 
 If the change touches the browser, look at the affected screens at both phone
@@ -44,14 +47,11 @@ and `master`. When asked to publish:
 | Path | What to know |
 | --- | --- |
 | `shared/` | Endpoint contracts and validation used by both server and browser. |
-| `server/` | TypeScript API on MongoDB. Integration tests in `server/test/integration` run the real request pipeline against an in-memory MongoDB. |
-| `rust/` | Rust/SQLite rewrite of `server/`, meant as a drop-in replacement. Its README covers running it, migrating a `mongodump`, and the parity harness in `rust/parity/`. |
+| `rust/` | The server: Rust on SQLite. Its README covers running it, migrating a `mongodump`, and the parity harness in `rust/parity/`. |
+| `server/` | Deprecated TypeScript/MongoDB server, replaced by `rust/`. |
 | `browser/src/app` | Screens. |
 | `browser/src/core` | Non-visual browser plumbing: auth, router, endpoint hooks. |
 | `browser/src/ui` | The `@ui` component library, vendored from `src/lib` in the `uilib-261005` repository. |
-
-**Keep both servers working.** The Rust server is awaiting confirmation, so
-the TypeScript `server/` must not be removed or rewritten in the meantime.
 
 **The `@ui` folder is a copy.** Never edit `browser/src/ui` for app-specific
 needs. Change `uilib-261005` and copy it across again.
