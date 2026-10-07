@@ -107,6 +107,8 @@ memory.
 
 - Show a single loading state until the form or dialog has all of its initial
   data. Don't reveal fields one by one as requests land.
+- Dialog footers are never sticky. The whole dialog scrolls as one, with the
+  footer after the content.
 - Dialog bodies never scroll horizontally. Long values wrap within the dialog
   width.
 - Stacked card-style radio options render as one connected list: shared
