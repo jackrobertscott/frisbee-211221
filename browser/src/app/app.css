@@ -202,7 +202,19 @@ body { background: var(--bg-app); }
 .fr-tool:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }
 .fr-tool:disabled { opacity: 0.55; cursor: not-allowed; }
 .fr-tool[data-danger] .ui-icon-tile { color: var(--danger-text); }
-.fr-tool__text { display: flex; flex-direction: column; gap: 2px; }
+.fr-tool__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fr-tool__chevron { display: none; }
+/* Phones: the tools collapse into one connected list of compact rows, one line of description each. */
+@media (max-width: 720px) {
+  .fr-tools { display: flex; flex-direction: column; gap: 0; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-xs); overflow: hidden; }
+  .fr-tool { align-items: center; padding: var(--sp-2-5) var(--sp-3); border: 0; border-top: 1px solid var(--border-subtle); border-radius: 0; box-shadow: none; }
+  .fr-tool:first-child { border-top: 0; }
+  .fr-tool:hover:not(:disabled) { box-shadow: none; border-color: var(--border-subtle); background: var(--bg-hover); }
+  .fr-tool:focus-visible { box-shadow: inset 0 0 0 2px var(--ring); }
+  .fr-tool__text { flex: 1; }
+  .fr-tool__body { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fr-tool__chevron { display: block; flex-shrink: 0; width: 16px; height: 16px; color: var(--text-tertiary); }
+}
 
 /* Auth / setup ------------------------------------------------------------ */
 .fr-auth { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: var(--sp-8) var(--sp-4); background: var(--bg-app); }

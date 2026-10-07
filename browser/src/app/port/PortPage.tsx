@@ -1,6 +1,7 @@
 import {TGamedayImportRun} from '@shared/schemas/ioGamedayImport'
 import {IconTile, Text} from '@ui'
 import {
+  ChevronRight,
   CloudDownload,
   Download,
   FileUp,
@@ -124,10 +125,11 @@ export function PortPage() {
               <Text as="span" size="sm" weight="medium">
                 {t.title}
               </Text>
-              <Text as="span" size="xs" tone="tertiary">
+              <Text as="span" size="xs" tone="tertiary" className="fr-tool__body">
                 {t.body}
               </Text>
             </span>
+            <ChevronRight className="fr-tool__chevron" aria-hidden />
           </button>
         ))}
       </div>
