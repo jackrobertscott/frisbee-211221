@@ -255,8 +255,8 @@ body { background: var(--bg-app); }
 /* Loading ----------------------------------------------------------------- */
 .fr-loading { --_min: 50vh; min-height: var(--_min); display: grid; place-items: center; }
 .fr-app > .fr-loading { --_min: 100vh; }
-/* Fast loads skip the spinner entirely: it (and the space it reserves) only appears once loading has taken a moment, so panels go straight from empty to content instead of flashing a tall spinner. */
-.fr-loading--pending { animation: fr-loading-reveal 0s 250ms both; }
+/* Fast loads skip the spinner entirely: it (and the space it reserves) only appears once loading has been slow (the delay is set inline by `Loading`), so panels go straight from empty to content instead of flashing a tall spinner. */
+.fr-loading--pending { animation: fr-loading-reveal 0s 1s both; }
 @keyframes fr-loading-reveal {
   from { min-height: 0; visibility: hidden; }
   to { min-height: var(--_min); visibility: visible; }

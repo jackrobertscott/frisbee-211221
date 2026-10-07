@@ -2,11 +2,12 @@ import {Button, EmptyState, Spinner} from '@ui'
 import {CloudOff, RotateCw} from 'lucide-react'
 import {useEffect, useRef, useState} from 'react'
 
-/** How long the spinner waits before appearing (matches `fr-loading-reveal` in app.css). */
-const REVEAL_DELAY = 250
-/** A spinner mounting this soon after a visible one went away continues it instead of waiting again. */
+/** How long a load must run before the spinner appears. */
+const REVEAL_DELAY = 1000
+/** A spinner mounting this soon after another went away is the next stage of the same load. */
 const HANDOFF_WINDOW = 100
-let lastVisibleAt = -Infinity
+let lastEndedAt = -Infinity
+let lastStartedAt = 0
 
 /** Centered spinner for page and panel loading states; shows a retry state once loading failed. */
 export function Loading({
@@ -18,17 +19,20 @@ export function Loading({
   failed?: boolean
   onRetry?: () => void
 }) {
-  /* Loads often run in stages (auth, page chunk, page data), each with its own spinner. Without this, every stage would hide for the reveal delay and the spinner would blink on and off. */
-  const [immediate] = useState(() => Date.now() - lastVisibleAt < HANDOFF_WINDOW)
+  /* Loads often run in stages (auth, page chunk, page data), each with its own spinner. The stages share one start time, so the spinner only appears once the load as a whole has been slow, rather than each stage flashing it briefly. */
+  const [startedAt] = useState(() => {
+    const now = Date.now()
+    return now - lastEndedAt < HANDOFF_WINDOW ? lastStartedAt : now
+  })
   const failedRef = useRef(failed)
   failedRef.current = failed
-  useEffect(() => {
-    const mountedAt = Date.now()
-    return () => {
-      const shown = immediate || Date.now() - mountedAt >= REVEAL_DELAY
-      if (shown && !failedRef.current) lastVisibleAt = Date.now()
-    }
-  }, [immediate])
+  useEffect(
+    () => () => {
+      lastEndedAt = failedRef.current ? -Infinity : Date.now()
+      lastStartedAt = startedAt
+    },
+    [startedAt],
+  )
   if (failed)
     return (
       <div className="fr-loading">
@@ -48,7 +52,8 @@ export function Loading({
     )
   return (
     <div
-      className={immediate ? 'fr-loading' : 'fr-loading fr-loading--pending'}
+      className="fr-loading fr-loading--pending"
+      style={{animationDelay: `${Math.max(0, startedAt + REVEAL_DELAY - Date.now())}ms`}}
       role="status"
       aria-label={label}
     >
