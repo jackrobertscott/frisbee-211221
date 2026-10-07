@@ -81,8 +81,9 @@ export function TeamsPage() {
             variant="primary"
             leading={<Plus />}
             onClick={() => creatingSet(true)}
+            aria-label="Create team"
           >
-            Create team
+            Create<span className="fr-hide-sm"> team</span>
           </Button>
         )}
       </Toolbar>

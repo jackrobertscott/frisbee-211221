@@ -109,8 +109,9 @@ export function UsersPage() {
           variant="primary"
           leading={<Plus />}
           onClick={() => creatingSet(true)}
+          aria-label="Create user"
         >
-          Create user
+          Create<span className="fr-hide-sm"> user</span>
         </Button>
       </Toolbar>
       <DataTable<TUserSafe>
