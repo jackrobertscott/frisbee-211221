@@ -235,19 +235,19 @@ body { background: var(--bg-app); }
   .fr-tally { grid-template-columns: 1fr; }
 }
 @media (max-width: 720px) {
-  .fr-header { padding: var(--sp-2) var(--sp-3); gap: var(--sp-2); }
+  .fr-header { padding: var(--sp-2) var(--sp-4); gap: var(--sp-2); }
   .fr-brand__text { display: none; }
   .fr-header__team-name { max-width: 90px; }
   .fr-hide-sm { display: none; }
   /* Phones: the header scrolls away with the page instead of sticking. Sticky and fixed layers are where mobile Safari draws and hit-tests things out of place after a page change. */
   .fr-header { position: relative; backdrop-filter: none; background: var(--bg-surface); }
-  .fr-nav { gap: var(--sp-2); padding: var(--sp-1) var(--sp-3) 0 0; }
-  .fr-nav__tabs .ui-tablist { padding-left: var(--sp-3); scroll-padding-inline: var(--sp-3); overscroll-behavior-x: contain; }
+  .fr-nav { gap: var(--sp-2); padding: var(--sp-1) var(--sp-4) 0 0; }
+  .fr-nav__tabs .ui-tablist { padding-left: var(--sp-4); scroll-padding-inline: var(--sp-4); overscroll-behavior-x: contain; }
   .fr-nav__tabs .ui-tablist .ui-tab { height: 44px; padding: 0 var(--sp-2-5); }
   .fr-nav__tabs .ui-tablist { --_fade-l: 0px; --_fade-r: 0px; mask-image: linear-gradient(to right, transparent, #000 var(--_fade-l), #000 calc(100% - var(--_fade-r)), transparent); -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--_fade-l), #000 calc(100% - var(--_fade-r)), transparent); }
   .fr-nav[data-less] .fr-nav__tabs .ui-tablist { --_fade-l: 32px; }
   .fr-nav[data-more] .fr-nav__tabs .ui-tablist { --_fade-r: 32px; }
-  .fr-main { padding: var(--sp-4) var(--sp-3) var(--sp-6); }
+  .fr-main { padding: var(--sp-4) var(--sp-4) var(--sp-6); }
   .fr-grid-2 { grid-template-columns: 1fr; }
   .fr-show-sm { display: inline; }
   /* Phones: page actions share one row in equal columns. */
