@@ -365,7 +365,11 @@ const ACTIONABLE_JS: &str = r#"(element) => {
     return {state: 'hidden'}
   }
   if (element.disabled) return {state: 'disabled'}
-  return {state: 'ok', x: rect.left + rect.width / 2, y: rect.top + rect.height / 2}
+  const x = rect.left + rect.width / 2
+  const y = rect.top + rect.height / 2
+  const hit = document.elementFromPoint(x, y)
+  if (!hit || (hit !== element && !element.contains(hit))) return {state: 'obscured'}
+  return {state: 'ok', x, y}
 }"#;
 
 #[derive(Default)]
@@ -503,14 +507,25 @@ impl ChromePage {
             return Err(GamedayError(format!("{api}: {error} at {url}")));
         }
         // same-document navigations have no new loader
-        let Some(loader_id) = navigation["loaderId"].as_str() else {
+        if navigation["loaderId"].as_str().is_none() {
             return Ok(());
-        };
+        }
+        // Any main-frame document committed since the navigation started
+        // counts (lifecycle "init" marks a commit), not just the navigation's
+        // own loader: a page that redirects from script before its
+        // DOMContentLoaded (GameDay's passport sign-on hop) never fires one.
+        let frame_id = navigation["frameId"].clone();
+        let mut committed = None;
         loop {
             match tokio::time::timeout(deadline.remaining(), lifecycle.recv()).await {
                 Ok(Some(event)) => {
-                    if event["loaderId"] == loader_id
-                        && (event["name"] == "DOMContentLoaded" || event["name"] == "load")
+                    if event["frameId"] != frame_id {
+                        continue;
+                    }
+                    if event["name"] == "init" {
+                        committed = Some(event["loaderId"].clone());
+                    } else if (event["name"] == "DOMContentLoaded" || event["name"] == "load")
+                        && committed.as_ref() == Some(&event["loaderId"])
                     {
                         return Ok(());
                     }
@@ -700,8 +715,10 @@ impl ChromePage {
         Ok(value.as_u64().unwrap_or(0) as usize)
     }
 
-    /// Waits for the first match to be visible and enabled; returns its
-    /// centre in viewport coordinates.
+    /// Waits for the first match to be visible, enabled, not covered by
+    /// another element and in the same place on two polls in a row (like
+    /// Playwright's actionability checks); returns its centre in viewport
+    /// coordinates.
     async fn wait_for_actionable(
         &self,
         api: &str,
@@ -709,6 +726,7 @@ impl ChromePage {
         timeout_ms: f64,
     ) -> GamedayResult<(f64, f64)> {
         let deadline = Deadline::new(timeout_ms);
+        let mut previous = None;
         loop {
             let result = self
                 .evaluate_on_first(api, locator, ACTIONABLE_JS, &Value::Null)
@@ -717,10 +735,13 @@ impl ChromePage {
                 Ok(state) if state["state"] == "ok" => {
                     let x = state["x"].as_f64().unwrap_or_default();
                     let y = state["y"].as_f64().unwrap_or_default();
-                    return Ok((x, y));
+                    if previous == Some((x, y)) {
+                        return Ok((x, y));
+                    }
+                    previous = Some((x, y));
                 }
                 Err(error) if !is_navigation_error(&error) => return Err(error),
-                _ => {}
+                _ => previous = None,
             }
             if deadline.expired() {
                 return Err(timeout_error(api, timeout_ms));

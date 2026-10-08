@@ -733,20 +733,41 @@ async fn select_association(
         ));
     }
 
-    page.click(&association_link).await?;
-    let _ = page
-        .wait_for_url(
-            |url| {
-                url.host_str() == Some(GAMEDAY_MEMBERSHIP_HOST) && url.path().ends_with("/main.cgi")
-            },
-            90_000.0,
-        )
-        .await;
+    // follow the link's href rather than clicking it: a click at the entry's
+    // centre can miss while the organisation list is still laying out
+    let href = page
+        .get_attribute(&association_link, "href")
+        .await?
+        .filter(|href| !href.is_empty());
+    let Some(href) = href else {
+        return fail(format!(
+            "Could not read the link for organisation \"{association}\" on the GameDay authorisation page."
+        ));
+    };
+    page.goto(&resolve_url(&href, &page.url().await?)?, 60_000.0)
+        .await?;
+    let is_association_home = |url: &url::Url| {
+        url.host_str() == Some(GAMEDAY_MEMBERSHIP_HOST) && url.path().ends_with("/main.cgi")
+    };
+    let _ = page.wait_for_url(&is_association_home, 90_000.0).await;
     let _ = page
         .wait_for_load_state(LoadState::DomContentLoaded, 60_000.0)
         .await;
     page.wait_for_timeout(1_500).await;
-    maybe_debug(page, debug_dir, "association-home").await
+    maybe_debug(page, debug_dir, "association-home").await?;
+
+    let current_url = page.url().await?;
+    match url::Url::parse(&current_url) {
+        Ok(url) if is_association_home(&url) => Ok(()),
+        Ok(url) => fail(format!(
+            "Opening organisation \"{association}\" did not reach the GameDay organisation home (stopped at {}{}).",
+            url.origin().ascii_serialization(),
+            url.path()
+        )),
+        Err(_) => fail(format!(
+            "Opening organisation \"{association}\" did not reach the GameDay organisation home."
+        )),
+    }
 }
 
 async fn select_competition(
