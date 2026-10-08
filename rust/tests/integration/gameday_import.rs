@@ -2,10 +2,8 @@
 //! mocked `runGamedayExportProcess`; here the server's exporter is swapped
 //! for a [`MockExporter`].
 
-mod common;
-
-use common::actors::{Actor, SignUp, create_season, sign_up};
-use common::{Response, TestServer, assert_match};
+use crate::common::actors::{Actor, SignUp, create_season, sign_up};
+use crate::common::{Response, TestServer, assert_match};
 use frisbee::db::{Patch, Query};
 use frisbee::gameday::mock_exporter::MockExporter;
 use frisbee::gameday::types::GamedayExportMember;

@@ -2,9 +2,7 @@
 //! against stub endpoints so the pipeline is covered before every domain
 //! endpoint exists.
 
-mod common;
-
-use common::{CLIENT_ORIGIN, CallOptions, OriginHeader, TestServer, assert_match};
+use crate::common::{self, CLIENT_ORIGIN, CallOptions, OriginHeader, TestServer, assert_match};
 use frisbee::http::endpoint::{Ctx, Endpoint};
 use frisbee::shared::contract;
 use frisbee::shared::utils::endpoint_def::EndpointDef;

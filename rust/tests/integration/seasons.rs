@@ -1,9 +1,9 @@
 //! Port of `server/test/integration/seasons.test.ts`.
 
-mod common;
-
-use common::actors::{Actor, NewMember, SignUp, add_member, create_season, create_team, sign_up};
-use common::{TestServer, assert_match};
+use crate::common::actors::{
+    Actor, NewMember, SignUp, add_member, create_season, create_team, sign_up,
+};
+use crate::common::{TestServer, assert_match};
 use frisbee::db::Filter;
 use frisbee::shared::schemas::{Fixture, Member, Season, Team, User};
 use frisbee::tables::{FIXTURE, MEMBER, REPORT, SEASON, TEAM, USER};

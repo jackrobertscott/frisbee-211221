@@ -1,11 +1,9 @@
 //! Port of `server/test/integration/reports.test.ts`.
 
-mod common;
-
-use common::actors::{
+use crate::common::actors::{
     Actor, NewMember, SignUp, add_member, create_season, create_team, sign_up, unique_email,
 };
-use common::{TestServer, assert_match};
+use crate::common::{TestServer, assert_match};
 use frisbee::shared::schemas::{Fixture, Report};
 use frisbee::tables::{FIXTURE, REPORT};
 use serde_json::{Map, Value, json};

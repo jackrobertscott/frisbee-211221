@@ -11,7 +11,7 @@ that consumes the file (Feature, Fixture, Member, Port, Report, Season,
 Security, Team, User). Tests named `foo.test.ts` become `#[cfg(test)]`
 modules in the matching Rust file (or `foo_tests.rs` next to it);
 integration tests in `server/test/integration/x.test.ts` become
-`tests/x.rs`.
+`tests/integration/x.rs`.
 
 | TypeScript | Rust | Owner | Status |
 | --- | --- | --- | --- |
@@ -45,9 +45,9 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/src/endpoints/User.ts` | src/endpoints/user.rs | User | done |
 | `server/src/gameday/credentials.test.ts` | src/gameday/credentials.rs (tests) | Port | done (+ a TS-encrypted fixture) |
 | `server/src/gameday/credentials.ts` | src/gameday/credentials.rs | Port | done |
-| `server/src/gameday/exportCli.test.ts` | src/gameday/export_cli.rs (tests), tests/gameday_export_cli.rs (process protocol) | Port | done |
+| `server/src/gameday/exportCli.test.ts` | src/gameday/export_cli.rs (tests), tests/integration/gameday_export_cli.rs (process protocol) | Port | done |
 | `server/src/gameday/exportCli.ts` | src/bin/gameday-export.rs (+ src/gameday/export_cli.rs) | Port | done |
-| `server/src/gameday/exporter.test.ts` | src/gameday/exporter_tests.rs (+ ignored real-Chrome smoke test tests/gameday_export_smoke.rs) | Port | done |
+| `server/src/gameday/exporter.test.ts` | src/gameday/exporter_tests.rs (+ ignored real-Chrome smoke test tests/integration/gameday_export_smoke.rs) | Port | done |
 | `server/src/gameday/exporter.ts` | src/gameday/exporter.rs (+ src/gameday/browser.rs, the CDP layer replacing playwright-core) | Port | done |
 | `server/src/gameday/importMembers.test.ts` | src/gameday/import_members_tests.rs | Port | done |
 | `server/src/gameday/importMembers.ts` | src/gameday/import_members.rs | Port | done |
@@ -128,22 +128,22 @@ integration tests in `server/test/integration/x.test.ts` become
 | `server/src/utils/mail.test.ts` | src/utils/mail.rs, src/utils/html.rs (tests) | Foundation | done |
 | `server/src/utils/mail.ts` | src/utils/mail.rs | Foundation | done |
 | `server/src/utils/random.ts` | src/utils/random.rs | Foundation | done |
-| `server/test/actors.ts` | tests/common/actors.rs | Foundation | done |
+| `server/test/actors.ts` | tests/integration/common/actors.rs | Foundation | done |
 | `server/test/database.ts` | src/testing.rs (`TestApp`, `TestDir`) | Foundation | done |
 | `server/test/globalSetup.ts` | — (no shared server needed: each test opens its own SQLite file) | Foundation | N/A |
-| `server/test/harness.ts` | tests/common/mod.rs | Foundation | done |
-| `server/test/integration/dashboards.test.ts` | tests/dashboards.rs | Feature | done |
-| `server/test/integration/fixtures.test.ts` | tests/fixtures.rs | Fixture | done |
-| `server/test/integration/gamedayImport.test.ts` | tests/gameday_import.rs | Port | done |
-| `server/test/integration/http.test.ts` | tests/http.rs | Foundation | done |
-| `server/test/integration/members.test.ts` | tests/members.rs | Member | done |
-| `server/test/integration/migrations.test.ts` | tests/migrations.rs | Foundation | done |
-| `server/test/integration/port.test.ts` | tests/port.rs | Port | done |
-| `server/test/integration/reports.test.ts` | tests/reports.rs | Report | done |
-| `server/test/integration/seasons.test.ts` | tests/seasons.rs | Season | done |
-| `server/test/integration/security.test.ts` | tests/security.rs | Security | done |
-| `server/test/integration/teams.test.ts` | tests/teams.rs | Team | done |
-| `server/test/integration/users.test.ts` | tests/users.rs | User | done |
+| `server/test/harness.ts` | tests/integration/common/mod.rs | Foundation | done |
+| `server/test/integration/dashboards.test.ts` | tests/integration/dashboards.rs | Feature | done |
+| `server/test/integration/fixtures.test.ts` | tests/integration/fixtures.rs | Fixture | done |
+| `server/test/integration/gamedayImport.test.ts` | tests/integration/gameday_import.rs | Port | done |
+| `server/test/integration/http.test.ts` | tests/integration/http.rs | Foundation | done |
+| `server/test/integration/members.test.ts` | tests/integration/members.rs | Member | done |
+| `server/test/integration/migrations.test.ts` | tests/integration/migrations.rs | Foundation | done |
+| `server/test/integration/port.test.ts` | tests/integration/port.rs | Port | done |
+| `server/test/integration/reports.test.ts` | tests/integration/reports.rs | Report | done |
+| `server/test/integration/seasons.test.ts` | tests/integration/seasons.rs | Season | done |
+| `server/test/integration/security.test.ts` | tests/integration/security.rs | Security | done |
+| `server/test/integration/teams.test.ts` | tests/integration/teams.rs | Team | done |
+| `server/test/integration/users.test.ts` | tests/integration/users.rs | User | done |
 | `server/test/setup.ts` | src/config.rs (`Config::for_tests`) | Foundation | done |
 | `shared/src/auth/authAccess.test.ts` | src/shared/auth_access.rs (tests) | Foundation | done |
 | `shared/src/auth/authAccess.ts` | src/shared/auth_access.rs | Foundation | done |
@@ -187,7 +187,7 @@ integration tests in `server/test/integration/x.test.ts` become
 | Binary | Purpose | Owner | Status |
 | --- | --- | --- | --- |
 | `src/bin/frisbee-server.rs` | The HTTP server (`server/src/index.ts`) | Foundation | done |
-| `src/bin/migrate-mongo.rs` | One-off import of a `mongodump` (directory, `--gzip`, `--archive`) into SQLite; logic in `src/migrate/` (tests there and in `tests/migrate_mongo.rs`, fixture in `tests/fixtures/mongo/`). See README "Migrating from MongoDB" | Migration | done |
+| `src/bin/migrate-mongo.rs` | One-off import of a `mongodump` (directory, `--gzip`, `--archive`) into SQLite; logic in `src/migrate/` (tests there and in `tests/integration/migrate_mongo.rs`, fixture in `tests/fixtures/mongo/`). See README "Migrating from MongoDB" | Migration | done |
 | `src/bin/gameday-export.rs` | `server/src/gameday/exportCli.ts` (protocol in ARCHITECTURE.md) | Port | done |
 
 ## Inapplicable or adapted tests
@@ -234,7 +234,7 @@ list below summarises the main adaptations.
 - `gameday/exportCli.test.ts`: the module re-import with a mocked exporter
   becomes `export_cli::run` with an injected exporter (stdin chunks via an
   `AsyncRead` chain); the real binary's stdin/stdout/exit code are checked
-  in `tests/gameday_export_cli.rs`. Invalid JSON reports serde_json's
+  in `tests/integration/gameday_export_cli.rs`. Invalid JSON reports serde_json's
   message (e.g. `expected ident at line 1 column 2`) rather than V8's
   `Unexpected token ...`; the test only checks the prefix, as in TS.
 - `userList.test.ts` › `getUserListPipeline` cases assert on the Mongo

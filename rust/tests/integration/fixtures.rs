@@ -1,10 +1,8 @@
 //! Port of `server/test/integration/fixtures.test.ts`.
 
-mod common;
-
+use crate::common::actors::{Actor, SignUp, create_season, create_team, sign_up};
+use crate::common::{CallOptions, Response, TestServer, assert_match};
 use chrono::{DateTime, Local, TimeZone, Utc};
-use common::actors::{Actor, SignUp, create_season, create_team, sign_up};
-use common::{CallOptions, Response, TestServer, assert_match};
 use frisbee::db::{Patch, Query};
 use frisbee::shared::schemas::{Fixture, Team};
 use frisbee::tables::{FIXTURE, TEAM};
