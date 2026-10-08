@@ -264,7 +264,7 @@ None of these change what the browser sees in normal use:
   instead of using ICU.
 - `Date.parse` fallbacks for non-ISO strings are a best-effort port of V8's
   legacy parser; ISO strings behave identically.
-- The GameDay exporter drives Chrome over CDP (`chromiumoxide`) instead of
+- The GameDay exporter drives Chrome over CDP (the built-in `gameday::cdp` client) instead of
   Playwright: there is no bundled Chromium (the `bundled` channel and the
   fallback after a failed channel launch use any Chrome/Chromium found on
   `PATH`), browser errors read like Playwright's (`page.goto: Timeout

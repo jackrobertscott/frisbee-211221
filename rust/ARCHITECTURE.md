@@ -280,7 +280,8 @@ environment minus server secrets, as `runExportProcess.ts` does.
 
 Inside the process: `gameday::exporter` is `exporter.ts` (options, field
 resolution, CSV parsing, the report polling) and drives Chrome through
-`gameday::browser` (`chromiumoxide` over CDP; a Playwright-like `ChromePage`
+`gameday::browser` (over `gameday::cdp`, a small built-in DevTools protocol
+client; a Playwright-like `ChromePage`
 with `goto`, `fill`, `click`, `waitForURL`, ...). Chrome is found from
 `browserExecutablePath` / `GAMEDAY_BROWSER_EXECUTABLE_PATH` /
 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` / `CHROME_PATH`, then the TS list of
