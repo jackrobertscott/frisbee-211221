@@ -12,6 +12,14 @@ body {
   padding: 0;
 }
 
+/* No browser tap flash or inner focus border; focus is shown only by :focus-visible below. */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+button::-moz-focus-inner {
+  border: 0;
+}
+
 body {
   font-family: var(--ui-font-sans);
   font-size: var(--fs-md);
