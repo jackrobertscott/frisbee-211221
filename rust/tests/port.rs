@@ -1,9 +1,11 @@
 //! Port of `server/test/integration/port.test.ts`.
 
-use crate::common::actors::{
+mod common;
+
+use common::actors::{
     Actor, NewMember, SignUp, add_member, create_season, create_team, sign_up, unique_email,
 };
-use crate::common::{CLIENT_ORIGIN, CallOptions, TestServer, assert_match};
+use common::{CLIENT_ORIGIN, CallOptions, TestServer, assert_match};
 use frisbee::db::{Filter, Patch, Query};
 use frisbee::shared::schemas::{GamedayImportConfig, Member, Report, Team, User, UserEmail};
 use frisbee::tables::{GAMEDAY_IMPORT_CONFIG, MEMBER, REPORT, TEAM, USER};

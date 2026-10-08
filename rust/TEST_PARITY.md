@@ -18,7 +18,7 @@ Status:
   not have; each is justified.
 
 Rust paths: `src::…` are unit tests in the `frisbee` library
-(`cargo test --lib`), `tests/integration/x.rs::…` are integration tests (one binary, `cargo test --test integration`).
+(`cargo test --lib`), `tests/x.rs::…` are integration test binaries.
 
 ## Summary
 
@@ -348,10 +348,10 @@ extra pipeline checks).
 
 | TS test | Rust test | Status | Notes |
 | --- | --- | --- | --- |
-| exportCli > reads the input from stdin and writes the export as JSON | `src::gameday::export_cli::tests::export_cli::reads_the_input_from_stdin_and_writes_the_export_as_json` | adapted | The module re-import with a mocked exporter becomes `export_cli::run` with an injected exporter and chunked stdin; the real binary is exercised in `tests/integration/gameday_export_cli.rs`. |
-| exportCli > fails with exit code 1 for input that is not JSON | `src::gameday::export_cli::tests::export_cli::fails_with_exit_code_1_for_input_that_is_not_json`<br>`tests/integration/gameday_export_cli.rs::fails_with_exit_code_1_for_input_that_is_not_json` | adapted | In-process and against the real binary (exit code, empty stdout, stderr prefix). |
-| exportCli > fails with the validation message for invalid input | `src::gameday::export_cli::tests::export_cli::fails_with_the_validation_message_for_invalid_input`<br>`tests/integration/gameday_export_cli.rs::fails_with_the_validation_message_for_invalid_input` | adapted | In-process and against the real binary. |
-| exportCli > reports non-Error failures from the exporter | `src::gameday::export_cli::tests::export_cli::reports_non_error_failures_from_the_exporter`<br>`tests/integration/gameday_export_cli.rs::reports_exporter_failures_before_a_browser_starts` | adapted | The exporter returns `GamedayError("browser crashed")` (a thrown string); `tests/integration/gameday_export_cli.rs::reports_exporter_failures_before_a_browser_starts` checks a real failure through the binary. |
+| exportCli > reads the input from stdin and writes the export as JSON | `src::gameday::export_cli::tests::export_cli::reads_the_input_from_stdin_and_writes_the_export_as_json` | adapted | The module re-import with a mocked exporter becomes `export_cli::run` with an injected exporter and chunked stdin; the real binary is exercised in `tests/gameday_export_cli.rs`. |
+| exportCli > fails with exit code 1 for input that is not JSON | `src::gameday::export_cli::tests::export_cli::fails_with_exit_code_1_for_input_that_is_not_json`<br>`tests/gameday_export_cli.rs::fails_with_exit_code_1_for_input_that_is_not_json` | adapted | In-process and against the real binary (exit code, empty stdout, stderr prefix). |
+| exportCli > fails with the validation message for invalid input | `src::gameday::export_cli::tests::export_cli::fails_with_the_validation_message_for_invalid_input`<br>`tests/gameday_export_cli.rs::fails_with_the_validation_message_for_invalid_input` | adapted | In-process and against the real binary. |
+| exportCli > reports non-Error failures from the exporter | `src::gameday::export_cli::tests::export_cli::reports_non_error_failures_from_the_exporter`<br>`tests/gameday_export_cli.rs::reports_exporter_failures_before_a_browser_starts` | adapted | The exporter returns `GamedayError("browser crashed")` (a thrown string); `tests/gameday_export_cli.rs::reports_exporter_failures_before_a_browser_starts` checks a real failure through the binary. |
 
 ## `server/src/gameday/exporter.test.ts`
 
@@ -861,22 +861,22 @@ extra pipeline checks).
 
 | TS test | Rust test | Status | Notes |
 | --- | --- | --- | --- |
-| FeatureDashboardReportsLoad > pages reports newest first with joined names and the season context | `tests/integration/dashboards.rs::feature_dashboard_reports_load::pages_reports_newest_first_with_joined_names_and_the_season_context` | equivalent |  |
-| FeatureDashboardReportsLoad > searches fixture titles, team names, submitters and comments | `tests/integration/dashboards.rs::feature_dashboard_reports_load::searches_fixture_titles_team_names_submitters_and_comments` | equivalent |  |
-| FeatureDashboardReportsLoad > returns an empty result for a season without reports | `tests/integration/dashboards.rs::feature_dashboard_reports_load::returns_an_empty_result_for_a_season_without_reports` | equivalent |  |
-| FeatureDashboardSpiritLoad > `sums, averages and adjusts spirit (${useOfficialScoring ? 'official' : 'simple'} scoring)` [simple scoring] | `tests/integration/dashboards.rs::feature_dashboard_spirit_load::sums_averages_and_adjusts_spirit_simple_scoring` | equivalent | The `for` loop generates one test per scoring system. |
-| FeatureDashboardSpiritLoad > `sums, averages and adjusts spirit (${useOfficialScoring ? 'official' : 'simple'} scoring)` [official scoring] | `tests/integration/dashboards.rs::feature_dashboard_spirit_load::sums_averages_and_adjusts_spirit_official_scoring` | equivalent | The `for` loop generates one test per scoring system. |
-| FeatureDashboardSpiritLoad > sorts by every key in both directions | `tests/integration/dashboards.rs::feature_dashboard_spirit_load::sorts_by_every_key_in_both_directions` | equivalent |  |
-| FeatureDashboardSpiritLoad > is admin only | `tests/integration/dashboards.rs::feature_dashboard_spirit_load::is_admin_only` | equivalent |  |
-| FeatureDashboardMvpLoad > awards 5/3 points under official scoring ordered by votes, division and name | `tests/integration/dashboards.rs::feature_dashboard_mvp_load::awards_5_3_points_under_official_scoring_ordered_by_votes_division_and_name` | equivalent |  |
-| FeatureDashboardMvpLoad > awards 1 point for primary picks only under simple scoring | `tests/integration/dashboards.rs::feature_dashboard_mvp_load::awards_1_point_for_primary_picks_only_under_simple_scoring` | equivalent |  |
-| FeatureDashboardMvpLoad > counts only the slots the season gender division uses | `tests/integration/dashboards.rs::feature_dashboard_mvp_load::counts_only_the_slots_the_season_gender_division_uses` | equivalent |  |
-| fixture and report editor loaders > loads the competition with teams by division and fixtures by date | `tests/integration/dashboards.rs::fixture_and_report_editor_loaders::loads_the_competition_with_teams_by_division_and_fixtures_by_date` | equivalent |  |
-| fixture and report editor loaders > loads a public fixture view | `tests/integration/dashboards.rs::fixture_and_report_editor_loaders::loads_a_public_fixture_view` | equivalent |  |
-| fixture and report editor loaders > loads a fixture tally with its reports newest first (admin only) | `tests/integration/dashboards.rs::fixture_and_report_editor_loaders::loads_a_fixture_tally_with_its_reports_newest_first_admin_only` | equivalent |  |
-| fixture and report editor loaders > loads report editor options with the opposition players | `tests/integration/dashboards.rs::fixture_and_report_editor_loaders::loads_report_editor_options_with_the_opposition_players` | equivalent |  |
-| fixture and report editor loaders > validates report editor team and fixture access | `tests/integration/dashboards.rs::fixture_and_report_editor_loaders::validates_report_editor_team_and_fixture_access` | equivalent |  |
-| FeatureDashboardUserMembershipsLoad > returns a user memberships with their seasons and teams | `tests/integration/dashboards.rs::feature_dashboard_user_memberships_load::returns_a_user_memberships_with_their_seasons_and_teams` | equivalent |  |
+| FeatureDashboardReportsLoad > pages reports newest first with joined names and the season context | `tests/dashboards.rs::feature_dashboard_reports_load::pages_reports_newest_first_with_joined_names_and_the_season_context` | equivalent |  |
+| FeatureDashboardReportsLoad > searches fixture titles, team names, submitters and comments | `tests/dashboards.rs::feature_dashboard_reports_load::searches_fixture_titles_team_names_submitters_and_comments` | equivalent |  |
+| FeatureDashboardReportsLoad > returns an empty result for a season without reports | `tests/dashboards.rs::feature_dashboard_reports_load::returns_an_empty_result_for_a_season_without_reports` | equivalent |  |
+| FeatureDashboardSpiritLoad > `sums, averages and adjusts spirit (${useOfficialScoring ? 'official' : 'simple'} scoring)` [simple scoring] | `tests/dashboards.rs::feature_dashboard_spirit_load::sums_averages_and_adjusts_spirit_simple_scoring` | equivalent | The `for` loop generates one test per scoring system. |
+| FeatureDashboardSpiritLoad > `sums, averages and adjusts spirit (${useOfficialScoring ? 'official' : 'simple'} scoring)` [official scoring] | `tests/dashboards.rs::feature_dashboard_spirit_load::sums_averages_and_adjusts_spirit_official_scoring` | equivalent | The `for` loop generates one test per scoring system. |
+| FeatureDashboardSpiritLoad > sorts by every key in both directions | `tests/dashboards.rs::feature_dashboard_spirit_load::sorts_by_every_key_in_both_directions` | equivalent |  |
+| FeatureDashboardSpiritLoad > is admin only | `tests/dashboards.rs::feature_dashboard_spirit_load::is_admin_only` | equivalent |  |
+| FeatureDashboardMvpLoad > awards 5/3 points under official scoring ordered by votes, division and name | `tests/dashboards.rs::feature_dashboard_mvp_load::awards_5_3_points_under_official_scoring_ordered_by_votes_division_and_name` | equivalent |  |
+| FeatureDashboardMvpLoad > awards 1 point for primary picks only under simple scoring | `tests/dashboards.rs::feature_dashboard_mvp_load::awards_1_point_for_primary_picks_only_under_simple_scoring` | equivalent |  |
+| FeatureDashboardMvpLoad > counts only the slots the season gender division uses | `tests/dashboards.rs::feature_dashboard_mvp_load::counts_only_the_slots_the_season_gender_division_uses` | equivalent |  |
+| fixture and report editor loaders > loads the competition with teams by division and fixtures by date | `tests/dashboards.rs::fixture_and_report_editor_loaders::loads_the_competition_with_teams_by_division_and_fixtures_by_date` | equivalent |  |
+| fixture and report editor loaders > loads a public fixture view | `tests/dashboards.rs::fixture_and_report_editor_loaders::loads_a_public_fixture_view` | equivalent |  |
+| fixture and report editor loaders > loads a fixture tally with its reports newest first (admin only) | `tests/dashboards.rs::fixture_and_report_editor_loaders::loads_a_fixture_tally_with_its_reports_newest_first_admin_only` | equivalent |  |
+| fixture and report editor loaders > loads report editor options with the opposition players | `tests/dashboards.rs::fixture_and_report_editor_loaders::loads_report_editor_options_with_the_opposition_players` | equivalent |  |
+| fixture and report editor loaders > validates report editor team and fixture access | `tests/dashboards.rs::fixture_and_report_editor_loaders::validates_report_editor_team_and_fixture_access` | equivalent |  |
+| FeatureDashboardUserMembershipsLoad > returns a user memberships with their seasons and teams | `tests/dashboards.rs::feature_dashboard_user_memberships_load::returns_a_user_memberships_with_their_seasons_and_teams` | equivalent |  |
 
 ## `server/test/integration/fixtures.test.ts`
 
@@ -884,25 +884,25 @@ extra pipeline checks).
 
 | TS test | Rust test | Status | Notes |
 | --- | --- | --- | --- |
-| fixture management > creates, updates and deletes fixtures as an admin | `tests/integration/fixtures.rs::fixture_management::creates_updates_and_deletes_fixtures_as_an_admin` | equivalent |  |
-| fixture management > rejects fixture writes from non-admins and unknown seasons | `tests/integration/fixtures.rs::fixture_management::rejects_fixture_writes_from_non_admins_and_unknown_seasons` | equivalent |  |
-| FixtureAdjustMultiple > `moves fixtures on/after the reference by ${amount} ${unit} ${direction}` [3 day forward] | `tests/integration/fixtures.rs::fixture_adjust_multiple::moves_fixtures_on_after_the_reference_by_3_day_forward` | equivalent | The `for` loop generates one test per case. |
-| FixtureAdjustMultiple > `moves fixtures on/after the reference by ${amount} ${unit} ${direction}` [2 day backward] | `tests/integration/fixtures.rs::fixture_adjust_multiple::moves_fixtures_on_after_the_reference_by_2_day_backward` | equivalent | The `for` loop generates one test per case. |
-| FixtureAdjustMultiple > `moves fixtures on/after the reference by ${amount} ${unit} ${direction}` [1 week forward] | `tests/integration/fixtures.rs::fixture_adjust_multiple::moves_fixtures_on_after_the_reference_by_1_week_forward` | equivalent | The `for` loop generates one test per case. |
-| FixtureAdjustMultiple > `moves fixtures on/after the reference by ${amount} ${unit} ${direction}` [2 week backward] | `tests/integration/fixtures.rs::fixture_adjust_multiple::moves_fixtures_on_after_the_reference_by_2_week_backward` | equivalent | The `for` loop generates one test per case. |
-| FixtureAdjustMultiple > `moves fixtures on/after the reference by ${amount} ${unit} ${direction}` [1 month forward] | `tests/integration/fixtures.rs::fixture_adjust_multiple::moves_fixtures_on_after_the_reference_by_1_month_forward` | equivalent | The `for` loop generates one test per case. |
-| FixtureAdjustMultiple > `moves fixtures on/after the reference by ${amount} ${unit} ${direction}` [1 month backward] | `tests/integration/fixtures.rs::fixture_adjust_multiple::moves_fixtures_on_after_the_reference_by_1_month_backward` | equivalent | The `for` loop generates one test per case. |
-| FixtureAdjustMultiple > counts only the reference when it is the last fixture and allows zero amounts | `tests/integration/fixtures.rs::fixture_adjust_multiple::counts_only_the_reference_when_it_is_the_last_fixture_and_allows_zero_amounts` | equivalent |  |
-| FixtureAdjustMultiple > returns 404 for an unknown reference fixture | `tests/integration/fixtures.rs::fixture_adjust_multiple::returns_404_for_an_unknown_reference_fixture` | equivalent |  |
-| FixtureGenerate > requires every team to have a division | `tests/integration/fixtures.rs::fixture_generate::requires_every_team_to_have_a_division` | equivalent |  |
-| FixtureGenerate > requires enough slots for the teams | `tests/integration/fixtures.rs::fixture_generate::requires_enough_slots_for_the_teams` | equivalent |  |
-| FixtureGenerate > rejects divisions with an odd number of teams | `tests/integration/fixtures.rs::fixture_generate::rejects_divisions_with_an_odd_number_of_teams` | equivalent |  |
-| FixtureGenerate > generates weekly round-robin rounds within each division | `tests/integration/fixtures.rs::fixture_generate::generates_weekly_round_robin_rounds_within_each_division` | equivalent |  |
-| FixtureGenerate > reuses slots when there are more games than slots | `tests/integration/fixtures.rs::fixture_generate::reuses_slots_when_there_are_more_games_than_slots` | equivalent |  |
-| FixtureGenerate > continues the round robin after a single existing round | `tests/integration/fixtures.rs::fixture_generate::continues_the_round_robin_after_a_single_existing_round` | equivalent |  |
-| FixtureGenerate > continues the round robin after two existing rounds and into the next cycle | `tests/integration/fixtures.rs::fixture_generate::continues_the_round_robin_after_two_existing_rounds_and_into_the_next_cycle` | equivalent |  |
-| FixtureGenerate > rejects continuing when existing rounds break the round-robin pattern | `tests/integration/fixtures.rs::fixture_generate::rejects_continuing_when_existing_rounds_break_the_round_robin_pattern` | equivalent |  |
-| FixtureGenerate > ignores existing fixtures without a round title | `tests/integration/fixtures.rs::fixture_generate::ignores_existing_fixtures_without_a_round_title` | equivalent |  |
+| fixture management > creates, updates and deletes fixtures as an admin | `tests/fixtures.rs::fixture_management::creates_updates_and_deletes_fixtures_as_an_admin` | equivalent |  |
+| fixture management > rejects fixture writes from non-admins and unknown seasons | `tests/fixtures.rs::fixture_management::rejects_fixture_writes_from_non_admins_and_unknown_seasons` | equivalent |  |
+| FixtureAdjustMultiple > `moves fixtures on/after the reference by ${amount} ${unit} ${direction}` [3 day forward] | `tests/fixtures.rs::fixture_adjust_multiple::moves_fixtures_on_after_the_reference_by_3_day_forward` | equivalent | The `for` loop generates one test per case. |
+| FixtureAdjustMultiple > `moves fixtures on/after the reference by ${amount} ${unit} ${direction}` [2 day backward] | `tests/fixtures.rs::fixture_adjust_multiple::moves_fixtures_on_after_the_reference_by_2_day_backward` | equivalent | The `for` loop generates one test per case. |
+| FixtureAdjustMultiple > `moves fixtures on/after the reference by ${amount} ${unit} ${direction}` [1 week forward] | `tests/fixtures.rs::fixture_adjust_multiple::moves_fixtures_on_after_the_reference_by_1_week_forward` | equivalent | The `for` loop generates one test per case. |
+| FixtureAdjustMultiple > `moves fixtures on/after the reference by ${amount} ${unit} ${direction}` [2 week backward] | `tests/fixtures.rs::fixture_adjust_multiple::moves_fixtures_on_after_the_reference_by_2_week_backward` | equivalent | The `for` loop generates one test per case. |
+| FixtureAdjustMultiple > `moves fixtures on/after the reference by ${amount} ${unit} ${direction}` [1 month forward] | `tests/fixtures.rs::fixture_adjust_multiple::moves_fixtures_on_after_the_reference_by_1_month_forward` | equivalent | The `for` loop generates one test per case. |
+| FixtureAdjustMultiple > `moves fixtures on/after the reference by ${amount} ${unit} ${direction}` [1 month backward] | `tests/fixtures.rs::fixture_adjust_multiple::moves_fixtures_on_after_the_reference_by_1_month_backward` | equivalent | The `for` loop generates one test per case. |
+| FixtureAdjustMultiple > counts only the reference when it is the last fixture and allows zero amounts | `tests/fixtures.rs::fixture_adjust_multiple::counts_only_the_reference_when_it_is_the_last_fixture_and_allows_zero_amounts` | equivalent |  |
+| FixtureAdjustMultiple > returns 404 for an unknown reference fixture | `tests/fixtures.rs::fixture_adjust_multiple::returns_404_for_an_unknown_reference_fixture` | equivalent |  |
+| FixtureGenerate > requires every team to have a division | `tests/fixtures.rs::fixture_generate::requires_every_team_to_have_a_division` | equivalent |  |
+| FixtureGenerate > requires enough slots for the teams | `tests/fixtures.rs::fixture_generate::requires_enough_slots_for_the_teams` | equivalent |  |
+| FixtureGenerate > rejects divisions with an odd number of teams | `tests/fixtures.rs::fixture_generate::rejects_divisions_with_an_odd_number_of_teams` | equivalent |  |
+| FixtureGenerate > generates weekly round-robin rounds within each division | `tests/fixtures.rs::fixture_generate::generates_weekly_round_robin_rounds_within_each_division` | equivalent |  |
+| FixtureGenerate > reuses slots when there are more games than slots | `tests/fixtures.rs::fixture_generate::reuses_slots_when_there_are_more_games_than_slots` | equivalent |  |
+| FixtureGenerate > continues the round robin after a single existing round | `tests/fixtures.rs::fixture_generate::continues_the_round_robin_after_a_single_existing_round` | equivalent |  |
+| FixtureGenerate > continues the round robin after two existing rounds and into the next cycle | `tests/fixtures.rs::fixture_generate::continues_the_round_robin_after_two_existing_rounds_and_into_the_next_cycle` | equivalent |  |
+| FixtureGenerate > rejects continuing when existing rounds break the round-robin pattern | `tests/fixtures.rs::fixture_generate::rejects_continuing_when_existing_rounds_break_the_round_robin_pattern` | equivalent |  |
+| FixtureGenerate > ignores existing fixtures without a round title | `tests/fixtures.rs::fixture_generate::ignores_existing_fixtures_without_a_round_title` | equivalent |  |
 
 ## `server/test/integration/gamedayImport.test.ts`
 
@@ -910,10 +910,10 @@ extra pipeline checks).
 
 | TS test | Rust test | Status | Notes |
 | --- | --- | --- | --- |
-| PortGamedayImport > requires admin, a known season and saved credentials | `tests/integration/gameday_import.rs::port_gameday_import::requires_admin_a_known_season_and_saved_credentials` | equivalent |  |
-| PortGamedayImport > imports members, records the run and releases the lock | `tests/integration/gameday_import.rs::port_gameday_import::imports_members_records_the_run_and_releases_the_lock` | equivalent |  |
-| PortGamedayImport > refuses to start while another import holds the lock | `tests/integration/gameday_import.rs::port_gameday_import::refuses_to_start_while_another_import_holds_the_lock` | equivalent |  |
-| PortGamedayImport > takes over an expired lock and releases it after a failed export | `tests/integration/gameday_import.rs::port_gameday_import::takes_over_an_expired_lock_and_releases_it_after_a_failed_export` | equivalent |  |
+| PortGamedayImport > requires admin, a known season and saved credentials | `tests/gameday_import.rs::port_gameday_import::requires_admin_a_known_season_and_saved_credentials` | equivalent |  |
+| PortGamedayImport > imports members, records the run and releases the lock | `tests/gameday_import.rs::port_gameday_import::imports_members_records_the_run_and_releases_the_lock` | equivalent |  |
+| PortGamedayImport > refuses to start while another import holds the lock | `tests/gameday_import.rs::port_gameday_import::refuses_to_start_while_another_import_holds_the_lock` | equivalent |  |
+| PortGamedayImport > takes over an expired lock and releases it after a failed export | `tests/gameday_import.rs::port_gameday_import::takes_over_an_expired_lock_and_releases_it_after_a_failed_export` | equivalent |  |
 
 ## `server/test/integration/http.test.ts`
 
@@ -921,14 +921,14 @@ extra pipeline checks).
 
 | TS test | Rust test | Status | Notes |
 | --- | --- | --- | --- |
-| request pipeline > answers the root and health checks | `tests/integration/http.rs::request_pipeline::answers_the_root_and_health_checks` | equivalent |  |
-| request pipeline > answers CORS preflight requests for the client origin | `tests/integration/http.rs::request_pipeline::answers_cors_preflight_requests_for_the_client_origin` | equivalent |  |
-| request pipeline > rejects non-POST requests to known routes | `tests/integration/http.rs::request_pipeline::rejects_non_post_requests_to_known_routes` | equivalent |  |
-| request pipeline > returns 404 for unknown routes from the client origin | `tests/integration/http.rs::request_pipeline::returns_404_for_unknown_routes_from_the_client_origin` | equivalent |  |
-| request pipeline > forbids known routes from other origins | `tests/integration/http.rs::request_pipeline::forbids_known_routes_from_other_origins` | equivalent |  |
-| request pipeline > reports invalid payloads as validation errors with a friendly message | `tests/integration/http.rs::request_pipeline::reports_invalid_payloads_as_validation_errors_with_a_friendly_message` | equivalent |  |
-| request pipeline > requires the payload wrapper | `tests/integration/http.rs::request_pipeline::requires_the_payload_wrapper` | equivalent |  |
-| request pipeline > reports a missing season before any season exists | `tests/integration/http.rs::request_pipeline::reports_a_missing_season_before_any_season_exists` | equivalent |  |
+| request pipeline > answers the root and health checks | `tests/http.rs::request_pipeline::answers_the_root_and_health_checks` | equivalent |  |
+| request pipeline > answers CORS preflight requests for the client origin | `tests/http.rs::request_pipeline::answers_cors_preflight_requests_for_the_client_origin` | equivalent |  |
+| request pipeline > rejects non-POST requests to known routes | `tests/http.rs::request_pipeline::rejects_non_post_requests_to_known_routes` | equivalent |  |
+| request pipeline > returns 404 for unknown routes from the client origin | `tests/http.rs::request_pipeline::returns_404_for_unknown_routes_from_the_client_origin` | equivalent |  |
+| request pipeline > forbids known routes from other origins | `tests/http.rs::request_pipeline::forbids_known_routes_from_other_origins` | equivalent |  |
+| request pipeline > reports invalid payloads as validation errors with a friendly message | `tests/http.rs::request_pipeline::reports_invalid_payloads_as_validation_errors_with_a_friendly_message` | equivalent |  |
+| request pipeline > requires the payload wrapper | `tests/http.rs::request_pipeline::requires_the_payload_wrapper` | equivalent |  |
+| request pipeline > reports a missing season before any season exists | `tests/http.rs::request_pipeline::reports_a_missing_season_before_any_season_exists` | equivalent |  |
 
 ## `server/test/integration/members.test.ts`
 
@@ -936,30 +936,30 @@ extra pipeline checks).
 
 | TS test | Rust test | Status | Notes |
 | --- | --- | --- | --- |
-| MemberListOfTeam > enforces sign in, team membership and team access | `tests/integration/members.rs::member_list_of_team::enforces_sign_in_team_membership_and_team_access` | equivalent |  |
-| MemberListOfTeam > lists confirmed and pending members with public user fields | `tests/integration/members.rs::member_list_of_team::lists_confirmed_and_pending_members_with_public_user_fields` | equivalent |  |
-| MemberListOfTeam > lets admins list any team without being a member | `tests/integration/members.rs::member_list_of_team::lets_admins_list_any_team_without_being_a_member` | equivalent |  |
-| MemberLookupByEmail > is available to captains and admins only | `tests/integration/members.rs::member_lookup_by_email::is_available_to_captains_and_admins_only` | equivalent |  |
-| MemberCreate > creates a new user when the email is unknown | `tests/integration/members.rs::member_create::creates_a_new_user_when_the_email_is_unknown` | equivalent |  |
-| MemberCreate > requires user details for a new email | `tests/integration/members.rs::member_create::requires_user_details_for_a_new_email` | equivalent |  |
-| MemberCreate > adds an existing user without needing details | `tests/integration/members.rs::member_create::adds_an_existing_user_without_needing_details` | equivalent |  |
-| MemberCreate > confirms a pending request and is idempotent for existing members | `tests/integration/members.rs::member_create::confirms_a_pending_request_and_is_idempotent_for_existing_members` | equivalent |  |
-| MemberCreate > rejects users already on another team in the season | `tests/integration/members.rs::member_create::rejects_users_already_on_another_team_in_the_season` | equivalent |  |
-| MemberCreate > is limited to captains and admins | `tests/integration/members.rs::member_create::is_limited_to_captains_and_admins` | equivalent |  |
-| MemberRequestCreate > creates a pending membership and rejects duplicates | `tests/integration/members.rs::member_request_create::creates_a_pending_membership_and_rejects_duplicates` | equivalent |  |
-| MemberRequestCreate > does not require season sign up to be open | `tests/integration/members.rs::member_request_create::does_not_require_season_sign_up_to_be_open` | equivalent |  |
-| MemberAcceptOrDecline > lets the captain accept a request | `tests/integration/members.rs::member_accept_or_decline::lets_the_captain_accept_a_request` | equivalent |  |
-| MemberAcceptOrDecline > lets the captain decline a request by deleting it | `tests/integration/members.rs::member_accept_or_decline::lets_the_captain_decline_a_request_by_deleting_it` | equivalent |  |
-| MemberAcceptOrDecline > forbids non-captains and handles missing members | `tests/integration/members.rs::member_accept_or_decline::forbids_non_captains_and_handles_missing_members` | equivalent |  |
-| MemberSetCaptain > moves the captaincy to another member | `tests/integration/members.rs::member_set_captain::moves_the_captaincy_to_another_member` | equivalent |  |
-| MemberSetCaptain > confirms a pending member made captain | `tests/integration/members.rs::member_set_captain::confirms_a_pending_member_made_captain` | equivalent |  |
-| MemberSetCaptain > rejects the current captain and non-captain callers | `tests/integration/members.rs::member_set_captain::rejects_the_current_captain_and_non_captain_callers` | equivalent |  |
-| MemberSetCaptain > lets admins set a captain on a team without one | `tests/integration/members.rs::member_set_captain::lets_admins_set_a_captain_on_a_team_without_one` | equivalent |  |
-| MemberRemove > passes the captaincy to the oldest confirmed member | `tests/integration/members.rs::member_remove::passes_the_captaincy_to_the_oldest_confirmed_member` | equivalent |  |
-| MemberRemove > leaves no captain when no confirmed member remains | `tests/integration/members.rs::member_remove::leaves_no_captain_when_no_confirmed_member_remains` | equivalent |  |
-| MemberRemove > lets non-captains remove only themselves | `tests/integration/members.rs::member_remove::lets_non_captains_remove_only_themselves` | equivalent |  |
-| MemberRemove > lets captains and admins remove members | `tests/integration/members.rs::member_remove::lets_captains_and_admins_remove_members` | equivalent |  |
-| MemberRemove > ignores missing members and blocks other teams and pending requesters | `tests/integration/members.rs::member_remove::ignores_missing_members_and_blocks_other_teams_and_pending_requesters` | equivalent |  |
+| MemberListOfTeam > enforces sign in, team membership and team access | `tests/members.rs::member_list_of_team::enforces_sign_in_team_membership_and_team_access` | equivalent |  |
+| MemberListOfTeam > lists confirmed and pending members with public user fields | `tests/members.rs::member_list_of_team::lists_confirmed_and_pending_members_with_public_user_fields` | equivalent |  |
+| MemberListOfTeam > lets admins list any team without being a member | `tests/members.rs::member_list_of_team::lets_admins_list_any_team_without_being_a_member` | equivalent |  |
+| MemberLookupByEmail > is available to captains and admins only | `tests/members.rs::member_lookup_by_email::is_available_to_captains_and_admins_only` | equivalent |  |
+| MemberCreate > creates a new user when the email is unknown | `tests/members.rs::member_create::creates_a_new_user_when_the_email_is_unknown` | equivalent |  |
+| MemberCreate > requires user details for a new email | `tests/members.rs::member_create::requires_user_details_for_a_new_email` | equivalent |  |
+| MemberCreate > adds an existing user without needing details | `tests/members.rs::member_create::adds_an_existing_user_without_needing_details` | equivalent |  |
+| MemberCreate > confirms a pending request and is idempotent for existing members | `tests/members.rs::member_create::confirms_a_pending_request_and_is_idempotent_for_existing_members` | equivalent |  |
+| MemberCreate > rejects users already on another team in the season | `tests/members.rs::member_create::rejects_users_already_on_another_team_in_the_season` | equivalent |  |
+| MemberCreate > is limited to captains and admins | `tests/members.rs::member_create::is_limited_to_captains_and_admins` | equivalent |  |
+| MemberRequestCreate > creates a pending membership and rejects duplicates | `tests/members.rs::member_request_create::creates_a_pending_membership_and_rejects_duplicates` | equivalent |  |
+| MemberRequestCreate > does not require season sign up to be open | `tests/members.rs::member_request_create::does_not_require_season_sign_up_to_be_open` | equivalent |  |
+| MemberAcceptOrDecline > lets the captain accept a request | `tests/members.rs::member_accept_or_decline::lets_the_captain_accept_a_request` | equivalent |  |
+| MemberAcceptOrDecline > lets the captain decline a request by deleting it | `tests/members.rs::member_accept_or_decline::lets_the_captain_decline_a_request_by_deleting_it` | equivalent |  |
+| MemberAcceptOrDecline > forbids non-captains and handles missing members | `tests/members.rs::member_accept_or_decline::forbids_non_captains_and_handles_missing_members` | equivalent |  |
+| MemberSetCaptain > moves the captaincy to another member | `tests/members.rs::member_set_captain::moves_the_captaincy_to_another_member` | equivalent |  |
+| MemberSetCaptain > confirms a pending member made captain | `tests/members.rs::member_set_captain::confirms_a_pending_member_made_captain` | equivalent |  |
+| MemberSetCaptain > rejects the current captain and non-captain callers | `tests/members.rs::member_set_captain::rejects_the_current_captain_and_non_captain_callers` | equivalent |  |
+| MemberSetCaptain > lets admins set a captain on a team without one | `tests/members.rs::member_set_captain::lets_admins_set_a_captain_on_a_team_without_one` | equivalent |  |
+| MemberRemove > passes the captaincy to the oldest confirmed member | `tests/members.rs::member_remove::passes_the_captaincy_to_the_oldest_confirmed_member` | equivalent |  |
+| MemberRemove > leaves no captain when no confirmed member remains | `tests/members.rs::member_remove::leaves_no_captain_when_no_confirmed_member_remains` | equivalent |  |
+| MemberRemove > lets non-captains remove only themselves | `tests/members.rs::member_remove::lets_non_captains_remove_only_themselves` | equivalent |  |
+| MemberRemove > lets captains and admins remove members | `tests/members.rs::member_remove::lets_captains_and_admins_remove_members` | equivalent |  |
+| MemberRemove > ignores missing members and blocks other teams and pending requesters | `tests/members.rs::member_remove::ignores_missing_members_and_blocks_other_teams_and_pending_requesters` | equivalent |  |
 
 ## `server/test/integration/migrations.test.ts`
 
@@ -967,7 +967,7 @@ extra pipeline checks).
 
 | TS test | Rust test | Status | Notes |
 | --- | --- | --- | --- |
-| runUserGenderMatchingMigration > backfills gender matching from gender, then MVP picks, then the fallback | `tests/integration/migrations.rs::run_user_gender_matching_migration_tests::backfills_gender_matching_from_gender_then_mvp_picks_then_the_fallback` | equivalent |  |
+| runUserGenderMatchingMigration > backfills gender matching from gender, then MVP picks, then the fallback | `tests/migrations.rs::run_user_gender_matching_migration_tests::backfills_gender_matching_from_gender_then_mvp_picks_then_the_fallback` | equivalent |  |
 
 ## `server/test/integration/port.test.ts`
 
@@ -975,26 +975,26 @@ extra pipeline checks).
 
 | TS test | Rust test | Status | Notes |
 | --- | --- | --- | --- |
-| PortExport > requires admin | `tests/integration/port.rs::port_export::requires_admin` | equivalent |  |
-| PortExport > returns a zip of csv files with upper snake headings and escaped formulas | `tests/integration/port.rs::port_export::returns_a_zip_of_csv_files_with_upper_snake_headings_and_escaped_formulas` | equivalent |  |
-| PortExport > returns a zip of json files with nulls for missing values and no escaping | `tests/integration/port.rs::port_export::returns_a_zip_of_json_files_with_nulls_for_missing_values_and_no_escaping` | equivalent |  |
-| PortImport > requires admin | `tests/integration/port.rs::port_import::requires_admin` | equivalent |  |
-| PortImport > requires a season id, an existing season and a csv file | `tests/integration/port.rs::port_import::requires_a_season_id_an_existing_season_and_a_csv_file` | equivalent |  |
-| PortImport > rejects a request that is not a multipart upload as a bad request | `tests/integration/port.rs::port_import::rejects_a_request_that_is_not_a_multipart_upload_as_a_bad_request` | equivalent |  |
-| PortImport > rejects missing and unexpected headings | `tests/integration/port.rs::port_import::rejects_missing_and_unexpected_headings` | equivalent |  |
-| PortImport > creates teams, users and members, and is idempotent | `tests/integration/port.rs::port_import::creates_teams_users_and_members_and_is_idempotent` | equivalent |  |
-| PortImport > does not add a second membership for a user already in the season | `tests/integration/port.rs::port_import::does_not_add_a_second_membership_for_a_user_already_in_the_season` | equivalent |  |
-| PortImport > rejects an invalid gender matching (%s) with the row number [banana] | `tests/integration/port.rs::port_import::rejects_an_invalid_gender_matching_banana_with_the_row_number` | equivalent | One test per `it.each` row. |
-| PortImport > rejects an invalid gender matching (%s) with the row number [non-binary] | `tests/integration/port.rs::port_import::rejects_an_invalid_gender_matching_non_binary_with_the_row_number` | equivalent | One test per `it.each` row. |
-| PortImport > rejects an invalid gender matching (%s) with the row number [other] | `tests/integration/port.rs::port_import::rejects_an_invalid_gender_matching_other_with_the_row_number` | equivalent | One test per `it.each` row. |
-| PortImport > accepts the older gender heading for gender matching | `tests/integration/port.rs::port_import::accepts_the_older_gender_heading_for_gender_matching` | equivalent |  |
-| mock data > generates mock teams, users and members and deletes them again | `tests/integration/port.rs::mock_data::generates_mock_teams_users_and_members_and_deletes_them_again` | equivalent |  |
-| mock data > validates the generate payload and season | `tests/integration/port.rs::mock_data::validates_the_generate_payload_and_season` | equivalent |  |
-| mock data > requires admin | `tests/integration/port.rs::mock_data::requires_admin` | equivalent |  |
-| GameDay import config > requires a password when creating | `tests/integration/port.rs::gameday_import_config::requires_a_password_when_creating` | equivalent |  |
-| GameDay import config > validates schedule dates | `tests/integration/port.rs::gameday_import_config::validates_schedule_dates` | equivalent |  |
-| GameDay import config > saves and loads a safe config without exposing the password | `tests/integration/port.rs::gameday_import_config::saves_and_loads_a_safe_config_without_exposing_the_password` | equivalent |  |
-| GameDay import config > returns not found for unknown seasons and requires admin | `tests/integration/port.rs::gameday_import_config::returns_not_found_for_unknown_seasons_and_requires_admin` | equivalent |  |
+| PortExport > requires admin | `tests/port.rs::port_export::requires_admin` | equivalent |  |
+| PortExport > returns a zip of csv files with upper snake headings and escaped formulas | `tests/port.rs::port_export::returns_a_zip_of_csv_files_with_upper_snake_headings_and_escaped_formulas` | equivalent |  |
+| PortExport > returns a zip of json files with nulls for missing values and no escaping | `tests/port.rs::port_export::returns_a_zip_of_json_files_with_nulls_for_missing_values_and_no_escaping` | equivalent |  |
+| PortImport > requires admin | `tests/port.rs::port_import::requires_admin` | equivalent |  |
+| PortImport > requires a season id, an existing season and a csv file | `tests/port.rs::port_import::requires_a_season_id_an_existing_season_and_a_csv_file` | equivalent |  |
+| PortImport > rejects a request that is not a multipart upload as a bad request | `tests/port.rs::port_import::rejects_a_request_that_is_not_a_multipart_upload_as_a_bad_request` | equivalent |  |
+| PortImport > rejects missing and unexpected headings | `tests/port.rs::port_import::rejects_missing_and_unexpected_headings` | equivalent |  |
+| PortImport > creates teams, users and members, and is idempotent | `tests/port.rs::port_import::creates_teams_users_and_members_and_is_idempotent` | equivalent |  |
+| PortImport > does not add a second membership for a user already in the season | `tests/port.rs::port_import::does_not_add_a_second_membership_for_a_user_already_in_the_season` | equivalent |  |
+| PortImport > rejects an invalid gender matching (%s) with the row number [banana] | `tests/port.rs::port_import::rejects_an_invalid_gender_matching_banana_with_the_row_number` | equivalent | One test per `it.each` row. |
+| PortImport > rejects an invalid gender matching (%s) with the row number [non-binary] | `tests/port.rs::port_import::rejects_an_invalid_gender_matching_non_binary_with_the_row_number` | equivalent | One test per `it.each` row. |
+| PortImport > rejects an invalid gender matching (%s) with the row number [other] | `tests/port.rs::port_import::rejects_an_invalid_gender_matching_other_with_the_row_number` | equivalent | One test per `it.each` row. |
+| PortImport > accepts the older gender heading for gender matching | `tests/port.rs::port_import::accepts_the_older_gender_heading_for_gender_matching` | equivalent |  |
+| mock data > generates mock teams, users and members and deletes them again | `tests/port.rs::mock_data::generates_mock_teams_users_and_members_and_deletes_them_again` | equivalent |  |
+| mock data > validates the generate payload and season | `tests/port.rs::mock_data::validates_the_generate_payload_and_season` | equivalent |  |
+| mock data > requires admin | `tests/port.rs::mock_data::requires_admin` | equivalent |  |
+| GameDay import config > requires a password when creating | `tests/port.rs::gameday_import_config::requires_a_password_when_creating` | equivalent |  |
+| GameDay import config > validates schedule dates | `tests/port.rs::gameday_import_config::validates_schedule_dates` | equivalent |  |
+| GameDay import config > saves and loads a safe config without exposing the password | `tests/port.rs::gameday_import_config::saves_and_loads_a_safe_config_without_exposing_the_password` | equivalent |  |
+| GameDay import config > returns not found for unknown seasons and requires admin | `tests/port.rs::gameday_import_config::returns_not_found_for_unknown_seasons_and_requires_admin` | equivalent |  |
 
 ## `server/test/integration/reports.test.ts`
 
@@ -1002,22 +1002,22 @@ extra pipeline checks).
 
 | TS test | Rust test | Status | Notes |
 | --- | --- | --- | --- |
-| ReportCreate > lets a team member submit a report for their own matchup | `tests/integration/reports.rs::report_create::lets_a_team_member_submit_a_report_for_their_own_matchup` | equivalent |  |
-| ReportCreate > lets an admin submit on behalf of any team | `tests/integration/reports.rs::report_create::lets_an_admin_submit_on_behalf_of_any_team` | equivalent |  |
-| ReportCreate > rejects users without a team or for another team | `tests/integration/reports.rs::report_create::rejects_users_without_a_team_or_for_another_team` | equivalent |  |
-| ReportCreate > rejects matchups that are not in the fixture | `tests/integration/reports.rs::report_create::rejects_matchups_that_are_not_in_the_fixture` | equivalent |  |
-| ReportCreate > rejects a duplicate report for the same fixture and matchup | `tests/integration/reports.rs::report_create::rejects_a_duplicate_report_for_the_same_fixture_and_matchup` | equivalent |  |
-| ReportCreate > validates teams and fixtures against the fixture season | `tests/integration/reports.rs::report_create::validates_teams_and_fixtures_against_the_fixture_season` | equivalent |  |
-| ReportCreate > requires a comment for official spirit totals outside 9-11 | `tests/integration/reports.rs::report_create::requires_a_comment_for_official_spirit_totals_outside_9_11` | equivalent |  |
-| ReportCreate > does not require a comment when spirit parts are incomplete or scoring is simple | `tests/integration/reports.rs::report_create::does_not_require_a_comment_when_spirit_parts_are_incomplete_or_scoring_is_simple` | equivalent |  |
-| ReportCreate > checks the spirit comment before duplicates and matchups | `tests/integration/reports.rs::report_create::checks_the_spirit_comment_before_duplicates_and_matchups` | equivalent |  |
-| ReportCreate > drops MVP slots the season gender division does not use | `tests/integration/reports.rs::report_create::drops_mvp_slots_the_season_gender_division_does_not_use` | equivalent |  |
-| ReportCreate > drops MVP picks whose gender matching is ineligible for the slot | `tests/integration/reports.rs::report_create::drops_mvp_picks_whose_gender_matching_is_ineligible_for_the_slot` | equivalent |  |
-| ReportUpdate and ReportDelete > lets an admin update a report and sanitises it like create | `tests/integration/reports.rs::report_update_and_report_delete::lets_an_admin_update_a_report_and_sanitises_it_like_create` | equivalent |  |
-| ReportUpdate and ReportDelete > checks the spirit comment against the stored spirit parts | `tests/integration/reports.rs::report_update_and_report_delete::checks_the_spirit_comment_against_the_stored_spirit_parts` | equivalent |  |
-| ReportUpdate and ReportDelete > lets only an admin delete a report | `tests/integration/reports.rs::report_update_and_report_delete::lets_only_an_admin_delete_a_report` | equivalent |  |
-| ReportMissingList > groups missing reports by fixture in date order | `tests/integration/reports.rs::report_missing_list::groups_missing_reports_by_fixture_in_date_order` | equivalent |  |
-| ReportMissingList > returns an empty list for a season with nothing missing | `tests/integration/reports.rs::report_missing_list::returns_an_empty_list_for_a_season_with_nothing_missing` | equivalent |  |
+| ReportCreate > lets a team member submit a report for their own matchup | `tests/reports.rs::report_create::lets_a_team_member_submit_a_report_for_their_own_matchup` | equivalent |  |
+| ReportCreate > lets an admin submit on behalf of any team | `tests/reports.rs::report_create::lets_an_admin_submit_on_behalf_of_any_team` | equivalent |  |
+| ReportCreate > rejects users without a team or for another team | `tests/reports.rs::report_create::rejects_users_without_a_team_or_for_another_team` | equivalent |  |
+| ReportCreate > rejects matchups that are not in the fixture | `tests/reports.rs::report_create::rejects_matchups_that_are_not_in_the_fixture` | equivalent |  |
+| ReportCreate > rejects a duplicate report for the same fixture and matchup | `tests/reports.rs::report_create::rejects_a_duplicate_report_for_the_same_fixture_and_matchup` | equivalent |  |
+| ReportCreate > validates teams and fixtures against the fixture season | `tests/reports.rs::report_create::validates_teams_and_fixtures_against_the_fixture_season` | equivalent |  |
+| ReportCreate > requires a comment for official spirit totals outside 9-11 | `tests/reports.rs::report_create::requires_a_comment_for_official_spirit_totals_outside_9_11` | equivalent |  |
+| ReportCreate > does not require a comment when spirit parts are incomplete or scoring is simple | `tests/reports.rs::report_create::does_not_require_a_comment_when_spirit_parts_are_incomplete_or_scoring_is_simple` | equivalent |  |
+| ReportCreate > checks the spirit comment before duplicates and matchups | `tests/reports.rs::report_create::checks_the_spirit_comment_before_duplicates_and_matchups` | equivalent |  |
+| ReportCreate > drops MVP slots the season gender division does not use | `tests/reports.rs::report_create::drops_mvp_slots_the_season_gender_division_does_not_use` | equivalent |  |
+| ReportCreate > drops MVP picks whose gender matching is ineligible for the slot | `tests/reports.rs::report_create::drops_mvp_picks_whose_gender_matching_is_ineligible_for_the_slot` | equivalent |  |
+| ReportUpdate and ReportDelete > lets an admin update a report and sanitises it like create | `tests/reports.rs::report_update_and_report_delete::lets_an_admin_update_a_report_and_sanitises_it_like_create` | equivalent |  |
+| ReportUpdate and ReportDelete > checks the spirit comment against the stored spirit parts | `tests/reports.rs::report_update_and_report_delete::checks_the_spirit_comment_against_the_stored_spirit_parts` | equivalent |  |
+| ReportUpdate and ReportDelete > lets only an admin delete a report | `tests/reports.rs::report_update_and_report_delete::lets_only_an_admin_delete_a_report` | equivalent |  |
+| ReportMissingList > groups missing reports by fixture in date order | `tests/reports.rs::report_missing_list::groups_missing_reports_by_fixture_in_date_order` | equivalent |  |
+| ReportMissingList > returns an empty list for a season with nothing missing | `tests/reports.rs::report_missing_list::returns_an_empty_list_for_a_season_with_nothing_missing` | equivalent |  |
 
 ## `server/test/integration/seasons.test.ts`
 
@@ -1025,22 +1025,22 @@ extra pipeline checks).
 
 | TS test | Rust test | Status | Notes |
 | --- | --- | --- | --- |
-| season access control > rejects anonymous and non-admin season management | `tests/integration/seasons.rs::season_access_control::rejects_anonymous_and_non_admin_season_management` | equivalent |  |
-| SeasonList > is public and orders names descending with numeric collation | `tests/integration/seasons.rs::season_list::is_public_and_orders_names_descending_with_numeric_collation` | equivalent |  |
-| SeasonList > searches case-insensitively and treats regex characters literally | `tests/integration/seasons.rs::season_list::searches_case_insensitively_and_treats_regex_characters_literally` | equivalent |  |
-| SeasonList > returns all seasons without a search | `tests/integration/seasons.rs::season_list::returns_all_seasons_without_a_search` | adapted | The TS suite shares one database and counts whatever exists; the Rust test creates two seasons in its fresh database first, then compares with the stored count. |
-| SeasonCreate and SeasonUpdate > creates a season with the given fields | `tests/integration/seasons.rs::season_create_and_season_update::creates_a_season_with_the_given_fields` | equivalent |  |
-| SeasonCreate and SeasonUpdate > rejects an invalid payload | `tests/integration/seasons.rs::season_create_and_season_update::rejects_an_invalid_payload` | equivalent |  |
-| SeasonCreate and SeasonUpdate > updates a season and its updatedOn | `tests/integration/seasons.rs::season_create_and_season_update::updates_a_season_and_its_updated_on` | equivalent |  |
-| SeasonCreate and SeasonUpdate > returns 404 when updating a missing season | `tests/integration/seasons.rs::season_create_and_season_update::returns_404_when_updating_a_missing_season` | equivalent |  |
-| SeasonDeleteStatus > reports whether a season has score reports | `tests/integration/seasons.rs::season_delete_status::reports_whether_a_season_has_score_reports` | equivalent |  |
-| SeasonDeleteStatus > detects reports linked by fixture or by opposing team | `tests/integration/seasons.rs::season_delete_status::detects_reports_linked_by_fixture_or_by_opposing_team` | equivalent |  |
-| SeasonDeleteStatus > returns 404 for a missing season | `tests/integration/seasons.rs::season_delete_status::returns_404_for_a_missing_season` | equivalent |  |
-| SeasonDelete > requires the admin to have a password | `tests/integration/seasons.rs::season_delete::requires_the_admin_to_have_a_password` | equivalent |  |
-| SeasonDelete > rejects a wrong password | `tests/integration/seasons.rs::season_delete::rejects_a_wrong_password` | equivalent |  |
-| SeasonDelete > returns 404 for a missing season | `tests/integration/seasons.rs::season_delete::returns_404_for_a_missing_season` | equivalent |  |
-| SeasonDelete > is blocked when the season has score reports | `tests/integration/seasons.rs::season_delete::is_blocked_when_the_season_has_score_reports` | equivalent |  |
-| SeasonDelete > cascades members, fixtures and teams and clears lastSeasonId | `tests/integration/seasons.rs::season_delete::cascades_members_fixtures_and_teams_and_clears_last_season_id` | equivalent |  |
+| season access control > rejects anonymous and non-admin season management | `tests/seasons.rs::season_access_control::rejects_anonymous_and_non_admin_season_management` | equivalent |  |
+| SeasonList > is public and orders names descending with numeric collation | `tests/seasons.rs::season_list::is_public_and_orders_names_descending_with_numeric_collation` | equivalent |  |
+| SeasonList > searches case-insensitively and treats regex characters literally | `tests/seasons.rs::season_list::searches_case_insensitively_and_treats_regex_characters_literally` | equivalent |  |
+| SeasonList > returns all seasons without a search | `tests/seasons.rs::season_list::returns_all_seasons_without_a_search` | adapted | The TS suite shares one database and counts whatever exists; the Rust test creates two seasons in its fresh database first, then compares with the stored count. |
+| SeasonCreate and SeasonUpdate > creates a season with the given fields | `tests/seasons.rs::season_create_and_season_update::creates_a_season_with_the_given_fields` | equivalent |  |
+| SeasonCreate and SeasonUpdate > rejects an invalid payload | `tests/seasons.rs::season_create_and_season_update::rejects_an_invalid_payload` | equivalent |  |
+| SeasonCreate and SeasonUpdate > updates a season and its updatedOn | `tests/seasons.rs::season_create_and_season_update::updates_a_season_and_its_updated_on` | equivalent |  |
+| SeasonCreate and SeasonUpdate > returns 404 when updating a missing season | `tests/seasons.rs::season_create_and_season_update::returns_404_when_updating_a_missing_season` | equivalent |  |
+| SeasonDeleteStatus > reports whether a season has score reports | `tests/seasons.rs::season_delete_status::reports_whether_a_season_has_score_reports` | equivalent |  |
+| SeasonDeleteStatus > detects reports linked by fixture or by opposing team | `tests/seasons.rs::season_delete_status::detects_reports_linked_by_fixture_or_by_opposing_team` | equivalent |  |
+| SeasonDeleteStatus > returns 404 for a missing season | `tests/seasons.rs::season_delete_status::returns_404_for_a_missing_season` | equivalent |  |
+| SeasonDelete > requires the admin to have a password | `tests/seasons.rs::season_delete::requires_the_admin_to_have_a_password` | equivalent |  |
+| SeasonDelete > rejects a wrong password | `tests/seasons.rs::season_delete::rejects_a_wrong_password` | equivalent |  |
+| SeasonDelete > returns 404 for a missing season | `tests/seasons.rs::season_delete::returns_404_for_a_missing_season` | equivalent |  |
+| SeasonDelete > is blocked when the season has score reports | `tests/seasons.rs::season_delete::is_blocked_when_the_season_has_score_reports` | equivalent |  |
+| SeasonDelete > cascades members, fixtures and teams and clears lastSeasonId | `tests/seasons.rs::season_delete::cascades_members_fixtures_and_teams_and_clears_last_season_id` | equivalent |  |
 
 ## `server/test/integration/security.test.ts`
 
@@ -1048,18 +1048,18 @@ extra pipeline checks).
 
 | TS test | Rust test | Status | Notes |
 | --- | --- | --- | --- |
-| security endpoints > reports the status of unknown, passwordless and verified accounts | `tests/integration/security.rs::security_endpoints::reports_the_status_of_unknown_passwordless_and_verified_accounts` | equivalent |  |
-| security endpoints > signs up a user without exposing secrets | `tests/integration/security.rs::security_endpoints::signs_up_a_user_without_exposing_secrets` | equivalent |  |
-| security endpoints > rejects sign up without terms or with an existing email | `tests/integration/security.rs::security_endpoints::rejects_sign_up_without_terms_or_with_an_existing_email` | equivalent |  |
-| security endpoints > logs in with a password and rejects wrong passwords | `tests/integration/security.rs::security_endpoints::logs_in_with_a_password_and_rejects_wrong_passwords` | equivalent |  |
-| security endpoints > rate limits repeated failed logins from one client | `tests/integration/security.rs::security_endpoints::rate_limits_repeated_failed_logins_from_one_client` | equivalent |  |
-| security endpoints > rejects incorrect verification codes | `tests/integration/security.rs::security_endpoints::rejects_incorrect_verification_codes` | equivalent |  |
-| security endpoints > rejects short passwords on verify | `tests/integration/security.rs::security_endpoints::rejects_short_passwords_on_verify` | equivalent |  |
-| security endpoints > verifies the email and ends other sessions when the password is reset | `tests/integration/security.rs::security_endpoints::verifies_the_email_and_ends_other_sessions_when_the_password_is_reset` | equivalent |  |
-| security endpoints > sends a restore code for forgotten passwords without revealing accounts | `tests/integration/security.rs::security_endpoints::sends_a_restore_code_for_forgotten_passwords_without_revealing_accounts` | equivalent |  |
-| security endpoints > returns the current season and auth, falling back to the newest season | `tests/integration/security.rs::security_endpoints::returns_the_current_season_and_auth_falling_back_to_the_newest_season` | adapted | Waits 5 ms between the two season creations so their `createdOn` differ (the Rust server can create both within one millisecond and ties are not broken by `id`). |
-| security endpoints > ends the session on logout | `tests/integration/security.rs::security_endpoints::ends_the_session_on_logout` | equivalent |  |
-| security endpoints > distinguishes missing and invalid tokens | `tests/integration/security.rs::security_endpoints::distinguishes_missing_and_invalid_tokens` | equivalent |  |
+| security endpoints > reports the status of unknown, passwordless and verified accounts | `tests/security.rs::security_endpoints::reports_the_status_of_unknown_passwordless_and_verified_accounts` | equivalent |  |
+| security endpoints > signs up a user without exposing secrets | `tests/security.rs::security_endpoints::signs_up_a_user_without_exposing_secrets` | equivalent |  |
+| security endpoints > rejects sign up without terms or with an existing email | `tests/security.rs::security_endpoints::rejects_sign_up_without_terms_or_with_an_existing_email` | equivalent |  |
+| security endpoints > logs in with a password and rejects wrong passwords | `tests/security.rs::security_endpoints::logs_in_with_a_password_and_rejects_wrong_passwords` | equivalent |  |
+| security endpoints > rate limits repeated failed logins from one client | `tests/security.rs::security_endpoints::rate_limits_repeated_failed_logins_from_one_client` | equivalent |  |
+| security endpoints > rejects incorrect verification codes | `tests/security.rs::security_endpoints::rejects_incorrect_verification_codes` | equivalent |  |
+| security endpoints > rejects short passwords on verify | `tests/security.rs::security_endpoints::rejects_short_passwords_on_verify` | equivalent |  |
+| security endpoints > verifies the email and ends other sessions when the password is reset | `tests/security.rs::security_endpoints::verifies_the_email_and_ends_other_sessions_when_the_password_is_reset` | equivalent |  |
+| security endpoints > sends a restore code for forgotten passwords without revealing accounts | `tests/security.rs::security_endpoints::sends_a_restore_code_for_forgotten_passwords_without_revealing_accounts` | equivalent |  |
+| security endpoints > returns the current season and auth, falling back to the newest season | `tests/security.rs::security_endpoints::returns_the_current_season_and_auth_falling_back_to_the_newest_season` | adapted | Waits 5 ms between the two season creations so their `createdOn` differ (the Rust server can create both within one millisecond and ties are not broken by `id`). |
+| security endpoints > ends the session on logout | `tests/security.rs::security_endpoints::ends_the_session_on_logout` | equivalent |  |
+| security endpoints > distinguishes missing and invalid tokens | `tests/security.rs::security_endpoints::distinguishes_missing_and_invalid_tokens` | equivalent |  |
 
 ## `server/test/integration/teams.test.ts`
 
@@ -1067,32 +1067,32 @@ extra pipeline checks).
 
 | TS test | Rust test | Status | Notes |
 | --- | --- | --- | --- |
-| TeamCurrentCreate > requires a signed in user | `tests/integration/teams.rs::team_current_create::requires_a_signed_in_user` | equivalent |  |
-| TeamCurrentCreate > makes the creator the confirmed captain and sets lastSeasonId | `tests/integration/teams.rs::team_current_create::makes_the_creator_the_confirmed_captain_and_sets_last_season_id` | equivalent |  |
-| TeamCurrentCreate > rejects when season sign up is closed | `tests/integration/teams.rs::team_current_create::rejects_when_season_sign_up_is_closed` | equivalent |  |
-| TeamCurrentCreate > returns 404 for a missing season | `tests/integration/teams.rs::team_current_create::returns_404_for_a_missing_season` | equivalent |  |
-| TeamCurrentCreate > rejects users already on a team (including pending) in the season | `tests/integration/teams.rs::team_current_create::rejects_users_already_on_a_team_including_pending_in_the_season` | equivalent |  |
-| TeamCurrentCreate > rejects colours that are not hsla strings | `tests/integration/teams.rs::team_current_create::rejects_colours_that_are_not_hsla_strings` | equivalent |  |
-| TeamCurrentUpdate > requires the user to be on a team | `tests/integration/teams.rs::team_current_update::requires_the_user_to_be_on_a_team` | equivalent |  |
-| TeamCurrentUpdate > lets the captain update team details | `tests/integration/teams.rs::team_current_update::lets_the_captain_update_team_details` | equivalent |  |
-| TeamCurrentUpdate > forbids confirmed non-captains | `tests/integration/teams.rs::team_current_update::forbids_confirmed_non_captains` | equivalent |  |
-| TeamCurrentUpdate > forbids pending members (via the team access check) | `tests/integration/teams.rs::team_current_update::forbids_pending_members_via_the_team_access_check` | equivalent |  |
-| TeamCurrentUpdate > forbids members of other teams and admins who are not members | `tests/integration/teams.rs::team_current_update::forbids_members_of_other_teams_and_admins_who_are_not_members` | equivalent |  |
-| TeamCreate, TeamUpdate and TeamDelete > are admin only | `tests/integration/teams.rs::team_create_team_update_and_team_delete::are_admin_only` | equivalent |  |
-| TeamCreate, TeamUpdate and TeamDelete > creates a team for an existing season | `tests/integration/teams.rs::team_create_team_update_and_team_delete::creates_a_team_for_an_existing_season` | equivalent |  |
-| TeamCreate, TeamUpdate and TeamDelete > updates a team including its division | `tests/integration/teams.rs::team_create_team_update_and_team_delete::updates_a_team_including_its_division` | equivalent |  |
-| TeamCreate, TeamUpdate and TeamDelete > deletes a team and its members | `tests/integration/teams.rs::team_create_team_update_and_team_delete::deletes_a_team_and_its_members` | equivalent |  |
-| FeatureDashboardTeamsLoad > is public and defaults to division ascending with missing divisions last | `tests/integration/teams.rs::feature_dashboard_teams_load::is_public_and_defaults_to_division_ascending_with_missing_divisions_last` | equivalent |  |
-| FeatureDashboardTeamsLoad > sorts by every key and direction | `tests/integration/teams.rs::feature_dashboard_teams_load::sorts_by_every_key_and_direction` | equivalent |  |
-| FeatureDashboardTeamsLoad > searches names case-insensitively and counts matches | `tests/integration/teams.rs::feature_dashboard_teams_load::searches_names_case_insensitively_and_counts_matches` | equivalent |  |
-| FeatureDashboardTeamsLoad > pages with skip and limit after sorting while count stays total | `tests/integration/teams.rs::feature_dashboard_teams_load::pages_with_skip_and_limit_after_sorting_while_count_stays_total` | equivalent |  |
-| FeatureDashboardTeamsLoad > only returns teams of the requested season | `tests/integration/teams.rs::feature_dashboard_teams_load::only_returns_teams_of_the_requested_season` | equivalent |  |
-| FeatureDashboardTeamsLoad > validates paging and season | `tests/integration/teams.rs::feature_dashboard_teams_load::validates_paging_and_season` | equivalent |  |
-| FeatureTeamSetupLoad > requires a signed in user | `tests/integration/teams.rs::feature_team_setup_load::requires_a_signed_in_user` | equivalent |  |
-| FeatureTeamSetupLoad > lists teams by name and returns the pending team | `tests/integration/teams.rs::feature_team_setup_load::lists_teams_by_name_and_returns_the_pending_team` | equivalent |  |
-| FeatureTeamSetupLoad > also returns the team of a confirmed membership | `tests/integration/teams.rs::feature_team_setup_load::also_returns_the_team_of_a_confirmed_membership` | equivalent |  |
-| FeatureTeamSetupLoad > returns 404 for a missing season | `tests/integration/teams.rs::feature_team_setup_load::returns_404_for_a_missing_season` | equivalent |  |
-| FeatureCompetitionLoad > is public and returns teams by division and fixtures by date | `tests/integration/teams.rs::feature_competition_load::is_public_and_returns_teams_by_division_and_fixtures_by_date` | equivalent |  |
+| TeamCurrentCreate > requires a signed in user | `tests/teams.rs::team_current_create::requires_a_signed_in_user` | equivalent |  |
+| TeamCurrentCreate > makes the creator the confirmed captain and sets lastSeasonId | `tests/teams.rs::team_current_create::makes_the_creator_the_confirmed_captain_and_sets_last_season_id` | equivalent |  |
+| TeamCurrentCreate > rejects when season sign up is closed | `tests/teams.rs::team_current_create::rejects_when_season_sign_up_is_closed` | equivalent |  |
+| TeamCurrentCreate > returns 404 for a missing season | `tests/teams.rs::team_current_create::returns_404_for_a_missing_season` | equivalent |  |
+| TeamCurrentCreate > rejects users already on a team (including pending) in the season | `tests/teams.rs::team_current_create::rejects_users_already_on_a_team_including_pending_in_the_season` | equivalent |  |
+| TeamCurrentCreate > rejects colours that are not hsla strings | `tests/teams.rs::team_current_create::rejects_colours_that_are_not_hsla_strings` | equivalent |  |
+| TeamCurrentUpdate > requires the user to be on a team | `tests/teams.rs::team_current_update::requires_the_user_to_be_on_a_team` | equivalent |  |
+| TeamCurrentUpdate > lets the captain update team details | `tests/teams.rs::team_current_update::lets_the_captain_update_team_details` | equivalent |  |
+| TeamCurrentUpdate > forbids confirmed non-captains | `tests/teams.rs::team_current_update::forbids_confirmed_non_captains` | equivalent |  |
+| TeamCurrentUpdate > forbids pending members (via the team access check) | `tests/teams.rs::team_current_update::forbids_pending_members_via_the_team_access_check` | equivalent |  |
+| TeamCurrentUpdate > forbids members of other teams and admins who are not members | `tests/teams.rs::team_current_update::forbids_members_of_other_teams_and_admins_who_are_not_members` | equivalent |  |
+| TeamCreate, TeamUpdate and TeamDelete > are admin only | `tests/teams.rs::team_create_team_update_and_team_delete::are_admin_only` | equivalent |  |
+| TeamCreate, TeamUpdate and TeamDelete > creates a team for an existing season | `tests/teams.rs::team_create_team_update_and_team_delete::creates_a_team_for_an_existing_season` | equivalent |  |
+| TeamCreate, TeamUpdate and TeamDelete > updates a team including its division | `tests/teams.rs::team_create_team_update_and_team_delete::updates_a_team_including_its_division` | equivalent |  |
+| TeamCreate, TeamUpdate and TeamDelete > deletes a team and its members | `tests/teams.rs::team_create_team_update_and_team_delete::deletes_a_team_and_its_members` | equivalent |  |
+| FeatureDashboardTeamsLoad > is public and defaults to division ascending with missing divisions last | `tests/teams.rs::feature_dashboard_teams_load::is_public_and_defaults_to_division_ascending_with_missing_divisions_last` | equivalent |  |
+| FeatureDashboardTeamsLoad > sorts by every key and direction | `tests/teams.rs::feature_dashboard_teams_load::sorts_by_every_key_and_direction` | equivalent |  |
+| FeatureDashboardTeamsLoad > searches names case-insensitively and counts matches | `tests/teams.rs::feature_dashboard_teams_load::searches_names_case_insensitively_and_counts_matches` | equivalent |  |
+| FeatureDashboardTeamsLoad > pages with skip and limit after sorting while count stays total | `tests/teams.rs::feature_dashboard_teams_load::pages_with_skip_and_limit_after_sorting_while_count_stays_total` | equivalent |  |
+| FeatureDashboardTeamsLoad > only returns teams of the requested season | `tests/teams.rs::feature_dashboard_teams_load::only_returns_teams_of_the_requested_season` | equivalent |  |
+| FeatureDashboardTeamsLoad > validates paging and season | `tests/teams.rs::feature_dashboard_teams_load::validates_paging_and_season` | equivalent |  |
+| FeatureTeamSetupLoad > requires a signed in user | `tests/teams.rs::feature_team_setup_load::requires_a_signed_in_user` | equivalent |  |
+| FeatureTeamSetupLoad > lists teams by name and returns the pending team | `tests/teams.rs::feature_team_setup_load::lists_teams_by_name_and_returns_the_pending_team` | equivalent |  |
+| FeatureTeamSetupLoad > also returns the team of a confirmed membership | `tests/teams.rs::feature_team_setup_load::also_returns_the_team_of_a_confirmed_membership` | equivalent |  |
+| FeatureTeamSetupLoad > returns 404 for a missing season | `tests/teams.rs::feature_team_setup_load::returns_404_for_a_missing_season` | equivalent |  |
+| FeatureCompetitionLoad > is public and returns teams by division and fixtures by date | `tests/teams.rs::feature_competition_load::is_public_and_returns_teams_by_division_and_fixtures_by_date` | equivalent |  |
 
 ## `server/test/integration/users.test.ts`
 
@@ -1100,44 +1100,44 @@ extra pipeline checks).
 
 | TS test | Rust test | Status | Notes |
 | --- | --- | --- | --- |
-| UserList > is admin only | `tests/integration/users.rs::user_list::is_admin_only` | equivalent |  |
-| UserList > searches first name, last name and any email case-insensitively | `tests/integration/users.rs::user_list::searches_first_name_last_name_and_any_email_case_insensitively` | equivalent |  |
-| UserList > returns safe user fields | `tests/integration/users.rs::user_list::returns_safe_user_fields` | equivalent |  |
-| UserList > defaults to createdOn descending | `tests/integration/users.rs::user_list::defaults_to_created_on_descending` | equivalent |  |
-| UserList > sorts by %s %s [firstName asc] | `tests/integration/users.rs::user_list::sorts_by_first_name_asc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
-| UserList > sorts by %s %s [firstName desc] | `tests/integration/users.rs::user_list::sorts_by_first_name_desc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
-| UserList > sorts by %s %s [lastName asc] | `tests/integration/users.rs::user_list::sorts_by_last_name_asc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
-| UserList > sorts by %s %s [lastName desc] | `tests/integration/users.rs::user_list::sorts_by_last_name_desc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
-| UserList > sorts by %s %s [email asc] | `tests/integration/users.rs::user_list::sorts_by_email_asc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
-| UserList > sorts by %s %s [email desc] | `tests/integration/users.rs::user_list::sorts_by_email_desc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
-| UserList > sorts by %s %s [genderMatching asc] | `tests/integration/users.rs::user_list::sorts_by_gender_matching_asc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
-| UserList > sorts by %s %s [genderMatching desc] | `tests/integration/users.rs::user_list::sorts_by_gender_matching_desc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
-| UserList > sorts by %s %s [createdOn asc] | `tests/integration/users.rs::user_list::sorts_by_created_on_asc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
-| UserList > sorts by %s %s [createdOn desc] | `tests/integration/users.rs::user_list::sorts_by_created_on_desc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
-| UserList > uses name tie-breakers in ascending order regardless of direction | `tests/integration/users.rs::user_list::uses_name_tie_breakers_in_ascending_order_regardless_of_direction` | equivalent |  |
-| UserList > applies skip and limit after sorting while counting all matches | `tests/integration/users.rs::user_list::applies_skip_and_limit_after_sorting_while_counting_all_matches` | equivalent |  |
-| UserCreate / UserUpdate / UserToggleAdmin > creates a user with one unverified primary email | `tests/integration/users.rs::user_create_update_toggle_admin::creates_a_user_with_one_unverified_primary_email` | equivalent |  |
-| UserCreate / UserUpdate / UserToggleAdmin > rejects a duplicate email case-insensitively | `tests/integration/users.rs::user_create_update_toggle_admin::rejects_a_duplicate_email_case_insensitively` | equivalent |  |
-| UserCreate / UserUpdate / UserToggleAdmin > requires admin to create | `tests/integration/users.rs::user_create_update_toggle_admin::requires_admin_to_create` | equivalent |  |
-| UserCreate / UserUpdate / UserToggleAdmin > updates a user | `tests/integration/users.rs::user_create_update_toggle_admin::updates_a_user` | equivalent |  |
-| UserCreate / UserUpdate / UserToggleAdmin > toggles admin on and off | `tests/integration/users.rs::user_create_update_toggle_admin::toggles_admin_on_and_off` | equivalent |  |
-| admin email management > adds, sets primary, sets verified and removes emails | `tests/integration/users.rs::admin_email_management::adds_sets_primary_sets_verified_and_removes_emails` | equivalent |  |
-| admin email management > reports unknown emails as not found | `tests/integration/users.rs::admin_email_management::reports_unknown_emails_as_not_found` | equivalent |  |
-| admin email management > rejects invalid email values | `tests/integration/users.rs::admin_email_management::rejects_invalid_email_values` | equivalent |  |
-| admin email management > requires admin | `tests/integration/users.rs::admin_email_management::requires_admin` | equivalent |  |
-| current user > updates the current user | `tests/integration/users.rs::current_user::updates_the_current_user` | equivalent |  |
-| current user > adds, verifies, resends, sets primary and removes own emails | `tests/integration/users.rs::current_user::adds_verifies_resends_sets_primary_and_removes_own_emails` | equivalent |  |
-| current user > reports unknown emails on verify and resend as not found | `tests/integration/users.rs::current_user::reports_unknown_emails_on_verify_and_resend_as_not_found` | equivalent |  |
-| current user > rate limits code resends per email | `tests/integration/users.rs::current_user::rate_limits_code_resends_per_email` | equivalent |  |
-| current user > requires sign in | `tests/integration/users.rs::current_user::requires_sign_in` | equivalent |  |
-| password changes > requires a password and the correct old password | `tests/integration/users.rs::password_changes::requires_a_password_and_the_correct_old_password` | equivalent |  |
-| password changes > ends other sessions but keeps the current one | `tests/integration/users.rs::password_changes::ends_other_sessions_but_keeps_the_current_one` | equivalent |  |
-| password changes > lets an admin set a password and ends all of that user’s sessions | `tests/integration/users.rs::password_changes::lets_an_admin_set_a_password_and_ends_all_of_that_users_sessions` | equivalent |  |
-| UserMerge > cannot merge a user into itself | `tests/integration/users.rs::user_merge::cannot_merge_a_user_into_itself` | equivalent |  |
-| UserMerge > requires admin | `tests/integration/users.rs::user_merge::requires_admin` | equivalent |  |
-| UserMerge > moves members, reports, sessions and emails onto the first user | `tests/integration/users.rs::user_merge::moves_members_reports_sessions_and_emails_onto_the_first_user` | equivalent |  |
-| UserMerge > clears a male MVP repeated in the female slot | `tests/integration/users.rs::user_merge::clears_a_male_mvp_repeated_in_the_female_slot` | equivalent |  |
-| UserMerge > returns not found for an unknown user | `tests/integration/users.rs::user_merge::returns_not_found_for_an_unknown_user` | equivalent |  |
+| UserList > is admin only | `tests/users.rs::user_list::is_admin_only` | equivalent |  |
+| UserList > searches first name, last name and any email case-insensitively | `tests/users.rs::user_list::searches_first_name_last_name_and_any_email_case_insensitively` | equivalent |  |
+| UserList > returns safe user fields | `tests/users.rs::user_list::returns_safe_user_fields` | equivalent |  |
+| UserList > defaults to createdOn descending | `tests/users.rs::user_list::defaults_to_created_on_descending` | equivalent |  |
+| UserList > sorts by %s %s [firstName asc] | `tests/users.rs::user_list::sorts_by_first_name_asc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
+| UserList > sorts by %s %s [firstName desc] | `tests/users.rs::user_list::sorts_by_first_name_desc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
+| UserList > sorts by %s %s [lastName asc] | `tests/users.rs::user_list::sorts_by_last_name_asc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
+| UserList > sorts by %s %s [lastName desc] | `tests/users.rs::user_list::sorts_by_last_name_desc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
+| UserList > sorts by %s %s [email asc] | `tests/users.rs::user_list::sorts_by_email_asc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
+| UserList > sorts by %s %s [email desc] | `tests/users.rs::user_list::sorts_by_email_desc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
+| UserList > sorts by %s %s [genderMatching asc] | `tests/users.rs::user_list::sorts_by_gender_matching_asc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
+| UserList > sorts by %s %s [genderMatching desc] | `tests/users.rs::user_list::sorts_by_gender_matching_desc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
+| UserList > sorts by %s %s [createdOn asc] | `tests/users.rs::user_list::sorts_by_created_on_asc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
+| UserList > sorts by %s %s [createdOn desc] | `tests/users.rs::user_list::sorts_by_created_on_desc` | equivalent | One test per `it.each` row; the TS `beforeAll` fixture is rebuilt per test. |
+| UserList > uses name tie-breakers in ascending order regardless of direction | `tests/users.rs::user_list::uses_name_tie_breakers_in_ascending_order_regardless_of_direction` | equivalent |  |
+| UserList > applies skip and limit after sorting while counting all matches | `tests/users.rs::user_list::applies_skip_and_limit_after_sorting_while_counting_all_matches` | equivalent |  |
+| UserCreate / UserUpdate / UserToggleAdmin > creates a user with one unverified primary email | `tests/users.rs::user_create_update_toggle_admin::creates_a_user_with_one_unverified_primary_email` | equivalent |  |
+| UserCreate / UserUpdate / UserToggleAdmin > rejects a duplicate email case-insensitively | `tests/users.rs::user_create_update_toggle_admin::rejects_a_duplicate_email_case_insensitively` | equivalent |  |
+| UserCreate / UserUpdate / UserToggleAdmin > requires admin to create | `tests/users.rs::user_create_update_toggle_admin::requires_admin_to_create` | equivalent |  |
+| UserCreate / UserUpdate / UserToggleAdmin > updates a user | `tests/users.rs::user_create_update_toggle_admin::updates_a_user` | equivalent |  |
+| UserCreate / UserUpdate / UserToggleAdmin > toggles admin on and off | `tests/users.rs::user_create_update_toggle_admin::toggles_admin_on_and_off` | equivalent |  |
+| admin email management > adds, sets primary, sets verified and removes emails | `tests/users.rs::admin_email_management::adds_sets_primary_sets_verified_and_removes_emails` | equivalent |  |
+| admin email management > reports unknown emails as not found | `tests/users.rs::admin_email_management::reports_unknown_emails_as_not_found` | equivalent |  |
+| admin email management > rejects invalid email values | `tests/users.rs::admin_email_management::rejects_invalid_email_values` | equivalent |  |
+| admin email management > requires admin | `tests/users.rs::admin_email_management::requires_admin` | equivalent |  |
+| current user > updates the current user | `tests/users.rs::current_user::updates_the_current_user` | equivalent |  |
+| current user > adds, verifies, resends, sets primary and removes own emails | `tests/users.rs::current_user::adds_verifies_resends_sets_primary_and_removes_own_emails` | equivalent |  |
+| current user > reports unknown emails on verify and resend as not found | `tests/users.rs::current_user::reports_unknown_emails_on_verify_and_resend_as_not_found` | equivalent |  |
+| current user > rate limits code resends per email | `tests/users.rs::current_user::rate_limits_code_resends_per_email` | equivalent |  |
+| current user > requires sign in | `tests/users.rs::current_user::requires_sign_in` | equivalent |  |
+| password changes > requires a password and the correct old password | `tests/users.rs::password_changes::requires_a_password_and_the_correct_old_password` | equivalent |  |
+| password changes > ends other sessions but keeps the current one | `tests/users.rs::password_changes::ends_other_sessions_but_keeps_the_current_one` | equivalent |  |
+| password changes > lets an admin set a password and ends all of that user’s sessions | `tests/users.rs::password_changes::lets_an_admin_set_a_password_and_ends_all_of_that_users_sessions` | equivalent |  |
+| UserMerge > cannot merge a user into itself | `tests/users.rs::user_merge::cannot_merge_a_user_into_itself` | equivalent |  |
+| UserMerge > requires admin | `tests/users.rs::user_merge::requires_admin` | equivalent |  |
+| UserMerge > moves members, reports, sessions and emails onto the first user | `tests/users.rs::user_merge::moves_members_reports_sessions_and_emails_onto_the_first_user` | equivalent |  |
+| UserMerge > clears a male MVP repeated in the female slot | `tests/users.rs::user_merge::clears_a_male_mvp_repeated_in_the_female_slot` | equivalent |  |
+| UserMerge > returns not found for an unknown user | `tests/users.rs::user_merge::returns_not_found_for_an_unknown_user` | equivalent |  |
 
 ## Audit notes
 
@@ -1253,17 +1253,17 @@ Tests with no TS counterpart (new seams, stricter checks, or Rust-specific code)
 - `src::utils::is_record::tests::matches_javascript_object_checks`
 - `src::utils::mail::tests::signs_requests_like_the_aws_signature_v4_reference`
 - `src::utils::random::tests::generates_alphanumeric_ids`
-- `tests/integration/gameday_export_smoke.rs::exports_members_through_a_real_browser`
-- `tests/integration/http.rs::pipeline_with_stub_endpoints::answers_null_results_with_an_empty_204`
-- `tests/integration/http.rs::pipeline_with_stub_endpoints::derives_the_client_ip_from_the_socket`
-- `tests/integration/http.rs::pipeline_with_stub_endpoints::forbids_known_routes_from_other_origins`
-- `tests/integration/http.rs::pipeline_with_stub_endpoints::rejects_handler_results_that_are_not_objects`
-- `tests/integration/http.rs::pipeline_with_stub_endpoints::rejects_non_post_requests_to_known_routes`
-- `tests/integration/http.rs::pipeline_with_stub_endpoints::reports_invalid_payloads_as_validation_errors_with_a_friendly_message`
-- `tests/integration/http.rs::pipeline_with_stub_endpoints::requires_the_payload_wrapper_and_valid_json`
-- `tests/integration/http.rs::pipeline_with_stub_endpoints::sends_json_like_json_stringify`
-- `tests/integration/http.rs::pipeline_with_stub_endpoints::tarpits_exploit_probes_and_then_blocks_the_ip`
-- `tests/integration/migrate_mongo.rs::imports_a_real_mongodump_archive`
-- `tests/integration/users.rs::src/db/table.rs - db::table (line 13)`
-- `tests/integration/users.rs::src/db/table.rs - db::table (line 6)`
-- `tests/integration/users.rs::src/http/endpoint.rs - http::endpoint (line 5)`
+- `tests/gameday_export_smoke.rs::exports_members_through_a_real_browser`
+- `tests/http.rs::pipeline_with_stub_endpoints::answers_null_results_with_an_empty_204`
+- `tests/http.rs::pipeline_with_stub_endpoints::derives_the_client_ip_from_the_socket`
+- `tests/http.rs::pipeline_with_stub_endpoints::forbids_known_routes_from_other_origins`
+- `tests/http.rs::pipeline_with_stub_endpoints::rejects_handler_results_that_are_not_objects`
+- `tests/http.rs::pipeline_with_stub_endpoints::rejects_non_post_requests_to_known_routes`
+- `tests/http.rs::pipeline_with_stub_endpoints::reports_invalid_payloads_as_validation_errors_with_a_friendly_message`
+- `tests/http.rs::pipeline_with_stub_endpoints::requires_the_payload_wrapper_and_valid_json`
+- `tests/http.rs::pipeline_with_stub_endpoints::sends_json_like_json_stringify`
+- `tests/http.rs::pipeline_with_stub_endpoints::tarpits_exploit_probes_and_then_blocks_the_ip`
+- `tests/migrate_mongo.rs::imports_a_real_mongodump_archive`
+- `tests/users.rs::src/db/table.rs - db::table (line 13)`
+- `tests/users.rs::src/db/table.rs - db::table (line 6)`
+- `tests/users.rs::src/http/endpoint.rs - http::endpoint (line 5)`

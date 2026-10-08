@@ -1,6 +1,6 @@
 //! A real-browser smoke test of the GameDay exporter (ignored by default: it
 //! needs a local Chrome/Chromium). Run with
-//! `cargo test --test integration gameday_export_smoke -- --ignored --nocapture`.
+//! `cargo test --test gameday_export_smoke -- --ignored --nocapture`.
 //!
 //! Chrome runs the whole export. Requests to `membership.mygameday.app` are
 //! intercepted (CDP `Fetch`) and answered with fixture pages, so the GameDay

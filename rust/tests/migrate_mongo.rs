@@ -1,14 +1,13 @@
 //! `migrate-mongo` against a real `mongodump --archive --gzip` file.
 //!
-//! `tests/fixtures/mongo/frisbee-rt.archive.gz` was made by seeding a
-//! throwaway `mongod` through the TS table layer
-//! (`tests/fixtures/mongo/seed.mts`, run with `tsx` from `server/`), starting
-//! the TS server on it and logging in (which wrote the session and the
-//! attempt-limit rows), then inserting legacy documents the current TS code no
-//! longer writes (`tests/fixtures/mongo/legacy.mjs`: a pre gender-matching
-//! user with BSON dates and an unknown field, a member with an invalid
-//! `pending`, reports with BSON dates and a `null`, and an unrelated
-//! collection), and finally
+//! `fixtures/mongo/frisbee-rt.archive.gz` was made by seeding a throwaway
+//! `mongod` through the TS table layer (`fixtures/mongo/seed.mts`, run with
+//! `tsx` from `server/`), starting the TS server on it and logging in (which
+//! wrote the session and the attempt-limit rows), then inserting legacy
+//! documents the current TS code no longer writes (`fixtures/mongo/legacy.mjs`:
+//! a pre gender-matching user with BSON dates and an unknown field, a member
+//! with an invalid `pending`, reports with BSON dates and a `null`, and an
+//! unrelated collection), and finally
 //! `mongodump --db frisbee-rt --archive=frisbee-rt.archive.gz --gzip`.
 
 use frisbee::db::{Db, Filter, Query};

@@ -1,6 +1,8 @@
 //! Port of `server/test/integration/migrations.test.ts`.
 
-use crate::common::TestServer;
+mod common;
+
+use common::TestServer;
 use frisbee::migrations::user_gender_matching::run_user_gender_matching_migration;
 use frisbee::shared::schemas::{Report, User};
 use frisbee::tables::{REPORT, USER, user::legacy::set_legacy_gender};

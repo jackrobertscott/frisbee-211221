@@ -1,7 +1,9 @@
 //! Port of `server/test/integration/security.test.ts`.
 
-use crate::common::actors::{SignUp, create_season, sign_up, unique_email};
-use crate::common::{CallOptions, Response, TestServer, assert_match};
+mod common;
+
+use common::actors::{SignUp, create_season, sign_up, unique_email};
+use common::{CallOptions, Response, TestServer, assert_match};
 use frisbee::shared::schemas::Session;
 use frisbee::tables::SESSION;
 use serde_json::{Value, json};

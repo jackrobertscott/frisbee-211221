@@ -1,5 +1,5 @@
 // Seeds the fixture database through the TS table layer (exactly what the TS
-// server writes). See tests/integration/migrate_mongo.rs for how the fixture was made.
+// server writes). See tests/migrate_mongo.rs for how the fixture was made.
 import {$Fixture} from '../../../../server/src/tables/$Fixture'
 import {$GamedayImportConfig} from '../../../../server/src/tables/$GamedayImportConfig'
 import {$GamedayImportRun} from '../../../../server/src/tables/$GamedayImportRun'

@@ -287,7 +287,7 @@ with `goto`, `fill`, `click`, `waitForURL`, ...). Chrome is found from
 common install paths (including `/Applications/Google Chrome.app` on macOS),
 then the browser channel's install location, then any Chrome/Chromium on
 `PATH`. The tests fake `BrowserLauncher` (`chromium.launch`) and
-`ReportRequestContext` (`context.request`); `tests/integration/gameday_export_smoke.rs`
+`ReportRequestContext` (`context.request`); `tests/gameday_export_smoke.rs`
 (`#[ignore]`) runs a full export in a real Chrome against intercepted
 fixture pages.
 

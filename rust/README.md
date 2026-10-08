@@ -71,10 +71,10 @@ cargo clippy --all-targets -- -D warnings     # lints
 FRISBEE_LOG_VERBOSE=1 cargo test -- --nocapture   # see server logs in tests
 ```
 
-Integration tests (`tests/integration/`, built as one binary) start the real
-app on an ephemeral port with a fresh SQLite database per test, so they run in
-parallel. The one ignored test, `tests/integration/gameday_export_smoke.rs`,
-drives a locally installed Chrome; run it with `cargo test -- --ignored`. [`TEST_PARITY.md`](TEST_PARITY.md) maps
+Integration tests (`tests/*.rs`) start the real app on an ephemeral port with
+a fresh SQLite database per test, so they run in parallel. The one ignored
+test, `tests/gameday_export_smoke.rs`, drives a locally installed Chrome; run
+it with `cargo test -- --ignored`. [`TEST_PARITY.md`](TEST_PARITY.md) maps
 every TS test to the Rust test(s) covering it.
 
 ## Deploy (Docker / Railway)

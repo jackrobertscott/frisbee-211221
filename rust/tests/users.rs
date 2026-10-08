@@ -4,8 +4,10 @@
 //! fixtures) in `beforeAll`; here every test starts its own server, admin
 //! and fixtures.
 
-use crate::common::actors::{Actor, SignUp, create_season, create_team, sign_up, unique_email};
-use crate::common::{CallOptions, TestServer, assert_match};
+mod common;
+
+use common::actors::{Actor, SignUp, create_season, create_team, sign_up, unique_email};
+use common::{CallOptions, TestServer, assert_match};
 use frisbee::db::Patch;
 use frisbee::shared::schemas::{Member, Report, Session, User, UserEmail};
 use frisbee::tables::{MEMBER, REPORT, SESSION, USER};

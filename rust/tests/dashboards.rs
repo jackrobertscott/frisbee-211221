@@ -1,9 +1,11 @@
 //! Port of `server/test/integration/dashboards.test.ts`.
 
-use crate::common::actors::{
+mod common;
+
+use common::actors::{
     Actor, NewMember, SignUp, add_member, create_season, create_team, sign_up, unique_email,
 };
-use crate::common::{Response, TestServer, assert_match};
+use common::{Response, TestServer, assert_match};
 use frisbee::db::Patch;
 use frisbee::shared::schemas::{Fixture, Report, Team};
 use frisbee::tables::{FIXTURE, REPORT, TEAM};
