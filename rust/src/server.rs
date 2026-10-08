@@ -92,7 +92,10 @@ pub async fn bootstrap() -> Result<(), String> {
     crate::gameday::scheduler::start_gameday_import_scheduler(&state);
     let listener = bind(config.port).await.map_err(|error| error.to_string())?;
     let env_name = if config.is_production { "PROD" } else { "DEV" };
-    log::log(format!("Started: {env_name} MASTER {}", config.port));
+    log::log(format!(
+        "Started: {env_name} MASTER {}, listening on http://localhost:{}",
+        config.port, config.port
+    ));
     serve(listener, state, shutdown_signal(), DRAIN_TIMEOUT)
         .await
         .map_err(|error| error.to_string())
