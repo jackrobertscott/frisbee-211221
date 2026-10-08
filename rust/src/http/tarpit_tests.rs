@@ -51,7 +51,7 @@ fn default_plan() -> TarpitPlan {
 }
 
 fn client() -> reqwest::Client {
-    reqwest::Client::builder()
+    crate::utils::http_client::builder()
         .pool_max_idle_per_host(0)
         .build()
         .unwrap()

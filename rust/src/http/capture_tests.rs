@@ -32,7 +32,11 @@ async fn serve(handler: Handler, is_production: bool) -> String {
 }
 
 async fn get(url: &str, path: &str) -> (u16, String) {
-    let response = reqwest::get(format!("{url}{path}")).await.unwrap();
+    let response = crate::utils::http_client::client()
+        .get(format!("{url}{path}"))
+        .send()
+        .await
+        .unwrap();
     let status = response.status().as_u16();
     (status, response.text().await.unwrap())
 }

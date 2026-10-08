@@ -278,7 +278,7 @@ impl ChromeBrowser {
             }
             jar.add_cookie_str(&header, &url);
         }
-        let client = reqwest::Client::builder()
+        let client = crate::utils::http_client::builder()
             .cookie_provider(Arc::new(jar))
             .user_agent(user_agent)
             .redirect(reqwest::redirect::Policy::limited(20))

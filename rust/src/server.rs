@@ -144,7 +144,7 @@ mod tests {
     }
 
     fn post(url: &str) -> reqwest::RequestBuilder {
-        reqwest::Client::new()
+        crate::utils::http_client::client()
             .post(format!("{url}/Slow"))
             .header("origin", "http://localhost:3000")
             .header("content-type", "application/json")

@@ -106,7 +106,9 @@ impl TestServer {
         TestServer {
             url: format!("http://{addr}"),
             app,
-            client: reqwest::Client::builder().build().expect("http client"),
+            client: frisbee::utils::http_client::builder()
+                .build()
+                .expect("http client"),
             shutdown: Some(tx),
         }
     }

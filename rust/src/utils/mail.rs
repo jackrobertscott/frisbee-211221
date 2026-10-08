@@ -118,7 +118,7 @@ pub struct SesTransport {
 impl SesTransport {
     pub fn new(config: &Config) -> Self {
         SesTransport {
-            client: reqwest::Client::new(),
+            client: crate::utils::http_client::client(),
             access_key_id: config.ses_access_key_id.clone(),
             secret_access_key: config.ses_secret_access_key.clone(),
             region: config.ses_region.clone().filter(|r| !r.is_empty()),
