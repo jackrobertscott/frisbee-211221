@@ -23,6 +23,14 @@ npm --prefix browser run typecheck && npm --prefix browser test
 If the change touches the browser, look at the affected screens at both phone
 and desktop widths. Most people use the app on their phone.
 
+## Running the dev app
+
+The dev app always runs the latest Rust code. The server starts with
+`cargo run --bin frisbee-server` (debug build) from `rust/`, which rebuilds
+from the current source first, never from an existing binary in
+`rust/target/`. A server that is already running is restarted when it was
+built before the latest code changes.
+
 ## Git workflow
 
 **One worktree per change.** Make each change in its own git worktree and
