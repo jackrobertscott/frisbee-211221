@@ -17,6 +17,8 @@
   position: fixed;
   inset: 0;
   display: grid;
+  /* A shrinkable column so wide content scrolls inside the dialog instead of widening it past the screen. */
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
   /* Clear of the notch, rounded corners and home indicator on phones (zero elsewhere). */
   padding:
@@ -32,6 +34,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  min-width: 0;
   max-width: var(--_w);
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
