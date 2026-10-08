@@ -91,10 +91,10 @@ pub async fn bootstrap() -> Result<(), String> {
     let state = AppState::new(config.clone(), db, mailer, crate::endpoints::all());
     crate::gameday::scheduler::start_gameday_import_scheduler(&state);
     let listener = bind(config.port).await.map_err(|error| error.to_string())?;
-    let env_name = if config.is_production { "PROD" } else { "DEV" };
+    let env_name = if config.is_production { "prod" } else { "dev" };
     log::log(format!(
-        "Started: {env_name} MASTER {}, listening on http://localhost:{}",
-        config.port, config.port
+        "Server listening on http://localhost:{} ({env_name})",
+        config.port
     ));
     serve(listener, state, shutdown_signal(), DRAIN_TIMEOUT)
         .await
