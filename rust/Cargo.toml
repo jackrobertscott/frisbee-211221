@@ -42,3 +42,8 @@ rustix = { version = "1", features = ["process"] }
 [dev-dependencies]
 tokio = { version = "1.53.2", features = ["test-util", "full"] }
 
+
+# Optimise dependencies in debug builds: bcrypt and friends are far too slow
+# unoptimised, and dependencies rarely rebuild so the cost is paid once.
+[profile.dev.package."*"]
+opt-level = 2
