@@ -5,6 +5,7 @@
 //! `scheduler` and the Port endpoints drive.
 
 pub mod browser;
+pub mod cdp;
 pub mod credentials;
 pub mod export_cli;
 pub mod exporter;

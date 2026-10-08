@@ -16,17 +16,11 @@ use axum::extract::{Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::routing::get;
 use base64::Engine;
-use chromiumoxide::Binary;
-use chromiumoxide::cdp::browser_protocol::fetch::{
-    EnableParams as FetchEnableParams, EventRequestPaused, FulfillRequestParams, HeaderEntry,
-    RequestPattern,
-};
-use chromiumoxide::cdp::browser_protocol::network::SetCookieParams;
 use frisbee::gameday::browser::ChromePage;
 use frisbee::gameday::exporter::{ExportHooks, GamedayResult, export_gameday_members_with};
 use frisbee::gameday::types::{GamedayExportInput, GamedayExportMember};
-use futures_util::StreamExt;
 use futures_util::future::BoxFuture;
+use serde_json::json;
 
 #[derive(Default)]
 struct Recorded {
@@ -115,41 +109,46 @@ impl ExportHooks for SmokeHooks {
     fn prepare_page<'a>(&'a self, page: &'a ChromePage) -> BoxFuture<'a, GamedayResult<()>> {
         Box::pin(async move {
             let raw = page.raw().clone();
-            let mut paused = raw.event_listener::<EventRequestPaused>().await?;
-            raw.execute(FetchEnableParams {
-                patterns: Some(vec![RequestPattern {
-                    url_pattern: Some("https://membership.mygameday.app/*".into()),
-                    resource_type: None,
-                    request_stage: None,
-                }]),
-                handle_auth_requests: None,
-            })
+            let mut paused = raw.listen("Fetch.requestPaused");
+            raw.execute(
+                "Fetch.enable",
+                json!({"patterns": [{"urlPattern": "https://membership.mygameday.app/*"}]}),
+            )
             .await?;
             // the report server's session cookie, which the request context
             // must carry over from the browser
-            let mut cookie = SetCookieParams::new("session", "smoke-session");
-            cookie.url = Some(format!("{}/", self.report_origin));
-            raw.execute(cookie).await?;
+            raw.execute(
+                "Network.setCookie",
+                json!({
+                    "name": "session",
+                    "value": "smoke-session",
+                    "url": format!("{}/", self.report_origin),
+                }),
+            )
+            .await?;
 
             let recorded = self.recorded.clone();
             let report_origin = self.report_origin.clone();
             tokio::spawn(async move {
-                while let Some(event) = paused.next().await {
-                    let url = event.request.url.clone();
+                while let Some(event) = paused.recv().await {
+                    let url = event["request"]["url"]
+                        .as_str()
+                        .unwrap_or_default()
+                        .to_string();
                     recorded.lock().unwrap().browser_urls.push(url.clone());
                     let (status, body) = match fixture(&url, &report_origin) {
                         Some(html) => (200, html),
                         None => (404, "not found".to_string()),
                     };
-                    let mut fulfill = FulfillRequestParams::new(event.request_id.clone(), status);
-                    fulfill.response_headers = Some(vec![HeaderEntry::new(
-                        "Content-Type",
-                        "text/html; charset=utf-8",
-                    )]);
-                    fulfill.body = Some(Binary::from(
-                        base64::engine::general_purpose::STANDARD.encode(body),
-                    ));
-                    let _ = raw.execute(fulfill).await;
+                    let fulfill = json!({
+                        "requestId": event["requestId"],
+                        "responseCode": status,
+                        "responseHeaders": [
+                            {"name": "Content-Type", "value": "text/html; charset=utf-8"},
+                        ],
+                        "body": base64::engine::general_purpose::STANDARD.encode(body),
+                    });
+                    let _ = raw.execute("Fetch.fulfillRequest", fulfill).await;
                 }
             });
             Ok(())

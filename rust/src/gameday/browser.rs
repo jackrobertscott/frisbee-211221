@@ -1,4 +1,4 @@
-//! Headless Chrome over the DevTools protocol (`chromiumoxide`): the subset of
+//! Headless Chrome over the DevTools protocol ([`super::cdp`]): the subset of
 //! Playwright that `server/src/gameday/exporter.ts` uses.
 //!
 //! - [`ChromeLauncher`] is `chromium.launch(...)`: it starts a locally
@@ -17,27 +17,13 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use chromiumoxide::browser::{Browser, BrowserConfig};
-use chromiumoxide::cdp::browser_protocol::input::{
-    DispatchMouseEventParams, DispatchMouseEventType, InsertTextParams, MouseButton,
-};
-use chromiumoxide::cdp::browser_protocol::network::{
-    EnableParams as NetworkEnableParams, EventLoadingFailed, EventLoadingFinished,
-    EventRequestWillBeSent,
-};
-use chromiumoxide::cdp::browser_protocol::page::{
-    AddScriptToEvaluateOnNewDocumentParams, CaptureScreenshotFormat, EventLifecycleEvent,
-    NavigateParams, SetLifecycleEventsEnabledParams,
-};
-use chromiumoxide::cdp::js_protocol::runtime::EvaluateParams;
-use chromiumoxide::handler::viewport::Viewport;
-use chromiumoxide::page::ScreenshotParams;
-use futures_util::StreamExt;
+use base64::Engine;
 use futures_util::future::BoxFuture;
 use serde::Serialize;
 use serde_json::{Value, json};
-use tokio::task::JoinHandle;
 use tokio::time::Instant;
+
+use super::cdp::{Browser, CdpError, LaunchConfig, Session};
 
 use super::exporter::{
     BrowserLauncher, GamedayError, GamedayResult, LaunchOptions, ReportGetOptions,
@@ -57,9 +43,9 @@ const NETWORK_IDLE: Duration = Duration::from_millis(500);
 /// Playwright's default launch timeout.
 const LAUNCH_TIMEOUT: Duration = Duration::from_secs(180);
 
-impl From<chromiumoxide::error::CdpError> for GamedayError {
-    fn from(error: chromiumoxide::error::CdpError) -> Self {
-        GamedayError(error.to_string())
+impl From<CdpError> for GamedayError {
+    fn from(error: CdpError) -> Self {
+        GamedayError(error.0)
     }
 }
 
@@ -184,7 +170,7 @@ fn resolve_executable(options: &LaunchOptions) -> GamedayResult<PathBuf> {
             ))),
         };
     }
-    chromiumoxide::detection::default_executable(Default::default()).map_err(|error| {
+    super::cdp::default_executable().map_err(|error| {
         GamedayError(format!(
             "Could not find a Chromium-based browser to launch: {error}"
         ))
@@ -205,7 +191,6 @@ impl BrowserLauncher for ChromeLauncher {
 /// A running browser with its own temporary profile.
 pub struct ChromeBrowser {
     browser: Browser,
-    handler: JoinHandle<()>,
     // removed when the browser is dropped
     _profile: tempfile::TempDir,
 }
@@ -219,69 +204,76 @@ impl ChromeBrowser {
             .map_err(|error| {
                 GamedayError(format!("Could not create a browser profile: {error}"))
             })?;
-        let mut builder = BrowserConfig::builder()
-            .chrome_executable(&executable)
-            .user_data_dir(profile.path())
-            .respect_https_errors()
-            .no_sandbox()
-            .viewport(Viewport {
-                width: 1280,
-                height: 720,
-                device_scale_factor: None,
-                emulating_mobile: false,
-                is_landscape: false,
-                has_touch: false,
-            })
-            .launch_timeout(LAUNCH_TIMEOUT)
-            .request_timeout(Duration::from_secs(180))
-            .args(
-                options
-                    .args
-                    .iter()
-                    .map(|arg| arg.trim_start_matches('-').to_string()),
-            );
-        builder = if options.headless {
-            builder.new_headless_mode()
-        } else {
-            builder.with_head()
-        };
-        let config = builder.build().map_err(GamedayError)?;
-        let (browser, mut handler) = Browser::launch(config).await.map_err(|error| {
+        let browser = Browser::launch(LaunchConfig {
+            executable: &executable,
+            user_data_dir: profile.path(),
+            headless: options.headless,
+            args: &options.args,
+            timeout: LAUNCH_TIMEOUT,
+        })
+        .await
+        .map_err(|error| {
             GamedayError(format!(
                 "Failed to launch {}: {error}",
                 executable.display()
             ))
         })?;
-        let handler = tokio::spawn(async move { while handler.next().await.is_some() {} });
         Ok(ChromeBrowser {
             browser,
-            handler,
             _profile: profile,
         })
     }
 
+    fn session(&self) -> Session {
+        Session {
+            connection: self.browser.connection.clone(),
+            id: None,
+        }
+    }
+
     /// `context.newPage()`.
     pub async fn new_page(&self) -> GamedayResult<ChromePage> {
-        let page = self.browser.new_page("about:blank").await?;
-        ChromePage::attach(page).await
+        let browser = self.session();
+        let target = browser
+            .execute("Target.createTarget", json!({"url": "about:blank"}))
+            .await?;
+        let target_id = target["targetId"].as_str().unwrap_or_default().to_string();
+        let attached = browser
+            .execute(
+                "Target.attachToTarget",
+                json!({"targetId": target_id, "flatten": true}),
+            )
+            .await?;
+        let session = Session {
+            connection: self.browser.connection.clone(),
+            id: attached["sessionId"].as_str().map(str::to_string),
+        };
+        ChromePage::attach(session, target_id).await
     }
 
     /// `context.request`, seeded with the browser's current cookies.
     pub async fn request_context(&self) -> GamedayResult<BrowserRequestContext> {
-        let cookies = self.browser.get_cookies().await?;
-        let user_agent = self.browser.user_agent().await?;
+        let browser = self.session();
+        let cookies = browser.execute("Storage.getCookies", json!({})).await?;
+        let version = browser.execute("Browser.getVersion", json!({})).await?;
+        let user_agent = version["userAgent"]
+            .as_str()
+            .unwrap_or_default()
+            .to_string();
         let jar = reqwest::cookie::Jar::default();
-        for cookie in cookies {
-            let host = cookie.domain.trim_start_matches('.');
-            let scheme = if cookie.secure { "https" } else { "http" };
-            let Ok(url) = url::Url::parse(&format!("{scheme}://{host}{}", cookie.path)) else {
+        for cookie in cookies["cookies"].as_array().into_iter().flatten() {
+            let text = |key: &str| cookie[key].as_str().unwrap_or_default();
+            let (domain, path, secure) = (text("domain"), text("path"), cookie["secure"] == true);
+            let host = domain.trim_start_matches('.');
+            let scheme = if secure { "https" } else { "http" };
+            let Ok(url) = url::Url::parse(&format!("{scheme}://{host}{path}")) else {
                 continue;
             };
-            let mut header = format!("{}={}; Path={}", cookie.name, cookie.value, cookie.path);
-            if cookie.domain.starts_with('.') {
+            let mut header = format!("{}={}; Path={path}", text("name"), text("value"));
+            if domain.starts_with('.') {
                 header.push_str(&format!("; Domain={host}"));
             }
-            if cookie.secure {
+            if secure {
                 header.push_str("; Secure");
             }
             jar.add_cookie_str(&header, &url);
@@ -296,11 +288,8 @@ impl ChromeBrowser {
     }
 
     /// `browser.close()`: closes Chrome and removes its profile.
-    pub async fn close(mut self) {
-        let _ = tokio::time::timeout(Duration::from_secs(10), self.browser.close()).await;
-        let _ = tokio::time::timeout(Duration::from_secs(10), self.browser.wait()).await;
-        let _ = self.browser.kill().await;
-        self.handler.abort();
+    pub async fn close(self) {
+        self.browser.close().await;
     }
 }
 
@@ -388,23 +377,37 @@ struct NetworkActivity {
 /// A browser tab.
 #[derive(Clone)]
 pub struct ChromePage {
-    page: chromiumoxide::Page,
+    page: Session,
+    target_id: String,
     network: Arc<Mutex<NetworkActivity>>,
 }
 
 impl ChromePage {
-    async fn attach(page: chromiumoxide::Page) -> GamedayResult<Self> {
-        page.execute(NetworkEnableParams::default()).await?;
-        page.execute(SetLifecycleEventsEnabledParams::new(true))
+    async fn attach(page: Session, target_id: String) -> GamedayResult<Self> {
+        let mut started = page.listen("Network.requestWillBeSent");
+        let mut finished = page.listen("Network.loadingFinished");
+        let mut failed = page.listen("Network.loadingFailed");
+        page.execute("Page.enable", json!({})).await?;
+        page.execute("Network.enable", json!({})).await?;
+        page.execute("Page.setLifecycleEventsEnabled", json!({"enabled": true}))
             .await?;
+        // Playwright's default 1280x720 viewport
+        page.execute(
+            "Emulation.setDeviceMetricsOverride",
+            json!({
+                "width": 1280,
+                "height": 720,
+                "deviceScaleFactor": 1,
+                "mobile": false,
+                "screenOrientation": {"type": "portraitPrimary", "angle": 0},
+            }),
+        )
+        .await?;
         let network = Arc::new(Mutex::new(NetworkActivity::default()));
-
-        let mut started = page.event_listener::<EventRequestWillBeSent>().await?;
-        let mut finished = page.event_listener::<EventLoadingFinished>().await?;
-        let mut failed = page.event_listener::<EventLoadingFailed>().await?;
         let tracker = network.clone();
         tokio::spawn(async move {
-            let update = |id: String, add: bool| {
+            let update = |event: Value, add: bool| {
+                let id = event["requestId"].as_str().unwrap_or_default().to_string();
                 let mut activity = tracker.lock().unwrap_or_else(|e| e.into_inner());
                 if add {
                     activity.in_flight.insert(id);
@@ -415,39 +418,39 @@ impl ChromePage {
             };
             loop {
                 tokio::select! {
-                    Some(event) = started.next() => update(event.request_id.inner().clone(), true),
-                    Some(event) = finished.next() => update(event.request_id.inner().clone(), false),
-                    Some(event) = failed.next() => update(event.request_id.inner().clone(), false),
+                    Some(event) = started.recv() => update(event, true),
+                    Some(event) = finished.recv() => update(event, false),
+                    Some(event) = failed.recv() => update(event, false),
                     else => break,
                 }
             }
         });
-        Ok(ChromePage { page, network })
+        Ok(ChromePage {
+            page,
+            target_id,
+            network,
+        })
     }
 
     /// Runtime.evaluate, returning the value (`undefined` becomes `null`).
     async fn evaluate_expression(&self, api: &str, expression: String) -> GamedayResult<Value> {
-        let params = EvaluateParams::builder()
-            .expression(expression)
-            .return_by_value(true)
-            .await_promise(true)
-            .build()
-            .map_err(GamedayError)?;
-        let returns = self
+        let mut returns = self
             .page
-            .execute(params)
+            .execute(
+                "Runtime.evaluate",
+                json!({"expression": expression, "returnByValue": true, "awaitPromise": true}),
+            )
             .await
-            .map_err(|error| GamedayError(format!("{api}: {error}")))?
-            .result;
-        if let Some(details) = returns.exception_details {
-            let description = details
-                .exception
-                .and_then(|exception| exception.description)
-                .unwrap_or(details.text);
+            .map_err(|error| GamedayError(format!("{api}: {error}")))?;
+        if let Some(details) = returns.get("exceptionDetails") {
+            let description = details["exception"]["description"]
+                .as_str()
+                .or(details["text"].as_str())
+                .unwrap_or_default();
             let first_line = description.lines().next().unwrap_or_default().to_string();
             return Err(GamedayError(format!("{api}: {first_line}")));
         }
-        Ok(returns.result.value.unwrap_or(Value::Null))
+        Ok(returns["result"]["value"].take())
     }
 
     /// `page.evaluate(fn, arg)`: `function` is JavaScript function source.
@@ -473,7 +476,10 @@ impl ChromePage {
     /// `context.addInitScript(source)` for this page.
     pub async fn add_init_script(&self, source: &str) -> GamedayResult<()> {
         self.page
-            .execute(AddScriptToEvaluateOnNewDocumentParams::new(source))
+            .execute(
+                "Page.addScriptToEvaluateOnNewDocument",
+                json!({"source": source}),
+            )
             .await?;
         Ok(())
     }
@@ -482,27 +488,29 @@ impl ChromePage {
     pub async fn goto(&self, url: &str, timeout_ms: f64) -> GamedayResult<()> {
         let api = "page.goto";
         let deadline = Deadline::new(timeout_ms);
-        let mut lifecycle = self.page.event_listener::<EventLifecycleEvent>().await?;
+        let mut lifecycle = self.page.listen("Page.lifecycleEvent");
         let navigation = tokio::time::timeout(
             deadline.remaining(),
-            self.page.execute(NavigateParams::new(url)),
+            self.page.execute("Page.navigate", json!({"url": url})),
         )
         .await
         .map_err(|_| timeout_error(api, timeout_ms))?
-        .map_err(|error| GamedayError(format!("{api}: {error}")))?
-        .result;
-        if let Some(error) = navigation.error_text.filter(|text| !text.is_empty()) {
+        .map_err(|error| GamedayError(format!("{api}: {error}")))?;
+        if let Some(error) = navigation["errorText"]
+            .as_str()
+            .filter(|text| !text.is_empty())
+        {
             return Err(GamedayError(format!("{api}: {error} at {url}")));
         }
         // same-document navigations have no new loader
-        let Some(loader_id) = navigation.loader_id else {
+        let Some(loader_id) = navigation["loaderId"].as_str() else {
             return Ok(());
         };
         loop {
-            match tokio::time::timeout(deadline.remaining(), lifecycle.next()).await {
+            match tokio::time::timeout(deadline.remaining(), lifecycle.recv()).await {
                 Ok(Some(event)) => {
-                    if event.loader_id == loader_id
-                        && (event.name == "DOMContentLoaded" || event.name == "load")
+                    if event["loaderId"] == loader_id
+                        && (event["name"] == "DOMContentLoaded" || event["name"] == "load")
                     {
                         return Ok(());
                     }
@@ -520,7 +528,21 @@ impl ChromePage {
             .await
         {
             Ok(Value::String(href)) => Ok(href),
-            _ => Ok(self.page.url().await?.unwrap_or_default()),
+            _ => {
+                let info = self
+                    .page
+                    .connection
+                    .call(
+                        None,
+                        "Target.getTargetInfo",
+                        json!({"targetId": self.target_id}),
+                    )
+                    .await?;
+                Ok(info["targetInfo"]["url"]
+                    .as_str()
+                    .unwrap_or_default()
+                    .to_string())
+            }
         }
     }
 
@@ -758,7 +780,9 @@ impl ChromePage {
             )
             .await?;
         } else {
-            self.page.execute(InsertTextParams::new(value)).await?;
+            self.page
+                .execute("Input.insertText", json!({"text": value}))
+                .await?;
         }
         Ok(())
     }
@@ -769,21 +793,25 @@ impl ChromePage {
             .wait_for_actionable("locator.click", locator, DEFAULT_TIMEOUT_MS)
             .await?;
         self.page
-            .execute(DispatchMouseEventParams::new(
-                DispatchMouseEventType::MouseMoved,
-                x,
-                y,
-            ))
+            .execute(
+                "Input.dispatchMouseEvent",
+                json!({"type": "mouseMoved", "x": x, "y": y}),
+            )
             .await?;
-        for kind in [
-            DispatchMouseEventType::MousePressed,
-            DispatchMouseEventType::MouseReleased,
-        ] {
-            let mut event = DispatchMouseEventParams::new(kind, x, y);
-            event.button = Some(MouseButton::Left);
-            event.buttons = Some(1);
-            event.click_count = Some(1);
-            self.page.execute(event).await?;
+        for kind in ["mousePressed", "mouseReleased"] {
+            self.page
+                .execute(
+                    "Input.dispatchMouseEvent",
+                    json!({
+                        "type": kind,
+                        "x": x,
+                        "y": y,
+                        "button": "left",
+                        "buttons": 1,
+                        "clickCount": 1,
+                    }),
+                )
+                .await?;
         }
         Ok(())
     }
@@ -879,22 +907,41 @@ impl ChromePage {
 
     /// `page.screenshot({path, fullPage: true})`.
     pub async fn screenshot_full_page(&self, path: &Path) -> GamedayResult<()> {
-        let bytes = self
+        let metrics = self
             .page
-            .screenshot(
-                ScreenshotParams::builder()
-                    .format(CaptureScreenshotFormat::Png)
-                    .full_page(true)
-                    .build(),
+            .execute("Page.getLayoutMetrics", json!({}))
+            .await?;
+        let size = match metrics.get("cssContentSize") {
+            Some(size) => size,
+            None => &metrics["contentSize"],
+        };
+        let shot = self
+            .page
+            .execute(
+                "Page.captureScreenshot",
+                json!({
+                    "format": "png",
+                    "captureBeyondViewport": true,
+                    "clip": {
+                        "x": 0,
+                        "y": 0,
+                        "width": size["width"],
+                        "height": size["height"],
+                        "scale": 1,
+                    },
+                }),
             )
             .await?;
+        let bytes = base64::engine::general_purpose::STANDARD
+            .decode(shot["data"].as_str().unwrap_or_default())
+            .map_err(|error| GamedayError(error.to_string()))?;
         tokio::fs::write(path, bytes)
             .await
             .map_err(|error| GamedayError(error.to_string()))
     }
 
-    /// The underlying `chromiumoxide` page (tests use it to intercept requests).
-    pub fn raw(&self) -> &chromiumoxide::Page {
+    /// The page's CDP session (tests use it to intercept requests).
+    pub fn raw(&self) -> &Session {
         &self.page
     }
 }
