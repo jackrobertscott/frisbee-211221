@@ -96,15 +96,19 @@ docker run --rm -p 8080:8080 -v frisbee-data:/data \
   frisbee-rust
 ```
 
-On Railway: set the service's root directory to `rust`, point the config
-file at `/rust/railway.json` (config files do not follow the root
-directory), attach a volume at `/data` (Railway does not allow the
-`VOLUME` instruction, so the Dockerfile only sets the path) and set the
-variables from `.env.example`. `railway.json` builds with the Dockerfile
-and health-checks `/health` with a 300 second timeout, since in production
-the server retries its startup tasks for up to four minutes before it
-listens. Keep one replica: SQLite has a single writer. To import the Mongo
-data on Railway, copy a dump into the volume and run
+On Railway the service settings live in `.railway/railway.ts` at the repo
+root, which covers both projects (`frisbee-211221-pul` and
+`frisbee-211221-marlow`) and picks each one's values by the linked project's
+name. Run `npm install` at the repo root once, then `railway config plan` and
+`railway config apply` from a folder linked to the project to change. Pushing
+doesn't apply the file, and it manages the whole project, so a setting or
+resource it omits is reset or deleted. It sets the root directory to `rust`,
+attaches a volume at `/data` (Railway does not allow the `VOLUME` instruction,
+so the Dockerfile only sets the path), builds with the Dockerfile and
+health-checks `/health` with a 300 second timeout, since in production the
+server retries its startup tasks for up to four minutes before it listens.
+Secrets are kept in Railway as `preserve()`; see `.env.example`. Keep one
+replica: SQLite has a single writer. To import the Mongo data on Railway, copy a dump into the volume and run
 `/app/migrate-mongo --dump <dump> --sqlite /data/frisbee.sqlite` in the
 service shell (`railway ssh`), then redeploy; it refuses to replace a
 database that already holds records unless given `--force`.

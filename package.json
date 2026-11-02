@@ -1,0 +1,8 @@
+{
+  "name": "frisbee-211221",
+  "private": true,
+  "description": "Root package only for Railway's infrastructure config (.railway/railway.ts). The app lives in browser/, rust/ and shared/.",
+  "devDependencies": {
+    "railway": "^3.16.0"
+  }
+}

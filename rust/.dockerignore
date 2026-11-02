@@ -10,7 +10,6 @@ data
 .gitignore
 .dockerignore
 Dockerfile
-railway.json
 .DS_Store
 *.log
 .vscode
