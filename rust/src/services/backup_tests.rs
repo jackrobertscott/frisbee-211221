@@ -221,6 +221,7 @@ async fn round_trips_through_a_real_bucket() {
     let dir = tempfile::tempdir().unwrap();
     let db = Db::open(dir.path().join("test.sqlite")).unwrap();
     db.call_blocking(|c| {
+        crate::db::migrations::run_startup_schema_quiet(c)?;
         Ok(c.execute_batch("CREATE TABLE item (name TEXT); INSERT INTO item VALUES ('a')")?)
     })
     .unwrap();

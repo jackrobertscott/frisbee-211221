@@ -114,6 +114,45 @@ replica: SQLite has a single writer. To import the Mongo data on Railway, copy a
 service shell (`railway ssh`), then redeploy; it refuses to replace a
 database that already holds records unless given `--force`.
 
+
+## Backups
+
+The server backs the database up to the project's `frisbee-211221-backups`
+Railway bucket (`src/services/backup.rs`). It checks a minute after starting and
+then hourly, and takes a backup when the newest one is a day old, so days spent
+asleep are caught up on wake. Each snapshot must pass `PRAGMA integrity_check`
+before it is uploaded as `backups/<UTC time>-<SHA-256>.sqlite.gz`. A snapshot
+matching the newest backup's hash is skipped, and only the newest 14 are kept.
+A failure is logged as `Backup failed.` and tried again at the next check.
+Backups are off when `BACKUP_BUCKET` is unset, as in development.
+
+To restore one, take the bucket's details from
+`railway bucket credentials --bucket frisbee-211221-backups --json`, then list
+the backups and download the one you want:
+
+```sh
+export BASE="https://$BUCKET.t3.storageapi.dev"
+curl --aws-sigv4 "aws:amz:$REGION:s3" --user "$KEY:$SECRET" "$BASE/?list-type=2&prefix=backups%2F"
+curl -f --aws-sigv4 "aws:amz:$REGION:s3" --user "$KEY:$SECRET" "$BASE/backups/<name>.sqlite.gz" -o backup.sqlite.gz
+gunzip backup.sqlite.gz
+```
+
+Then swap it onto the volume and restart, comparing the printed hash with
+`shasum -a 256 backup.sqlite` and the hash in the backup's name:
+
+```sh
+railway ssh "cat > /data/frisbee.sqlite.new && sha256sum /data/frisbee.sqlite.new" < backup.sqlite
+railway ssh "mv /data/frisbee.sqlite.new /data/frisbee.sqlite && rm -f /data/frisbee.sqlite-wal /data/frisbee.sqlite-shm"
+railway restart -s frisbee-211221-rust -y
+```
+
+The server opens a backup directly. The `sqlite3` CLI can't run every query on
+one, because it lacks the server's custom collations (`ci`, `season_name`).
+
+To test the client against a real bucket, set the `BACKUP_*` variables and run
+`cargo test --lib round_trips_through_a_real_bucket -- --ignored`. It works under
+its own `test-round-trip/` prefix and cleans up after itself.
+
 ## Parity checks against the TS server
 
 `parity/` holds two TypeScript scripts that prove the swap is seamless. They
