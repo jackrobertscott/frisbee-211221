@@ -1,4 +1,4 @@
-import { defineRailway, github, mongo, preserve, project, service, volume } from 'railway/iac'
+import { bucket, defineRailway, github, mongo, preserve, project, ref, service, volume } from 'railway/iac'
 
 const REGION = 'asia-southeast1-eqsg3a'
 
@@ -36,6 +36,9 @@ export default defineRailway((ctx) => {
   const data = volume('frisbee-211221-rust-volume', { region: REGION, sizeMB: 50000 })
   const mongoData = volume('mongodb-volume', { region: REGION, sizeMB: 50000 })
 
+  // Daily SQLite backups, the newest 14 kept (rust/src/services/backup.rs).
+  const backups = bucket('frisbee-211221-backups', { region: 'sin' })
+
   const mongodb = mongo('MongoDB', { region: REGION })
   mongodb.deploy = {
     startCommand:
@@ -46,6 +49,7 @@ export default defineRailway((ctx) => {
 
   return project(projectName, {
     resources: [
+      backups,
       service('frisbee-211221-rust', {
         source: github('jackrobertscott/frisbee-211221', {
           branch: 'master',
@@ -71,6 +75,11 @@ export default defineRailway((ctx) => {
         variables: {
           ...Object.fromEntries(SECRET_NAME_ARR.map((name) => [name, preserve()])),
           APP_NAME: site.appName,
+          BACKUP_BUCKET: ref(backups, 'BUCKET'),
+          BACKUP_ENDPOINT: ref(backups, 'ENDPOINT'),
+          BACKUP_REGION: ref(backups, 'REGION'),
+          BACKUP_ACCESS_KEY_ID: ref(backups, 'ACCESS_KEY_ID'),
+          BACKUP_SECRET_ACCESS_KEY: ref(backups, 'SECRET_ACCESS_KEY'),
           NODE_ENV: 'production',
           PORT: '8080',
           SES_FROM_EMAIL: 'noreply@marlowst.com',

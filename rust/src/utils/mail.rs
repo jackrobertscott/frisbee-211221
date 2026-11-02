@@ -5,9 +5,8 @@
 
 use crate::config::Config;
 use crate::shared::errors::{AppError, AppResult};
-use hmac::{Hmac, KeyInit, Mac};
+use crate::utils::sigv4::{SigV4Request, sha256_hex, sign_v4};
 use serde_json::{Map, Value, json};
-use sha2::{Digest, Sha256};
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::{Arc, Mutex};
@@ -145,11 +144,14 @@ impl MailTransport for SesTransport {
             let amz_date = chrono::Utc::now().format("%Y%m%dT%H%M%SZ").to_string();
             let signed = sign_v4(&SigV4Request {
                 method: "POST",
-                host: &host,
                 path,
                 query: "",
-                content_type: "application/json",
-                body: body.as_bytes(),
+                headers: &[
+                    ("content-type", "application/json"),
+                    ("host", &host),
+                    ("x-amz-date", &amz_date),
+                ],
+                payload_sha256: &sha256_hex(body.as_bytes()),
                 amz_date: &amz_date,
                 region: &region,
                 service: "ses",
@@ -175,68 +177,6 @@ impl MailTransport for SesTransport {
             Ok(())
         })
     }
-}
-
-/// The parts of a request Signature Version 4 covers.
-pub struct SigV4Request<'a> {
-    pub method: &'a str,
-    pub host: &'a str,
-    pub path: &'a str,
-    /// Already-canonical query string (sorted, encoded), or empty.
-    pub query: &'a str,
-    pub content_type: &'a str,
-    pub body: &'a [u8],
-    /// `YYYYMMDDTHHMMSSZ`.
-    pub amz_date: &'a str,
-    pub region: &'a str,
-    pub service: &'a str,
-    pub access_key_id: &'a str,
-    pub secret_access_key: &'a str,
-}
-
-fn hmac(key: &[u8], data: &str) -> Vec<u8> {
-    let mut mac = <Hmac<Sha256> as KeyInit>::new_from_slice(key).unwrap_or_else(|_| unreachable!());
-    mac.update(data.as_bytes());
-    mac.finalize().into_bytes().to_vec()
-}
-
-fn sha256_hex(data: &[u8]) -> String {
-    hex::encode(Sha256::digest(data))
-}
-
-/// The `Authorization` header value for `request`.
-pub fn sign_v4(request: &SigV4Request<'_>) -> String {
-    let date = &request.amz_date[..8];
-    let signed_headers = "content-type;host;x-amz-date";
-    let canonical_request = format!(
-        "{}\n{}\n{}\ncontent-type:{}\nhost:{}\nx-amz-date:{}\n\n{}\n{}",
-        request.method,
-        request.path,
-        request.query,
-        request.content_type,
-        request.host,
-        request.amz_date,
-        signed_headers,
-        sha256_hex(request.body)
-    );
-    let scope = format!("{date}/{}/{}/aws4_request", request.region, request.service);
-    let string_to_sign = format!(
-        "AWS4-HMAC-SHA256\n{}\n{scope}\n{}",
-        request.amz_date,
-        sha256_hex(canonical_request.as_bytes())
-    );
-    let k_date = hmac(
-        format!("AWS4{}", request.secret_access_key).as_bytes(),
-        date,
-    );
-    let k_region = hmac(&k_date, request.region);
-    let k_service = hmac(&k_region, request.service);
-    let k_signing = hmac(&k_service, "aws4_request");
-    let signature = hex::encode(hmac(&k_signing, &string_to_sign));
-    format!(
-        "AWS4-HMAC-SHA256 Credential={}/{scope}, SignedHeaders={signed_headers}, Signature={signature}",
-        request.access_key_id
-    )
 }
 
 #[cfg(test)]
@@ -319,28 +259,5 @@ mod tests {
                 .unwrap_err();
             assert_eq!(error.message, "MessageRejected");
         }
-    }
-
-    #[test]
-    fn signs_requests_like_the_aws_signature_v4_reference() {
-        // AWS documentation example (IAM ListUsers), adapted to the signed
-        // header set this signer uses
-        let authorization = sign_v4(&SigV4Request {
-            method: "GET",
-            host: "iam.amazonaws.com",
-            path: "/",
-            query: "Action=ListUsers&Version=2010-05-08",
-            content_type: "application/x-www-form-urlencoded; charset=utf-8",
-            body: b"",
-            amz_date: "20150830T123600Z",
-            region: "us-east-1",
-            service: "iam",
-            access_key_id: "AKIDEXAMPLE",
-            secret_access_key: "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
-        });
-        assert_eq!(
-            authorization,
-            "AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/20150830/us-east-1/iam/aws4_request, SignedHeaders=content-type;host;x-amz-date, Signature=5d672d79c15b13162d9279b0855cfba6789a8edb4c82c400e06b5924a6f2b5d7"
-        );
     }
 }

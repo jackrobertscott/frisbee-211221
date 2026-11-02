@@ -20,8 +20,8 @@ use crate::shared::errors::{AppError, AppResult};
 use crate::shared::utils::season_name::{SEASON_NAME_SQL_COLLATION, compare_season_names};
 use r2d2::{Pool, PooledConnection};
 use r2d2_sqlite::SqliteConnectionManager;
-use rusqlite::Connection;
 use rusqlite::functions::FunctionFlags;
+use rusqlite::{Connection, OpenFlags};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
@@ -52,8 +52,7 @@ pub fn init_connection(conn: &Connection) -> rusqlite::Result<()> {
     conn.pragma_update(None, "journal_mode", "WAL")?;
     conn.pragma_update(None, "synchronous", "NORMAL")?;
     conn.pragma_update(None, "foreign_keys", "ON")?;
-    conn.create_collation("ci", |a, b| a.to_lowercase().cmp(&b.to_lowercase()))?;
-    conn.create_collation(SEASON_NAME_SQL_COLLATION, compare_season_names)?;
+    register_collations(conn)?;
     conn.create_scalar_function(
         "contains_ci",
         2,
@@ -67,6 +66,12 @@ pub fn init_connection(conn: &Connection) -> rusqlite::Result<()> {
             })
         },
     )?;
+    Ok(())
+}
+
+fn register_collations(conn: &Connection) -> rusqlite::Result<()> {
+    conn.create_collation("ci", |a, b| a.to_lowercase().cmp(&b.to_lowercase()))?;
+    conn.create_collation(SEASON_NAME_SQL_COLLATION, compare_season_names)?;
     Ok(())
 }
 
@@ -118,6 +123,20 @@ impl Db {
             .map_err(AppError::internal_from)?
     }
 
+    /// Writes a consistent copy of the database to `path` with `VACUUM INTO`,
+    /// which works while the server is writing, then checks the copy is sound.
+    pub async fn snapshot_to(&self, path: PathBuf) -> AppResult<()> {
+        let target = path.to_string_lossy().into_owned();
+        self.call(move |conn| {
+            conn.execute("VACUUM INTO ?1", [target])?;
+            Ok(())
+        })
+        .await?;
+        tokio::task::spawn_blocking(move || check_integrity(&path))
+            .await
+            .map_err(AppError::internal_from)?
+    }
+
     /// [`Db::call`] for synchronous contexts (startup, tests, CLIs).
     pub fn call_blocking<R>(&self, work: impl FnOnce(&Connection) -> AppResult<R>) -> AppResult<R> {
         let conn = self.connection()?;
@@ -135,6 +154,19 @@ impl Db {
         tx.commit()?;
         Ok(result)
     }
+}
+
+/// Fails unless `PRAGMA integrity_check` passes on the database at `path`.
+pub fn check_integrity(path: &Path) -> AppResult<()> {
+    let conn = Connection::open_with_flags(path, OpenFlags::SQLITE_OPEN_READ_ONLY)?;
+    register_collations(&conn)?;
+    let result: String = conn.query_row("PRAGMA integrity_check", [], |row| row.get(0))?;
+    if result != "ok" {
+        return Err(AppError::internal_from(format!(
+            "Integrity check failed: {result}"
+        )));
+    }
+    Ok(())
 }
 
 static SAVEPOINT_COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -242,5 +274,23 @@ mod tests {
             })
             .unwrap();
         assert_eq!((ci, season, contains), (1, 1, 1));
+    }
+
+    #[tokio::test]
+    async fn snapshots_a_sound_copy_and_rejects_a_corrupt_one() {
+        let (dir, db) = temp_db();
+        let copy = dir.path().join("copy.sqlite");
+        db.call_blocking(|c| Ok(c.execute("INSERT INTO item (name) VALUES ('a')", [])?))
+            .unwrap();
+        db.snapshot_to(copy.clone()).await.unwrap();
+        let rows: i64 = Connection::open(&copy)
+            .unwrap()
+            .query_row("SELECT COUNT(*) FROM item", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(rows, 1);
+
+        let garbage = dir.path().join("garbage.sqlite");
+        std::fs::write(&garbage, vec![7u8; 8192]).unwrap();
+        assert!(check_integrity(&garbage).is_err());
     }
 }

@@ -10,6 +10,16 @@ use serde_json::{Map, Value};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
+/// The Railway bucket for database backups.
+#[derive(Clone, Debug, PartialEq)]
+pub struct BackupConfig {
+    pub bucket: String,
+    pub endpoint: String,
+    pub region: String,
+    pub access_key_id: String,
+    pub secret_access_key: String,
+}
+
 /// The validated server configuration.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Config {
@@ -27,11 +37,13 @@ pub struct Config {
     pub session_ttl_days: i64,
     /// `GAMEDAY_IMPORT_SCHEDULER_DISABLED` (read by `gameday/scheduler.ts`).
     pub gameday_import_scheduler_disabled: bool,
+    /// Backups are off when `BACKUP_BUCKET` is unset, as in development.
+    pub backup: Option<BackupConfig>,
 }
 
 /// Every environment variable the server reads (beyond the GameDay exporter's
 /// own `GAMEDAY_*` options, which `gameday` reads directly).
-pub const ENV_KEYS: [&str; 13] = [
+pub const ENV_KEYS: [&str; 18] = [
     "APP_NAME",
     "URL_CLIENT",
     "SQLITE_PATH",
@@ -45,6 +57,11 @@ pub const ENV_KEYS: [&str; 13] = [
     "SESSION_TTL_DAYS",
     "GAMEDAY_IMPORT_SCHEDULER_DISABLED",
     "AWS_REGION",
+    "BACKUP_BUCKET",
+    "BACKUP_ENDPOINT",
+    "BACKUP_REGION",
+    "BACKUP_ACCESS_KEY_ID",
+    "BACKUP_SECRET_ACCESS_KEY",
 ];
 
 impl Config {
@@ -160,6 +177,7 @@ impl Config {
                 vars.get("GAMEDAY_IMPORT_SCHEDULER_DISABLED")
                     .map(String::as_str),
             ),
+            backup: read_backup_config(vars)?,
         })
     }
 
@@ -179,8 +197,30 @@ impl Config {
             port: 4999,
             session_ttl_days: 90,
             gameday_import_scheduler_disabled: true,
+            backup: None,
         }
     }
+}
+
+/// With a bucket set, the rest are required: a typo must not turn backups off
+/// silently.
+fn read_backup_config(vars: &HashMap<String, String>) -> Result<Option<BackupConfig>, String> {
+    let read = |key: &str| vars.get(key).map(|v| crate::js::trim(v).to_string());
+    let Some(bucket) = read("BACKUP_BUCKET").filter(|v| !v.is_empty()) else {
+        return Ok(None);
+    };
+    let required = |key: &str| {
+        read(key).filter(|v| !v.is_empty()).ok_or_else(|| {
+            format!("Invalid server environment: [{key}]: Required with BACKUP_BUCKET.")
+        })
+    };
+    Ok(Some(BackupConfig {
+        bucket,
+        endpoint: required("BACKUP_ENDPOINT")?,
+        region: required("BACKUP_REGION")?,
+        access_key_id: required("BACKUP_ACCESS_KEY_ID")?,
+        secret_access_key: required("BACKUP_SECRET_ACCESS_KEY")?,
+    }))
 }
 
 /// How `gameday/scheduler.ts` reads `GAMEDAY_IMPORT_SCHEDULER_DISABLED`:
@@ -270,5 +310,25 @@ mod tests {
         assert!(config.is_production);
         assert_eq!(config.session_ttl_days, 7);
         assert!(config.gameday_import_scheduler_disabled);
+    }
+
+    #[test]
+    fn backups_are_off_without_a_bucket_and_need_every_variable_with_one() {
+        assert_eq!(Config::from_vars(&vars(&base())).unwrap().backup, None);
+
+        let mut pairs = base();
+        pairs.push(("BACKUP_BUCKET", "frisbee-backups"));
+        assert_eq!(
+            Config::from_vars(&vars(&pairs)).unwrap_err(),
+            "Invalid server environment: [BACKUP_ENDPOINT]: Required with BACKUP_BUCKET."
+        );
+
+        pairs.push(("BACKUP_ENDPOINT", "https://storage.example.com"));
+        pairs.push(("BACKUP_REGION", "sin"));
+        pairs.push(("BACKUP_ACCESS_KEY_ID", "key"));
+        pairs.push(("BACKUP_SECRET_ACCESS_KEY", "secret"));
+        let backup = Config::from_vars(&vars(&pairs)).unwrap().backup.unwrap();
+        assert_eq!(backup.bucket, "frisbee-backups");
+        assert_eq!(backup.region, "sin");
     }
 }

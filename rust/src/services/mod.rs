@@ -2,6 +2,7 @@
 //! add their own modules (one per TS service file).
 
 pub mod auth_payload;
+pub mod backup;
 pub mod csv_import;
 pub mod export_archive;
 pub mod fixture_schedule;

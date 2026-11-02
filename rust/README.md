@@ -32,6 +32,7 @@ database file (parent directories are created automatically).
 | `SESSION_TTL_DAYS` | Session lifetime (default 90). |
 | `NODE_ENV` | `production` enables production mode and loads `.env.production` instead of `.env`. |
 | `GAMEDAY_IMPORT_SCHEDULER_DISABLED` | `1`, `true`, `yes` or `on` disables the GameDay import scheduler. |
+| `BACKUP_BUCKET`, `BACKUP_ENDPOINT`, `BACKUP_REGION`, `BACKUP_ACCESS_KEY_ID`, `BACKUP_SECRET_ACCESS_KEY` | S3-compatible bucket for daily database backups. Backups are off without `BACKUP_BUCKET`, which requires the rest. |
 | `GAMEDAY_EXPORT_BIN` | Path of the GameDay exporter binary (default: `gameday-export` next to `frisbee-server`). |
 | `GAMEDAY_PROCESS_TIMEOUT_MS` | How long a GameDay export may run (default 10 minutes; falls back to `GAMEDAY_TIMEOUT_MS`). |
 

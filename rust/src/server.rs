@@ -90,6 +90,7 @@ pub async fn bootstrap() -> Result<(), String> {
     let mailer = Mailer::ses(config.clone());
     let state = AppState::new(config.clone(), db, mailer, crate::endpoints::all());
     crate::gameday::scheduler::start_gameday_import_scheduler(&state);
+    crate::services::backup::start_backups(&config, &state.db);
     let listener = bind(config.port).await.map_err(|error| error.to_string())?;
     let env_name = if config.is_production { "prod" } else { "dev" };
     log::log(format!(
