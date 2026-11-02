@@ -1,5 +1,9 @@
 use super::*;
+use crate::db::Filter;
+use crate::db::migrations::run_startup_schema_quiet;
+use crate::tables::SEASON;
 use flate2::read::GzDecoder;
+use serde_json::json;
 use std::collections::BTreeMap;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
@@ -67,8 +71,7 @@ impl Setup {
     fn new() -> Self {
         let dir = tempfile::tempdir().unwrap();
         let db = Db::open(dir.path().join("test.sqlite")).unwrap();
-        db.call_blocking(|c| Ok(c.execute_batch("CREATE TABLE item (name TEXT)")?))
-            .unwrap();
+        db.call_blocking(run_startup_schema_quiet).unwrap();
         let store = Arc::new(MemoryStore::default());
         let now = Arc::new(Mutex::new(
             DateTime::parse_from_rfc3339("2026-11-02T03:00:00Z")
@@ -91,11 +94,8 @@ impl Setup {
         }
     }
 
-    fn write(&self, name: &str) {
-        let name = name.to_string();
-        self.db
-            .call_blocking(|c| Ok(c.execute("INSERT INTO item (name) VALUES (?1)", [name])?))
-            .unwrap();
+    async fn write(&self, name: &str) {
+        add_season(&self.db, name).await;
     }
 
     fn advance(&self, hours: i64) {
@@ -103,17 +103,22 @@ impl Setup {
     }
 }
 
-fn item_count(path: &Path) -> i64 {
-    rusqlite::Connection::open(path)
-        .unwrap()
-        .query_row("SELECT COUNT(*) FROM item", [], |row| row.get(0))
-        .unwrap()
+async fn add_season(db: &Db, name: &str) {
+    SEASON
+        .create_one(db, json!({ "name": name, "signUpOpen": false }))
+        .await
+        .unwrap();
+}
+
+async fn season_count(path: &Path) -> i64 {
+    let db = Db::open(path).unwrap();
+    SEASON.count(&db, Filter::all()).await.unwrap()
 }
 
 #[tokio::test]
 async fn uploads_a_restorable_copy_named_by_time_and_hash() {
     let mut s = Setup::new();
-    s.write("a");
+    s.write("a").await;
     let key = s.backup.run_if_due().await.unwrap().unwrap();
     assert!(key.starts_with("backups/20261102T030000Z-"));
     assert!(key.ends_with(".sqlite.gz"));
@@ -125,21 +130,21 @@ async fn uploads_a_restorable_copy_named_by_time_and_hash() {
         .unwrap();
     let path = s.dir.path().join("restored.sqlite");
     std::fs::write(&path, &restored).unwrap();
-    assert_eq!(item_count(&path), 1);
     let hash = crate::utils::sigv4::sha256_hex(&restored);
     assert!(key.contains(&hash));
+    assert_eq!(season_count(&path).await, 1);
     assert!(!s.dir.path().join("backup-tmp").exists());
 }
 
 #[tokio::test]
 async fn waits_a_day_without_contacting_the_bucket() {
     let mut s = Setup::new();
-    s.write("a");
+    s.write("a").await;
     s.backup.run_if_due().await.unwrap().unwrap();
     let lists = s.store.lists.load(Ordering::SeqCst);
 
     s.advance(23);
-    s.write("b");
+    s.write("b").await;
     assert_eq!(s.backup.run_if_due().await.unwrap(), None);
     assert_eq!(s.store.lists.load(Ordering::SeqCst), lists);
 
@@ -159,7 +164,7 @@ async fn a_restart_does_not_back_up_again_within_the_day() {
 #[tokio::test]
 async fn skips_the_upload_when_nothing_changed() {
     let mut s = Setup::new();
-    s.write("a");
+    s.write("a").await;
     s.backup.run_if_due().await.unwrap().unwrap();
     s.advance(24);
     assert_eq!(s.backup.run_if_due().await.unwrap(), None);
@@ -176,7 +181,7 @@ async fn keeps_the_newest_fourteen_and_leaves_other_objects_alone() {
     }
     s.store.add("backups/notes.txt");
     s.store.add("other/20261001T000000Z-x.sqlite.gz");
-    s.write("a");
+    s.write("a").await;
     let key = s.backup.run_if_due().await.unwrap().unwrap();
 
     let keys = s.store.keys();
@@ -191,7 +196,7 @@ async fn keeps_the_newest_fourteen_and_leaves_other_objects_alone() {
 #[tokio::test]
 async fn a_failed_upload_cleans_up_and_retries_at_the_next_check() {
     let mut s = Setup::new();
-    s.write("a");
+    s.write("a").await;
     s.store.fail_put.store(true, Ordering::SeqCst);
     let error = s.backup.run_if_due().await.unwrap_err();
     assert_eq!(error.message, "upload refused");
@@ -220,11 +225,8 @@ async fn round_trips_through_a_real_bucket() {
     let prefix = "test-round-trip/";
     let dir = tempfile::tempdir().unwrap();
     let db = Db::open(dir.path().join("test.sqlite")).unwrap();
-    db.call_blocking(|c| {
-        crate::db::migrations::run_startup_schema_quiet(c)?;
-        Ok(c.execute_batch("CREATE TABLE item (name TEXT); INSERT INTO item VALUES ('a')")?)
-    })
-    .unwrap();
+    db.call_blocking(run_startup_schema_quiet).unwrap();
+    add_season(&db, "a").await;
     let mut backup =
         Backup::with_prefix(client.clone(), db, dir.path(), Box::new(Utc::now), prefix);
     let key = backup.run_if_due().await.unwrap().unwrap();

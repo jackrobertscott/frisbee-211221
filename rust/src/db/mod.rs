@@ -169,6 +169,39 @@ pub fn check_integrity(path: &Path) -> AppResult<()> {
     Ok(())
 }
 
+fn with_suffix(path: &Path, suffix: &str) -> PathBuf {
+    let mut name = path.as_os_str().to_os_string();
+    name.push(suffix);
+    PathBuf::from(name)
+}
+
+/// Swaps in a backup left at `<database>.restore`, keeping the current database
+/// as `<database>.before-restore`. Call before opening the database: the swap is
+/// only safe with no connections open. Returns whether it restored. A backup
+/// that fails its integrity check is left in place, with the database untouched.
+pub fn apply_pending_restore(path: &Path) -> AppResult<bool> {
+    let restore = with_suffix(path, ".restore");
+    if !restore.exists() {
+        return Ok(false);
+    }
+    check_integrity(&restore)?;
+    let before = with_suffix(path, ".before-restore");
+    // when the database is already gone, an interrupted swap moved it to `before`
+    if path.exists() {
+        for suffix in ["", "-wal", "-shm"] {
+            let _ = std::fs::remove_file(with_suffix(&before, suffix));
+        }
+        std::fs::rename(path, &before)?;
+    }
+    let wal = with_suffix(path, "-wal");
+    if wal.exists() {
+        std::fs::rename(&wal, with_suffix(&before, "-wal"))?;
+    }
+    let _ = std::fs::remove_file(with_suffix(path, "-shm"));
+    std::fs::rename(&restore, path)?;
+    Ok(true)
+}
+
 static SAVEPOINT_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 /// Runs `work` atomically on `conn` whether or not a transaction is already
@@ -292,5 +325,85 @@ mod tests {
         let garbage = dir.path().join("garbage.sqlite");
         std::fs::write(&garbage, vec![7u8; 8192]).unwrap();
         assert!(check_integrity(&garbage).is_err());
+    }
+
+    fn item_count(path: &Path) -> i64 {
+        Connection::open(path)
+            .unwrap()
+            .query_row("SELECT COUNT(*) FROM item", [], |row| row.get(0))
+            .unwrap()
+    }
+
+    fn database_with_items(path: &Path, items: usize) {
+        let conn = Connection::open(path).unwrap();
+        conn.execute_batch("CREATE TABLE item (name TEXT)").unwrap();
+        for _ in 0..items {
+            conn.execute("INSERT INTO item (name) VALUES ('a')", [])
+                .unwrap();
+        }
+    }
+
+    #[test]
+    fn restoring_does_nothing_without_a_backup() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.sqlite");
+        database_with_items(&path, 1);
+        assert!(!apply_pending_restore(&path).unwrap());
+        assert_eq!(item_count(&path), 1);
+    }
+
+    #[test]
+    fn restoring_swaps_in_the_backup_and_keeps_the_old_database_with_its_wal() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.sqlite");
+        let restore = dir.path().join("test.sqlite.restore");
+        database_with_items(&restore, 2);
+        // left open so its writes stay in the WAL, as after a hard stop
+        let current = Connection::open(&path).unwrap();
+        current.pragma_update(None, "journal_mode", "WAL").unwrap();
+        current
+            .pragma_update(None, "wal_autocheckpoint", 0)
+            .unwrap();
+        current
+            .execute_batch("CREATE TABLE item (name TEXT); INSERT INTO item VALUES ('old')")
+            .unwrap();
+        assert!(dir.path().join("test.sqlite-wal").exists());
+
+        assert!(apply_pending_restore(&path).unwrap());
+        drop(current);
+
+        assert_eq!(item_count(&path), 2);
+        assert!(!restore.exists());
+        assert_eq!(
+            item_count(&dir.path().join("test.sqlite.before-restore")),
+            1
+        );
+        assert!(!apply_pending_restore(&path).unwrap());
+    }
+
+    #[test]
+    fn restoring_leaves_the_database_alone_when_the_backup_is_corrupt() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.sqlite");
+        let restore = dir.path().join("test.sqlite.restore");
+        database_with_items(&path, 1);
+        std::fs::write(&restore, vec![7u8; 8192]).unwrap();
+
+        assert!(apply_pending_restore(&path).is_err());
+        assert_eq!(item_count(&path), 1);
+        assert!(restore.exists());
+    }
+
+    #[test]
+    fn restoring_finishes_after_being_interrupted_without_losing_the_old_database() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.sqlite");
+        let before = dir.path().join("test.sqlite.before-restore");
+        database_with_items(&before, 1);
+        database_with_items(&dir.path().join("test.sqlite.restore"), 2);
+
+        assert!(apply_pending_restore(&path).unwrap());
+        assert_eq!(item_count(&path), 2);
+        assert_eq!(item_count(&before), 1);
     }
 }

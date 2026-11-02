@@ -137,14 +137,24 @@ curl -f --aws-sigv4 "aws:amz:$REGION:s3" --user "$KEY:$SECRET" "$BASE/backups/<n
 gunzip backup.sqlite.gz
 ```
 
-Then swap it onto the volume and restart, comparing the printed hash with
-`shasum -a 256 backup.sqlite` and the hash in the backup's name:
+Then upload it next to the database and restart. Compare the printed hash with
+`shasum -a 256 backup.sqlite` and the hash in the backup's name before moving it
+into place. The upload needs the server awake, so request `/health` first if it
+is asleep:
 
 ```sh
-railway ssh "cat > /data/frisbee.sqlite.new && sha256sum /data/frisbee.sqlite.new" < backup.sqlite
-railway ssh "mv /data/frisbee.sqlite.new /data/frisbee.sqlite && rm -f /data/frisbee.sqlite-wal /data/frisbee.sqlite-shm"
+railway ssh "cat > /data/frisbee.sqlite.restore.tmp && sha256sum /data/frisbee.sqlite.restore.tmp" < backup.sqlite
+railway ssh "mv /data/frisbee.sqlite.restore.tmp /data/frisbee.sqlite.restore"
 railway restart -s frisbee-211221-rust -y
 ```
+
+On starting, before opening the database, the server checks the file's integrity
+and swaps it in, logging `Restored the database from a backup.` The database it
+replaced is kept as `frisbee.sqlite.before-restore`, with its WAL file, until the
+next restore. If the check fails, the server logs `Database restore skipped`,
+leaves `frisbee.sqlite.restore` in place and starts on the current database, so
+delete or replace that file. Don't swap the files while the server is running:
+its open connections would keep writing to the old database.
 
 The server opens a backup directly. The `sqlite3` CLI can't run every query on
 one, because it lacks the server's custom collations (`ci`, `season_name`).

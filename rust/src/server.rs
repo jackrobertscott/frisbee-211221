@@ -83,6 +83,14 @@ pub async fn bind(port: u16) -> std::io::Result<TcpListener> {
 /// `bootstrap()`: config, database, startup tasks, scheduler, then listen.
 pub async fn bootstrap() -> Result<(), String> {
     let config = Arc::new(Config::load()?);
+    match crate::db::apply_pending_restore(&config.sqlite_path) {
+        Ok(true) => log::log("Restored the database from a backup."),
+        Ok(false) => {}
+        Err(error) => log::error(format!(
+            "Database restore skipped, keeping the current database. {}",
+            error.message
+        )),
+    }
     let db = Db::open(&config.sqlite_path).map_err(|error| error.message.clone())?;
     crate::startup::run_startup_tasks(&crate::startup::startup_tasks(&db), config.is_production)
         .await
