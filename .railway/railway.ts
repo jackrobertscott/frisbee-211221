@@ -62,8 +62,8 @@ export default defineRailway((ctx) => {
         deploy: {
           healthcheckPath: '/health',
           healthcheckTimeout: 300,
-          restartPolicyType: 'ON_FAILURE',
-          restartPolicyMaxRetries: 10,
+          // The restart policy stays at Railway's default, ON_FAILURE with 10 retries:
+          // Railway doesn't store those values, so setting them never stops showing in the plan.
           sleepApplication: site.sleepApplication,
           // SQLite allows exactly one instance.
           multiRegionConfig: { [REGION]: { numReplicas: 1 } },
