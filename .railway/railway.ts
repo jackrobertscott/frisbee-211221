@@ -9,7 +9,6 @@ type Site = {
   appName: string
   apiDomain: string
   clientUrl: string
-  sleepApplication?: true
   mongoTcpProxies: Record<string, Record<string, never>>
 }
 
@@ -25,7 +24,6 @@ const SITE_BY_PROJECT: Record<string, Site> = {
     appName: 'Marlow Street',
     apiDomain: 'api.marlowst.com',
     clientUrl: 'https://www.marlowst.com',
-    sleepApplication: true,
     mongoTcpProxies: {},
   },
 }
@@ -64,7 +62,7 @@ export default defineRailway((ctx) => {
           healthcheckTimeout: 300,
           // The restart policy stays at Railway's default, ON_FAILURE with 10 retries:
           // Railway doesn't store those values, so setting them never stops showing in the plan.
-          sleepApplication: site.sleepApplication,
+          sleepApplication: true,
           // SQLite allows exactly one instance.
           multiRegionConfig: { [REGION]: { numReplicas: 1 } },
         },
