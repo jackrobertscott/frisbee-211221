@@ -8,7 +8,8 @@ html, body, #root { min-height: 100%; }
   --fr-safe-b: env(safe-area-inset-bottom, 0px);
   --fr-safe-l: env(safe-area-inset-left, 0px);
 }
-body { background: var(--bg-app); }
+/* iOS Safari tints the status bar area from the page background and fades it into the content. The header is the surface colour, so the page background matches it; .fr-app paints the grey page itself. */
+html, body { background: var(--bg-surface); }
 
 .fr-app {
   min-height: 100vh;
